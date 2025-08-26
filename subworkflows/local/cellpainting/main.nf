@@ -31,7 +31,6 @@ workflow CELLPAINTING {
         }
         .set { ch_images_with_csv }
 
-    ch_images_with_csv.view()
 
     CELLPROFILER_ILLUMINATIONCORRECTION (
         ch_images_with_csv,

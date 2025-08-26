@@ -69,18 +69,18 @@ process CELLPROFILER_ILLUMINATIONCORRECTION {
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
-        cellprofiler: \$(cellprofiler --version |& sed '1!d ; s/cellprofiler //')
+        cellprofiler: \$(cellprofiler --version)
     END_VERSIONS
     """
 
     stub:
     """
     mkdir -p illumination_corrections
-    echo 'this is not an illumination correction' > illumination_corrections/${meta.plate}_Illum${meta.channel}.npy
+    echo 'this is not an illumination correction' > illumination_corrections/${meta.plate}_Illum${meta.channels}.npy
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
-        cellprofiler: \$(cellprofiler --version |& sed '1!d ; s/cellprofiler //')
+        cellprofiler: \$(cellprofiler --version)
     END_VERSIONS
     """
 }

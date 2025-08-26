@@ -30,7 +30,7 @@
                             "channels": "CHN2-AF488",
                             "id": "Batch1_Plate1_CHN2-AF488"
                         },
-                        "Plate1_Illumnull.npy:md5,1950d1deb8bc1c4cc1c859cd0174ecc3"
+                        "Plate1_IllumCHN2-AF488.npy:md5,1950d1deb8bc1c4cc1c859cd0174ecc3"
                     ]
                 ],
                 "1": [
@@ -44,7 +44,7 @@
                             "channels": "CHN2-AF488",
                             "id": "Batch1_Plate1_CHN2-AF488"
                         },
-                        "Plate1_Illumnull.npy:md5,1950d1deb8bc1c4cc1c859cd0174ecc3"
+                        "Plate1_IllumCHN2-AF488.npy:md5,1950d1deb8bc1c4cc1c859cd0174ecc3"
                     ]
                 ],
                 "versions": [
