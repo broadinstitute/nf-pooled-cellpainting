@@ -2,17 +2,14 @@
 
 ## Introduction
 
-**seqera-services/nf-pooled-cellpainting** is a bioinformatics pipeline that ...
+**nf-pooled-cellpainting** is a bioinformatics pipeline to process optical pooled screening (OPS) data.
+
+> [!WARNING]
+> This pipeline is currently under active development by Seqera and the Broad Institute's imaging platform.
 
 <!-- TODO nf-core:
-   Complete this sentence with a 2-3 sentence summary of what types of data the pipeline ingests, a brief overview of the
-   major pipeline sections and the types of output it produces. You're giving an overview to someone new
-   to nf-core here, in 15-20 seconds. For an example, see https://github.com/nf-core/rnaseq/blob/master/README.md#introduction
+   Add metro map of final flow
 -->
-
-<!-- TODO nf-core: Include a figure that guides the user through the major workflow steps. Many nf-core
-     workflows use the "tube map" design for that. See https://nf-co.re/docs/guidelines/graphic_design/workflow_diagrams#examples for examples.   -->
-<!-- TODO nf-core: Fill in short bullet-pointed list of the default steps in the pipeline -->2. Present QC for raw reads ([`MultiQC`](http://multiqc.info/))
 
 ## Usage
 
@@ -51,9 +48,9 @@ nextflow run seqera-services/nf-pooled-cellpainting \
 
 ## Credits
 
-seqera-services/nf-pooled-cellpainting was originally written by Florian Wuennemann.
+nf-pooled-cellpainting was originally written by [Florian Wuennemann](https://github.com/FloWuenne), [Erin Weissbart](https://github.com/ErinWeisbart), [Shantanu Singh](https://github.com/shntnu) and [Ken Brewer](https://github.com/kenibrewer).
 
-We thank the following people for their extensive assistance in the development of this pipeline:
+<!-- We thank the following people for their extensive assistance in the development of this pipeline: -->
 
 <!-- TODO nf-core: If applicable, make list of people who have also contributed -->
 

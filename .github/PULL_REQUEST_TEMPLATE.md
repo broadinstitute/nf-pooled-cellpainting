@@ -1,7 +1,7 @@
 <!--
-# seqera-services/nf-pooled-cellpainting pull request
+nf-pooled-cellpainting pull request
 
-Many thanks for contributing to seqera-services/nf-pooled-cellpainting!
+Many thanks for contributing to nf-pooled-cellpainting!
 
 Please fill in the appropriate checklist below (delete whatever is not relevant).
 These are the most common things requested on pull requests (PRs).

@@ -7,3 +7,6 @@ testing/
 testing*
 *.pyc
 null/
+CLAUDE.md
+.nf-test.log
+.nf-test/

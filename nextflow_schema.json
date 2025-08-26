@@ -10,7 +10,7 @@
             "type": "object",
             "fa_icon": "fas fa-terminal",
             "description": "Define where the pipeline should find input data and save output data.",
-            "required": ["input", "outdir"],
+            "required": ["input", "outdir", "barcodes"],
             "properties": {
                 "input": {
                     "type": "string",
@@ -29,12 +29,75 @@
                     "description": "The output directory where the results will be saved. You have to use absolute paths to storage on Cloud infrastructure.",
                     "fa_icon": "fas fa-folder-open"
                 },
+                "stop_after": {
+                    "type": "string",
+                    "default": "complete",
+                    "description": "Stop the pipeline execution after running this process.",
+                    "fa_icon": "fas fa-ban"
+                },
+                "barcodes": {
+                    "type": "string",
+                    "description": "Path to barcodes.csv file for SBS data.",
+                    "fa_icon": "fas fa-qrcode"
+                },
                 "multiqc_title": {
                     "type": "string",
                     "description": "MultiQC report title. Printed as page header, used for filename if not otherwise specified.",
                     "fa_icon": "fas fa-file-signature"
                 }
             }
+        },
+        "cellpainting_options": {
+            "title": "Cellpainting options",
+            "type": "object",
+            "description": "",
+            "default": "",
+            "fa_icon": "fas fa-paint-brush",
+            "properties": {
+                "cp_img_overlap_pct": {
+                    "type": "integer",
+                    "default": 10,
+                    "fa_icon": "fas fa-percentage"
+                },
+                "cp_img_frame_type": {
+                    "type": "string",
+                    "default": "round",
+                    "fa_icon": "fas fa-crop-alt"
+                },
+                "cp_acquisition_order": {
+                    "type": "string",
+                    "default": "snake",
+                    "fa_icon": "fas fa-sort-amount-down"
+                },
+                "cp_multichannel_parallel": {
+                    "type": "boolean",
+                    "fa_icon": "fas fa-code-branch"
+                }
+            }
+        },
+        "sbs_options": {
+            "title": "Sequencing by Synthesis (SBS) options",
+            "type": "object",
+            "description": "",
+            "default": "",
+            "properties": {
+                "sbs_img_overlap_pct": {
+                    "type": "integer",
+                    "default": 10,
+                    "fa_icon": "fas fa-percentage"
+                },
+                "sbs_img_frame_type": {
+                    "type": "string",
+                    "default": "round",
+                    "fa_icon": "fas fa-crop-alt"
+                },
+                "sbs_acquisition_order": {
+                    "type": "string",
+                    "default": "snake",
+                    "fa_icon": "fas fa-sort-amount-down"
+                }
+            },
+            "fa_icon": "fas fa-dna"
         },
         "institutional_config_options": {
             "title": "Institutional config options",
@@ -164,6 +227,12 @@
     "allOf": [
         {
             "$ref": "#/$defs/input_output_options"
+        },
+        {
+            "$ref": "#/$defs/cellpainting_options"
+        },
+        {
+            "$ref": "#/$defs/sbs_options"
         },
         {
             "$ref": "#/$defs/institutional_config_options"

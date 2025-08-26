@@ -49,7 +49,7 @@ template:
   org: seqera-services
   name: nf-pooled-cellpainting
   description: A Nextflow pipeline for analysing optical pooled screens (OPS) data.
-  author: Florian Wuennemann
+  author: Florian Wuennemann, Ken Brewer, Erin Weissbart, Shantanu Singh, and Seqera Services
   version: 1.0.0dev
   force: true
   outdir: .

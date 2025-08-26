@@ -1,0 +1,36 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/nf-core/modules/master/modules/meta-schema.json
+# # TODO nf-core: Add a description of the module and list keywords
+name: "cellprofiler_illuminationcorrection"
+description: write your description here
+keywords:
+- sort
+- example
+- genomics
+tools:
+## TODO nf-core: Add a description and other details for the software below
+- "cellprofiler":
+    description: "CellProfiler is free, open-source software for quantitative analysis
+      of biological images."
+    homepage: "https://cellprofiler-manual.s3.amazonaws.com/CellProfiler-4.2.8/index.html"
+    documentation: "https://cellprofiler-manual.s3.amazonaws.com/CellProfiler-4.2.8/index.html"
+    tool_dev_url: "https://github.com/CellProfiler/CellProfiler"
+    doi: ""
+    licence: ['BSD-3-clause']
+    identifier: biotools:CellProfiler
+
+input:
+# TODO nf-core: Update the information obtained from bio.tools and make sure that it is correct
+  []
+output:
+# TODO nf-core: Update the information obtained from bio.tools and make sure that it is correct
+  versions: -
+    versions.yml:
+      type: file
+      description: File containing software versions
+      pattern: versions.yml
+      ontologies:
+      - edam: http://edamontology.org/format_3750  # YAML
+authors:
+- "@FloWuenne"
+maintainers:
+- "@FloWuenne"
