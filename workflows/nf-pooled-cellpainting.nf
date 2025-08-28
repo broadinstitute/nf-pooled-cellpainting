@@ -5,7 +5,7 @@
 */
 include { MULTIQC                } from '../modules/nf-core/multiqc/main'
 include { CELLPAINTING           } from '../subworkflows/local/cellpainting'
-// include { SEQ_BY_SYNTH           } from '../subworkflows/local/seq_by_synthesis'
+include { SEQ_BY_SYNTHESIS           } from '../subworkflows/local/seq_by_synthesis'
 
 
 include { paramsSummaryMap       } from 'plugin/nf-schema'
@@ -35,15 +35,7 @@ workflow POOLED_CELLPAINTING {
     // Generate barcodes channel from barcodes.csv file
     // ch_barcodes = Channel.fromPath(barcodes, checkIfExists: true)
 
-    // Split ch_samplesheet by assay (CP or SBS)
-    ch_samplesheet
-        .branch { meta, _images ->
-            cp: meta.assay == 'CP'
-            sbs: meta.assay == 'SBS'
-        }
-        .set { ch_samplesheet_split }
-
-    ch_samplesheet_cp = ch_samplesheet_split.cp
+    ch_samplesheet = ch_samplesheet
         .flatMap { meta, image ->
             // Split channels by comma and create a separate entry for each channel
             meta.original_channels = meta.channels
@@ -59,12 +51,28 @@ workflow POOLED_CELLPAINTING {
                 return [[meta, image]]
             }
         }
+        .branch { meta, _images ->
+            cp: meta.assay == 'CP'
+            sbs: meta.assay == 'SBS'
+        }
+
+    // Split ch_samplesheet by assay (CP or SBS)
+    ch_samplesheet_cp = ch_samplesheet.cp
+    ch_samplesheet_sbs = ch_samplesheet.sbs
+
     
     //ch_samplesheet_sbs = ch_samplesheet_split.sbs
 
     // Process cell painting (CP) data
     CELLPAINTING (
         ch_samplesheet_cp,
+        cppipes,
+        cp_multichannel_parallel
+    )
+
+    // Process sequencing by synthesis (SBS) data
+    SEQ_BY_SYNTHESIS(
+        ch_samplesheet_sbs,
         cppipes,
         cp_multichannel_parallel
     )

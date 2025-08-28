@@ -10,6 +10,7 @@ process CELLPROFILER_ILLUMINATIONCORRECTION {
     input:
     tuple val(meta), val(channels), path(images, stageAs: "images/*"), path(load_data_csv)
     path illumination_cppipe
+    val(cpipe_grouping_keys)
 
     output:
     tuple val(meta), path("illumination_corrections/*.npy"), emit: illumination_corrections
@@ -41,7 +42,17 @@ process CELLPROFILER_ILLUMINATIONCORRECTION {
             # Generate blocks for each channel
             module_num=2
             for channel in \${CHANNELS[@]}; do
-                sed 's/{channel}/'\$channel'/g; s/{module_num}/'\$module_num'/g' channel_block.tmp >> illumination.cppipe
+                # Process channel block in memory without temporary files
+                current_module=\$module_num
+                sed 's/{channel}/'\$channel'/g' channel_block.tmp | while IFS= read -r line; do
+                    if [[ \$line == *"{module_num}"* ]]; then
+                        echo "\$line" | sed 's/{module_num}/'\$current_module'/g'
+                        current_module=\$((current_module + 1))
+                    else
+                        echo "\$line"
+                    fi
+                done >> illumination.cppipe
+                
                 echo "" >> illumination.cppipe
                 module_num=\$((module_num + 4))
             done
@@ -53,7 +64,7 @@ process CELLPROFILER_ILLUMINATIONCORRECTION {
         fi
         
         # Update ModuleCount in header and remove any remaining markers
-        sed -i 's/ModuleCount:5/ModuleCount:'\$total_modules'/; /^# CHANNEL_BLOCK_/d' illumination.cppipe
+        sed -i 's/ModuleCount:X/ModuleCount:'\$total_modules'/; /^# CHANNEL_BLOCK_/d' illumination.cppipe
     else
         # Not a template file - use as-is
         cp ${illumination_cppipe} illumination.cppipe
@@ -65,7 +76,7 @@ process CELLPROFILER_ILLUMINATIONCORRECTION {
     -o illumination_corrections \
     --data-file=${load_data_csv} \
     --image-directory ./images/ \
-    -g Metadata_Plate=${meta.plate}
+    -g ${cpipe_grouping_keys.collect { "Metadata_${it.capitalize()}=${meta[it]}" }.join(',')}
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":

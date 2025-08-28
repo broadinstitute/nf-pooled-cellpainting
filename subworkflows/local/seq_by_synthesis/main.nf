@@ -3,23 +3,26 @@
     IMPORT MODULES / SUBWORKFLOWS / FUNCTIONS
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
+
 include { CELLPROFILER_LOAD_DATA_CSV as ILLUMINATION_LOAD_DATA_CSV } from '../cellprofiler_load_data_csv'
 include { CELLPROFILER_ILLUMINATIONCORRECTION } from '../../../modules/local/cellprofiler/illuminationcorrection'
 
-workflow CELLPAINTING {
+workflow SEQ_BY_SYNTHESIS {
 
     take:
-    ch_samplesheet_cp
+    ch_samplesheet_sbs
     cppipes
     cp_multichannel_parallel
 
     main:
 
+    ch_versions = Channel.empty()
+
     ILLUMINATION_LOAD_DATA_CSV (
-        ch_samplesheet_cp,
-        ['batch', 'plate', 'channels'],
+        ch_samplesheet_sbs,
+        ['batch', 'plate','cycle','channels'],
         'illumination',
-        false
+        true
     )
 
     ILLUMINATION_LOAD_DATA_CSV.out.images_with_load_data_csv
@@ -32,14 +35,16 @@ workflow CELLPAINTING {
         }
         .set { ch_images_with_csv }
 
-
     CELLPROFILER_ILLUMINATIONCORRECTION (
         ch_images_with_csv,
-        cppipes['illumination_calc_cp'],
-        ['plate']
+        cppipes['illumination_calc_sbs'],
+        ['plate','cycle']
     )
 
-    // emit:
-    // // TODO nf-core: edit emitted channels
-    // versions = ch_versions                     // channel: [ versions.yml ]
+    emit:
+    // bam      = SAMTOOLS_SORT.out.bam           // channel: [ val(meta), [ bam ] ]
+    // bai      = SAMTOOLS_INDEX.out.bai          // channel: [ val(meta), [ bai ] ]
+    // csi      = SAMTOOLS_INDEX.out.csi          // channel: [ val(meta), [ csi ] ]
+
+    versions = ch_versions                     // channel: [ versions.yml ]
 }

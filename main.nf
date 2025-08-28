@@ -33,7 +33,8 @@ workflow NF_POOLED_CELLPAINTING {
     main:
 
     cppipes = [
-        'illumination_calc' : params.cp_illum_calc_pipe ?: "${projectDir}/assets/cellprofiler/illumination.cppipe.template",
+        'illumination_calc_cp' : params.cp_illum_calc_pipe ?: "${projectDir}/assets/cellprofiler/illumination.cppipe.template",
+        'illumination_calc_sbs' : params.sbs_illum_calc_pipe ?: "${projectDir}/assets/cellprofiler/illumination_SBS.cppipe.template",
     ]
 
     //
