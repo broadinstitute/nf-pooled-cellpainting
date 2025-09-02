@@ -22,10 +22,10 @@ include { methodsDescriptionText } from '../subworkflows/local/utils_nfcore_nf-p
 workflow POOLED_CELLPAINTING {
 
     take:
-    ch_samplesheet // channel: samplesheet read in from --input
-    barcodes       // file: path to barcodes.csv file
-    cppipes       // array: paths to cpipe template files
-    cp_multichannel_parallel // boolean: whether to run cell painting in parallel for multi-channel images per FOV
+    ch_samplesheet           // channel: samplesheet read in from --input
+    barcodes                 // file: path to barcodes.csv file
+    cppipes                  // array: paths to cpipe template files
+    multichannel_parallel // boolean: whether to run cell painting in parallel for multi-channel images per FOV
 
     main:
 
@@ -40,7 +40,7 @@ workflow POOLED_CELLPAINTING {
             // Split channels by comma and create a separate entry for each channel
             meta.original_channels = meta.channels
             def channels_string = meta.channels.split(',')
-            if (channels_string.size() > 1 & cp_multichannel_parallel) {
+            if (channels_string.size() > 1 & multichannel_parallel) {
                 return channels_string.collect { channel_name ->
                     def new_meta = meta.clone()
                     new_meta.channels = channel_name.trim()
@@ -66,15 +66,13 @@ workflow POOLED_CELLPAINTING {
     // Process cell painting (CP) data
     CELLPAINTING (
         ch_samplesheet_cp,
-        cppipes,
-        cp_multichannel_parallel
+        cppipes
     )
 
     // Process sequencing by synthesis (SBS) data
     SEQ_BY_SYNTHESIS(
         ch_samplesheet_sbs,
-        cppipes,
-        cp_multichannel_parallel
+        cppipes
     )
 
     // Process sequencing by synthesis (SBS) data

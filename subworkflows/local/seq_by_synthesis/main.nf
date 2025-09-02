@@ -12,7 +12,6 @@ workflow SEQ_BY_SYNTHESIS {
     take:
     ch_samplesheet_sbs
     cppipes
-    cp_multichannel_parallel
 
     main:
 

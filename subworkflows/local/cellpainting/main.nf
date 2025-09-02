@@ -11,7 +11,6 @@ workflow CELLPAINTING {
     take:
     ch_samplesheet_cp
     cppipes
-    cp_multichannel_parallel
 
     main:
 
