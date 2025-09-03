@@ -26,7 +26,6 @@ workflow SEQ_BY_SYNTHESIS {
 
     ILLUMINATION_LOAD_DATA_CSV.out.images_with_load_data_csv
         .flatMap { group_meta, meta_list, image_list, csv_file ->
-
             // Create a tuple for each metadata entry with the full image list and the CSV file
             return meta_list.collect { meta ->
                 [group_meta, meta, image_list, csv_file]
