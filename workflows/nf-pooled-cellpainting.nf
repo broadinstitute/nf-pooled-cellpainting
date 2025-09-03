@@ -5,7 +5,7 @@
 */
 include { MULTIQC                } from '../modules/nf-core/multiqc/main'
 include { CELLPAINTING           } from '../subworkflows/local/cellpainting'
-// include { SEQ_BY_SYNTH           } from '../subworkflows/local/seq_by_synthesis'
+include { SEQ_BY_SYNTHESIS           } from '../subworkflows/local/seq_by_synthesis'
 
 
 include { paramsSummaryMap       } from 'plugin/nf-schema'
@@ -22,10 +22,10 @@ include { methodsDescriptionText } from '../subworkflows/local/utils_nfcore_nf-p
 workflow POOLED_CELLPAINTING {
 
     take:
-    ch_samplesheet // channel: samplesheet read in from --input
-    barcodes       // file: path to barcodes.csv file
-    cppipes       // array: paths to cpipe template files
-    cp_multichannel_parallel // boolean: whether to run cell painting in parallel for multi-channel images per FOV
+    ch_samplesheet           // channel: samplesheet read in from --input
+    barcodes                 // file: path to barcodes.csv file
+    cppipes                  // array: paths to cpipe template files
+    multichannel_parallel // boolean: whether to run cell painting in parallel for multi-channel images per FOV
 
     main:
 
@@ -35,20 +35,12 @@ workflow POOLED_CELLPAINTING {
     // Generate barcodes channel from barcodes.csv file
     // ch_barcodes = Channel.fromPath(barcodes, checkIfExists: true)
 
-    // Split ch_samplesheet by assay (CP or SBS)
-    ch_samplesheet
-        .branch { meta, _images ->
-            cp: meta.assay == 'CP'
-            sbs: meta.assay == 'SBS'
-        }
-        .set { ch_samplesheet_split }
-
-    ch_samplesheet_cp = ch_samplesheet_split.cp
+    ch_samplesheet = ch_samplesheet
         .flatMap { meta, image ->
             // Split channels by comma and create a separate entry for each channel
             meta.original_channels = meta.channels
             def channels_string = meta.channels.split(',')
-            if (channels_string.size() > 1 & cp_multichannel_parallel) {
+            if (channels_string.size() > 1 & multichannel_parallel) {
                 return channels_string.collect { channel_name ->
                     def new_meta = meta.clone()
                     new_meta.channels = channel_name.trim()
@@ -59,14 +51,28 @@ workflow POOLED_CELLPAINTING {
                 return [[meta, image]]
             }
         }
+        .branch { meta, _images ->
+            cp: meta.assay == 'CP'
+            sbs: meta.assay == 'SBS'
+        }
+
+    // Split ch_samplesheet by assay (CP or SBS)
+    ch_samplesheet_cp = ch_samplesheet.cp
+    ch_samplesheet_sbs = ch_samplesheet.sbs
+
     
     //ch_samplesheet_sbs = ch_samplesheet_split.sbs
 
     // Process cell painting (CP) data
     CELLPAINTING (
         ch_samplesheet_cp,
-        cppipes,
-        cp_multichannel_parallel
+        cppipes
+    )
+
+    // Process sequencing by synthesis (SBS) data
+    SEQ_BY_SYNTHESIS(
+        ch_samplesheet_sbs,
+        cppipes
     )
 
     // Process sequencing by synthesis (SBS) data

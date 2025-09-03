@@ -8,6 +8,7 @@ workflow CELLPROFILER_LOAD_DATA_CSV {
     ch_samplesheet // channel: [ val(meta), [ image ] ]
     grouping_keys  // value channel: list of keys to group by (e.g., ['batch','plate','channel'])
     step_name      // value channel: name of the pipeline step (determines working directory for load_data.csv files)
+    has_cycles     // value channel: true if the data has cycles
 
     main:
 
@@ -48,11 +49,11 @@ workflow CELLPROFILER_LOAD_DATA_CSV {
 
 
             // def header = "FileName_Orig" + image_channels.join(',FileName_Orig') + ",Metadata_Batch,Metadata_Plate,Metadata_Well,Metadata_Col,Metadata_Row,Metadata_Site"
-            def header = "Metadata_Plate,Metadata_Well,Metadata_Site," + "FileName_Orig" + image_channels_header.join(',FileName_Orig')+ "," + "Frame_Orig" + image_channels_header.join(',Frame_Orig')
+            def header = "Metadata_Plate,Metadata_Well,Metadata_Site" + (has_cycles ? ",Metadata_Cycle" : "") + "," + "FileName_Orig" + image_channels_header.join(',FileName_Orig')+ "," + "Frame_Orig" + image_channels_header.join(',Frame_Orig')
 
             // Group by well+site within this group so we can create a single row per well+site
             def grouped_by_well = [meta_list, image_list].transpose().collect { meta, image ->
-                def group_key = meta.subMap(['plate','well','batch','site'])
+                def group_key = meta.subMap(['plate','well','batch','site','cycle'])
                 [group_key, meta.channels, image]
             }.groupBy { it[0] }
 
@@ -113,7 +114,7 @@ workflow CELLPROFILER_LOAD_DATA_CSV {
                 }.transpose()
 
                 // Add metadata columns
-                def row = [row_meta.plate, row_meta.well, row_meta.site] + image_filenames + image_frames
+                def row = [row_meta.plate, row_meta.well, row_meta.site] + (has_cycles ? [row_meta.cycle] : []) + image_filenames + image_frames
                 row.join(',')
             }
 
