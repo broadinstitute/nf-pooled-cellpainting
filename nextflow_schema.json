@@ -99,8 +99,8 @@
             },
             "fa_icon": "fas fa-dna"
         },
-        "new_group_1": {
-            "title": "New Group 1",
+        "cellprofiler_group": {
+            "title": "Cellprofiler Pipelines",
             "type": "object",
             "description": "",
             "default": "",
@@ -251,7 +251,7 @@
             "$ref": "#/$defs/sbs_options"
         },
         {
-            "$ref": "#/$defs/new_group_1"
+            "$ref": "#/$defs/cellprofiler_group"
         },
         {
             "$ref": "#/$defs/institutional_config_options"

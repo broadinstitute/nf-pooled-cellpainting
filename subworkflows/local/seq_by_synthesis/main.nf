@@ -20,7 +20,7 @@ workflow SEQ_BY_SYNTHESIS {
     ILLUMINATION_LOAD_DATA_CSV (
         ch_samplesheet_sbs,
         ['batch', 'plate','cycle','channels'],
-        'illumination',
+        'illumination_sbs',
         true
     )
 
