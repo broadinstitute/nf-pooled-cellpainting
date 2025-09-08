@@ -52,8 +52,8 @@ workflow POOLED_CELLPAINTING {
             }
         }
         .branch { meta, _images ->
-            cp: meta.assay == 'CP'
-            sbs: meta.assay == 'SBS'
+            cp: meta.arm == 'CP'
+            sbs: meta.arm == 'SBS'
         }
 
     // Split ch_samplesheet by assay (CP or SBS)
