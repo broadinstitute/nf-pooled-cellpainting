@@ -13,7 +13,7 @@ process CELLPROFILER_ILLUMINATIONCORRECTION {
     val(cpipe_grouping_keys)
 
     output:
-    tuple val(meta), path("illumination_corrections/*.npy"), emit: illumination_corrections
+    tuple val(meta), val(channels), path(images), path("*.npy"), path(load_data_csv), emit: illumination_corrections
     path "versions.yml", emit: versions
 
     when:
@@ -21,7 +21,6 @@ process CELLPROFILER_ILLUMINATIONCORRECTION {
     
     script:
     """
-    mkdir -p illumination_corrections
     
     # Check if illumination_cppipe ends with .template
     if [[ "${illumination_cppipe}" == *.template ]]; then
@@ -73,7 +72,7 @@ process CELLPROFILER_ILLUMINATIONCORRECTION {
     cellprofiler -c -r \
     ${task.ext.args ?: ''} \
     -p illumination.cppipe \
-    -o illumination_corrections \
+    -o . \
     --data-file=${load_data_csv} \
     --image-directory ./images/ \
     -g ${cpipe_grouping_keys.collect { "Metadata_${it.capitalize()}=${meta[it]}" }.join(',')}
@@ -86,7 +85,6 @@ process CELLPROFILER_ILLUMINATIONCORRECTION {
 
     stub:
     """
-    mkdir -p illumination_corrections
     echo 'this is not an illumination correction' > illumination_corrections/${meta.plate}_Illum${meta.channels}.npy
 
     cat <<-END_VERSIONS > versions.yml

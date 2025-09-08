@@ -1,0 +1,85 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/nf-core/modules/master/modules/meta-schema.json
+name: "cellprofiler_illuminationcorrectionapply"
+description: "Apply illumination correction to microscopy images using CellProfiler"
+keywords:
+  - cellprofiler
+  - illumination_correction
+  - cellpainting
+  - microscopy
+  - image_processing
+tools:
+  - "cellprofiler":
+      description: "CellProfiler is free, open-source software for quantitative analysis of biological images."
+      homepage: "https://cellprofiler-manual.s3.amazonaws.com/CellProfiler-4.2.8/index.html"
+      documentation: "https://cellprofiler-manual.s3.amazonaws.com/CellProfiler-4.2.8/index.html"
+      tool_dev_url: "https://github.com/CellProfiler/CellProfiler"
+      doi: "https://doi.org/10.1186/s12859-021-04344-9"
+      licence: ['BSD-3-clause']
+      identifier: biotools:CellProfiler
+      args_id: "$args"
+
+input:
+  - - meta:
+        type: map
+        description: "Groovy Map containing sample information (e.g. id, single_end)"
+    - channels:
+        type: string
+        description: "Channel information for the images"
+    - images:
+        type: file
+        description: "Input microscopy images to be corrected"
+        pattern: "*.{tif,tiff,png,jpg}"
+        ontologies:
+          - edam: "http://edamontology.org/data_2968" # Image
+    - npy_files:
+        type: file
+        description: "Illumination correction files in numpy format"
+        pattern: "*.npy"
+        ontologies:
+          - edam: "http://edamontology.org/data_0006" # Data
+    - load_data_csv:
+        type: file
+        description: "CSV file containing image metadata for CellProfiler LoadData module"
+        pattern: "*.csv"
+        ontologies:
+          - edam: "http://edamontology.org/format_3752" # CSV
+  - illumination_apply_cppipe:
+      type: file
+      description: "CellProfiler pipeline file for applying illumination correction"
+      pattern: "*.cppipe"
+      ontologies:
+        - edam: "http://edamontology.org/data_0006" # Data
+  - cpipe_grouping_keys:
+      type: list
+      description: "Grouping keys for CellProfiler pipeline processing"
+
+output:
+  - corrected_images:
+      - meta:
+          type: map
+          description: "Groovy Map containing sample information (e.g. id, single_end)"
+      - "images_corrected/*.tiff":
+          type: file
+          description: "Illumination-corrected microscopy images"
+          pattern: "*.tiff"
+          ontologies:
+            - edam: "http://edamontology.org/data_2968" # Image
+            - edam: "http://edamontology.org/format_3547" # TIFF
+      - "images_corrected/*.csv":
+          type: file
+          description: "CSV files with metadata for corrected images"
+          pattern: "*.csv"
+          ontologies:
+            - edam: "http://edamontology.org/format_3752" # CSV
+  - versions:
+      - versions.yml:
+          type: file
+          description: "File containing software versions"
+          pattern: "versions.yml"
+          ontologies:
+            - edam: "http://edamontology.org/format_3750" # YAML
+
+authors:
+  - "@FloWuenne"
+maintainers:
+  - "@FloWuenne"

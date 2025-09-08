@@ -1,5 +1,4 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/nf-core/modules/master/modules/meta-schema.json
-# # TODO nf-core: Add a description of the module and list keywords
 name: "cellprofiler_illuminationcorrection"
 description: write your description here
 keywords:
@@ -7,14 +6,13 @@ keywords:
 - example
 - genomics
 tools:
-## TODO nf-core: Add a description and other details for the software below
 - "cellprofiler":
     description: "CellProfiler is free, open-source software for quantitative analysis
       of biological images."
     homepage: "https://cellprofiler-manual.s3.amazonaws.com/CellProfiler-4.2.8/index.html"
     documentation: "https://cellprofiler-manual.s3.amazonaws.com/CellProfiler-4.2.8/index.html"
     tool_dev_url: "https://github.com/CellProfiler/CellProfiler"
-    doi: ""
+    doi: "https://doi.org/10.1186/s12859-021-04344-9"
     licence: ['BSD-3-clause']
     identifier: biotools:CellProfiler
 

@@ -60,8 +60,13 @@ workflow POOLED_CELLPAINTING {
     ch_samplesheet_cp = ch_samplesheet.cp
     ch_samplesheet_sbs = ch_samplesheet.sbs
 
-    
-    //ch_samplesheet_sbs = ch_samplesheet_split.sbs
+    // Add meta.arm back into each channel
+    ch_samplesheet_cp = ch_samplesheet_cp.map { meta, image ->
+        [meta + [arm: 'CP'], image]
+    }
+    ch_samplesheet_sbs = ch_samplesheet_sbs.map { meta, image ->
+        [meta + [arm: 'SBS'], image]
+    }
 
     // Process cell painting (CP) data
     CELLPAINTING (
