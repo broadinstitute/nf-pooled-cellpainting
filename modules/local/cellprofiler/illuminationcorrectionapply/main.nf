@@ -12,7 +12,7 @@ process CELLPROFILER_ILLUMINATIONCORRECTIONAPPLY {
     path illumination_apply_cppipe
 
     output:
-    tuple val(meta), path("images_corrected/*.tiff"), path("images_corrected/*.csv"), emit: corrected_images
+    tuple val(meta), path("*.tiff"), path("*.csv"), emit: corrected_images
     path "versions.yml", emit: versions
 
     when:
@@ -20,12 +20,11 @@ process CELLPROFILER_ILLUMINATIONCORRECTIONAPPLY {
 
     script:
     """
-    mkdir -p images_corrected
 
     cellprofiler -c -r \
         ${task.ext.args ?: ''} \
         -p ${illumination_apply_cppipe} \
-        -o images_corrected \
+        -o . \
         --data-file=${load_data_csv} \
         --image-directory ./images/
 
