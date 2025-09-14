@@ -1,4 +1,4 @@
-
+// Adapted from nf-core/cellpainting: https://github.com/nf-core/cellpainting/blob/dev/subworkflows/local/cellprofiler_load_data_csv/main.nf
 // This subworkflow takes images from a samplesheet and creates
 // CellProfiler-compatible load_data.csv files grouped by specified metadata keys
 
@@ -148,7 +148,7 @@ workflow CELLPROFILER_LOAD_DATA_CSV {
         .map { _key, group_meta, meta_list, image_list, load_data_csv ->
             // Remove duplicate image paths while preserving order
             def unique_image_list = image_list.unique() // Since we can point to the same image multiple times, we need to remove duplicates
-            [group_meta, meta_list.channels.unique(), unique_image_list, load_data_csv]
+            [group_meta, meta_list.channels.unique()[0], unique_image_list, load_data_csv]
         }
         .set { ch_images_with_load_data_csv }
 
