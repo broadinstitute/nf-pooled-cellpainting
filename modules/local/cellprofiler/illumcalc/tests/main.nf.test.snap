@@ -1,4 +1,24 @@
 {
+    "cellprofiler - illumcalc - multi-channel - not parallel": {
+        "content": [
+            [
+                [
+                    {
+                        "batch": "Batch1",
+                        "plate": "Plate1",
+                        "channels": "CHN2-AF488",
+                        "id": "Batch1_Plate1_CHN2-AF488"
+                    },
+                    "Plate1_IllumCHN2-AF488.npy:md5,f0b7db042aba9fe16e005d38df1460a4"
+                ]
+            ]
+        ],
+        "meta": {
+            "nf-test": "0.9.2",
+            "nextflow": "25.04.6"
+        },
+        "timestamp": "2025-09-13T20:55:51.925194"
+    },
     "cellprofiler - illuminationcorrection - multi-channel - not parallel": {
         "content": [
             [
@@ -34,6 +54,26 @@
             "nextflow": "25.04.6"
         },
         "timestamp": "2025-09-03T16:07:19.30733"
+    },
+    "cellprofiler - illumcalc - multi-channel - in parallel": {
+        "content": [
+            [
+                [
+                    {
+                        "batch": "Batch1",
+                        "plate": "Plate1",
+                        "channels": "CHN2-AF488",
+                        "id": "Batch1_Plate1_CHN2-AF488"
+                    },
+                    "Plate1_IllumCHN2-AF488.npy:md5,f0b7db042aba9fe16e005d38df1460a4"
+                ]
+            ]
+        ],
+        "meta": {
+            "nf-test": "0.9.2",
+            "nextflow": "25.04.6"
+        },
+        "timestamp": "2025-09-13T21:02:57.895883"
     },
     "cellprofiler - illuminationcorrection - stub": {
         "content": [
@@ -141,5 +181,44 @@
             "nextflow": "25.04.6"
         },
         "timestamp": "2025-09-03T16:08:29.6212"
+    },
+    "cellprofiler - illumcalc - stub": {
+        "content": [
+            {
+                "0": [
+                    [
+                        {
+                            "batch": "Batch1",
+                            "plate": "Plate1",
+                            "channels": "CHN2-AF488",
+                            "id": "Batch1_Plate1_CHN2-AF488"
+                        },
+                        "Plate1_IllumCHN2-AF488.npy:md5,1950d1deb8bc1c4cc1c859cd0174ecc3"
+                    ]
+                ],
+                "1": [
+                    "versions.yml:md5,98d323b6db96db92395d35d733f6af55"
+                ],
+                "illumination_corrections": [
+                    [
+                        {
+                            "batch": "Batch1",
+                            "plate": "Plate1",
+                            "channels": "CHN2-AF488",
+                            "id": "Batch1_Plate1_CHN2-AF488"
+                        },
+                        "Plate1_IllumCHN2-AF488.npy:md5,1950d1deb8bc1c4cc1c859cd0174ecc3"
+                    ]
+                ],
+                "versions": [
+                    "versions.yml:md5,98d323b6db96db92395d35d733f6af55"
+                ]
+            }
+        ],
+        "meta": {
+            "nf-test": "0.9.2",
+            "nextflow": "25.04.6"
+        },
+        "timestamp": "2025-09-13T21:19:14.431472"
     }
 }
