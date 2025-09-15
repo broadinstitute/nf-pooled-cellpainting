@@ -5,7 +5,8 @@
 */
 
 include { CELLPROFILER_LOAD_DATA_CSV as ILLUMINATION_LOAD_DATA_CSV } from '../cellprofiler_load_data_csv'
-include { CELLPROFILER_ILLUMCALC } from '../../../modules/local/cellprofiler/illumcalc'
+include { CELLPROFILER_ILLUMCALC }                                   from '../../../modules/local/cellprofiler/illumcalc'
+include { QC_MONTAGEILLUM }                                          from '../../../modules/local/qc/montageillum'
 
 workflow SEQ_BY_SYNTHESIS {
 
@@ -26,6 +27,18 @@ workflow SEQ_BY_SYNTHESIS {
     CELLPROFILER_ILLUMCALC (
         ILLUMINATION_LOAD_DATA_CSV.out.images_with_load_data_csv,
         cppipes['illumination_calc_sbs']
+    )
+
+    //// QC illumination correction profiles ////
+    CELLPROFILER_ILLUMCALC.out.illumination_corrections
+        .map{ meta, npy_files ->
+            [meta.subMap(['batch', 'plate']) + [arm: "SBS"], npy_files]
+        }
+        .groupTuple()
+        .set { ch_illumination_corrections_qc }
+
+    QC_MONTAGEILLUM (
+        ch_illumination_corrections_qc
     )
 
     emit:
