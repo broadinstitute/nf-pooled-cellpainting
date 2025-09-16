@@ -22,10 +22,7 @@ workflow CELLPROFILER_LOAD_DATA_CSV_WITH_ILLUM {
         .set { ch_images_grouped}
 
     // Store grouped images for later CSV generation
-    ch_images_grouped.set { ch_images_grouped_for_csv }
-
-    // Prepare grouped images with key for joining
-    ch_images_grouped_for_csv
+    ch_images_grouped
         .map { group_meta, meta_list, image_list ->
             [group_meta.id, group_meta, meta_list, image_list]
         }

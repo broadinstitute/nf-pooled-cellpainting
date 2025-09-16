@@ -148,7 +148,9 @@ workflow CELLPROFILER_LOAD_DATA_CSV {
         .map { _key, group_meta, meta_list, image_list, load_data_csv ->
             // Remove duplicate image paths while preserving order
             def unique_image_list = image_list.unique() // Since we can point to the same image multiple times, we need to remove duplicates
-            [group_meta, meta_list.channels.unique()[0], unique_image_list, load_data_csv]
+            def unique_channels = meta_list.channels.unique()
+            def first_channel = unique_channels ? unique_channels[0] : null
+            [group_meta, first_channel, unique_image_list, load_data_csv]
         }
         .set { ch_images_with_load_data_csv }
 
