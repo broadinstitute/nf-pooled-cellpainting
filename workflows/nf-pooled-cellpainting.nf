@@ -56,15 +56,11 @@ workflow POOLED_CELLPAINTING {
             sbs: meta.arm == 'SBS'
         }
 
-    // Split ch_samplesheet by assay (CP or SBS)
-    ch_samplesheet_cp = ch_samplesheet.cp
-    ch_samplesheet_sbs = ch_samplesheet.sbs
-
     // Add meta.arm back into each channel
-    ch_samplesheet_cp = ch_samplesheet_cp.map { meta, image ->
+    ch_samplesheet_cp = ch_samplesheet.cp.map { meta, image ->
         [meta + [arm: 'CP'], image]
     }
-    ch_samplesheet_sbs = ch_samplesheet_sbs.map { meta, image ->
+    ch_samplesheet_sbs = ch_samplesheet.sbs.map { meta, image ->
         [meta + [arm: 'SBS'], image]
     }
 
