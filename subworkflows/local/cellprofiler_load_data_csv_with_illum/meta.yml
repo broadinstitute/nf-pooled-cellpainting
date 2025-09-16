@@ -1,6 +1,6 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/nf-core/modules/master/subworkflows/yaml-schema.json
 name: "cellprofiler_load_data_csv_with_illum"
-## TODO nf-core: Add a description of the subworkflow and list keywords
+
 description: |
   Loads image data from CSV files and applies illumination correction using CellProfiler.
   This subworkflow prepares input data for downstream image analysis by generating
@@ -11,11 +11,11 @@ keywords:
   - image analysis
   - csv
   - microscopy
-## TODO nf-core: Add a list of the modules and/or subworkflows used in the subworkflow
+
 components:
   - cellprofiler/load_data_csv
   - cellprofiler/illumination_correction
-## TODO nf-core: List all of the channels used as input with a description and their structure
+
 input:
   - ch_csv:
       type: file
@@ -35,7 +35,7 @@ input:
         The input channel containing illumination correction images.
         Structure: [ val(meta), path(illum_corr) ]
       pattern: "*illum*.tif"
-## TODO nf-core: List all of the channels used as output with a descriptions and their structure
+
 output:
   - corrected_images:
       type: file
