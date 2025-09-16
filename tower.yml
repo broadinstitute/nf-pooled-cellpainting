@@ -1,2 +1,5 @@
 reports:
-  **/qc/*.png
+  qc/CP*.png:
+    display: "Cell painting illumination correction profiles montage"
+  qc/SBS*.png:
+    display: "Sequencing by synthesis illumination correction profiles montage"
