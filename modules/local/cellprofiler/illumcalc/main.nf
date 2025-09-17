@@ -1,5 +1,5 @@
 process CELLPROFILER_ILLUMCALC {
-    tag "${group_meta.id}"
+    tag "${meta.id}"
     label 'process_medium'
 
     conda "${moduleDir}/environment.yml"
@@ -8,11 +8,11 @@ process CELLPROFILER_ILLUMCALC {
         : 'community.wave.seqera.io/library/cellprofiler:4.2.8--aff0a99749304a7f'}"
 
     input:
-    tuple val(group_meta), val(channels), path(images, stageAs: "images/*"), path(load_data_csv)
+    tuple val(meta), val(channels), path(images, stageAs: "images/*"), path(load_data_csv)
     path illumination_cppipe
 
     output:
-    tuple val(group_meta), path("*.npy"), emit: illumination_corrections
+    tuple val(meta), path("*.npy"), emit: illumination_corrections
     path "versions.yml", emit: versions
 
     when:
@@ -83,7 +83,7 @@ process CELLPROFILER_ILLUMCALC {
 
     stub:
     """
-    echo 'this is not an illumination correction' > ${group_meta.plate}_Illum${channels}.npy
+    echo 'this is not an illumination correction' > ${meta.plate}_Illum${channels}.npy
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
