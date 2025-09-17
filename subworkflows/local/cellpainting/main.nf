@@ -3,8 +3,10 @@
     IMPORT MODULES / SUBWORKFLOWS / FUNCTIONS
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
-include { CELLPROFILER_LOAD_DATA_CSV as ILLUMINATION_LOAD_DATA_CSV } from '../cellprofiler_load_data_csv'
-include { CELLPROFILER_ILLUMINATIONCORRECTION } from '../../../modules/local/cellprofiler/illuminationcorrection'
+include { CELLPROFILER_LOAD_DATA_CSV as ILLUMINATION_CALC_LOAD_DATA_CSV }             from '../cellprofiler_load_data_csv'
+include { CELLPROFILER_LOAD_DATA_CSV_WITH_ILLUM as ILLUMINATION_APPLY_LOAD_DATA_CSV } from '../cellprofiler_load_data_csv_with_illum'
+include { CELLPROFILER_ILLUMCALC }                                                   from '../../../modules/local/cellprofiler/illumcalc'
+include { CELLPROFILER_ILLUMAPPLY }                                                   from '../../../modules/local/cellprofiler/illumapply'
 
 workflow CELLPAINTING {
 
@@ -14,28 +16,36 @@ workflow CELLPAINTING {
 
     main:
 
-    ILLUMINATION_LOAD_DATA_CSV (
+    //// Calculate illumination correction profiles ////
+    
+    // Generate load_data.csv files for calculating illumination correction profiles
+    ILLUMINATION_CALC_LOAD_DATA_CSV (
         ch_samplesheet_cp,
         ['batch', 'plate', 'channels'],
-        'illumination',
+        'illumination_cp_calc',
         false
     )
 
-    ILLUMINATION_LOAD_DATA_CSV.out.images_with_load_data_csv
-        .flatMap { group_meta, meta_list, image_list, csv_file ->
+    // Calculate illumination correction profiles
+    CELLPROFILER_ILLUMCALC (
+        ILLUMINATION_CALC_LOAD_DATA_CSV.out.images_with_load_data_csv,
+        cppipes['illumination_calc_cp']
+    )
 
-            // Create a tuple for each metadata entry with the full image list and the CSV file
-            return meta_list.collect { meta ->
-                [group_meta, meta, image_list, csv_file]
-            }
-        }
-        .set { ch_images_with_csv }
+    //// Apply illumination correction ////
+    
+    // Generate load_data.csv files for applying illumination correction
+    ILLUMINATION_APPLY_LOAD_DATA_CSV(
+        ch_samplesheet_cp,
+        ['batch', 'plate','arm','well'],
+        CELLPROFILER_ILLUMCALC.out.illumination_corrections,
+        'illumination_cp_apply'
+    )
 
-
-    CELLPROFILER_ILLUMINATIONCORRECTION (
-        ch_images_with_csv,
-        cppipes['illumination_calc_cp'],
-        ['plate']
+    // Apply illumination correction to images
+    CELLPROFILER_ILLUMAPPLY (
+        ILLUMINATION_APPLY_LOAD_DATA_CSV.out.images_with_illum_load_data_csv,
+        cppipes['illumination_apply_cp']
     )
 
     // emit:

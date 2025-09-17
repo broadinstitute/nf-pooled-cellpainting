@@ -1,19 +1,18 @@
-process CELLPROFILER_ILLUMINATIONCORRECTION {
+process CELLPROFILER_ILLUMCALC {
     tag "${meta.id}"
     label 'process_medium'
 
     conda "${moduleDir}/environment.yml"
     container "${workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container
-        ? 'https://depot.galaxyproject.org/singularity/cellprofiler:4.2.8--pyhdfd78af_0'
+        ? 'oras://community.wave.seqera.io/library/cellprofiler:4.2.8--7c1bd3a82764de92'
         : 'community.wave.seqera.io/library/cellprofiler:4.2.8--aff0a99749304a7f'}"
 
     input:
     tuple val(meta), val(channels), path(images, stageAs: "images/*"), path(load_data_csv)
     path illumination_cppipe
-    val(cpipe_grouping_keys)
 
     output:
-    tuple val(meta), path("illumination_corrections/*.npy"), emit: illumination_corrections
+    tuple val(meta), path("*.npy"), emit: illumination_corrections
     path "versions.yml", emit: versions
 
     when:
@@ -21,7 +20,6 @@ process CELLPROFILER_ILLUMINATIONCORRECTION {
     
     script:
     """
-    mkdir -p illumination_corrections
     
     # Check if illumination_cppipe ends with .template
     if [[ "${illumination_cppipe}" == *.template ]]; then
@@ -73,10 +71,9 @@ process CELLPROFILER_ILLUMINATIONCORRECTION {
     cellprofiler -c -r \
     ${task.ext.args ?: ''} \
     -p illumination.cppipe \
-    -o illumination_corrections \
+    -o . \
     --data-file=${load_data_csv} \
-    --image-directory ./images/ \
-    -g ${cpipe_grouping_keys.collect { "Metadata_${it.capitalize()}=${meta[it]}" }.join(',')}
+    --image-directory ./images/
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
@@ -86,8 +83,7 @@ process CELLPROFILER_ILLUMINATIONCORRECTION {
 
     stub:
     """
-    mkdir -p illumination_corrections
-    echo 'this is not an illumination correction' > illumination_corrections/${meta.plate}_Illum${meta.channels}.npy
+    echo 'this is not an illumination correction' > ${meta.plate}_Illum${channels}.npy
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":

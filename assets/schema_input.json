@@ -13,11 +13,11 @@
                 "pattern": "^\\S+$",
                 "errorMessage": "File path must be provided and cannot contain spaces"
             },
-            "assay": {
+            "arm": {
                 "type": "string",
                 "pattern": "^\\S+$",
-                "errorMessage": "Assay type must be provided and cannot contain spaces",
-                "meta": ["assay"]
+                "errorMessage": "Experiment arm must be provided and cannot contain spaces",
+                "meta": ["arm"]
             },
             "batch": {
                 "type": "string",
@@ -62,6 +62,6 @@
                 "meta": ["n_frames"]
             }
         },
-        "required": ["path", "assay", "batch", "plate", "well", "site", "cycle", "channels"]
+        "required": ["path", "arm", "batch", "plate", "well", "site", "cycle", "channels"]
     }
 }

@@ -1,0 +1,48 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/nf-core/modules/master/subworkflows/yaml-schema.json
+name: "cellprofiler_load_data_csv"
+
+description: |
+  Creates CellProfiler-compatible LoadData CSV files from image metadata.
+  Groups images by specified metadata keys and generates CSV files that can be used
+  as input for CellProfiler pipelines, handling both single and multi-channel images.
+keywords:
+  - cellprofiler
+  - load_data_csv
+  - image_metadata
+  - csv_generation
+  - microscopy
+
+components: []
+
+input:
+  - ch_samplesheet:
+      type: file
+      description: |
+        Channel containing image files with associated metadata.
+        Structure: [ val(meta), path(image) ]
+      pattern: "*.{tif,tiff,png,jpg}"
+  - grouping_keys:
+      type: list
+      description: |
+        List of metadata keys to group images by (e.g., ['batch','plate','channel']).
+        Images with the same values for these keys will be grouped into the same CSV file.
+  - step_name:
+      type: string
+      description: |
+        Name of the pipeline step, used to determine the working directory for CSV files.
+  - has_cycles:
+      type: boolean
+      description: |
+        Whether the data contains cycle information (true/false).
+
+output:
+  - images_with_load_data_csv:
+      type: file
+      description: |
+        Channel containing grouped metadata, channel information, image files, and LoadData CSV.
+        Structure: [ val(group_meta), val(channels), path(images), path(load_data_csv) ]
+      pattern: "*.csv"
+authors:
+  - "@FloWuenne"
+maintainers:
+  - "@FloWuenne"
