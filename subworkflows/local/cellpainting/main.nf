@@ -39,7 +39,12 @@ workflow CELLPAINTING {
             [meta.subMap(['batch', 'plate']) + [arm: "CP"], npy_files]
         }
         .groupTuple()
+        .map{ meta, npy_files_list ->
+            [meta, npy_files_list.flatten()]
+        }
         .set { ch_illumination_corrections_qc }
+
+    ch_illumination_corrections_qc.view()
 
     QC_MONTAGEILLUM (
         ch_illumination_corrections_qc

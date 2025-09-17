@@ -35,6 +35,9 @@ workflow SEQ_BY_SYNTHESIS {
             [meta.subMap(['batch', 'plate']) + [arm: "SBS"], npy_files]
         }
         .groupTuple()
+        .map{ meta, npy_files_list ->
+            [meta, npy_files_list.flatten()]
+        }
         .set { ch_illumination_corrections_qc }
 
     QC_MONTAGEILLUM (

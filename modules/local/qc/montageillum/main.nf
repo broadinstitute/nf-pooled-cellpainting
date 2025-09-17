@@ -3,7 +3,7 @@ process QC_MONTAGEILLUM {
     label 'process_single'
 
     conda "${moduleDir}/environment.yml"
-    container "community.wave.seqera.io/library/python_loguru_matplotlib_numpy_typer:9378cf9abd25cf72"
+    container "community.wave.seqera.io/library/numpy_python_pip_pillow:74310e9b76ff61b6"
 
     input:
     tuple val(meta), path(npy_files)
@@ -17,14 +17,13 @@ process QC_MONTAGEILLUM {
 
     script:
     def args = task.ext.args ?: ''
+    def pattern = meta.arm == 'CP' ? ".*\\.npy\$" : ".*Cycle.*\\.npy\$"
     """
-    qc_illum_montage.py \\
+    montage.py \\
         $args \\
         . \\
         ${meta.arm}.${meta.batch}_${meta.plate}.montage.png \\
-        ${meta.arm} \\
-        ${meta.plate} \\
-        --auto-channels
+        --pattern ${pattern}
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
