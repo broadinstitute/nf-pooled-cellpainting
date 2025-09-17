@@ -44,8 +44,6 @@ workflow CELLPAINTING {
         }
         .set { ch_illumination_corrections_qc }
 
-    ch_illumination_corrections_qc.view()
-
     QC_MONTAGEILLUM (
         ch_illumination_corrections_qc
     )
