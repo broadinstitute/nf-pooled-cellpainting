@@ -1,14 +1,14 @@
 nextflow_workflow {
 
-    name "Test Subworkflow CELLPROFILER_LOAD_DATA_CSV_WITH_ILLUM"
+    name "Test Subworkflow CELLPROFILER_LOAD_DATA_CSV"
     script "../main.nf"
-    workflow "CELLPROFILER_LOAD_DATA_CSV_WITH_ILLUM"
+    workflow "CELLPROFILER_LOAD_DATA_CSV"
 
     tag "subworkflows"
     tag "subworkflows_local"
-    tag "cellprofiler_load_data_csv_with_illum"
+    tag "cellprofiler_load_data_csv"
 
-    test("cellpainting - multi-channel - group by batch,plate,channels,well") {
+    test("cellpainting - multi-channel - group by batch,plate,channels") {
         
         when {
             workflow {
@@ -25,15 +25,37 @@ nextflow_workflow {
                     [[arm:'CP', batch:'Batch1', plate:'Plate1', well:'A2', site:0, cycle:1, channels:'CHN2-AF488', n_frames:3, original_channels:'Phalloidin,CHN2-AF488,DNA'], file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1_sub25/Source1/images/Batch1/images/images/Plate1/20X_CP_Plate1_20240319_122800_179/WellA2_PointA2_0000_ChannelPhalloAF750,CHN2-AF488,DAPI_Seq1025.ome.tiff")],
                     [[arm:'CP', batch:'Batch1', plate:'Plate1', well:'A2', site:0, cycle:1, channels:'DNA', n_frames:3, original_channels:'Phalloidin,CHN2-AF488,DNA'], file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1_sub25/Source1/images/Batch1/images/images/Plate1/20X_CP_Plate1_20240319_122800_179/WellA2_PointA2_0000_ChannelPhalloAF750,CHN2-AF488,DAPI_Seq1025.ome.tiff")]
                 )
-                input[1] = ['batch', 'plate','arm','well']
-                input[2] = Channel.of(
-                    [[batch:'Batch1', plate:'Plate1'], [
-                        file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/images/Batch1/illum/Plate1/Plate1_IllumPhalloidin.npy"),
-                        file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/images/Batch1/illum/Plate1/Plate1_IllumCHN2.npy"),
-                        file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/images/Batch1/illum/Plate1/Plate1_IllumDNA.npy")
-                    ]]
+                input[1] = ['batch', 'plate', 'channels']
+                input[2] = "illumination_cp_calc"
+                input[3] = false
+                """
+            }
+        }
+
+        then {
+            assertAll(
+                { assert workflow.success },
+                { assert snapshot(workflow.out.images_with_load_data_csv).match() }
+            )
+        }
+    }
+
+        test("barcoding - multi-channel - group by batch,plate,cycle,channels") {
+        
+        when {
+            workflow {
+                """
+                // Create a channel that mimics the processed samplesheet after splitting channels
+                input[0] = Channel.of(
+                    [[arm:'SBS', batch:'Batch1', plate:'Plate1', well:'B1', site:3, cycle:2, channels:'C', n_frames:5, original_channels:'C,A,T,G,DAPI'], file("/nf-pooled-cellpainting-sandbox/data/test-data/fix-s1_sub25/Source1/images/Batch1/images/Plate1/20X_c2_SBS-2/WellB1_PointB1_0003_ChannelC,A,T,G,DAPI_Seq3078.ome.tiff")],
+                    [[arm:'SBS', batch:'Batch1', plate:'Plate1', well:'B1', site:3, cycle:2, channels:'A', n_frames:5, original_channels:'C,A,T,G,DAPI'], file("/nf-pooled-cellpainting-sandbox/data/test-data/fix-s1_sub25/Source1/images/Batch1/images/Plate1/20X_c2_SBS-2/WellB1_PointB1_0003_ChannelC,A,T,G,DAPI_Seq3078.ome.tiff")],
+                    [[arm:'SBS', batch:'Batch1', plate:'Plate1', well:'B1', site:3, cycle:2, channels:'T', n_frames:5, original_channels:'C,A,T,G,DAPI'], file("/nf-pooled-cellpainting-sandbox/data/test-data/fix-s1_sub25/Source1/images/Batch1/images/Plate1/20X_c2_SBS-2/WellB1_PointB1_0003_ChannelC,A,T,G,DAPI_Seq3078.ome.tiff")],
+                    [[arm:'SBS', batch:'Batch1', plate:'Plate1', well:'B1', site:3, cycle:2, channels:'G', n_frames:5, original_channels:'C,A,T,G,DAPI'], file("/nf-pooled-cellpainting-sandbox/data/test-data/fix-s1_sub25/Source1/images/Batch1/images/Plate1/20X_c2_SBS-2/WellB1_PointB1_0003_ChannelC,A,T,G,DAPI_Seq3078.ome.tiff")],
+                    [[arm:'SBS', batch:'Batch1', plate:'Plate1', well:'B1', site:3, cycle:2, channels:'DAPI', n_frames:5, original_channels:'C,A,T,G,DAPI'], file("/nf-pooled-cellpainting-sandbox/data/test-data/fix-s1_sub25/Source1/images/Batch1/images/Plate1/20X_c2_SBS-2/WellB1_PointB1_0003_ChannelC,A,T,G,DAPI_Seq3078.ome.tiff")]
                 )
-                input[3] = "illumination_cp_apply"
+                input[1] = ['batch', 'plate','cycle','channels']
+                input[2] = "illumination_sbs_calc"
+                input[3] = true
                 """
             }
         }

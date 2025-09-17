@@ -1,0 +1,139 @@
+{
+    "barcoding - multi-channel - group by batch,plate,cycle,channels": {
+        "content": [
+            [
+                [
+                    {
+                        "batch": "Batch1",
+                        "plate": "Plate1",
+                        "cycle": 2,
+                        "channels": "A",
+                        "id": "Batch1_Plate1_2_A"
+                    },
+                    "A",
+                    [
+                        "/nf-pooled-cellpainting-sandbox/data/test-data/fix-s1_sub25/Source1/images/Batch1/images/Plate1/20X_c2_SBS-2/WellB1_PointB1_0003_ChannelC,A,T,G,DAPI_Seq3078.ome.tiff"
+                    ],
+                    "Batch1_Plate1_2_A.csv:md5,2d927aeda8d8a144855a317f9c96fe19"
+                ],
+                [
+                    {
+                        "batch": "Batch1",
+                        "plate": "Plate1",
+                        "cycle": 2,
+                        "channels": "C",
+                        "id": "Batch1_Plate1_2_C"
+                    },
+                    "C",
+                    [
+                        "/nf-pooled-cellpainting-sandbox/data/test-data/fix-s1_sub25/Source1/images/Batch1/images/Plate1/20X_c2_SBS-2/WellB1_PointB1_0003_ChannelC,A,T,G,DAPI_Seq3078.ome.tiff"
+                    ],
+                    "Batch1_Plate1_2_C.csv:md5,16459aa439ceb2d78add97290d6676cf"
+                ],
+                [
+                    {
+                        "batch": "Batch1",
+                        "plate": "Plate1",
+                        "cycle": 2,
+                        "channels": "DAPI",
+                        "id": "Batch1_Plate1_2_DAPI"
+                    },
+                    "DAPI",
+                    [
+                        "/nf-pooled-cellpainting-sandbox/data/test-data/fix-s1_sub25/Source1/images/Batch1/images/Plate1/20X_c2_SBS-2/WellB1_PointB1_0003_ChannelC,A,T,G,DAPI_Seq3078.ome.tiff"
+                    ],
+                    "Batch1_Plate1_2_DAPI.csv:md5,ae9f55626c3cf7a5571c93bb0e31ed09"
+                ],
+                [
+                    {
+                        "batch": "Batch1",
+                        "plate": "Plate1",
+                        "cycle": 2,
+                        "channels": "G",
+                        "id": "Batch1_Plate1_2_G"
+                    },
+                    "G",
+                    [
+                        "/nf-pooled-cellpainting-sandbox/data/test-data/fix-s1_sub25/Source1/images/Batch1/images/Plate1/20X_c2_SBS-2/WellB1_PointB1_0003_ChannelC,A,T,G,DAPI_Seq3078.ome.tiff"
+                    ],
+                    "Batch1_Plate1_2_G.csv:md5,a72a209db7adcedd117d65fd962609bb"
+                ],
+                [
+                    {
+                        "batch": "Batch1",
+                        "plate": "Plate1",
+                        "cycle": 2,
+                        "channels": "T",
+                        "id": "Batch1_Plate1_2_T"
+                    },
+                    "T",
+                    [
+                        "/nf-pooled-cellpainting-sandbox/data/test-data/fix-s1_sub25/Source1/images/Batch1/images/Plate1/20X_c2_SBS-2/WellB1_PointB1_0003_ChannelC,A,T,G,DAPI_Seq3078.ome.tiff"
+                    ],
+                    "Batch1_Plate1_2_T.csv:md5,cd67a269e626a483f6c3e5675044f690"
+                ]
+            ]
+        ],
+        "meta": {
+            "nf-test": "0.9.2",
+            "nextflow": "25.04.7"
+        },
+        "timestamp": "2025-09-16T20:25:35.739034"
+    },
+    "cellpainting - multi-channel - group by batch,plate,channels": {
+        "content": [
+            [
+                [
+                    {
+                        "batch": "Batch1",
+                        "plate": "Plate1",
+                        "channels": "CHN2-AF488",
+                        "id": "Batch1_Plate1_CHN2-AF488"
+                    },
+                    "CHN2-AF488",
+                    [
+                        "/nf-pooled-cellpainting-sandbox/data/test-data/fix-s1_sub25/Source1/images/Batch1/images/images/Plate1/20X_CP_Plate1_20240319_122800_179/WellA1_PointA1_0000_ChannelPhalloAF750,CHN2-AF488,DAPI_Seq0000.ome.tiff",
+                        "/nf-pooled-cellpainting-sandbox/data/test-data/fix-s1_sub25/Source1/images/Batch1/images/images/Plate1/20X_CP_Plate1_20240319_122800_179/WellA1_PointA1_0001_ChannelPhalloAF750,CHN2-AF488,DAPI_Seq0001.ome.tiff",
+                        "/nf-pooled-cellpainting-sandbox/data/test-data/fix-s1_sub25/Source1/images/Batch1/images/images/Plate1/20X_CP_Plate1_20240319_122800_179/WellA2_PointA2_0000_ChannelPhalloAF750,CHN2-AF488,DAPI_Seq1025.ome.tiff"
+                    ],
+                    "Batch1_Plate1_CHN2-AF488.csv:md5,5a91bac5fe72146c46df7f776d9264e7"
+                ],
+                [
+                    {
+                        "batch": "Batch1",
+                        "plate": "Plate1",
+                        "channels": "DNA",
+                        "id": "Batch1_Plate1_DNA"
+                    },
+                    "DNA",
+                    [
+                        "/nf-pooled-cellpainting-sandbox/data/test-data/fix-s1_sub25/Source1/images/Batch1/images/images/Plate1/20X_CP_Plate1_20240319_122800_179/WellA1_PointA1_0000_ChannelPhalloAF750,CHN2-AF488,DAPI_Seq0000.ome.tiff",
+                        "/nf-pooled-cellpainting-sandbox/data/test-data/fix-s1_sub25/Source1/images/Batch1/images/images/Plate1/20X_CP_Plate1_20240319_122800_179/WellA1_PointA1_0001_ChannelPhalloAF750,CHN2-AF488,DAPI_Seq0001.ome.tiff",
+                        "/nf-pooled-cellpainting-sandbox/data/test-data/fix-s1_sub25/Source1/images/Batch1/images/images/Plate1/20X_CP_Plate1_20240319_122800_179/WellA2_PointA2_0000_ChannelPhalloAF750,CHN2-AF488,DAPI_Seq1025.ome.tiff"
+                    ],
+                    "Batch1_Plate1_DNA.csv:md5,4fa18e2440615ed811548944720ef70c"
+                ],
+                [
+                    {
+                        "batch": "Batch1",
+                        "plate": "Plate1",
+                        "channels": "Phalloidin",
+                        "id": "Batch1_Plate1_Phalloidin"
+                    },
+                    "Phalloidin",
+                    [
+                        "/nf-pooled-cellpainting-sandbox/data/test-data/fix-s1_sub25/Source1/images/Batch1/images/images/Plate1/20X_CP_Plate1_20240319_122800_179/WellA1_PointA1_0000_ChannelPhalloAF750,CHN2-AF488,DAPI_Seq0000.ome.tiff",
+                        "/nf-pooled-cellpainting-sandbox/data/test-data/fix-s1_sub25/Source1/images/Batch1/images/images/Plate1/20X_CP_Plate1_20240319_122800_179/WellA1_PointA1_0001_ChannelPhalloAF750,CHN2-AF488,DAPI_Seq0001.ome.tiff",
+                        "/nf-pooled-cellpainting-sandbox/data/test-data/fix-s1_sub25/Source1/images/Batch1/images/images/Plate1/20X_CP_Plate1_20240319_122800_179/WellA2_PointA2_0000_ChannelPhalloAF750,CHN2-AF488,DAPI_Seq1025.ome.tiff"
+                    ],
+                    "Batch1_Plate1_Phalloidin.csv:md5,a5963b94fe96d40311ee618b1d759e9f"
+                ]
+            ]
+        ],
+        "meta": {
+            "nf-test": "0.9.2",
+            "nextflow": "25.04.7"
+        },
+        "timestamp": "2025-09-16T20:08:48.129168"
+    }
+}

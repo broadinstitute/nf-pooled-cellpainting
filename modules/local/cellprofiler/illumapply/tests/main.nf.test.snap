@@ -1,132 +1,26 @@
 {
     "cellprofiler - illumapply": {
         "content": [
-            {
-                "0": [
-                    [
-                        {
-                            "batch": "Batch1",
-                            "plate": "Plate1",
-                            "arm": "CP",
-                            "well": "A01",
-                            "id": "Batch1_Plate1_CP_A01"
-                        },
-                        [
-                            "Plate_Plate1_Well_A1_Site_0_CorrCHN2-AF488.tiff:md5,2b2e983ee9152d1b797a0dd7ba8c1df4",
-                            "Plate_Plate1_Well_A1_Site_0_CorrDNA.tiff:md5,c6282c3547cb50f41e08e34498efdbc6",
-                            "Plate_Plate1_Well_A1_Site_0_CorrPhalloidin.tiff:md5,d75a60071d952a0c15eb775cfde2f112",
-                            "Plate_Plate1_Well_A1_Site_1_CorrCHN2-AF488.tiff:md5,8586f4f51f3437a196cd3881ca3f4703",
-                            "Plate_Plate1_Well_A1_Site_1_CorrDNA.tiff:md5,4f98ddf6ff3daa5071eea2062f919719",
-                            "Plate_Plate1_Well_A1_Site_1_CorrPhalloidin.tiff:md5,9e0d2c395127d7d249737b23c261cd1d",
-                            "Plate_Plate1_Well_A1_Site_2_CorrCHN2-AF488.tiff:md5,0b17a141f33b9f66fd032b0094cc35c8",
-                            "Plate_Plate1_Well_A1_Site_2_CorrDNA.tiff:md5,a1adb95be3d418b34fe6a64e8ffc4e19",
-                            "Plate_Plate1_Well_A1_Site_2_CorrPhalloidin.tiff:md5,37472da98f32801a9a19941bc046fe1c",
-                            "Plate_Plate1_Well_A1_Site_3_CorrCHN2-AF488.tiff:md5,c0bfa96e9c66212703cb4131dc179595",
-                            "Plate_Plate1_Well_A1_Site_3_CorrDNA.tiff:md5,3b0bcd81918b009b6bfdd22852692402",
-                            "Plate_Plate1_Well_A1_Site_3_CorrPhalloidin.tiff:md5,c02b1d5282b711def0aafa5f1ee92bf6",
-                            "Plate_Plate1_Well_A2_Site_0_CorrCHN2-AF488.tiff:md5,ca8acd279ddf2fccd3418ebb7bf32150",
-                            "Plate_Plate1_Well_A2_Site_0_CorrDNA.tiff:md5,c10629213e0dff0957e3fd102ed21527",
-                            "Plate_Plate1_Well_A2_Site_0_CorrPhalloidin.tiff:md5,a6e3139121666b645f1b688bfa38bd23",
-                            "Plate_Plate1_Well_A2_Site_1_CorrCHN2-AF488.tiff:md5,37873a601a1c847ef61bcdc27253baf4",
-                            "Plate_Plate1_Well_A2_Site_1_CorrDNA.tiff:md5,d07400a9ca3cfdddfe303ac8ff2af4a7",
-                            "Plate_Plate1_Well_A2_Site_1_CorrPhalloidin.tiff:md5,a83d7a9e2c35315b439dd1d862fd1656",
-                            "Plate_Plate1_Well_A2_Site_2_CorrCHN2-AF488.tiff:md5,a324453defa6b3f3b9394b1dd5c21e45",
-                            "Plate_Plate1_Well_A2_Site_2_CorrDNA.tiff:md5,871b9b5ad1f1752d59416b25525d6e57",
-                            "Plate_Plate1_Well_A2_Site_2_CorrPhalloidin.tiff:md5,7c9e9ec77cbcb1f11864c2e9dcad3fc3",
-                            "Plate_Plate1_Well_A2_Site_3_CorrCHN2-AF488.tiff:md5,135ce621704b5ac6da26ea719dc7183c",
-                            "Plate_Plate1_Well_A2_Site_3_CorrDNA.tiff:md5,31715a23daa2934374f625b63e6a212c",
-                            "Plate_Plate1_Well_A2_Site_3_CorrPhalloidin.tiff:md5,6f2fea44f7652a46e251162b639db577",
-                            "Plate_Plate1_Well_B1_Site_0_CorrCHN2-AF488.tiff:md5,4dc0ac3bd6de6ea7db1a7855d7a1527e",
-                            "Plate_Plate1_Well_B1_Site_0_CorrDNA.tiff:md5,2f33c9e4e4dab2fa14755c5db63ba4b4",
-                            "Plate_Plate1_Well_B1_Site_0_CorrPhalloidin.tiff:md5,603f35a9109e6a2d750b86db8bf34f0c",
-                            "Plate_Plate1_Well_B1_Site_1_CorrCHN2-AF488.tiff:md5,448e0c247a5a447d06c43a891045ca61",
-                            "Plate_Plate1_Well_B1_Site_1_CorrDNA.tiff:md5,675b6870d237722915dfed0851de26d3",
-                            "Plate_Plate1_Well_B1_Site_1_CorrPhalloidin.tiff:md5,061551bc597c7df18ef5e5ea43bb7554",
-                            "Plate_Plate1_Well_B1_Site_2_CorrCHN2-AF488.tiff:md5,5584acb4bac28b725aed35332b4eb205",
-                            "Plate_Plate1_Well_B1_Site_2_CorrDNA.tiff:md5,a85ef43cd3735baba1a17d5e6171552e",
-                            "Plate_Plate1_Well_B1_Site_2_CorrPhalloidin.tiff:md5,9c28e2090f5c339412e58975a769727b",
-                            "Plate_Plate1_Well_B1_Site_3_CorrCHN2-AF488.tiff:md5,06b678c23fde27a6f0e8162ccf824967",
-                            "Plate_Plate1_Well_B1_Site_3_CorrDNA.tiff:md5,336db3e3535fe6c44cf8aec94f6655c3",
-                            "Plate_Plate1_Well_B1_Site_3_CorrPhalloidin.tiff:md5,faa66035e2a43685e715b771e0c1fe2a"
-                        ],
-                        [
-                            "PaintingIllumApplication_Cells.csv:md5,1e10640f5b445d1a28d2c99ae9e44881",
-                            "PaintingIllumApplication_ConfluentRegions.csv:md5,1b750935d3b089c32553fc333f8dabcf",
-                            "PaintingIllumApplication_Experiment.csv:md5,c25745af98731907d892c1e472d80a91",
-                            "PaintingIllumApplication_Image.csv:md5,dfa2d479c715da9a962690a0ccf1b532",
-                            "PaintingIllumApplication_Nuclei.csv:md5,c1a217e91c485ed4aafc5adff43ec48e"
-                        ]
-                    ]
-                ],
-                "1": [
-                    "versions.yml:md5,fcc737a6b71b0afbb10e43104dd6c549"
-                ],
-                "corrected_images": [
-                    [
-                        {
-                            "batch": "Batch1",
-                            "plate": "Plate1",
-                            "arm": "CP",
-                            "well": "A01",
-                            "id": "Batch1_Plate1_CP_A01"
-                        },
-                        [
-                            "Plate_Plate1_Well_A1_Site_0_CorrCHN2-AF488.tiff:md5,2b2e983ee9152d1b797a0dd7ba8c1df4",
-                            "Plate_Plate1_Well_A1_Site_0_CorrDNA.tiff:md5,c6282c3547cb50f41e08e34498efdbc6",
-                            "Plate_Plate1_Well_A1_Site_0_CorrPhalloidin.tiff:md5,d75a60071d952a0c15eb775cfde2f112",
-                            "Plate_Plate1_Well_A1_Site_1_CorrCHN2-AF488.tiff:md5,8586f4f51f3437a196cd3881ca3f4703",
-                            "Plate_Plate1_Well_A1_Site_1_CorrDNA.tiff:md5,4f98ddf6ff3daa5071eea2062f919719",
-                            "Plate_Plate1_Well_A1_Site_1_CorrPhalloidin.tiff:md5,9e0d2c395127d7d249737b23c261cd1d",
-                            "Plate_Plate1_Well_A1_Site_2_CorrCHN2-AF488.tiff:md5,0b17a141f33b9f66fd032b0094cc35c8",
-                            "Plate_Plate1_Well_A1_Site_2_CorrDNA.tiff:md5,a1adb95be3d418b34fe6a64e8ffc4e19",
-                            "Plate_Plate1_Well_A1_Site_2_CorrPhalloidin.tiff:md5,37472da98f32801a9a19941bc046fe1c",
-                            "Plate_Plate1_Well_A1_Site_3_CorrCHN2-AF488.tiff:md5,c0bfa96e9c66212703cb4131dc179595",
-                            "Plate_Plate1_Well_A1_Site_3_CorrDNA.tiff:md5,3b0bcd81918b009b6bfdd22852692402",
-                            "Plate_Plate1_Well_A1_Site_3_CorrPhalloidin.tiff:md5,c02b1d5282b711def0aafa5f1ee92bf6",
-                            "Plate_Plate1_Well_A2_Site_0_CorrCHN2-AF488.tiff:md5,ca8acd279ddf2fccd3418ebb7bf32150",
-                            "Plate_Plate1_Well_A2_Site_0_CorrDNA.tiff:md5,c10629213e0dff0957e3fd102ed21527",
-                            "Plate_Plate1_Well_A2_Site_0_CorrPhalloidin.tiff:md5,a6e3139121666b645f1b688bfa38bd23",
-                            "Plate_Plate1_Well_A2_Site_1_CorrCHN2-AF488.tiff:md5,37873a601a1c847ef61bcdc27253baf4",
-                            "Plate_Plate1_Well_A2_Site_1_CorrDNA.tiff:md5,d07400a9ca3cfdddfe303ac8ff2af4a7",
-                            "Plate_Plate1_Well_A2_Site_1_CorrPhalloidin.tiff:md5,a83d7a9e2c35315b439dd1d862fd1656",
-                            "Plate_Plate1_Well_A2_Site_2_CorrCHN2-AF488.tiff:md5,a324453defa6b3f3b9394b1dd5c21e45",
-                            "Plate_Plate1_Well_A2_Site_2_CorrDNA.tiff:md5,871b9b5ad1f1752d59416b25525d6e57",
-                            "Plate_Plate1_Well_A2_Site_2_CorrPhalloidin.tiff:md5,7c9e9ec77cbcb1f11864c2e9dcad3fc3",
-                            "Plate_Plate1_Well_A2_Site_3_CorrCHN2-AF488.tiff:md5,135ce621704b5ac6da26ea719dc7183c",
-                            "Plate_Plate1_Well_A2_Site_3_CorrDNA.tiff:md5,31715a23daa2934374f625b63e6a212c",
-                            "Plate_Plate1_Well_A2_Site_3_CorrPhalloidin.tiff:md5,6f2fea44f7652a46e251162b639db577",
-                            "Plate_Plate1_Well_B1_Site_0_CorrCHN2-AF488.tiff:md5,4dc0ac3bd6de6ea7db1a7855d7a1527e",
-                            "Plate_Plate1_Well_B1_Site_0_CorrDNA.tiff:md5,2f33c9e4e4dab2fa14755c5db63ba4b4",
-                            "Plate_Plate1_Well_B1_Site_0_CorrPhalloidin.tiff:md5,603f35a9109e6a2d750b86db8bf34f0c",
-                            "Plate_Plate1_Well_B1_Site_1_CorrCHN2-AF488.tiff:md5,448e0c247a5a447d06c43a891045ca61",
-                            "Plate_Plate1_Well_B1_Site_1_CorrDNA.tiff:md5,675b6870d237722915dfed0851de26d3",
-                            "Plate_Plate1_Well_B1_Site_1_CorrPhalloidin.tiff:md5,061551bc597c7df18ef5e5ea43bb7554",
-                            "Plate_Plate1_Well_B1_Site_2_CorrCHN2-AF488.tiff:md5,5584acb4bac28b725aed35332b4eb205",
-                            "Plate_Plate1_Well_B1_Site_2_CorrDNA.tiff:md5,a85ef43cd3735baba1a17d5e6171552e",
-                            "Plate_Plate1_Well_B1_Site_2_CorrPhalloidin.tiff:md5,9c28e2090f5c339412e58975a769727b",
-                            "Plate_Plate1_Well_B1_Site_3_CorrCHN2-AF488.tiff:md5,06b678c23fde27a6f0e8162ccf824967",
-                            "Plate_Plate1_Well_B1_Site_3_CorrDNA.tiff:md5,336db3e3535fe6c44cf8aec94f6655c3",
-                            "Plate_Plate1_Well_B1_Site_3_CorrPhalloidin.tiff:md5,faa66035e2a43685e715b771e0c1fe2a"
-                        ],
-                        [
-                            "PaintingIllumApplication_Cells.csv:md5,1e10640f5b445d1a28d2c99ae9e44881",
-                            "PaintingIllumApplication_ConfluentRegions.csv:md5,1b750935d3b089c32553fc333f8dabcf",
-                            "PaintingIllumApplication_Experiment.csv:md5,c25745af98731907d892c1e472d80a91",
-                            "PaintingIllumApplication_Image.csv:md5,dfa2d479c715da9a962690a0ccf1b532",
-                            "PaintingIllumApplication_Nuclei.csv:md5,c1a217e91c485ed4aafc5adff43ec48e"
-                        ]
-                    ]
-                ],
-                "versions": [
-                    "versions.yml:md5,fcc737a6b71b0afbb10e43104dd6c549"
-                ]
-            }
+            [
+                "Plate_Plate1_Well_A1_Site_0_CorrCHN2-AF488.tiff:md5,9f1f5c01a7015d62547703ffb898051c",
+                "Plate_Plate1_Well_A1_Site_0_CorrDNA.tiff:md5,ad5d16f2445a44fa18b35219d19b5010",
+                "Plate_Plate1_Well_A1_Site_0_CorrPhalloidin.tiff:md5,704bf366b0c3526bd13c3311796aff7b",
+                "Plate_Plate1_Well_A1_Site_1_CorrCHN2-AF488.tiff:md5,fcd4763a713e4bcef409dc581b13c0b7",
+                "Plate_Plate1_Well_A1_Site_1_CorrDNA.tiff:md5,77d6e8c806c9b052e690bff04d6c14d7",
+                "Plate_Plate1_Well_A1_Site_1_CorrPhalloidin.tiff:md5,a95435ec0fbfc2a40a0541b9d08ca7ea",
+                "Plate_Plate1_Well_A1_Site_2_CorrCHN2-AF488.tiff:md5,57d07a12c85d6895efea84cf48297ce6",
+                "Plate_Plate1_Well_A1_Site_2_CorrDNA.tiff:md5,e41f7c438570bc85bf2b4865945fe74b",
+                "Plate_Plate1_Well_A1_Site_2_CorrPhalloidin.tiff:md5,a6b56c0484e37a3e1ffb43186cb1d058",
+                "Plate_Plate1_Well_A1_Site_3_CorrCHN2-AF488.tiff:md5,26d47916d709d2b6a0785f54970f63b0",
+                "Plate_Plate1_Well_A1_Site_3_CorrDNA.tiff:md5,822d9f57960925696bd4ec9e9e267055",
+                "Plate_Plate1_Well_A1_Site_3_CorrPhalloidin.tiff:md5,43f9c0335741d27fe643f68b3d50b6f5"
+            ]
         ],
         "meta": {
             "nf-test": "0.9.2",
-            "nextflow": "25.04.6"
+            "nextflow": "25.04.7"
         },
-        "timestamp": "2025-09-15T10:11:18.253805"
+        "timestamp": "2025-09-16T19:59:23.529947"
     },
     "cellprofiler - illumapply - stub": {
         "content": [
@@ -136,12 +30,18 @@
                         {
                             "batch": "Batch1",
                             "plate": "Plate1",
-                            "arm": "cellpainting",
+                            "arm": "CP",
                             "well": "A01",
-                            "id": "Batch1_Plate1_cellpainting_A01"
+                            "id": "Batch1_Plate1_painting_A1"
                         },
-                        "Batch1_Plate1_cellpainting_A01_corrected_image.tiff:md5,d41d8cd98f00b204e9800998ecf8427e",
-                        "Batch1_Plate1_cellpainting_A01_load_data.csv:md5,d41d8cd98f00b204e9800998ecf8427e"
+                        "Plate_Plate1_Well_A01_Site_null_CorrPhalloidin.tiff:md5,d41d8cd98f00b204e9800998ecf8427e",
+                        [
+                            "PaintingIllumApplication_Cells.csv:md5,d41d8cd98f00b204e9800998ecf8427e",
+                            "PaintingIllumApplication_ConfluentRegions.csv:md5,d41d8cd98f00b204e9800998ecf8427e",
+                            "PaintingIllumApplication_Experiment.csv:md5,d41d8cd98f00b204e9800998ecf8427e",
+                            "PaintingIllumApplication_Image.csv:md5,d41d8cd98f00b204e9800998ecf8427e",
+                            "PaintingIllumApplication_Nuclei.csv:md5,d41d8cd98f00b204e9800998ecf8427e"
+                        ]
                     ]
                 ],
                 "1": [
@@ -152,12 +52,18 @@
                         {
                             "batch": "Batch1",
                             "plate": "Plate1",
-                            "arm": "cellpainting",
+                            "arm": "CP",
                             "well": "A01",
-                            "id": "Batch1_Plate1_cellpainting_A01"
+                            "id": "Batch1_Plate1_painting_A1"
                         },
-                        "Batch1_Plate1_cellpainting_A01_corrected_image.tiff:md5,d41d8cd98f00b204e9800998ecf8427e",
-                        "Batch1_Plate1_cellpainting_A01_load_data.csv:md5,d41d8cd98f00b204e9800998ecf8427e"
+                        "Plate_Plate1_Well_A01_Site_null_CorrPhalloidin.tiff:md5,d41d8cd98f00b204e9800998ecf8427e",
+                        [
+                            "PaintingIllumApplication_Cells.csv:md5,d41d8cd98f00b204e9800998ecf8427e",
+                            "PaintingIllumApplication_ConfluentRegions.csv:md5,d41d8cd98f00b204e9800998ecf8427e",
+                            "PaintingIllumApplication_Experiment.csv:md5,d41d8cd98f00b204e9800998ecf8427e",
+                            "PaintingIllumApplication_Image.csv:md5,d41d8cd98f00b204e9800998ecf8427e",
+                            "PaintingIllumApplication_Nuclei.csv:md5,d41d8cd98f00b204e9800998ecf8427e"
+                        ]
                     ]
                 ],
                 "versions": [
@@ -167,8 +73,8 @@
         ],
         "meta": {
             "nf-test": "0.9.2",
-            "nextflow": "25.04.6"
+            "nextflow": "25.04.7"
         },
-        "timestamp": "2025-09-13T20:23:11.166254"
+        "timestamp": "2025-09-16T20:06:18.182883"
     }
 }
