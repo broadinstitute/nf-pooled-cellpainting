@@ -1,0 +1,98 @@
+// TODO nf-core: Once you have added the required tests, please run the following command to build this file:
+// nf-core modules test qc/montageillum
+nextflow_process {
+
+    name "Test Process QC_MONTAGEILLUM"
+    script "../main.nf"
+    process "QC_MONTAGEILLUM"
+
+    tag "modules"
+    tag "modules_"
+    tag "qc"
+    tag "qc/montageillum"
+
+    test("generate montage - cellpainting") {
+
+        when {
+            process {
+                """
+                input[0] = [
+                    [ arm:'CP', batch:'Batch1', plate:'Plate1' ], // meta map
+                    [   file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/Batch1/illum/Plate1/Plate1_IllumCHN2.npy"),
+                        file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/Batch1/illum/Plate1/Plate1_IllumDNA.npy"),
+                        file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/Batch1/illum/Plate1/Plate1_IllumPhalloidin.npy")
+                    ]
+                ]
+                """
+            }
+        }
+
+        then {
+            assertAll(
+                { assert process.success },
+                { assert snapshot(process.out).match() }
+            )
+        }
+
+    }
+
+        test("generate montage - barcoding") {
+
+        when {
+            process {
+                """
+                input[0] = [
+                    [ arm:'SBS', batch:'Batch1', plate:'Plate1' ], // meta map
+                    [   file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/Batch1/illum/Plate1/Plate1_Cycle1_IllumA.npy"),
+                        file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/Batch1/illum/Plate1/Plate1_Cycle1_IllumC.npy"),
+                        file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/Batch1/illum/Plate1/Plate1_Cycle1_IllumDNA.npy"),
+                        file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/Batch1/illum/Plate1/Plate1_Cycle1_IllumG.npy"),
+                        file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/Batch1/illum/Plate1/Plate1_Cycle1_IllumT.npy"),
+                        file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/Batch1/illum/Plate1/Plate1_Cycle2_IllumA.npy"),
+                        file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/Batch1/illum/Plate1/Plate1_Cycle2_IllumC.npy"),
+                        file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/Batch1/illum/Plate1/Plate1_Cycle2_IllumDNA.npy"),
+                        file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/Batch1/illum/Plate1/Plate1_Cycle2_IllumG.npy"),
+                        file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/Batch1/illum/Plate1/Plate1_Cycle2_IllumT.npy")
+                    ]
+                ]
+                """
+            }
+        }
+
+        then {
+            assertAll(
+                { assert process.success },
+                { assert snapshot(process.out).match() }
+            )
+        }
+
+    }
+
+    test("sarscov2 - bam - stub") {
+
+        options "-stub"
+
+        when {
+            process {
+                """
+                input[0] = [
+                    [ arm:'CP', batch:'Batch1', plate:'Plate1' ], // meta map
+                    [   file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/Batch1/illum/Plate1/Plate1_IllumCHN2.npy"),
+                        file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/Batch1/illum/Plate1/Plate1_IllumDNA.npy"),
+                        file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/Batch1/illum/Plate1/Plate1_IllumPhalloidin.npy")
+                    ]
+                ]
+                """
+            }
+        }
+
+        then {
+            assertAll(
+                { assert process.success },
+                { assert snapshot(process.out).match() }
+            )
+        }
+
+    }
+
+}

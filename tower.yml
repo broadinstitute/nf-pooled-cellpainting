@@ -1,5 +1,5 @@
 reports:
-  multiqc_report.html:
-    display: "MultiQC HTML report"
-  samplesheet.csv:
-    display: "Auto-created samplesheet with collated metadata and FASTQ paths"
+  qc/CP*.png:
+    display: "Cell painting illumination correction profiles montage"
+  qc/SBS*.png:
+    display: "Sequencing by synthesis illumination correction profiles montage"

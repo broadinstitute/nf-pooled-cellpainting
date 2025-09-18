@@ -1,0 +1,58 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/nf-core/modules/master/modules/meta-schema.json
+name: "qc_montageillum"
+description: "Create visual montages of illumination correction functions for quality control"
+keywords:
+  - quality_control
+  - illumination_correction
+  - cellpainting
+  - microscopy
+  - visualization
+tools:
+  - "python":
+      description: "Python with matplotlib, numpy, and typer for creating illumination QC montages"
+      homepage: "https://www.python.org/"
+      documentation: "https://docs.python.org/"
+      tool_dev_url: "https://github.com/python/cpython"
+      doi: ""
+      licence: ['Python Software Foundation License']
+      identifier: ""
+
+input:
+  - - meta:
+        type: map
+        description: |
+          Groovy Map containing sample information
+          e.g. `[ plate:'Plate1', arm:'CP', batch:'Batch1' ]`
+    - npy_files:
+        type: file
+        description: "Illumination correction files in numpy format"
+        pattern: "*.npy"
+        ontologies:
+          - edam: "http://edamontology.org/data_0006" # Data
+
+output:
+  - illum_montage:
+      - meta:
+          type: map
+          description: |
+            Groovy Map containing sample information
+            e.g. `[ plate:'Plate1', arm:'CP', batch:'Batch1' ]`
+      - "*.png":
+          type: file
+          description: "PNG montage image showing illumination correction functions"
+          pattern: "*.png"
+          ontologies:
+            - edam: "http://edamontology.org/data_2968" # Image
+            - edam: "http://edamontology.org/format_3603" # PNG
+  - versions:
+      - "versions.yml":
+          type: file
+          description: "File containing software versions"
+          pattern: "versions.yml"
+          ontologies:
+            - edam: "http://edamontology.org/format_3750" # YAML
+
+authors:
+  - "@FloWuenne"
+maintainers:
+  - "@FloWuenne"
