@@ -52,16 +52,16 @@ workflow POOLED_CELLPAINTING {
             }
         }
         .branch { meta, _images ->
-            cp: meta.arm == 'CP'
-            sbs: meta.arm == 'SBS'
+            cp: meta.arm == 'painting'
+            sbs: meta.arm == 'barcoding'
         }
 
     // Add meta.arm back into each channel
     ch_samplesheet_cp = ch_samplesheet.cp.map { meta, image ->
-        [meta + [arm: 'CP'], image]
+        [meta + [arm: 'painting'], image]
     }
     ch_samplesheet_sbs = ch_samplesheet.sbs.map { meta, image ->
-        [meta + [arm: 'SBS'], image]
+        [meta + [arm: 'barcoding'], image]
     }
 
     // Process cell painting (CP) data

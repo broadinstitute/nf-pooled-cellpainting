@@ -32,7 +32,7 @@ workflow SEQ_BY_SYNTHESIS {
     //// QC illumination correction profiles ////
     CELLPROFILER_ILLUMCALC.out.illumination_corrections
         .map{ meta, npy_files ->
-            [meta.subMap(['batch', 'plate']) + [arm: "SBS"], npy_files]
+            [meta.subMap(['batch', 'plate']) + [arm: "barcoding"], npy_files]
         }
         .groupTuple()
         .map{ meta, npy_files_list ->

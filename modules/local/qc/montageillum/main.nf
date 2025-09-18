@@ -17,7 +17,7 @@ process QC_MONTAGEILLUM {
 
     script:
     def args = task.ext.args ?: ''
-    def pattern = meta.arm == 'CP' ? ".*\\.npy\$" : ".*Cycle.*\\.npy\$"
+    def pattern = meta.arm == 'painting' ? ".*\\.npy\$" : ".*Cycle.*\\.npy\$"
     """
     montage.py \\
         $args \\

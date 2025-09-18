@@ -36,7 +36,7 @@ workflow CELLPAINTING {
     //// QC illumination correction profiles ////
     CELLPROFILER_ILLUMCALC.out.illumination_corrections
         .map{ meta, npy_files ->
-            [meta.subMap(['batch', 'plate']) + [arm: "CP"], npy_files]
+            [meta.subMap(['batch', 'plate']) + [arm: "painting"], npy_files]
         }
         .groupTuple()
         .map{ meta, npy_files_list ->
