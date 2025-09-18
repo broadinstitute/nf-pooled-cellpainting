@@ -9,7 +9,7 @@ process QC_MONTAGEILLUM {
     tuple val(meta), path(npy_files)
 
     output:
-    tuple val(meta), path("*.png"), emit: illum_montage
+    tuple val(meta), path("*.png")      , emit: illum_montage
     path "versions.yml"                 , emit: versions
 
     when:

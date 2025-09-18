@@ -17,10 +17,10 @@ nextflow_process {
             process {
                 """
                 input[0] = [
-                    [ arm:'CP', batch:'Batch1', plate:'Plate1' ], // meta map
-                    [   file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/Batch1/illum/Plate1/Plate1_IllumCHN2.npy"),
-                        file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/Batch1/illum/Plate1/Plate1_IllumDNA.npy"),
-                        file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/Batch1/illum/Plate1/Plate1_IllumPhalloidin.npy")
+                    [ arm:'painting', batch:'Batch1', plate:'Plate1' ], // meta map
+                    [   file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/images/Batch1/illum/Plate1/Plate1_IllumCHN2.npy"),
+                        file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/images/Batch1/illum/Plate1/Plate1_IllumDNA.npy"),
+                        file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/images/Batch1/illum/Plate1/Plate1_IllumPhalloidin.npy")
                     ]
                 ]
                 """
@@ -42,17 +42,17 @@ nextflow_process {
             process {
                 """
                 input[0] = [
-                    [ arm:'SBS', batch:'Batch1', plate:'Plate1' ], // meta map
-                    [   file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/Batch1/illum/Plate1/Plate1_Cycle1_IllumA.npy"),
-                        file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/Batch1/illum/Plate1/Plate1_Cycle1_IllumC.npy"),
-                        file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/Batch1/illum/Plate1/Plate1_Cycle1_IllumDNA.npy"),
-                        file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/Batch1/illum/Plate1/Plate1_Cycle1_IllumG.npy"),
-                        file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/Batch1/illum/Plate1/Plate1_Cycle1_IllumT.npy"),
-                        file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/Batch1/illum/Plate1/Plate1_Cycle2_IllumA.npy"),
-                        file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/Batch1/illum/Plate1/Plate1_Cycle2_IllumC.npy"),
-                        file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/Batch1/illum/Plate1/Plate1_Cycle2_IllumDNA.npy"),
-                        file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/Batch1/illum/Plate1/Plate1_Cycle2_IllumG.npy"),
-                        file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/Batch1/illum/Plate1/Plate1_Cycle2_IllumT.npy")
+                    [ arm:'barcoding', batch:'Batch1', plate:'Plate1' ], // meta map
+                    [   file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/images/Batch1/illum/Plate1/Plate1_Cycle1_IllumA.npy"),
+                        file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/images/Batch1/illum/Plate1/Plate1_Cycle1_IllumC.npy"),
+                        file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/images/Batch1/illum/Plate1/Plate1_Cycle1_IllumDNA.npy"),
+                        file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/images/Batch1/illum/Plate1/Plate1_Cycle1_IllumG.npy"),
+                        file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/images/Batch1/illum/Plate1/Plate1_Cycle1_IllumT.npy"),
+                        file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/images/Batch1/illum/Plate1/Plate1_Cycle2_IllumA.npy"),
+                        file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/images/Batch1/illum/Plate1/Plate1_Cycle2_IllumC.npy"),
+                        file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/images/Batch1/illum/Plate1/Plate1_Cycle2_IllumDNA.npy"),
+                        file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/images/Batch1/illum/Plate1/Plate1_Cycle2_IllumG.npy"),
+                        file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/images/Batch1/illum/Plate1/Plate1_Cycle2_IllumT.npy")
                     ]
                 ]
                 """
@@ -68,7 +68,7 @@ nextflow_process {
 
     }
 
-    test("sarscov2 - bam - stub") {
+    test("generate montage - - stub") {
 
         options "-stub"
 
@@ -76,10 +76,10 @@ nextflow_process {
             process {
                 """
                 input[0] = [
-                    [ arm:'CP', batch:'Batch1', plate:'Plate1' ], // meta map
-                    [   file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/Batch1/illum/Plate1/Plate1_IllumCHN2.npy"),
-                        file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/Batch1/illum/Plate1/Plate1_IllumDNA.npy"),
-                        file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/Batch1/illum/Plate1/Plate1_IllumPhalloidin.npy")
+                    [ arm:'painting', batch:'Batch1', plate:'Plate1' ], // meta map
+                    [   file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/images/Batch1/illum/Plate1/Plate1_IllumCHN2.npy"),
+                        file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/images/Batch1/illum/Plate1/Plate1_IllumDNA.npy"),
+                        file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/images/Batch1/illum/Plate1/Plate1_IllumPhalloidin.npy")
                     ]
                 ]
                 """
