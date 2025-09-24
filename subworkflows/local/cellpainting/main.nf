@@ -55,7 +55,8 @@ workflow CELLPAINTING {
         ch_samplesheet_cp,
         ['batch', 'plate','arm','well'],
         CELLPROFILER_ILLUMCALC.out.illumination_corrections,
-        'illumination_cp_apply'
+        'illumination_cp_apply',
+        false
     )
 
     // Apply illumination correction to images

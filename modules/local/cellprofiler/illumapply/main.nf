@@ -8,7 +8,7 @@ process CELLPROFILER_ILLUMAPPLY {
         : 'community.wave.seqera.io/library/cellprofiler:4.2.8--aff0a99749304a7f'}"
 
     input:
-    tuple val(meta), path(images, stageAs: "images/*"), path(npy_files, stageAs: "images/*"), path(load_data_csv)
+    tuple val(meta), path(images, stageAs: "images/img*/*"), path(npy_files, stageAs: "images/*"), path(load_data_csv)
     path illumination_apply_cppipe
 
     output:
@@ -20,12 +20,11 @@ process CELLPROFILER_ILLUMAPPLY {
 
     script:
     """
-
-    cellprofiler -c -r \
-        ${task.ext.args ?: ''} \
-        -p ${illumination_apply_cppipe} \
-        -o . \
-        --data-file=${load_data_csv} \
+    cellprofiler -c -r \\
+        ${task.ext.args ?: ''} \\
+        -p ${illumination_apply_cppipe} \\
+        -o . \\
+        --data-file=${load_data_csv} \\
         --image-directory ./images/
 
     cat <<-END_VERSIONS > versions.yml

@@ -5,7 +5,7 @@
 */
 include { MULTIQC                } from '../modules/nf-core/multiqc/main'
 include { CELLPAINTING           } from '../subworkflows/local/cellpainting'
-include { SEQ_BY_SYNTHESIS           } from '../subworkflows/local/seq_by_synthesis'
+include { BARCODING           } from '../subworkflows/local/barcoding'
 
 
 include { paramsSummaryMap       } from 'plugin/nf-schema'
@@ -70,14 +70,13 @@ workflow POOLED_CELLPAINTING {
         cppipes
     )
 
-    // Process sequencing by synthesis (SBS) data
-    SEQ_BY_SYNTHESIS(
+    // Process barcoding (sequencing by synthesis (SBS)) data
+
+    // Run barcoding subworkflow    
+    BARCODING(
         ch_samplesheet_sbs,
         cppipes
     )
-
-    // Process sequencing by synthesis (SBS) data
-    // SEQ_BY_SYNTH(ch_samplesheet_sbs)
 
 
     //
