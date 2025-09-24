@@ -41,9 +41,13 @@ lint:
     - assets/email_template.html
     - assets/sendmail_template.txt
     - assets/email_template.txt
+    - tests/default.nf.test
   readme:
     - nextflow_badge
     - nfcore_template_badge
+  nf_test_content:
+    - tests/nextflow.config modules_testdata_base_path
+    - tests/nextflow.config pipelines_testdata_base_path
 
 template:
   org: seqera-services

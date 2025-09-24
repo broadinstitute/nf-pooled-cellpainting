@@ -112,6 +112,12 @@
                 "sbs_illum_calc_pipe": {
                     "type": "string",
                     "description": "Cellprofiler pipeline for SBS illumination calculation."
+                },
+                "cp_illum_apply_pipe": {
+                    "type": "string"
+                },
+                "sbs_illum_apply_pipe": {
+                    "type": "string"
                 }
             }
         },
