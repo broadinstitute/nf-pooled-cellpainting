@@ -1,5 +1,5 @@
 reports:
-  qc_reports/**/CP*.png:
+  workspace/qc_reports/**/painting*.png:
     display: "Cell painting illumination correction profiles montage"
-  qc_reports/**/SBS*.png:
+  workspace/qc_reports/**/barcoding*.png:
     display: "Sequencing by synthesis illumination correction profiles montage"
