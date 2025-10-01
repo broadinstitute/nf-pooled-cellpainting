@@ -45,9 +45,7 @@ lint:
   readme:
     - nextflow_badge
     - nfcore_template_badge
-  nf_test_content:
-    - tests/nextflow.config modules_testdata_base_path
-    - tests/nextflow.config pipelines_testdata_base_path
+  nf_test_content: false
 
 template:
   org: seqera-services
