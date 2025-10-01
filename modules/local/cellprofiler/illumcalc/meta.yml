@@ -2,20 +2,20 @@
 name: "cellprofiler_illumcalc"
 description: "Calculate illumination correction functions from microscopy images using CellProfiler"
 keywords:
-- illumination_correction
-- cellprofiler
-- microscopy
-- image_processing
+  - illumination_correction
+  - cellprofiler
+  - microscopy
+  - image_processing
 tools:
-- "cellprofiler":
-    description: "CellProfiler is free, open-source software for quantitative analysis
-      of biological images."
-    homepage: "https://cellprofiler-manual.s3.amazonaws.com/CellProfiler-4.2.8/index.html"
-    documentation: "https://cellprofiler-manual.s3.amazonaws.com/CellProfiler-4.2.8/index.html"
-    tool_dev_url: "https://github.com/CellProfiler/CellProfiler"
-    doi: "https://doi.org/10.1186/s12859-021-04344-9"
-    licence: ['BSD-3-clause']
-    identifier: biotools:CellProfiler
+  - "cellprofiler":
+      description: "CellProfiler is free, open-source software for quantitative analysis
+        of biological images."
+      homepage: "https://cellprofiler-manual.s3.amazonaws.com/CellProfiler-4.2.8/index.html"
+      documentation: "https://cellprofiler-manual.s3.amazonaws.com/CellProfiler-4.2.8/index.html"
+      tool_dev_url: "https://github.com/CellProfiler/CellProfiler"
+      doi: "https://doi.org/10.1186/s12859-021-04344-9"
+      licence: ["BSD-3-clause"]
+      identifier: biotools:CellProfiler
 
 input:
   - - meta:
@@ -49,6 +49,6 @@ output:
         description: "File containing software versions"
         pattern: "versions.yml"
 authors:
-- "@FloWuenne"
+  - "@FloWuenne"
 maintainers:
-- "@FloWuenne"
+  - "@FloWuenne"

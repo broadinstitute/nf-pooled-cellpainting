@@ -72,7 +72,7 @@ workflow POOLED_CELLPAINTING {
 
     // Process barcoding (sequencing by synthesis (SBS)) data
 
-    // Run barcoding subworkflow    
+    // Run barcoding subworkflow
     BARCODING(
         ch_samplesheet_sbs,
         cppipes

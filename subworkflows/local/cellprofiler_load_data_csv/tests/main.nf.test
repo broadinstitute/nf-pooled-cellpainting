@@ -9,7 +9,7 @@ nextflow_workflow {
     tag "cellprofiler_load_data_csv"
 
     test("cellpainting - multi-channel - group by batch,plate,channels") {
-        
+
         when {
             workflow {
                 """
@@ -41,7 +41,7 @@ nextflow_workflow {
     }
 
         test("barcoding - multi-channel - group by batch,plate,cycle,channels") {
-        
+
         when {
             workflow {
                 """

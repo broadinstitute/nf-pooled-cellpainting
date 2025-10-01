@@ -32,7 +32,7 @@ workflow CELLPROFILER_LOAD_DATA_CSV {
             def has_original_channels = meta_list.any { it.original_channels != null }
             def current_channels = meta_list.collect { it.channels }.unique()
             def all_single_channels = current_channels.every { !it.contains(',') }
-            
+
             def image_channels_header
             if (all_single_channels && has_original_channels) {
                 // Scenario 2: Single channels after splitting, use only the current channels
@@ -72,22 +72,22 @@ workflow CELLPROFILER_LOAD_DATA_CSV {
                 def (image_filenames, image_frames) = image_channels_header.collect { channel ->
                     // Find which channels string contains this channel
                     def matching_channels = images_by_channel.keySet().find { channels_string ->
-                        channels_string.contains(',') ? 
+                        channels_string.contains(',') ?
                             channels_string.split(',').collect { it.trim() }.contains(channel) :
                             channels_string == channel
                     }
-                    
+
                     if (matching_channels) {
                         def filename = "\"${images_by_channel[matching_channels].name}\""
                         def frame
-                        
+
                         // Calculate frame based on the scenario
                         if (all_single_channels && has_original_channels) {
                             // Scenario 2: Single channels after splitting, use original_channels for frame calculation
-                            def meta_for_image = [meta_list, image_list].transpose().find { _meta, _image -> 
-                                _image == images_by_channel[matching_channels] 
+                            def meta_for_image = [meta_list, image_list].transpose().find { _meta, _image ->
+                                _image == images_by_channel[matching_channels]
                             }[0]
-                            
+
                             if (meta_for_image.original_channels && meta_for_image.original_channels.contains(',')) {
                                 def split_channels = meta_for_image.original_channels.split(',').collect { it.trim() }
                                 frame = split_channels.indexOf(channel)
@@ -106,7 +106,7 @@ workflow CELLPROFILER_LOAD_DATA_CSV {
                                 frame = 0
                             }
                         }
-                        
+
                         [filename, frame]
                     } else {
                         ["\"\"", ""]

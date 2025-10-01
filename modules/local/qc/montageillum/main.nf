@@ -35,7 +35,7 @@ process QC_MONTAGEILLUM {
     def args = task.ext.args ?: ''
     """
     echo $args
-    
+
     touch montage.png
 
     cat <<-END_VERSIONS > versions.yml

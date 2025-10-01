@@ -38,7 +38,7 @@ process CELLPROFILER_ILLUMAPPLY {
     def prefix = task.ext.prefix ?: "${meta.id}"
     """
     echo $args
-    
+
     touch Plate_${meta.plate}_Well_${meta.well}_Site_${meta.site}_CorrPhalloidin.tiff
     touch PaintingIllumApplication_Cells.csv
     touch PaintingIllumApplication_ConfluentRegions.csv

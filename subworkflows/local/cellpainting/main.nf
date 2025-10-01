@@ -18,7 +18,7 @@ workflow CELLPAINTING {
     main:
 
     //// Calculate illumination correction profiles ////
-    
+
     // Generate load_data.csv files for calculating illumination correction profiles
     ILLUMINATION_CALC_LOAD_DATA_CSV (
         ch_samplesheet_cp,
@@ -49,7 +49,7 @@ workflow CELLPAINTING {
     )
 
     //// Apply illumination correction ////
-    
+
     // Generate load_data.csv files for applying illumination correction
     ILLUMINATION_APPLY_LOAD_DATA_CSV(
         ch_samplesheet_cp,

@@ -14,7 +14,7 @@ tools:
       documentation: "https://docs.python.org/"
       tool_dev_url: "https://github.com/python/cpython"
       doi: ""
-      licence: ['Python Software Foundation License']
+      licence: ["Python Software Foundation License"]
       identifier: ""
 
 input:
