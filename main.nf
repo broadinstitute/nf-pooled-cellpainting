@@ -29,14 +29,16 @@ workflow NF_POOLED_CELLPAINTING {
 
     take:
     samplesheet // channel: samplesheet read in from --input
+    input_samplesheet // channel: input samplesheet read in from --input
 
     main:
 
     cppipes = [
-        'illumination_calc_cp' : params.cp_illum_calc_pipe ?: "${projectDir}/assets/cellprofiler/cp_illumination_calc.cppipe.template",
-        'illumination_apply_cp' : params.cp_illum_apply_pipe ?: "${projectDir}/assets/cellprofiler/cp_illumination_apply.cppipe.template",
-        'illumination_calc_sbs' : params.sbs_illum_calc_pipe ?: "${projectDir}/assets/cellprofiler/sbs_illumination_calc.cppipe.template",
-        'illumination_apply_sbs' : params.sbs_illum_apply_pipe ?: "${projectDir}/assets/cellprofiler/sbs_illumination_apply.cppipe.template",
+        'illumination_calc_cp'   : params.cp_illum_calc_pipe    ?: "${projectDir}/assets/cellprofiler/cp_illumination_calc.cppipe.template",
+        'illumination_apply_cp'  : params.cp_illum_apply_pipe   ?: "${projectDir}/assets/cellprofiler/cp_illumination_apply.cppipe.template",
+        'illumination_calc_sbs'  : params.sbs_illum_calc_pipe   ?: "${projectDir}/assets/cellprofiler/sbs_illumination_calc.cppipe.template",
+        'illumination_apply_sbs' : params.sbs_illum_apply_pipe  ?: "${projectDir}/assets/cellprofiler/sbs_illumination_apply.cppipe.template",
+        'segcheck_cp'            : params.cp_segcheck_pipe      ?: "${projectDir}/assets/cellprofiler/cp_segcheck.cppipe",
     ]
 
     //
@@ -44,6 +46,7 @@ workflow NF_POOLED_CELLPAINTING {
     //
     POOLED_CELLPAINTING (
         samplesheet,
+        input_samplesheet,
         params.barcodes,
         cppipes,
         params.multichannel_parallel
@@ -76,7 +79,8 @@ workflow {
     // WORKFLOW: Run main workflow
     //
     NF_POOLED_CELLPAINTING (
-        PIPELINE_INITIALISATION.out.samplesheet
+        PIPELINE_INITIALISATION.out.samplesheet,
+        params.input
     )
     //
     // SUBWORKFLOW: Run completion tasks

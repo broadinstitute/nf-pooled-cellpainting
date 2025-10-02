@@ -45,19 +45,19 @@ workflow BARCODING {
         ch_illumination_corrections_qc
     )
 
-    // //// Apply illumination correction ////
-    ILLUMINATION_APPLY_LOAD_DATA_CSV(
-        ch_samplesheet_sbs,
-        ['batch', 'plate','arm','well'],
-        CELLPROFILER_ILLUMCALC.out.illumination_corrections,
-        'illumination_sbs_apply',
-        true
-    )
+    // // //// Apply illumination correction ////
+    // ILLUMINATION_APPLY_LOAD_DATA_CSV(
+    //     ch_samplesheet_sbs,
+    //     ['batch', 'plate','arm','well'],
+    //     CELLPROFILER_ILLUMCALC.out.illumination_corrections,
+    //     'illumination_sbs_apply',
+    //     true
+    // )
 
-    CELLPROFILER_ILLUMAPPLY (
-        ILLUMINATION_APPLY_LOAD_DATA_CSV.out.images_with_illum_load_data_csv,
-        cppipes['illumination_apply_sbs']
-    )
+    // CELLPROFILER_ILLUMAPPLY (
+    //     ILLUMINATION_APPLY_LOAD_DATA_CSV.out.images_with_illum_load_data_csv,
+    //     cppipes['illumination_apply_sbs']
+    // )
 
     emit:
     // bam      = SAMTOOLS_SORT.out.bam           // channel: [ val(meta), [ bam ] ]

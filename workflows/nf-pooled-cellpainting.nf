@@ -23,6 +23,7 @@ workflow POOLED_CELLPAINTING {
 
     take:
     ch_samplesheet           // channel: samplesheet read in from --input
+    input_samplesheet     // channel: input samplesheet read in from --input
     barcodes                 // file: path to barcodes.csv file
     cppipes                  // array: paths to cpipe template files
     multichannel_parallel // boolean: whether to run cell painting in parallel for multi-channel images per FOV
@@ -67,7 +68,9 @@ workflow POOLED_CELLPAINTING {
     // Process cell painting (CP) data
     CELLPAINTING (
         ch_samplesheet_cp,
-        cppipes
+        input_samplesheet,
+        cppipes,
+        params.range_skip
     )
 
     // Process barcoding (sequencing by synthesis (SBS)) data
