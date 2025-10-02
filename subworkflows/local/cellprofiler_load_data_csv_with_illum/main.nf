@@ -25,7 +25,13 @@ workflow CELLPROFILER_LOAD_DATA_CSV_WITH_ILLUM {
     // Store grouped images for later CSV generation
     ch_images_grouped
         .map { group_meta, meta_list, image_list ->
-            [group_meta.id, group_meta, meta_list, image_list]
+            // Sort meta_list and image_list together by image name to ensure deterministic ordering
+            // Create new sorted list to avoid ConcurrentModificationException
+            def paired = [meta_list, image_list].transpose()
+            def sorted_paired = paired.toSorted { it[1].name }
+            def sorted_meta_list = sorted_paired.collect { it[0] }
+            def sorted_image_list = sorted_paired.collect { it[1] }
+            [group_meta.id, group_meta, sorted_meta_list, sorted_image_list]
         }
         .set { ch_images_with_key }
 
@@ -38,7 +44,10 @@ workflow CELLPROFILER_LOAD_DATA_CSV_WITH_ILLUM {
         }
         .groupTuple()
         .map { group_meta, _illum_meta_list, illum_file_list ->
-            [group_meta.id, group_meta, illum_file_list.flatten()]
+            // Create new sorted list to avoid ConcurrentModificationException
+            def flattened = illum_file_list.flatten()
+            def sorted_illum = flattened.toSorted { it.name }
+            [group_meta.id, group_meta, sorted_illum]
         }
         .set { ch_illum_with_key }
 
@@ -58,7 +67,8 @@ workflow CELLPROFILER_LOAD_DATA_CSV_WITH_ILLUM {
             // Generate CSV content with actual illumination file names
             def has_original_channels = meta_list.any { it.original_channels != null }
             def current_channels = meta_list.collect { it.channels }.unique()
-            def all_single_channels = current_channels.every { !it.contains(',') }
+            def sorted_current_channels = current_channels.toSorted { a, b -> a <=> b }
+            def all_single_channels = sorted_current_channels.every { !it.contains(',') }
 
             // Extract cycles from meta.cycle for each image
             def cycle_list = [meta_list, image_list].transpose().collect { meta, image ->
@@ -68,11 +78,11 @@ workflow CELLPROFILER_LOAD_DATA_CSV_WITH_ILLUM {
             def channels
             if (all_single_channels && has_original_channels) {
                 // Single channels after splitting, use only the current channels
-                channels = current_channels.sort()
+                channels = sorted_current_channels
             } else {
                 // Multi-channel or original data, derive channels from comma-separated channels
-                def all_channels = current_channels.collectMany { it.split(',') as List }.unique().sort()
-                channels = all_channels
+                def all_channels = sorted_current_channels.collectMany { it.split(',').collect { it.trim() } }.unique()
+                channels = all_channels.toSorted { a, b -> a <=> b }
             }
 
             // Create a map of illumination files by channel
@@ -96,7 +106,7 @@ workflow CELLPROFILER_LOAD_DATA_CSV_WITH_ILLUM {
 
             if (has_cycles) {
                 // Cycle-based format: columns for each cycle
-                def cycles = cycle_list.unique().sort()
+                def cycles = cycle_list.unique().toSorted { a, b -> a <=> b }
 
                 // Build headers: metadata, then for each cycle add FileName_CycleXX_{channel}, Frame_CycleXX_{channel}
                 def base_headers = ["Metadata_Plate", "Metadata_Site", "Metadata_Well", "Metadata_Well_Value"]
@@ -121,31 +131,47 @@ workflow CELLPROFILER_LOAD_DATA_CSV_WITH_ILLUM {
                 }.groupBy { it[0] }
 
                 // Group by well+site and collect unique images that will actually be used
+                // First, collect all unique cycle+site combinations and sort them deterministically
+                def cycle_site_keys = [meta_list, image_list].transpose().collect { meta, image ->
+                    "${meta.cycle}_${meta.site}"
+                }.unique().sort()
+
                 def subdirs_by_cycle_site = [:]
                 def images_by_cycle_site = [:] // Track which image to stage for each cycle+site
 
+                // Pre-assign subdirectories based on sorted cycle+site keys
+                cycle_site_keys.eachWithIndex { key, idx ->
+                    subdirs_by_cycle_site[key] = "img${idx + 1}"
+                }
+
+                // Now collect the actual images for each cycle+site
+                [meta_list, image_list].transpose().each { meta, image ->
+                    def key = "${meta.cycle}_${meta.site}"
+                    if (!images_by_cycle_site.containsKey(key)) {
+                        images_by_cycle_site[key] = image
+                    }
+                }
+
                 def rows = []
-                grouped_by_well_site.each { well_site_meta, entries ->
+                // Sort the well+site groups to ensure deterministic row ordering
+                grouped_by_well_site.sort { a, b ->
+                    def metaA = a.key
+                    def metaB = b.key
+                    // Sort by plate, well, site - convert to strings for consistent comparison
+                    "${metaA.plate}_${metaA.well}_${metaA.site}" <=> "${metaB.plate}_${metaB.well}_${metaB.site}"
+                }.each { well_site_meta, entries ->
                     // Create data structures for this well+site
                     def images_by_cycle_channel = [:]
 
                     // Organize by cycle and channel
-                    entries.each { entry ->
+                    // Sort entries by image name to ensure deterministic processing order
+                    entries.toSorted { it[2].name }.each { entry ->
                         def meta = entry[1]
                         def image = entry[2]
                         def cycle = meta.cycle
 
                         if (!images_by_cycle_channel[cycle]) {
                             images_by_cycle_channel[cycle] = [:]
-                        }
-
-                        // Assign subdirectory for this cycle+site if not already assigned
-                        def key = "${cycle}_${meta.site}"
-                        if (!subdirs_by_cycle_site.containsKey(key)) {
-                            // Track the image for this cycle+site (only once per unique cycle+site)
-                            images_by_cycle_site[key] = image
-                            // Assign subdir based on map size (1-indexed)
-                            subdirs_by_cycle_site[key] = "img${images_by_cycle_site.size()}"
                         }
 
                         // For multichannel images, store the same image for all channels
@@ -231,8 +257,9 @@ workflow CELLPROFILER_LOAD_DATA_CSV_WITH_ILLUM {
                 }
 
                 csv_content = ([header] + rows).join('\n')
-                // Collect the unique images from the cycle+site map
-                unique_images = images_by_cycle_site.values() as List
+                // Collect the unique images from the cycle+site map in sorted order
+                // Sort by the cycle+site keys to match the subdirectory assignment order
+                unique_images = cycle_site_keys.collect { key -> images_by_cycle_site[key] }
 
             } else {
                 // Original non-cycle format
@@ -250,25 +277,31 @@ workflow CELLPROFILER_LOAD_DATA_CSV_WITH_ILLUM {
                 def header = (["Metadata_Batch", "Metadata_Plate", "Metadata_Well","Metadata_Site"] + orig_filename_headers + illum_filename_headers + orig_frame_headers + illum_frame_headers).join(',')
 
                 // Track images to stage and assign subdirectories
+                // Sort all unique images deterministically to ensure consistent staging across resumes
+                def all_unique_images = image_list.unique().toSorted { it.name }
                 def subdirs_by_filename = [:]
-                def images_to_stage = []
+                all_unique_images.eachWithIndex { img, idx ->
+                    subdirs_by_filename[img.name] = "img${idx + 1}"
+                }
+                def images_to_stage = all_unique_images
 
                 // Content: one row per well+site combination
+                // Sort the well+site groups to ensure deterministic row ordering
                 def rows = []
-                grouped_by_well_site.each { well_site_meta, entries ->
+                grouped_by_well_site.sort { a, b ->
+                    def metaA = a.key
+                    def metaB = b.key
+                    // Sort by batch, plate, well, site - convert to strings for consistent comparison
+                    "${metaA.batch}_${metaA.plate}_${metaA.well}_${metaA.site}" <=> "${metaB.batch}_${metaB.plate}_${metaB.well}_${metaB.site}"
+                }.each { well_site_meta, entries ->
 
                     // Create a map of images and metadata by channel for this well+site
                     def images_by_channel = [:]
                     def meta_by_channel = [:]
-                    entries.each { entry ->
+                    // Sort entries by image name to ensure deterministic processing order
+                    entries.toSorted { it[2].name }.each { entry ->
                         def meta = entry[1]
                         def image = entry[2]
-
-                        // Assign subdirectory if not already assigned
-                        if (!subdirs_by_filename.containsKey(image.name)) {
-                            images_to_stage << image
-                            subdirs_by_filename[image.name] = "img${images_to_stage.size()}"
-                        }
 
                         if (meta.channels.contains(',')) {
                             // Multichannel image - same image for all channels
@@ -362,14 +395,27 @@ workflow CELLPROFILER_LOAD_DATA_CSV_WITH_ILLUM {
         }
         .map { group_meta, unique_images, illum_file_list, csv_content, cycle_list ->
             // Write CSV file and keep all data
-            def csv_file = file("${workflow.workDir}/${workflow.sessionId}/cellprofiler/load_data_csvs_with_illum/${step_name}/${group_meta.id}.csv")
-            csv_file.parent.mkdirs()
-            csv_file.text = csv_content
+            // Add trailing newline for standard CSV format
+            def final_content = csv_content + '\n'
+
+            // Use content hash in path to ensure same content = same file path = stable checksum
+            def content_hash = final_content.md5()
+            def csv_dir = file("${workflow.workDir}/${workflow.sessionId}/cellprofiler/load_data_csvs_with_illum/${step_name}")
+            csv_dir.mkdirs()
+            def csv_file = file("${csv_dir}/${group_meta.id}_${content_hash}.csv")
+
+            // Only write if file doesn't exist (content hash ensures uniqueness)
+            if (!csv_file.exists()) {
+                csv_file.text = final_content
+            }
             [group_meta, unique_images, illum_file_list, csv_file, cycle_list]
         }
         .map { group_meta, unique_images, illum_file_list, csv_file, cycle_list ->
             // Output in expected format: [ val(meta), [ list_of_images ], [ list_of_illumination_correction_files ], load_data_csv ]
-            [group_meta, unique_images, illum_file_list, csv_file]
+            // Ensure output lists are sorted for deterministic process input
+            def sorted_images = unique_images.toSorted { it.name }
+            def sorted_illum = illum_file_list.toSorted { it.name }
+            [group_meta, sorted_images, sorted_illum, csv_file]
         }
         .set { ch_images_with_illum_load_data_csv }
 
