@@ -7,8 +7,9 @@
 include { CELLPROFILER_LOAD_DATA_CSV as ILLUMINATION_LOAD_DATA_CSV } from '../cellprofiler_load_data_csv'
 include { CELLPROFILER_ILLUMCALC }                                   from '../../../modules/local/cellprofiler/illumcalc'
 include { QC_MONTAGEILLUM }                                          from '../../../modules/local/qc/montageillum'
-
-workflow SEQ_BY_SYNTHESIS {
+include { CELLPROFILER_LOAD_DATA_CSV_WITH_ILLUM as ILLUMINATION_APPLY_LOAD_DATA_CSV } from '../cellprofiler_load_data_csv_with_illum'
+include { CELLPROFILER_ILLUMAPPLY }                                  from '../../../modules/local/cellprofiler/illumapply'
+workflow BARCODING {
 
     take:
     ch_samplesheet_sbs
@@ -42,6 +43,20 @@ workflow SEQ_BY_SYNTHESIS {
 
     QC_MONTAGEILLUM (
         ch_illumination_corrections_qc
+    )
+
+    // //// Apply illumination correction ////
+    ILLUMINATION_APPLY_LOAD_DATA_CSV(
+        ch_samplesheet_sbs,
+        ['batch', 'plate','arm','well'],
+        CELLPROFILER_ILLUMCALC.out.illumination_corrections,
+        'illumination_sbs_apply',
+        true
+    )
+
+    CELLPROFILER_ILLUMAPPLY (
+        ILLUMINATION_APPLY_LOAD_DATA_CSV.out.images_with_illum_load_data_csv,
+        cppipes['illumination_apply_sbs']
     )
 
     emit:

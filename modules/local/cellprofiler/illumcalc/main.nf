@@ -17,10 +17,10 @@ process CELLPROFILER_ILLUMCALC {
 
     when:
     task.ext.when == null || task.ext.when
-    
+
     script:
     """
-    
+
     # Check if illumination_cppipe ends with .template
     if [[ "${illumination_cppipe}" == *.template ]]; then
         # Handle single vs multiple channels for template files
@@ -33,10 +33,10 @@ process CELLPROFILER_ILLUMCALC {
             # Multiple channels - extract template blocks and repeat
             # Extract header (before CHANNEL_BLOCK_START)
             sed -n '1,/# CHANNEL_BLOCK_START/p' ${illumination_cppipe} | sed '\$d' > illumination.cppipe
-            
+
             # Extract channel block template
             sed -n '/# CHANNEL_BLOCK_START/,/# CHANNEL_BLOCK_END/p' ${illumination_cppipe} | sed '1d;\$d' > channel_block.tmp
-            
+
             # Generate blocks for each channel
             module_num=2
             for channel in \${CHANNELS[@]}; do
@@ -50,17 +50,17 @@ process CELLPROFILER_ILLUMCALC {
                         echo "\$line"
                     fi
                 done >> illumination.cppipe
-                
+
                 echo "" >> illumination.cppipe
                 module_num=\$((module_num + 4))
             done
-            
+
             # Add footer (after CHANNEL_BLOCK_END)
             total_modules=\$((1 + \${#CHANNELS[@]} * 4 + 1))
             sed -n '/# CHANNEL_BLOCK_END/,\$p' ${illumination_cppipe} | sed '1d; s/{final_module_num}/'\$module_num'/g' >> illumination.cppipe
             rm channel_block.tmp
         fi
-        
+
         # Update ModuleCount in header and remove any remaining markers
         sed -i 's/ModuleCount:X/ModuleCount:'\$total_modules'/; /^# CHANNEL_BLOCK_/d' illumination.cppipe
     else

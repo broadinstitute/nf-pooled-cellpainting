@@ -14,7 +14,7 @@ tools:
       documentation: "https://cellprofiler-manual.s3.amazonaws.com/CellProfiler-4.2.8/index.html"
       tool_dev_url: "https://github.com/CellProfiler/CellProfiler"
       doi: "https://doi.org/10.1186/s12859-021-04344-9"
-      licence: ['BSD-3-clause']
+      licence: ["BSD-3-clause"]
       identifier: biotools:CellProfiler
       args_id: "$args"
 
