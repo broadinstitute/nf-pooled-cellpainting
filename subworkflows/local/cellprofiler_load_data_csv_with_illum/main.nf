@@ -131,25 +131,31 @@ workflow CELLPROFILER_LOAD_DATA_CSV_WITH_ILLUM {
                 }.groupBy { it[0] }
 
                 // Group by well+site and collect unique images that will actually be used
-                // First, collect all unique cycle+site combinations and sort them deterministically
-                def cycle_site_keys = [meta_list, image_list].transpose().collect { meta, image ->
-                    "${meta.cycle}_${meta.site}"
-                }.unique().sort()
+                // For cycle-based data, the same image file may be used across multiple cycles
+                // We need to assign subdirectories based on UNIQUE IMAGE FILES, not cycle+site combinations
 
-                def subdirs_by_cycle_site = [:]
-                def images_by_cycle_site = [:] // Track which image to stage for each cycle+site
+                // First, get all unique images and sort them
+                def all_unique_images = image_list.unique().toSorted { it.name }
 
-                // Pre-assign subdirectories based on sorted cycle+site keys
-                cycle_site_keys.eachWithIndex { key, idx ->
-                    subdirs_by_cycle_site[key] = "img${idx + 1}"
+                // Create a map from image filename to subdirectory
+                def subdirs_by_image = [:]
+                all_unique_images.eachWithIndex { img, idx ->
+                    subdirs_by_image[img.name] = "img${idx + 1}"
                 }
 
-                // Now collect the actual images for each cycle+site
+                // Create a map from cycle+site to image for later lookup
+                def images_by_cycle_site = [:]
                 [meta_list, image_list].transpose().each { meta, image ->
                     def key = "${meta.cycle}_${meta.site}"
                     if (!images_by_cycle_site.containsKey(key)) {
                         images_by_cycle_site[key] = image
                     }
+                }
+
+                // Create subdirs_by_cycle_site that maps to the actual image's subdir
+                def subdirs_by_cycle_site = [:]
+                images_by_cycle_site.each { key, image ->
+                    subdirs_by_cycle_site[key] = subdirs_by_image[image.name]
                 }
 
                 def rows = []
@@ -257,9 +263,8 @@ workflow CELLPROFILER_LOAD_DATA_CSV_WITH_ILLUM {
                 }
 
                 csv_content = ([header] + rows).join('\n')
-                // Collect the unique images from the cycle+site map in sorted order
-                // Sort by the cycle+site keys to match the subdirectory assignment order
-                unique_images = cycle_site_keys.collect { key -> images_by_cycle_site[key] }
+                // Use the pre-sorted unique images list (already sorted by filename)
+                unique_images = all_unique_images
 
             } else {
                 // Original non-cycle format

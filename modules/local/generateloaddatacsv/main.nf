@@ -7,7 +7,6 @@ process GENERATE_LOAD_DATA_CSV {
 
     input:
     path(samplesheet)
-    val(grouping_keys)
     val(pipeline_numbers)
     val(range_skip)
 
@@ -24,7 +23,7 @@ process GENERATE_LOAD_DATA_CSV {
         --base-path . \
         --output-dir . \
         --pipeline ${pipeline_numbers} \
-        --split-by ${grouping_keys} \
+        --split-by batch,plate,well\
         --range-skip ${range_skip} 
 
     cat <<-END_VERSIONS > versions.yml

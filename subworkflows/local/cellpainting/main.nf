@@ -95,57 +95,55 @@ workflow CELLPAINTING {
         .set { ch_well_site_indices }
 
     // Generate load_data.csv files for checking segmentation
-    // GENERATE_LOAD_DATA_CSV_SEGCHECK (
-    //     input_samplesheet,
-    //     ['batch', 'plate','well'],
-    //     '3',
-    //     range_skip
-    // )
+    GENERATE_LOAD_DATA_CSV_SEGCHECK (
+        input_samplesheet,
+        '3',
+        range_skip
+    )
 
     // Parse CSV filenames to extract metadata and create tuples
     // Filename format: load_data_pipeline3_Plate1_A1_generated.csv
-    // GENERATE_LOAD_DATA_CSV_SEGCHECK.out.load_data_csv
-    //     .flatten()
-    //     .map { csv_file ->
-    //         def filename = csv_file.name
-    //         // Extract plate and well from filename: load_data_pipeline3_Plate1_A1_generated.csv
-    //         def parts = filename.tokenize('_')
-    //         def plate = parts[3] // Plate1
-    //         def well = parts[4]  // A1
-    //         def meta = [plate: plate, well: well]
-    //         [meta, csv_file]
-    //     }
-    //     .set { ch_load_data_with_meta }
+    GENERATE_LOAD_DATA_CSV_SEGCHECK.out.load_data_csv
+        .flatten()
+        .map { csv_file ->
+            def filename = csv_file.name
+            // Extract plate and well from filename: load_data_pipeline3_Plate1_A1_generated.csv
+            def parts = filename.tokenize('_')
+            def plate = parts[3] // Plate1
+            def well = parts[4]  // A1
+            def meta = [plate: plate, well: well]
+            [meta, csv_file]
+        }
+        .set { ch_load_data_with_meta }
 
-    // // Subsample corrected images based on site indices from samplesheet
-    // CELLPROFILER_ILLUMAPPLY.out.corrected_images
-    //     .map { meta, tiff_files, csv_files ->
-    //         def well_meta = meta.subMap(['batch', 'plate', 'well'])
-    //         [well_meta, meta, tiff_files]
-    //     }
-    //     .combine(ch_well_site_indices, by: 0)
-    //     .map { well_meta, meta, tiff_files, site_indices, num_channels ->
-    //         // Subsample TIFF files based on site indices and number of channels per site
-    //         def tiff_list = tiff_files instanceof List ? tiff_files : [tiff_files]
-    //         def subsampled_tiffs = []
-    //         site_indices.each { site_idx ->
-    //             // Each site has num_channels TIFF files
-    //             def start_idx = site_idx * num_channels
-    //             def end_idx = start_idx + num_channels
-    //             subsampled_tiffs.addAll(tiff_list[start_idx..<end_idx])
-    //         }
-    //         // Remove batch from well_meta for final combine with CSV
-    //         def final_well_meta = well_meta.subMap(['plate', 'well'])
-    //         [final_well_meta, meta, subsampled_tiffs]
-    //     }
-    //     .combine(ch_load_data_with_meta, by: 0)
-    //     .map { well_meta, orig_meta, tiff_files, load_data_csv ->
-    //         [orig_meta, tiff_files, load_data_csv]
-    //     }
-    //     .set { ch_segcheck_input }
+    // Subsample corrected images based on site indices from samplesheet
+    CELLPROFILER_ILLUMAPPLY.out.corrected_images
+        .map { meta, tiff_files, csv_files ->
+            def well_meta = meta.subMap(['batch', 'plate', 'well'])
+            [well_meta, meta, tiff_files]
+        }
+        .combine(ch_well_site_indices, by: 0)
+        .map { well_meta, meta, tiff_files, site_indices, num_channels ->
+            // Subsample TIFF files based on site indices and number of channels per site
+            def tiff_list = tiff_files instanceof List ? tiff_files : [tiff_files]
+            def subsampled_tiffs = []
+            site_indices.each { site_idx ->
+                // Each site has num_channels TIFF files
+                def start_idx = site_idx * num_channels
+                def end_idx = start_idx + num_channels
+                subsampled_tiffs.addAll(tiff_list[start_idx..<end_idx])
+            }
+            // Remove batch from well_meta for final combine with CSV
+            def final_well_meta = well_meta.subMap(['plate', 'well'])
+            [final_well_meta, meta, subsampled_tiffs]
+        }
+        .combine(ch_load_data_with_meta, by: 0)
+        .map { well_meta, orig_meta, tiff_files, load_data_csv ->
+            [orig_meta, tiff_files, load_data_csv]
+        }
+        .set { ch_segcheck_input }
 
-    // // Generate Load Data CSV for segcheck with subworkflow GENERATE_LOAD_DATA_CSV
-
+    // Generate Load Data CSV for segcheck with subworkflow GENERATE_LOAD_DATA_CSV
 
     // SEGCHECK_LOAD_DATA_CSV (
     //     ch_segcheck_input,
@@ -154,11 +152,11 @@ workflow CELLPAINTING {
     //     range_skip
     // )
 
-    // //// Check segmentation ////
-    // CELLPROFILER_SEGCHECK (
-    //     ch_segcheck_input,
-    //     cppipes['segcheck_cp']
-    // )
+    //// Check segmentation ////
+    CELLPROFILER_SEGCHECK (
+        ch_segcheck_input,
+        cppipes['segcheck_cp']
+    )
 
     // emit:
     // // TODO nf-core: edit emitted channels
