@@ -69,8 +69,6 @@ workflow CELLPAINTING {
         cppipes['illumination_apply_cp']
     )
 
-    // CELLPROFILER_ILLUMAPPLY.out.corrected_images.view()
-
     // Calculate site indices to keep for each well based on range_skip
     ch_samplesheet_cp
         .map { meta, images ->
@@ -143,18 +141,41 @@ workflow CELLPAINTING {
         }
         .set { ch_segcheck_input }
 
-    // Generate Load Data CSV for segcheck with subworkflow GENERATE_LOAD_DATA_CSV
+    // Generate Load Data CSV for segcheck with subworkflow CELLPROFILER_LOAD_DATA_CSV
 
-    // SEGCHECK_LOAD_DATA_CSV (
-    //     ch_segcheck_input,
-    //     'plate,well',
-    //     '3',
-    //     range_skip
-    // )
+    // Transform corrected_images output to match CELLPROFILER_LOAD_DATA_CSV input format
+    // Input: [meta, [tiff_files], [csv_files]]
+    // Output: [meta, tiff_file] (one tuple per tiff file)
+    CELLPROFILER_ILLUMAPPLY.out.corrected_images
+        .map { meta, tiff_files, csv_files ->
+            // Flatten to one tuple per TIFF file, extracting channel from filename
+            def tiff_list = tiff_files instanceof List ? tiff_files : [tiff_files]
+            tiff_list.collect { tiff_file ->
+                // Extract channel name from filename (e.g., "CorrDNA", "CorrPhalloidin", "CorrCHN2-AF488")
+                def filename = tiff_file.name
+                def channel = filename.replaceAll(/.*_Corr/, '').replaceAll(/\.tiff?$/, '')
 
-    //// Check segmentation ////
+                // Extract site number from filename
+                def site = filename.find(/Site_(\d+)/) { match, site_num -> site_num.toInteger() }
+
+                // Create new meta with channel information and site
+                def new_meta = meta + [channels: channel, site: site ?: 0]
+                [new_meta, tiff_file]
+            }
+        }
+        .flatten()
+        .collate(2) // Group back into [meta, tiff_file] pairs
+        .set { ch_corrected_images_for_segcheck }
+
+    SEGCHECK_LOAD_DATA_CSV (
+        ch_corrected_images_for_segcheck,
+        ['batch', 'plate', 'well'],
+        'segcheck_cp',
+        false
+    )
+
     CELLPROFILER_SEGCHECK (
-        ch_segcheck_input,
+        SEGCHECK_LOAD_DATA_CSV.out.images_with_load_data_csv,
         cppipes['segcheck_cp']
     )
 

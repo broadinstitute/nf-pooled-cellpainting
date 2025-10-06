@@ -21,6 +21,11 @@ process CELLPROFILER_SEGCHECK {
 
     script:
     """
+    generate_load_data_csv_v2.py \
+        --pipeline 3 \
+        --base-path . \
+        --output-dir . 
+
     cellprofiler -c -r \\
         ${task.ext.args ?: ''} \\
         -p ${segcheck_cppipe} \\
