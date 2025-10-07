@@ -46,7 +46,6 @@ workflow NF_POOLED_CELLPAINTING {
     //
     POOLED_CELLPAINTING (
         samplesheet,
-        input_samplesheet,
         params.barcodes,
         cppipes,
         params.multichannel_parallel

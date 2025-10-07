@@ -5,17 +5,14 @@
 */
 include { CELLPROFILER_LOAD_DATA_CSV as ILLUMINATION_CALC_LOAD_DATA_CSV }             from '../cellprofiler_load_data_csv'
 include { CELLPROFILER_LOAD_DATA_CSV_WITH_ILLUM as ILLUMINATION_APPLY_LOAD_DATA_CSV } from '../cellprofiler_load_data_csv_with_illum'
-include { CELLPROFILER_LOAD_DATA_CSV as SEGCHECK_LOAD_DATA_CSV } from '../cellprofiler_load_data_csv'
 include { CELLPROFILER_ILLUMCALC }                                                    from '../../../modules/local/cellprofiler/illumcalc'
 include { QC_MONTAGEILLUM }                                                           from '../../../modules/local/qc/montageillum'
 include { CELLPROFILER_ILLUMAPPLY }                                                   from '../../../modules/local/cellprofiler/illumapply'
 include { CELLPROFILER_SEGCHECK }                                                     from '../../../modules/local/cellprofiler/segcheck'
-include { GENERATE_LOAD_DATA_CSV as GENERATE_LOAD_DATA_CSV_SEGCHECK }                 from '../../../modules/local/generateloaddatacsv'
 workflow CELLPAINTING {
 
     take:
     ch_samplesheet_cp
-    input_samplesheet
     cppipes
     range_skip
 
@@ -69,114 +66,16 @@ workflow CELLPAINTING {
         cppipes['illumination_apply_cp']
     )
 
-    // Calculate site indices to keep for each well based on range_skip
-    ch_samplesheet_cp
-        .map { meta, images ->
-            def well_meta = meta.subMap(['batch', 'plate', 'well'])
-            // Count channels to know how many files per site
-            def num_channels = meta.channels ? meta.channels.split(',').size() : 1
-            [well_meta, meta.site, num_channels]
-        }
-        .groupTuple()
-        .map { well_meta, sites, num_channels_list ->
-            // Sort sites and determine which to keep based on range_skip
-            def sorted_sites = sites.sort()
-            def num_channels = num_channels_list[0] // Should be same for all sites in a well
-            def selected_site_indices = []
-            sorted_sites.eachWithIndex { site, idx ->
-                if (idx % range_skip == 0) {
-                    selected_site_indices << idx
-                }
-            }
-            [well_meta, selected_site_indices, num_channels]
-        }
-        .set { ch_well_site_indices }
+    // Reshape CELLPROFILER_ILLUMAPPLY output for SEGCHECK
+    CELLPROFILER_ILLUMAPPLY.out.corrected_images.map{ meta, images, _csv ->
+            [meta, images]
+    }.set { ch_sub_corr_images }
 
-    // Generate load_data.csv files for checking segmentation
-    GENERATE_LOAD_DATA_CSV_SEGCHECK (
-        input_samplesheet,
-        '3',
-        range_skip
-    )
-
-    // Parse CSV filenames to extract metadata and create tuples
-    // Filename format: load_data_pipeline3_Plate1_A1_generated.csv
-    GENERATE_LOAD_DATA_CSV_SEGCHECK.out.load_data_csv
-        .flatten()
-        .map { csv_file ->
-            def filename = csv_file.name
-            // Extract plate and well from filename: load_data_pipeline3_Plate1_A1_generated.csv
-            def parts = filename.tokenize('_')
-            def plate = parts[3] // Plate1
-            def well = parts[4]  // A1
-            def meta = [plate: plate, well: well]
-            [meta, csv_file]
-        }
-        .set { ch_load_data_with_meta }
-
-    // Subsample corrected images based on site indices from samplesheet
-    CELLPROFILER_ILLUMAPPLY.out.corrected_images
-        .map { meta, tiff_files, csv_files ->
-            def well_meta = meta.subMap(['batch', 'plate', 'well'])
-            [well_meta, meta, tiff_files]
-        }
-        .combine(ch_well_site_indices, by: 0)
-        .map { well_meta, meta, tiff_files, site_indices, num_channels ->
-            // Subsample TIFF files based on site indices and number of channels per site
-            def tiff_list = tiff_files instanceof List ? tiff_files : [tiff_files]
-            def subsampled_tiffs = []
-            site_indices.each { site_idx ->
-                // Each site has num_channels TIFF files
-                def start_idx = site_idx * num_channels
-                def end_idx = start_idx + num_channels
-                subsampled_tiffs.addAll(tiff_list[start_idx..<end_idx])
-            }
-            // Remove batch from well_meta for final combine with CSV
-            def final_well_meta = well_meta.subMap(['plate', 'well'])
-            [final_well_meta, meta, subsampled_tiffs]
-        }
-        .combine(ch_load_data_with_meta, by: 0)
-        .map { well_meta, orig_meta, tiff_files, load_data_csv ->
-            [orig_meta, tiff_files, load_data_csv]
-        }
-        .set { ch_segcheck_input }
-
-    // Generate Load Data CSV for segcheck with subworkflow CELLPROFILER_LOAD_DATA_CSV
-
-    // Transform corrected_images output to match CELLPROFILER_LOAD_DATA_CSV input format
-    // Input: [meta, [tiff_files], [csv_files]]
-    // Output: [meta, tiff_file] (one tuple per tiff file)
-    CELLPROFILER_ILLUMAPPLY.out.corrected_images
-        .map { meta, tiff_files, csv_files ->
-            // Flatten to one tuple per TIFF file, extracting channel from filename
-            def tiff_list = tiff_files instanceof List ? tiff_files : [tiff_files]
-            tiff_list.collect { tiff_file ->
-                // Extract channel name from filename (e.g., "CorrDNA", "CorrPhalloidin", "CorrCHN2-AF488")
-                def filename = tiff_file.name
-                def channel = filename.replaceAll(/.*_Corr/, '').replaceAll(/\.tiff?$/, '')
-
-                // Extract site number from filename
-                def site = filename.find(/Site_(\d+)/) { match, site_num -> site_num.toInteger() }
-
-                // Create new meta with channel information and site
-                def new_meta = meta + [channels: channel, site: site ?: 0]
-                [new_meta, tiff_file]
-            }
-        }
-        .flatten()
-        .collate(2) // Group back into [meta, tiff_file] pairs
-        .set { ch_corrected_images_for_segcheck }
-
-    SEGCHECK_LOAD_DATA_CSV (
-        ch_corrected_images_for_segcheck,
-        ['batch', 'plate', 'well'],
-        'segcheck_cp',
-        false
-    )
-
+    //// Segmentation quality check ////
     CELLPROFILER_SEGCHECK (
-        SEGCHECK_LOAD_DATA_CSV.out.images_with_load_data_csv,
-        cppipes['segcheck_cp']
+        ch_sub_corr_images,
+        cppipes['segcheck_cp'],
+        range_skip
     )
 
     // emit:
