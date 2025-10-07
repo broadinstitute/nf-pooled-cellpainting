@@ -21,7 +21,6 @@ Create a pull request for the current branch with these requirements:
 3. Create a PR body with:
    - **Summary**: 2-3 concise bullet points explaining what changed and why
    - **Changes**: Brief list of key modifications
-   - **Test Plan**: Simple checklist for testing
 
 4. Keep the entire PR message concise but informative - aim for clarity over verbosity
 
