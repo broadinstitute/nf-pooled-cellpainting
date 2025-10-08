@@ -13,29 +13,34 @@ description: Create a git commit using commitizen with gitmoji
 
 ## Your task
 
-Based on the above changes, create a single git commit using commitizen with gitmoji.
+Based on the above changes, create a single git commit with gitmoji using conventional commits format.
 
 Steps:
 
 1. Use `git add` to stage files if needed
 2. Analyze the git diff to understand what changed
-3. Determine the appropriate conventional commit type based on the changes:
-   - `feat`: New feature or functionality added
-   - `fix`: Bug fix
-   - `docs`: Documentation changes only
-   - `style`: Code style/formatting changes
-   - `refactor`: Code refactoring without changing functionality
-   - `perf`: Performance improvements
-   - `test`: Adding or updating tests
-   - `build`: Build system or dependency changes
-   - `ci`: CI/CD configuration changes
-   - `chore`: Other changes (tooling, configs, etc.)
+3. Determine the appropriate conventional commit type and matching gitmoji:
+   - `✨ feat`: New feature or functionality added
+   - `🐛 fix`: Bug fix
+   - `📝 docs`: Documentation changes only
+   - `💄 style`: Code style/formatting changes (UI/cosmetic)
+   - `♻️ refactor`: Code refactoring without changing functionality
+   - `⚡ perf`: Performance improvements
+   - `✅ test`: Adding or updating tests
+   - `👷 build`: Build system or dependency changes
+   - `💚 ci`: CI/CD configuration changes
+   - `🔧 chore`: Other changes (tooling, configs, etc.)
+   - `🚧 wip`: Work in progress
+   - `🔥 remove`: Removing code or files
 4. Craft a concise, descriptive commit message with appropriate scope
-5. Use `cz --name cz_gitmoji commit --message "<type>(<scope>): <description>"` to create the commit non-interactively
+5. Use `git commit` with the format: `<emoji> <type>(<scope>): <description>`
 
 The commit message should:
 
+- Start with the appropriate gitmoji emoji
 - Have a clear scope (e.g., module name, component)
 - Be concise but descriptive
 - Focus on the "why" not the "what"
-- Automatically get the appropriate gitmoji emoji from commitizen
+- Follow the format exactly as shown in recent commits
+
+Example: `✨ feat(segcheck): Add visualization for segmentation quality`

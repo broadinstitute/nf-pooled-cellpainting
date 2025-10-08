@@ -69,8 +69,8 @@ MaskImage:[module_num:4|svn_version:'Unknown'|variable_revision_number:3|show_wi
     Invert the mask?:Yes
 
 MaskImage:[module_num:5|svn_version:'Unknown'|variable_revision_number:3|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
-    Select the input image:CHN2-AF488
-    Name the output image:MaskedCHN2-AF488
+    Select the input image:CHN2
+    Name the output image:MaskedCHN2
     Use objects or an image as a mask?:Objects
     Select object for mask:ConfluentRegions
     Select image for mask:None
@@ -118,7 +118,7 @@ IdentifySecondaryObjects:[module_num:7|svn_version:'Unknown'|variable_revision_n
     Select the input objects:Nuclei
     Name the objects to be identified:PreCells
     Select the method to identify the secondary objects:Propagation
-    Select the input image:MaskedCHN2-AF488
+    Select the input image:MaskedCHN2
     Number of pixels by which to expand the primary objects:10
     Regularization factor:0
     Discard secondary objects touching the border of the image?:No
@@ -148,7 +148,7 @@ IdentifySecondaryObjects:[module_num:8|svn_version:'Unknown'|variable_revision_n
     Select the input objects:PreCells
     Name the objects to be identified:Cells
     Select the method to identify the secondary objects:Propagation
-    Select the input image:MaskedCHN2-AF488
+    Select the input image:MaskedCHN2
     Number of pixels by which to expand the primary objects:10
     Regularization factor:0
     Discard secondary objects touching the border of the image?:No
@@ -203,8 +203,8 @@ RescaleIntensity:[module_num:10|svn_version:'Unknown'|variable_revision_number:3
     Divisor measurement:None
 
 RescaleIntensity:[module_num:11|svn_version:'Unknown'|variable_revision_number:3|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
-    Select the input image:CHN2-AF488
-    Name the output image:RescaleCHN2-AF488forvis
+    Select the input image:CHN2
+    Name the output image:RescaleCHN2forvis
     Rescaling method:Stretch each image to use the full intensity range
     Method to calculate the minimum intensity:Custom
     Method to calculate the maximum intensity:Custom
@@ -219,7 +219,7 @@ RescaleIntensity:[module_num:11|svn_version:'Unknown'|variable_revision_number:3
 GrayToColor:[module_num:12|svn_version:'Unknown'|variable_revision_number:4|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
     Select a color scheme:RGB
     Rescale intensity:No
-    Select the image to be colored red:RescaleCHN2-AF488forvis
+    Select the image to be colored red:RescaleCHN2forvis
     Select the image to be colored green:RescalePhalloidinForVis
     Select the image to be colored blue:RescaleDNAPaintingForVis
     Name the output image:ColorImage

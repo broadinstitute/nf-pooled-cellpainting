@@ -42,9 +42,13 @@ process CELLPROFILER_SEGCHECK {
 
     stub:
     """
-    echo $args
-    
-    touch test.txt
+    touch image1.png
+    touch SegmentationCheck_Cells.csv
+    touch SegmentationCheck_ConfluentRegions.csv
+    touch SegmentationCheck_Experiment.csv
+    touch SegmentationCheck_Image.csv
+    touch SegmentationCheck_Nuclei.csv
+    touch SegmentationCheck_PreCells.csv
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
