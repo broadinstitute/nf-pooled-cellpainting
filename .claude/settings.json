@@ -1,0 +1,16 @@
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "~/.claude/scripts/nextflow-lint-hook.py",
+            "timeout": 30
+          }
+        ]
+      }
+    ]
+  }
+}

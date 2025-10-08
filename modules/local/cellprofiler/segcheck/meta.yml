@@ -1,36 +1,72 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/nf-core/modules/master/modules/meta-schema.json
-# # TODO nf-core: Add a description of the module and list keywords
 name: "cellprofiler_segcheck"
-description: write your description here
+description: Runs CellProfiler segmentation check pipeline to validate image segmentation quality and generate quality control outputs
 keywords:
-- sort
-- example
-- genomics
+  - cellprofiler
+  - segmentation
+  - quality control
+  - cell painting
+  - microscopy
 tools:
-## TODO nf-core: Add a description and other details for the software below
-- "cellprofiler":
-    description: "CellProfiler is free, open-source software for quantitative analysis
-      of biological images."
-    homepage: "https://cellprofiler-manual.s3.amazonaws.com/CellProfiler-4.2.8/index.html"
-    documentation: "https://cellprofiler-manual.s3.amazonaws.com/CellProfiler-4.2.8/index.html"
-    tool_dev_url: "https://github.com/CellProfiler/CellProfiler"
-    doi: ""
-    licence: ['BSD-3-clause']
-    identifier: biotools:CellProfiler
+  - "cellprofiler":
+      description: "CellProfiler is free, open-source software for quantitative analysis of biological images."
+      homepage: "https://cellprofiler.org/"
+      documentation: "https://cellprofiler-manual.s3.amazonaws.com/CellProfiler-4.2.8/index.html"
+      tool_dev_url: "https://github.com/CellProfiler/CellProfiler"
+      doi: "10.1371/journal.pbio.1002077"
+      licence: ["BSD-3-clause"]
+      identifier: biotools:CellProfiler
 
 input:
-# TODO nf-core: Update the information obtained from bio.tools and make sure that it is correct
-  []
-output:
-# TODO nf-core: Update the information obtained from bio.tools and make sure that it is correct
-  versions: -
-    versions.yml:
+  - meta:
+      type: map
+      description: |
+        Groovy Map containing sample information
+        e.g. `[ id:'sample1' ]`
+  - corr_images:
       type: file
-      description: File containing software versions
-      pattern: versions.yml
+      description: Corrected microscopy images for segmentation quality checking
+      pattern: "*.{tif,tiff,png}"
       ontologies:
-      - edam: http://edamontology.org/format_3750  # YAML
+        - edam: http://edamontology.org/format_3547
+  - segcheck_cppipe:
+      type: file
+      description: CellProfiler pipeline file (.cppipe) for segmentation checking
+      pattern: "*.cppipe"
+      ontologies:
+        - edam: http://edamontology.org/format_2330
+  - range_skip:
+      type: integer
+      description: Number of images to skip when generating load data CSV for processing subset
+
+output:
+  segcheck_res:
+    - meta:
+        type: map
+        description: |
+          Groovy Map containing sample information
+          e.g. `[ id:'sample1' ]`
+    - "*.csv":
+        type: file
+        description: CellProfiler segmentation check measurements in CSV format
+        pattern: "*.csv"
+        ontologies:
+          - edam: http://edamontology.org/format_3752
+    - "*.png":
+        type: file
+        description: Quality control images showing segmentation results
+        pattern: "*.png"
+        ontologies:
+          - edam: http://edamontology.org/format_3603
+  versions:
+    - versions.yml:
+        type: file
+        description: File containing software versions
+        pattern: "versions.yml"
+        ontologies:
+          - edam: http://edamontology.org/format_3750
+
 authors:
-- "@FloWuenne"
+  - "@FloWuenne"
 maintainers:
-- "@FloWuenne"
+  - "@FloWuenne"

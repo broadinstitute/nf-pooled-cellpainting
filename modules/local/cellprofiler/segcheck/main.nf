@@ -8,7 +8,7 @@ process CELLPROFILER_SEGCHECK {
         : 'community.wave.seqera.io/library/cellprofiler:4.2.8--aff0a99749304a7f'}"
 
     input:
-    tuple val(meta), path(sub_corr_images, stageAs: "images/*")
+    tuple val(meta), path(corr_images, stageAs: "images/*")
     path segcheck_cppipe
     val range_skip
 
@@ -22,7 +22,7 @@ process CELLPROFILER_SEGCHECK {
 
     script:
     """
-    generate_segcheck_load_data.py \\
+    generate_load_data_csv.py \\
         --images-dir ./images \\
         --output load_data.csv \\
         --range-skip ${range_skip}
