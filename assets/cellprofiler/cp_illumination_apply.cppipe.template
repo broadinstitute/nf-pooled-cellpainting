@@ -20,9 +20,9 @@ CorrectIlluminationApply:[module_num:2|svn_version:'Unknown'|variable_revision_n
     Name the output image:CorrPhalloidin
     Select the illumination function:IllumPhalloidin
     Select how the illumination function is applied:Divide
-    Select the input image:OrigCHN2-AF488
-    Name the output image:CorrCHN2-AF488
-    Select the illumination function:IllumCHN2-AF488
+    Select the input image:OrigCHN2
+    Name the output image:CorrCHN2
+    Select the illumination function:IllumCHN2
     Select how the illumination function is applied:Divide
     Select the input image:OrigDNA
     Name the output image:CorrDNA
@@ -53,10 +53,10 @@ SaveImages:[module_num:3|svn_version:'Unknown'|variable_revision_number:16|show_
 
 SaveImages:[module_num:4|svn_version:'Unknown'|variable_revision_number:16|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
     Select the type of image to save:Image
-    Select the image to save:CorrCHN2-AF488
+    Select the image to save:CorrCHN2
     Select method for constructing file names:Single name
     Select image name for file prefix:DNA
-    Enter single file name:Plate_\g<Plate>_Well_\g<Well>_Site_\g<Site>_CorrCHN2-AF488
+    Enter single file name:Plate_\g<Plate>_Well_\g<Well>_Site_\g<Site>_CorrCHN2
     Number of digits:4
     Append a suffix to the image file name?:Yes
     Text to append to the image name:_Site_\g<Site>_CorrDNA

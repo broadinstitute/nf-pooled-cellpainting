@@ -1,0 +1,5 @@
+{
+    "hooks": {
+        "user_prompt_submit": [".claude/hooks/nfcore-lint-check.py"]
+    }
+}
