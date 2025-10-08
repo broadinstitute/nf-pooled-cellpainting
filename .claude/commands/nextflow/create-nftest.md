@@ -137,7 +137,7 @@ You are tasked with filling out an nf-test file for a Nextflow component (module
 ## Test Data Search Strategy
 
 1. First check assets/samplesheet.csv for appropriate input files
-2. Look at other module tests in the same category (e.g., modules/local/cellprofiler/*/tests/)
+2. Look at other module tests in the same category (e.g., modules/local/cellprofiler/\*/tests/)
 3. Check for test-specific files in the module's test directory
 4. Search for CellProfiler pipeline files in assets/cellprofiler/
 5. If module needs generated data from other processes, document this in comments

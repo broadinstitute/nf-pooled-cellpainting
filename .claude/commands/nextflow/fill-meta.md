@@ -88,7 +88,7 @@ You are tasked with filling out a `meta.yml` file for a Nextflow component (modu
 
 5. **Parse outputs from main.nf:**
    - Extract each output channel with its emit name
-   - Document pattern matching (e.g., "*.bam", "*.csv")
+   - Document pattern matching (e.g., "_.bam", "_.csv")
    - Add EDAM ontology terms
    - Always include versions.yml in outputs
 
@@ -114,7 +114,7 @@ You are tasked with filling out a `meta.yml` file for a Nextflow component (modu
 - Include EDAM ontology terms where applicable (http://edamontology.org)
 - Ensure all inputs and outputs from main.nf are documented
 - Keep descriptions clear and concise
-- Use appropriate file patterns (*.bam, *.csv, etc.)
+- Use appropriate file patterns (_.bam, _.csv, etc.)
 - Always include the yaml-language-server schema comment at the top
 
 ## If user provides arguments:
