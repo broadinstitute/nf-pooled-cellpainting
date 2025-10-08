@@ -1,5 +1,5 @@
 {
     "hooks": {
-        "user_prompt_submit": [".claude/hooks/nfcore-lint-check.py"]
+        "PreToolUse": [".claude/hooks/nfcore-lint-check.py"]
     }
 }

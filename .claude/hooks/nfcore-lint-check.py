@@ -88,7 +88,7 @@ def run_nfcore_lint(cwd: str) -> bool:
     """Run nf-core lint and return True if successful."""
     try:
         result = subprocess.run(
-            ["nf-core", "lint", "."],
+            ["nf-core", "pipelines" , "lint"],
             capture_output=True,
             text=True,
             timeout=120,  # 2 minutes timeout
@@ -105,7 +105,7 @@ def run_nfcore_lint(cwd: str) -> bool:
             return True
         else:
             print("❌ nf-core lint checks failed! Please fix the issues before committing.")
-            print("\nTip: Run 'nf-core lint' manually to see detailed issues.")
+            print("\nTip: Run 'nf-core pipelines lint' manually to see detailed issues.")
             return False
 
     except FileNotFoundError:
