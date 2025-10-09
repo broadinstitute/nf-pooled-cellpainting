@@ -23,6 +23,7 @@ process CELLPROFILER_SEGCHECK {
     script:
     """
     generate_load_data_csv.py \\
+        --pipeline-type segcheck \\
         --images-dir ./images \\
         --output load_data.csv \\
         --range-skip ${range_skip}
