@@ -6,7 +6,7 @@
 
 include { CELLPROFILER_LOAD_DATA_CSV as ILLUMINATION_LOAD_DATA_CSV } from '../cellprofiler_load_data_csv'
 include { CELLPROFILER_ILLUMCALC }                                   from '../../../modules/local/cellprofiler/illumcalc'
-include { QC_MONTAGEILLUM }                                          from '../../../modules/local/qc/montageillum'
+include { QC_MONTAGEILLUM as QC_MONTAGE_ILLUM }                                          from '../../../modules/local/qc/montageillum'
 include { CELLPROFILER_LOAD_DATA_CSV_WITH_ILLUM as ILLUMINATION_APPLY_LOAD_DATA_CSV } from '../cellprofiler_load_data_csv_with_illum'
 include { CELLPROFILER_ILLUMAPPLY }                                  from '../../../modules/local/cellprofiler/illumapply'
 workflow BARCODING {
@@ -41,8 +41,9 @@ workflow BARCODING {
         }
         .set { ch_illumination_corrections_qc }
 
-    QC_MONTAGEILLUM (
-        ch_illumination_corrections_qc
+    QC_MONTAGE_ILLUM (
+        ch_illumination_corrections_qc,
+        ".*Cycle.*\\.npy\$"  // Pattern for barcoding: files with Cycle in name
     )
 
     // //// Apply illumination correction ////

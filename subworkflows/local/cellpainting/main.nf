@@ -6,7 +6,8 @@
 include { CELLPROFILER_LOAD_DATA_CSV as ILLUMINATION_CALC_LOAD_DATA_CSV }             from '../cellprofiler_load_data_csv'
 include { CELLPROFILER_LOAD_DATA_CSV_WITH_ILLUM as ILLUMINATION_APPLY_LOAD_DATA_CSV } from '../cellprofiler_load_data_csv_with_illum'
 include { CELLPROFILER_ILLUMCALC }                                                    from '../../../modules/local/cellprofiler/illumcalc'
-include { QC_MONTAGEILLUM }                                                           from '../../../modules/local/qc/montageillum'
+include { QC_MONTAGEILLUM as QC_MONTAGE_ILLUM }                                       from '../../../modules/local/qc/montageillum'
+include { QC_MONTAGEILLUM as QC_MONTAGE_SEGCHECK }                                    from '../../../modules/local/qc/montageillum'
 include { CELLPROFILER_ILLUMAPPLY }                                                   from '../../../modules/local/cellprofiler/illumapply'
 include { CELLPROFILER_SEGCHECK }                                                     from '../../../modules/local/cellprofiler/segcheck'
 workflow CELLPAINTING {
@@ -45,8 +46,9 @@ workflow CELLPAINTING {
         }
         .set { ch_illumination_corrections_qc }
 
-    QC_MONTAGEILLUM (
-        ch_illumination_corrections_qc
+    QC_MONTAGE_ILLUM (
+        ch_illumination_corrections_qc,
+        ".*\\.npy\$"  // Pattern for painting: all .npy files
     )
 
     //// Apply illumination correction ////
@@ -76,6 +78,22 @@ workflow CELLPAINTING {
         ch_sub_corr_images,
         cppipes['segcheck_cp'],
         range_skip
+    )
+
+    // Reshape CELLPROFILER_SEGCHECK output for QC montage
+    CELLPROFILER_SEGCHECK.out.segcheck_res
+        .map{ meta, csv_files, png_files ->
+            [meta.subMap(['batch', 'plate']) + [arm: "painting"], png_files]
+        }
+        .groupTuple()
+        .map{ meta, png_files_list ->
+            [meta, png_files_list.flatten()]
+        }
+        .set { ch_segcheck_qc }
+
+    QC_MONTAGE_SEGCHECK (
+        ch_segcheck_qc,
+        ".*\\.png\$"  // Pattern for segcheck: all PNG files
     )
 
     // emit:
