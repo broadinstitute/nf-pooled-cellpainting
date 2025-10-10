@@ -34,7 +34,7 @@
             "nf-test": "0.9.2",
             "nextflow": "25.04.7"
         },
-        "timestamp": "2025-09-18T15:24:56.873905"
+        "timestamp": "2025-10-08T20:03:43.585862"
     },
     "generate montage - barcoding": {
         "content": [
@@ -71,7 +71,7 @@
             "nf-test": "0.9.2",
             "nextflow": "25.04.7"
         },
-        "timestamp": "2025-09-18T15:42:45.296253"
+        "timestamp": "2025-10-08T20:03:51.756489"
     },
     "generate montage - - stub": {
         "content": [

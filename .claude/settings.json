@@ -1,0 +1,5 @@
+{
+    "hooks": {
+        "PreToolUse": [".claude/hooks/nfcore-lint-check.py"]
+    }
+}

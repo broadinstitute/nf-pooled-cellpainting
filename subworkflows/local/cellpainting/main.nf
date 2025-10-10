@@ -8,12 +8,13 @@ include { CELLPROFILER_LOAD_DATA_CSV_WITH_ILLUM as ILLUMINATION_APPLY_LOAD_DATA_
 include { CELLPROFILER_ILLUMCALC }                                                    from '../../../modules/local/cellprofiler/illumcalc'
 include { QC_MONTAGEILLUM }                                                           from '../../../modules/local/qc/montageillum'
 include { CELLPROFILER_ILLUMAPPLY }                                                   from '../../../modules/local/cellprofiler/illumapply'
-
+include { CELLPROFILER_SEGCHECK }                                                     from '../../../modules/local/cellprofiler/segcheck'
 workflow CELLPAINTING {
 
     take:
     ch_samplesheet_cp
     cppipes
+    range_skip
 
     main:
 
@@ -63,6 +64,18 @@ workflow CELLPAINTING {
     CELLPROFILER_ILLUMAPPLY (
         ILLUMINATION_APPLY_LOAD_DATA_CSV.out.images_with_illum_load_data_csv,
         cppipes['illumination_apply_cp']
+    )
+
+    // Reshape CELLPROFILER_ILLUMAPPLY output for SEGCHECK
+    CELLPROFILER_ILLUMAPPLY.out.corrected_images.map{ meta, images, _csv ->
+            [meta, images]
+    }.set { ch_sub_corr_images }
+
+    //// Segmentation quality check ////
+    CELLPROFILER_SEGCHECK (
+        ch_sub_corr_images,
+        cppipes['segcheck_cp'],
+        range_skip
     )
 
     // emit:

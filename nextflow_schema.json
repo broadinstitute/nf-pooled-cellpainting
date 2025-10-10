@@ -41,8 +41,7 @@
                     "fa_icon": "fas fa-qrcode"
                 },
                 "multichannel_parallel": {
-                    "type": "boolean",
-                    "default": true
+                    "type": "boolean"
                 },
                 "multiqc_title": {
                     "type": "string",
@@ -61,7 +60,8 @@
                 "cp_img_overlap_pct": {
                     "type": "integer",
                     "default": 10,
-                    "fa_icon": "fas fa-percentage"
+                    "fa_icon": "fas fa-percentage",
+                    "description": "Cell painting image overlap in percentage."
                 },
                 "cp_img_frame_type": {
                     "type": "string",
@@ -71,7 +71,13 @@
                 "cp_acquisition_order": {
                     "type": "string",
                     "default": "snake",
-                    "fa_icon": "fas fa-sort-amount-down"
+                    "fa_icon": "fas fa-sort-amount-down",
+                    "description": "Acuisition order of images for cell painting arm."
+                },
+                "range_skip": {
+                    "type": "integer",
+                    "default": 16,
+                    "description": "Sampling frequency for Segmentation check to process subset of images for validation"
                 }
             }
         },
@@ -114,10 +120,16 @@
                     "description": "Cellprofiler pipeline for SBS illumination calculation."
                 },
                 "cp_illum_apply_pipe": {
-                    "type": "string"
+                    "type": "string",
+                    "description": "Cellprofiler pipeline for applying illumination profiles for cell painting arm."
+                },
+                "cp_segcheck_pipe": {
+                    "type": "string",
+                    "description": "Cellprofiler pipeline for running segmentation QC check."
                 },
                 "sbs_illum_apply_pipe": {
-                    "type": "string"
+                    "type": "string",
+                    "description": "Cellprofiler pipeline for illumination profiles for barcoding arm."
                 }
             }
         },
