@@ -10,6 +10,8 @@ include { QC_MONTAGEILLUM as QC_MONTAGE_ILLUM }                                 
 include { QC_MONTAGEILLUM as QC_MONTAGE_SEGCHECK }                                    from '../../../modules/local/qc/montageillum'
 include { CELLPROFILER_ILLUMAPPLY }                                                   from '../../../modules/local/cellprofiler/illumapply'
 include { CELLPROFILER_SEGCHECK }                                                     from '../../../modules/local/cellprofiler/segcheck'
+include { PYTHON_STITCHCROP }                                                         from '../../../modules/local/python/stitchcrop'
+include { FIJI_STITCHCROP }                                                           from '../../../modules/local/fiji/stitchcrop'
 workflow CELLPAINTING {
 
     take:
@@ -94,6 +96,24 @@ workflow CELLPAINTING {
     QC_MONTAGE_SEGCHECK (
         ch_segcheck_qc,
         ".*\\.png\$"  // Pattern for segcheck: all PNG files
+    )
+
+    // STITCH & CROP IMAGES ////
+    CELLPROFILER_ILLUMAPPLY.out.corrected_images.map{
+        meta, images, _csv ->
+            [meta, images]
+        }
+    .set { ch_corrected_images }
+
+     PYTHON_STITCHCROP (
+        ch_corrected_images,
+        'painting'
+    )
+
+    FIJI_STITCHCROP (
+        ch_corrected_images,
+        'painting',
+        file("${projectDir}/bin/stitch_crop.py")
     )
 
     // emit:

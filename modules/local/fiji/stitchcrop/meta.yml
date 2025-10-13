@@ -1,0 +1,68 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/nf-core/modules/master/modules/meta-schema.json
+name: "fiji_stitchcrop"
+description: Stitch multi-site microscopy images and crop into tiles using ImageJ/Fiji
+keywords:
+  - microscopy
+  - image processing
+  - stitching
+  - cropping
+  - fiji
+  - imagej
+tools:
+  - "fiji":
+      description: "ImageJ distribution with batteries included"
+      homepage: "https://fiji.sc/"
+      documentation: "https://imagej.net/software/fiji/"
+      tool_dev_url: "https://github.com/fiji/fiji"
+      licence: "GPL-2.0-or-later"
+
+input:
+  - meta:
+      type: map
+      description: |
+        Groovy Map containing sample information
+        e.g. `[ id:'sample1', batch:'Batch1', plate:'Plate1', well:'A1' ]`
+  - corrected_images:
+      type: file
+      description: Illumination-corrected TIFF images from multiple sites
+      pattern: "*.{tif,tiff}"
+      ontologies:
+        - edam: http://edamontology.org/format_3547
+  - track_type:
+      type: string
+      description: Track type identifier (painting or barcoding) for organizing output directories
+  - stitch_script:
+      type: file
+      description: Jython script for Fiji to perform stitching and cropping operations
+      pattern: "*.py"
+
+output:
+  - stitched_images:
+      type: file
+      description: Stitched full-well microscopy images created by combining multiple site images
+      pattern: "stitched/*.{tif,tiff}"
+      ontologies:
+        - edam: http://edamontology.org/format_3547
+  - cropped_images:
+      type: file
+      description: Cropped tile images extracted from stitched images with configurable overlap
+      pattern: "cropped/*.{tif,tiff}"
+      ontologies:
+        - edam: http://edamontology.org/format_3547
+  - downsampled_images:
+      type: file
+      description: Downsampled versions of stitched images for quality control and visualization
+      pattern: "downsampled/*.{tif,tiff}"
+      ontologies:
+        - edam: http://edamontology.org/format_3547
+  - versions:
+      type: file
+      description: File containing software versions
+      pattern: "versions.yml"
+      ontologies:
+        - edam: http://edamontology.org/format_3750
+
+authors:
+  - "@FloWuenne"
+maintainers:
+  - "@FloWuenne"
