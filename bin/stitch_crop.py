@@ -85,14 +85,11 @@ def get_required_env(var_name):
     return value
 
 
-# Configuration parameters - all required from environment variables
-# These MUST be provided by the calling script (run_pcpip.sh)
-input_file_location = get_required_env("STITCH_INPUT_BASE")
-track_type = get_required_env("STITCH_TRACK_TYPE")
-# Note: out_subdir_tag will be inferred from the data, not passed as parameter
-
-step_to_stitch = "images_corrected"  # Input subdirectory name
-subdir = "images_corrected/{}".format(track_type)  # Build path dynamically
+# Configuration parameters - simplified for Nextflow integration
+# Input files are staged by Nextflow to images_corrected/
+# Outputs go to flat directories in work dir (Nextflow handles final organization)
+input_dir = "images_corrected"  # Nextflow stages files here
+output_base = "."  # Write outputs to work dir root
 localtemp = "/tmp/FIJI_temp"  # Temporary directory
 
 # Grid stitching parameters
@@ -155,12 +152,10 @@ bucketname = "unused"
 downloadfilter = "unused"
 quarter_if_round = "unused"
 
-top_outfolder = input_file_location
-
-# Log configuration (only if different from defaults)
+# Log configuration
 logger.info("=== Configuration ===")
-logger.info("Input: {}".format(os.path.join(input_file_location, subdir)))
-logger.info("Track type: {}".format(track_type))
+logger.info("Input directory: {}".format(input_dir))
+logger.info("Output base: {}".format(output_base))
 logger.info("Channel: {}".format(channame))
 logger.info("Grid: {}x{} with {}% overlap".format(rows, columns, overlap_pct))
 
@@ -218,37 +213,19 @@ def savefile(im, imname, plugin, compress="false"):
         logger.error("Failed 5 times at saving {}".format(imname))
 
 
-# STEP 1: Create directory structure for output files
-logger.info("Top output folder: {}".format(top_outfolder))
-if not os.path.exists(top_outfolder):
-    logger.info("Creating top output folder: {}".format(top_outfolder))
-    os.mkdir(top_outfolder)
+# STEP 1: Create flat output directory structure (Nextflow handles final organization)
+# Simplified structure: no nested arm/batch/plate subdirectories
+outfolder = os.path.join(output_base, "stitched_images")  # For stitched images
+tile_outdir = os.path.join(output_base, "cropped_images")  # For cropped tiles
+downsample_outdir = os.path.join(output_base, "downsampled_images")  # For downsampled QC images
 
-# Define and create the parent folders where the images will be output
-# Add track-specific subdirectory to mirror source structure
-base_stitched = os.path.join(top_outfolder, (step_to_stitch + "_stitched"))
-base_cropped = os.path.join(top_outfolder, (step_to_stitch + "_cropped"))
-base_downsampled = os.path.join(top_outfolder, (step_to_stitch + "_stitched_10X"))
-
-outfolder = os.path.join(base_stitched, track_type)  # For stitched images
-tile_outdir = os.path.join(base_cropped, track_type)  # For cropped tiles
-downsample_outdir = os.path.join(
-    base_downsampled, track_type
-)  # For downsampled QC images
 logger.info(
     "Output folders: \n - Stitched: {}\n - Cropped: {}\n - Downsampled: {}".format(
         outfolder, tile_outdir, downsample_outdir
     )
 )
 
-# Create parent directories if they don't exist (including intermediate track directories)
-if not os.path.exists(base_stitched):
-    os.mkdir(base_stitched)
-if not os.path.exists(base_cropped):
-    os.mkdir(base_cropped)
-if not os.path.exists(base_downsampled):
-    os.mkdir(base_downsampled)
-
+# Create output directories
 if not os.path.exists(outfolder):
     os.mkdir(outfolder)
 if not os.path.exists(tile_outdir):
@@ -256,31 +233,27 @@ if not os.path.exists(tile_outdir):
 if not os.path.exists(downsample_outdir):
     os.mkdir(downsample_outdir)
 
-# Note: Plate-specific subdirectories will be created later after inferring plate IDs
-# The old approach of creating a single directory here is removed
-
 # STEP 2: Prepare input directory and files
-subdir = os.path.join(input_file_location, subdir)
-logger.info("Input subdirectory: {}".format(subdir))
+logger.info("Input directory: {}".format(input_dir))
 
 # bypassed awsdownload == 'True' for test (would download files from AWS)
 
 # Check what's in the input directory
-logger.info("Checking if directory exists: {}".format(subdir))
+logger.info("Checking if directory exists: {}".format(input_dir))
 
 # Use os.walk to recursively find all TIFF files at any depth
 logger.info("Recursively searching for TIFF files to flatten directory structure")
 tiff_count = 0
-for root, dirs, files in os.walk(subdir):
+for root, dirs, files in os.walk(input_dir):
     # Skip the root directory itself
-    if root == subdir:
+    if root == input_dir:
         continue
 
     for filename in files:
         # Process only TIFF files, skip CSVs and others
         if filename.lower().endswith((".tif", ".tiff")):
             src = os.path.join(root, filename)
-            dst = os.path.join(subdir, filename)
+            dst = os.path.join(input_dir, filename)
 
             # Check if destination exists
             if os.path.exists(dst) or os.path.islink(dst):
@@ -298,9 +271,9 @@ if not confirm_continue("Directory setup complete. Proceed to analyze files?"):
     sys.exit(0)
 
 # STEP 3: Analyze input files and organize by well and channel
-if os.path.isdir(subdir):
-    logger.info("Processing directory content: {}".format(subdir))
-    dirlist = os.listdir(subdir)
+if os.path.isdir(input_dir):
+    logger.info("Processing directory content: {}".format(input_dir))
+    dirlist = os.listdir(input_dir)
     logger.info("Files in directory: {}".format(dirlist))
 
     # Lists to track wells and prefix/suffix combinations
@@ -440,39 +413,13 @@ if os.path.isdir(subdir):
             # Get the plate ID for this well
             plate_id = well_to_plate.get(eachwell, "UnknownPlate")
 
-            # Create well-specific output directories with PLATE nesting
-            # Use Plate-Well format (e.g., Plate1-A1) for directory names
-            well_dir_name = "{}-{}".format(plate_id, eachwell)  # e.g., "Plate1-A1"
-
-            # Add PLATE nesting for all output directories (e.g., Plate1/Plate1-A1)
-            plate_out_subdir = os.path.join(outfolder, plate_id)
-            plate_tile_subdir = os.path.join(tile_outdir, plate_id)
-            plate_downsample_subdir = os.path.join(downsample_outdir, plate_id)
-
-            well_out_subdir = os.path.join(plate_out_subdir, well_dir_name)
-            well_tile_subdir = os.path.join(plate_tile_subdir, well_dir_name)
-            well_downsample_subdir = os.path.join(
-                plate_downsample_subdir, well_dir_name
-            )
-
-            # Create plate directories first
-            if not os.path.exists(plate_out_subdir):
-                os.mkdir(plate_out_subdir)
-            if not os.path.exists(plate_tile_subdir):
-                os.mkdir(plate_tile_subdir)
-            if not os.path.exists(plate_downsample_subdir):
-                os.mkdir(plate_downsample_subdir)
-
-            # Then create well directories
-            if not os.path.exists(well_out_subdir):
-                os.mkdir(well_out_subdir)
-            if not os.path.exists(well_tile_subdir):
-                os.mkdir(well_tile_subdir)
-            if not os.path.exists(well_downsample_subdir):
-                os.mkdir(well_downsample_subdir)
+            # Simplified flat output structure - files go directly into output folders
+            # Nextflow will handle final organization by plate/well
+            # Use Plate-Well format for filenames (e.g., Plate1-A1)
+            well_prefix = "{}-{}".format(plate_id, eachwell)  # e.g., "Plate1-A1"
 
             logger.info(
-                "Processing well {} - outputs to {}".format(eachwell, well_out_subdir)
+                "Processing well {} (plate {}) - prefix: {}".format(eachwell, plate_id, well_prefix)
             )
 
             # Create the instructions for ImageJ's Grid/Collection stitching plugin
@@ -486,7 +433,7 @@ if os.path.isdir(subdir):
                 + " tile_overlap="
                 + overlap_pct
                 + " first_file_index_i=0 directory="
-                + subdir
+                + input_dir
                 + " file_names=",
                 # Second part with stitching parameters
                 " output_textfile_name=TileConfiguration.txt fusion_method=[Linear Blending] regression_threshold=0.30 max/avg_displacement_threshold=2.50 absolute_displacement_threshold=3.50 compute_overlap computation_parameters=[Save computation time (but use more RAM)] image_output=[Fuse and display]",
@@ -510,23 +457,18 @@ if os.path.isdir(subdir):
                 # Extract the prefix and suffix (channel name)
                 thisprefix, thissuffix = eachpresuf
 
-                # Clean up the suffix to use as a directory name
+                # Clean up the suffix to use as channel name
                 thissuffixnicename = thissuffix.split(".")[0]
                 if thissuffixnicename[0] == "_":
                     thissuffixnicename = thissuffixnicename[1:]
-
-                # Create a channel-specific subdirectory for tile outputs within the well directory
-                tile_subdir_persuf = os.path.join(well_tile_subdir, thissuffixnicename)
-                if not os.path.exists(tile_subdir_persuf):
-                    os.mkdir(tile_subdir_persuf)
 
                 # Set up the filename pattern for input images
                 # The {i} will be replaced with site numbers (1, 2, 3, 4...)
                 filename = thisprefix + "_Well_" + eachwell + "_Site_{i}_" + thissuffix
 
-                # Set up the output filename for the stitched image
-                # Always use the "Stitched_" prefix for all track types
-                fileoutname = "Stitched_" + thissuffixnicename + ".tiff"
+                # Set up output filenames with well prefix for flat structure
+                # Format: Plate1-A1_Stitched_DNA.tiff
+                fileoutname = "{}_Stitched_{}.tiff".format(well_prefix, thissuffixnicename)
 
                 # STEP 7: Run the ImageJ stitching operation for this channel and well
                 IJ.run(
@@ -599,17 +541,18 @@ if os.path.isdir(subdir):
                 # time.sleep(15)
                 im3 = IJ.getImage()
 
-                # STEP 10: Save the stitched image to well-specific directory
+                # STEP 10: Save the stitched image to flat output directory
+                stitched_filepath = os.path.join(outfolder, fileoutname)
                 savefile(
                     im3,
-                    os.path.join(well_out_subdir, fileoutname),
+                    stitched_filepath,
                     plugin,
                     compress=compress,
                 )
 
-                # Close all images and reopen the saved stitched image from well-specific directory
+                # Close all images and reopen the saved stitched image
                 IJ.run("Close All")
-                im = IJ.open(os.path.join(well_out_subdir, fileoutname))
+                im = IJ.open(stitched_filepath)
                 im = IJ.getImage()
 
                 # Log progress
@@ -636,23 +579,23 @@ if os.path.isdir(subdir):
                         # Crop the selected region
                         im_tile = im.crop()
 
-                        # Save the cropped tile
+                        # Save the cropped tile with well prefix
+                        # Format: Plate1-A1_DNA_Site_1.tiff
+                        tile_filename = "{}_{}_Site_{}.tiff".format(
+                            well_prefix,
+                            thissuffixnicename,
+                            each_tile_num
+                        )
                         savefile(
                             im_tile,
-                            os.path.join(
-                                tile_subdir_persuf,
-                                thissuffixnicename
-                                + "_Site_"
-                                + str(each_tile_num)
-                                + ".tiff",
-                            ),
+                            os.path.join(tile_outdir, tile_filename),
                             plugin,
                             compress=compress,
                         )
 
-                # Close all images and reopen the saved stitched image again from well-specific directory
+                # Close all images and reopen the saved stitched image
                 IJ.run("Close All")
-                im = IJ.open(os.path.join(well_out_subdir, fileoutname))
+                im = IJ.open(stitched_filepath)
                 im = IJ.getImage()
 
                 # STEP 12: Create downsampled version for quality control
@@ -672,10 +615,10 @@ if os.path.isdir(subdir):
                 )
                 im_10 = IJ.getImage()
 
-                # Save the downsampled image to well-specific directory
+                # Save the downsampled image to flat output directory
                 savefile(
                     im_10,
-                    os.path.join(well_downsample_subdir, fileoutname),
+                    os.path.join(downsample_outdir, fileoutname),
                     plugin,
                     compress=compress,
                 )
@@ -700,21 +643,20 @@ if os.path.isdir(subdir):
     else:
         logger.error("Must identify well as round or square")
 else:
-    logger.error("Could not find input directory {}".format(subdir))
+    logger.error("Could not find input directory {}".format(input_dir))
 
 # STEP 13: Move the TileConfiguration.txt file to the output directory
 # Note: This file gets overwritten for each well, so we just keep the last one
-# Since we don't have a single out_subdir anymore, put it in the base output folder
 for eachlogfile in ["TileConfiguration.txt"]:
     try:
-        # Move to the base output folder instead of a specific plate folder
+        # Move to the stitched images output folder
         os.rename(
-            os.path.join(subdir, eachlogfile),
+            os.path.join(input_dir, eachlogfile),
             os.path.join(outfolder, eachlogfile),
         )
         logger.info("Moved {} to output directory".format(eachlogfile))
     except (OSError, IOError):  # Python 2/Jython compatibility
-        logger.warning("Could not find TileConfiguration.txt in {}".format(subdir))
+        logger.warning("Could not find TileConfiguration.txt in {}".format(input_dir))
         # Create an empty file if it doesn't exist (for testing purposes)
         if not os.path.exists(os.path.join(outfolder, eachlogfile)):
             with open(os.path.join(outfolder, eachlogfile), "w") as f:
@@ -728,7 +670,7 @@ if autorun or confirm_continue(
     "All processing is complete. Would you like to see a summary?"
 ):
     logger.info("======== PROCESSING SUMMARY =========")
-    logger.info("Input directory: {}".format(subdir))
+    logger.info("Input directory: {}".format(input_dir))
     logger.info("Stitched images: {}".format(outfolder))
     logger.info("Cropped tiles: {}".format(tile_outdir))
     logger.info("Downsampled QC images: {}".format(downsample_outdir))

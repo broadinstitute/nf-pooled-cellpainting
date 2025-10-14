@@ -4,8 +4,8 @@ process PYTHON_STITCHCROP {
 
     conda "${moduleDir}/environment.yml"
     container "${workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container
-        ? 'oras://community.wave.seqera.io/library/pip_imagecodecs_numpy_pillow_tifffile:8ba748e7866e96ec'
-        : 'community.wave.seqera.io/library/pip_imagecodecs_numpy_pillow_tifffile:950ed849da4f4992'}"
+        ? 'oras://community.wave.seqera.io/library/cellprofiler:4.2.8--7c1bd3a82764de92'
+        : 'community.wave.seqera.io/library/pip_numpy_scipy_pillow_pruned:ef738e45d41bdb58'}"
 
     input:
     tuple val(meta), path(corrected_images, stageAs: "images_corrected/*")

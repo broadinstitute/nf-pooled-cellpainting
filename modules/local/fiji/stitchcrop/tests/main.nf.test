@@ -18,29 +18,17 @@ nextflow_process {
         when {
             process {
                 """
-                // Input: corrected images from CELLPROFILER_ILLUMAPPLY (4 sites from well A1)
-                // These images have been illumination-corrected and will be stitched into a single image
                 input[0] = [
                     [batch:'Batch1', plate:'Plate1', arm:'painting', well:'A1', id:'Batch1_Plate1_painting_A1'],
                     [
-                        file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/images/Batch1/images/Plate1/corrected/Plate_Plate1_Well_A01_Site_0_CorrPhalloidin.tiff"),
-                        file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/images/Batch1/images/Plate1/corrected/Plate_Plate1_Well_A01_Site_0_CorrCHN2.tiff"),
-                        file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/images/Batch1/images/Plate1/corrected/Plate_Plate1_Well_A01_Site_0_CorrDNA.tiff"),
-                        file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/images/Batch1/images/Plate1/corrected/Plate_Plate1_Well_A01_Site_1_CorrPhalloidin.tiff"),
-                        file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/images/Batch1/images/Plate1/corrected/Plate_Plate1_Well_A01_Site_1_CorrCHN2.tiff"),
-                        file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/images/Batch1/images/Plate1/corrected/Plate_Plate1_Well_A01_Site_1_CorrDNA.tiff"),
-                        file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/images/Batch1/images/Plate1/corrected/Plate_Plate1_Well_A01_Site_2_CorrPhalloidin.tiff"),
-                        file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/images/Batch1/images/Plate1/corrected/Plate_Plate1_Well_A01_Site_2_CorrCHN2.tiff"),
-                        file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/images/Batch1/images/Plate1/corrected/Plate_Plate1_Well_A01_Site_2_CorrDNA.tiff"),
-                        file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/images/Batch1/images/Plate1/corrected/Plate_Plate1_Well_A01_Site_3_CorrPhalloidin.tiff"),
-                        file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/images/Batch1/images/Plate1/corrected/Plate_Plate1_Well_A01_Site_3_CorrCHN2.tiff"),
-                        file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/images/Batch1/images/Plate1/corrected/Plate_Plate1_Well_A01_Site_3_CorrDNA.tiff")
+                        file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/images/Batch1/images_corrected/painting/Plate1/Plate1-A1-0/Plate_Plate1_Well_A1_Site_0_CorrCHN2.tiff"),
+                        file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/images/Batch1/images_corrected/painting/Plate1/Plate1-A1-1/Plate_Plate1_Well_A1_Site_1_CorrCHN2.tiff"),
+                        file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/images/Batch1/images_corrected/painting/Plate1/Plate1-A1-2/Plate_Plate1_Well_A1_Site_2_CorrCHN2.tiff"),
+                        file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/images/Batch1/images_corrected/painting/Plate1/Plate1-A1-3/Plate_Plate1_Well_A1_Site_3_CorrCHN2.tiff")
                     ]
                 ]
-                // Track type: painting or barcoding
-                input[1] = 'painting'
                 // Stitch script
-                input[2] = file("\${projectDir}/bin/stitch_crop.py", checkIfExists: true)
+                input[1] = file("\${projectDir}/bin/stitch_crop.py", checkIfExists: true)
                 """
             }
         }
@@ -49,9 +37,10 @@ nextflow_process {
             assertAll(
                 { assert process.success },
                 { assert snapshot(
-                    process.out.stitched,
-                    process.out.cropped,
-                    process.out.downsampled,
+                    process.out.stitched_images.collect { it.collect { file(it).name } },
+                    process.out.tile_config,
+                    process.out.cropped_images.collect { it.collect { file(it).name } },
+                    process.out.downsampled_images.collect { it.collect { file(it).name } },
                     process.out.versions
                 ).match() }
             )
@@ -70,21 +59,13 @@ nextflow_process {
                 input[0] = [
                     [batch:'Batch1', plate:'Plate1', arm:'painting', well:'A1', id:'Batch1_Plate1_painting_A1'],
                     [
-                        file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/images/Batch1/images/Plate1/corrected/Plate_Plate1_Well_A01_Site_0_CorrPhalloidin.tiff"),
-                        file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/images/Batch1/images/Plate1/corrected/Plate_Plate1_Well_A01_Site_0_CorrCHN2.tiff"),
-                        file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/images/Batch1/images/Plate1/corrected/Plate_Plate1_Well_A01_Site_0_CorrDNA.tiff"),
-                        file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/images/Batch1/images/Plate1/corrected/Plate_Plate1_Well_A01_Site_1_CorrPhalloidin.tiff"),
-                        file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/images/Batch1/images/Plate1/corrected/Plate_Plate1_Well_A01_Site_1_CorrCHN2.tiff"),
-                        file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/images/Batch1/images/Plate1/corrected/Plate_Plate1_Well_A01_Site_1_CorrDNA.tiff"),
-                        file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/images/Batch1/images/Plate1/corrected/Plate_Plate1_Well_A01_Site_2_CorrPhalloidin.tiff"),
-                        file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/images/Batch1/images/Plate1/corrected/Plate_Plate1_Well_A01_Site_2_CorrCHN2.tiff"),
-                        file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/images/Batch1/images/Plate1/corrected/Plate_Plate1_Well_A01_Site_2_CorrDNA.tiff"),
-                        file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/images/Batch1/images/Plate1/corrected/Plate_Plate1_Well_A01_Site_3_CorrPhalloidin.tiff"),
-                        file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/images/Batch1/images/Plate1/corrected/Plate_Plate1_Well_A01_Site_3_CorrCHN2.tiff"),
-                        file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/images/Batch1/images/Plate1/corrected/Plate_Plate1_Well_A01_Site_3_CorrDNA.tiff")
+                        file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/images/Batch1/images_corrected/painting/Plate1/Plate1-A1-0/Plate_Plate1_Well_A1_Site_0_CorrCHN2.tiff"),
+                        file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/images/Batch1/images_corrected/painting/Plate1/Plate1-A1-1/Plate_Plate1_Well_A1_Site_1_CorrCHN2.tiff"),
+                        file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/images/Batch1/images_corrected/painting/Plate1/Plate1-A1-2/Plate_Plate1_Well_A1_Site_2_CorrCHN2.tiff"),
+                        file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/images/Batch1/images_corrected/painting/Plate1/Plate1-A1-3/Plate_Plate1_Well_A1_Site_3_CorrCHN2.tiff")
                     ]
                 ]
-                input[1] = 'painting'
+                input[1] = file("\${projectDir}/bin/stitch_crop.py", checkIfExists: true)
                 """
             }
         }

@@ -105,14 +105,13 @@ workflow CELLPAINTING {
         }
     .set { ch_corrected_images }
 
-     PYTHON_STITCHCROP (
-        ch_corrected_images,
-        'painting'
-    )
+    //  PYTHON_STITCHCROP (
+    //     ch_corrected_images,
+    //     'painting'
+    // )
 
     FIJI_STITCHCROP (
         ch_corrected_images,
-        'painting',
         file("${projectDir}/bin/stitch_crop.py")
     )
 

@@ -17,20 +17,17 @@ tools:
       licence: "GPL-2.0-or-later"
 
 input:
-  - meta:
-      type: map
-      description: |
-        Groovy Map containing sample information
-        e.g. `[ id:'sample1', batch:'Batch1', plate:'Plate1', well:'A1' ]`
-  - corrected_images:
-      type: file
-      description: Illumination-corrected TIFF images from multiple sites
-      pattern: "*.{tif,tiff}"
-      ontologies:
-        - edam: http://edamontology.org/format_3547
-  - track_type:
-      type: string
-      description: Track type identifier (painting or barcoding) for organizing output directories
+  - - meta:
+        type: map
+        description: |
+          Groovy Map containing sample information
+          e.g. `[ id:'sample1', batch:'Batch1', plate:'Plate1', well:'A1' ]`
+    - corrected_images:
+        type: file
+        description: Illumination-corrected TIFF images from multiple sites
+        pattern: "*.{tif,tiff}"
+        ontologies:
+          - edam: http://edamontology.org/format_3547
   - stitch_script:
       type: file
       description: Jython script for Fiji to perform stitching and cropping operations
@@ -38,29 +35,38 @@ input:
 
 output:
   - stitched_images:
-      type: file
-      description: Stitched full-well microscopy images created by combining multiple site images
-      pattern: "stitched/*.{tif,tiff}"
-      ontologies:
-        - edam: http://edamontology.org/format_3547
+      - stitched_images:
+          type: file
+          description: Stitched full-well microscopy images created by combining multiple site images
+          pattern: "stitched_images/*.{tif,tiff}"
+          ontologies:
+            - edam: http://edamontology.org/format_3547
+  - tile_config:
+      - tile_config:
+          type: file
+          description: Fiji Grid/Collection stitching tile configuration file
+          pattern: "stitched_images/TileConfiguration.txt"
   - cropped_images:
-      type: file
-      description: Cropped tile images extracted from stitched images with configurable overlap
-      pattern: "cropped/*.{tif,tiff}"
-      ontologies:
-        - edam: http://edamontology.org/format_3547
+      - cropped_images:
+          type: file
+          description: Cropped tile images extracted from stitched images with configurable overlap
+          pattern: "cropped_images/*.{tif,tiff}"
+          ontologies:
+            - edam: http://edamontology.org/format_3547
   - downsampled_images:
-      type: file
-      description: Downsampled versions of stitched images for quality control and visualization
-      pattern: "downsampled/*.{tif,tiff}"
-      ontologies:
-        - edam: http://edamontology.org/format_3547
+      - downsampled_images:
+          type: file
+          description: Downsampled versions of stitched images for quality control and visualization
+          pattern: "downsampled_images/*.{tif,tiff}"
+          ontologies:
+            - edam: http://edamontology.org/format_3547
   - versions:
-      type: file
-      description: File containing software versions
-      pattern: "versions.yml"
-      ontologies:
-        - edam: http://edamontology.org/format_3750
+      - versions:
+          type: file
+          description: File containing software versions
+          pattern: "versions.yml"
+          ontologies:
+            - edam: http://edamontology.org/format_3750
 
 authors:
   - "@FloWuenne"
