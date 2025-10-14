@@ -1,0 +1,99 @@
+nextflow_process {
+
+    name "Test Process CELLPROFILER_PREPROCESS"
+    script "../main.nf"
+    process "CELLPROFILER_PREPROCESS"
+
+    tag "cellprofiler"
+    tag "cellprofiler/preprocess"
+
+    test("cellprofiler - preprocess - sbs_images") {
+
+        when {
+            process {
+                """
+                // NOTE: This test requires illumination-corrected SBS images from multiple cycles
+                // Input[0]: Meta map + corrected images from barcoding (SBS cycles)
+                // Input[1]: CellProfiler preprocess pipeline
+                // Input[2]: Barcodes CSV file
+                // Input[3]: CellProfiler plugins directory
+
+                input[0] = [
+                    [ id:'Batch1_Plate1_barcoding_A1', batch:'Batch1', plate:'Plate1', well:'A1', arm:'barcoding' ],
+                    [
+                        file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/images/Batch1/images_corrected/barcoding/Plate1/Plate1-A1-0/Plate_Plate1_Well_A1_Site_0_Cycle01_A.tiff"),
+                        file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/images/Batch1/images_corrected/barcoding/Plate1/Plate1-A1-0/Plate_Plate1_Well_A1_Site_0_Cycle01_C.tiff"),
+                        file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/images/Batch1/images_corrected/barcoding/Plate1/Plate1-A1-0/Plate_Plate1_Well_A1_Site_0_Cycle01_DNA.tiff"),
+                        file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/images/Batch1/images_corrected/barcoding/Plate1/Plate1-A1-0/Plate_Plate1_Well_A1_Site_0_Cycle01_G.tiff"),
+                        file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/images/Batch1/images_corrected/barcoding/Plate1/Plate1-A1-0/Plate_Plate1_Well_A1_Site_0_Cycle01_T.tiff"),
+                        file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/images/Batch1/images_corrected/barcoding/Plate1/Plate1-A1-0/Plate_Plate1_Well_A1_Site_0_Cycle02_A.tiff"),
+                        file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/images/Batch1/images_corrected/barcoding/Plate1/Plate1-A1-0/Plate_Plate1_Well_A1_Site_0_Cycle02_C.tiff"),
+                        file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/images/Batch1/images_corrected/barcoding/Plate1/Plate1-A1-0/Plate_Plate1_Well_A1_Site_0_Cycle02_G.tiff"),
+                        file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/images/Batch1/images_corrected/barcoding/Plate1/Plate1-A1-0/Plate_Plate1_Well_A1_Site_0_Cycle02_T.tiff"),
+                        file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/images/Batch1/images_corrected/barcoding/Plate1/Plate1-A1-0/Plate_Plate1_Well_A1_Site_0_Cycle03_A.tiff"),
+                        file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/images/Batch1/images_corrected/barcoding/Plate1/Plate1-A1-0/Plate_Plate1_Well_A1_Site_0_Cycle03_C.tiff"),
+                        file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/images/Batch1/images_corrected/barcoding/Plate1/Plate1-A1-0/Plate_Plate1_Well_A1_Site_0_Cycle03_G.tiff"),
+                        file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/images/Batch1/images_corrected/barcoding/Plate1/Plate1-A1-0/Plate_Plate1_Well_A1_Site_0_Cycle03_T.tiff")
+
+                    ]
+                ]
+                input[1] = file("${projectDir}/assets/cellprofiler/sbs_preprocess.cppipe", checkIfExists: true)
+                input[2] = file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/workspace/metadata/Barcodes.csv", checkIfExists: true)
+                input[3] = [
+                    file("${projectDir}/assets/cellprofiler_plugins/compensatecolors.py", checkIfExists: true),
+                    file("${projectDir}/assets/cellprofiler_plugins/callbarcodes.py", checkIfExists: true)
+                ]
+                """
+            }
+        }
+
+        then {
+            assertAll(
+                { assert process.success },
+                { assert snapshot(
+                    process.out.preprocessed_images,
+                    process.out.overlay,
+                    process.out.preprocess_stats,
+                    process.out.versions
+                ).match() }
+            )
+        }
+
+    }
+
+    test("cellprofiler - preprocess - sbs_images - stub") {
+
+        options "-stub"
+
+        when {
+            process {
+                """
+                input[0] = [
+                    [ id:'Batch1_Plate1_barcoding_A1', batch:'Batch1', plate:'Plate1', well:'A1', arm:'barcoding' ],
+                    [
+                        file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1_sub25/Source1/images/Batch1/images/Plate1/20X_c1_SBS-1/WellA1_PointA1_0000_ChannelC,A,T,G,DAPI_Seq0000.ome.tiff"),
+                        file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1_sub25/Source1/images/Batch1/images/Plate1/20X_c1_SBS-1/WellA1_PointA1_0001_ChannelC,A,T,G,DAPI_Seq0001.ome.tiff"),
+                        file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1_sub25/Source1/images/Batch1/images/Plate1/20X_c1_SBS-1/WellA1_PointA1_0002_ChannelC,A,T,G,DAPI_Seq0002.ome.tiff"),
+                        file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1_sub25/Source1/images/Batch1/images/Plate1/20X_c1_SBS-1/WellA1_PointA1_0003_ChannelC,A,T,G,DAPI_Seq0003.ome.tiff")
+                    ]
+                ]
+                input[1] = file("${projectDir}/assets/cellprofiler/sbs_preprocess.cppipe", checkIfExists: true)
+                input[2] = file("${projectDir}/work/95/c03506277e691f133e89f6488ef407/images/Barcodes.csv", checkIfExists: true)
+                input[3] = [
+                    file("${projectDir}/assets/cellprofiler_plugins/compensatecolors.py", checkIfExists: true),
+                    file("${projectDir}/assets/cellprofiler_plugins/callbarcodes.py", checkIfExists: true)
+                ]
+                """
+            }
+        }
+
+        then {
+            assertAll(
+                { assert process.success },
+                { assert snapshot(process.out).match() }
+            )
+        }
+
+    }
+
+}
