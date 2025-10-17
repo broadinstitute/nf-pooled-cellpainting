@@ -1,6 +1,6 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/nf-core/modules/master/modules/meta-schema.json
 name: "cellprofiler_preprocess"
-description: Performs SBS (Sequencing by Synthesis) preprocessing on barcoding images using CellProfiler, including image averaging across cycles, and feature extraction
+description: Performs SBS (Sequencing by Synthesis) preprocessing on barcoding images using CellProfiler.
 keywords:
   - cellprofiler
   - image_analysis
@@ -29,34 +29,74 @@ input:
       description: Illumination-corrected images from SBS cycles for preprocessing
       pattern: "*.{tif,tiff,png}"
       ontologies:
-        - edam: http://edamontology.org/format_3547 # Image format
+        - edam: http://edamontology.org/format_3547
   - preprocess_cppipe:
       type: file
       description: CellProfiler pipeline file (.cppipe) defining the preprocessing workflow for SBS images
       pattern: "*.cppipe"
       ontologies:
-        - edam: http://edamontology.org/format_2330 # Text format
+        - edam: http://edamontology.org/format_2330
+  - barcodes:
+      type: file
+      description: CSV file containing barcode sequences and metadata for cell identification
+      pattern: "Barcodes.csv"
+      ontologies:
+        - edam: http://edamontology.org/format_3752
+  - plugins:
+      type: directory
+      description: Directory containing CellProfiler plugins required for preprocessing
 
 output:
-  preprocess_res:
-    - meta:
-        type: map
-        description: |
-          Groovy Map containing sample information
-          e.g. `[ id:'sample1', batch:'batch1', plate:'plate1', well:'A01', arm:'barcoding' ]`
-    - "*.csv":
-        type: file
-        description: CSV files containing preprocessing results including Cells, Nuclei, Image, and Experiment measurements from CellProfiler
-        pattern: "*.csv"
-        ontologies:
-          - edam: http://edamontology.org/format_3752
-  versions:
-    - versions.yml:
-        type: file
-        description: File containing software versions
-        pattern: "versions.yml"
-        ontologies:
-          - edam: http://edamontology.org/format_3750
+  - meta:
+      type: map
+      description: |
+        Groovy Map containing sample information
+        e.g. `[ id:'sample1', batch:'batch1', plate:'plate1', well:'A01', arm:'barcoding' ]`
+  - preprocessed_images:
+      type: file
+      description: Preprocessed TIFF images after SBS averaging and processing
+      pattern: "*.tiff"
+      ontologies:
+        - edam: http://edamontology.org/format_3591
+  - meta2:
+      type: map
+      description: |
+        Groovy Map containing sample information
+        e.g. `[ id:'sample1', batch:'batch1', plate:'plate1', well:'A01', arm:'barcoding' ]`
+  - overlay:
+      type: file
+      description: Overlay images showing segmentation and preprocessing results for quality control
+      pattern: "overlay/*.tiff"
+      ontologies:
+        - edam: http://edamontology.org/format_3591
+  - meta3:
+      type: map
+      description: |
+        Groovy Map containing sample information
+        e.g. `[ id:'sample1', batch:'batch1', plate:'plate1', well:'A01', arm:'barcoding' ]`
+  - preprocess_stats:
+      type: file
+      description: CSV files containing preprocessing measurements and statistics (Cells, Nuclei, Image, Experiment, AllFoci, Foci)
+      pattern: "BarcodePreprocess*.csv"
+      ontologies:
+        - edam: http://edamontology.org/format_3752
+  - meta4:
+      type: map
+      description: |
+        Groovy Map containing sample information
+        e.g. `[ id:'sample1', batch:'batch1', plate:'plate1', well:'A01', arm:'barcoding' ]`
+  - load_data_csv:
+      type: file
+      description: CellProfiler LoadData CSV file used for batch processing
+      pattern: "load_data.csv"
+      ontologies:
+        - edam: http://edamontology.org/format_3752
+  - versions:
+      type: file
+      description: File containing software versions
+      pattern: "versions.yml"
+      ontologies:
+        - edam: http://edamontology.org/format_3750
 
 authors:
   - "@FloWuenne"

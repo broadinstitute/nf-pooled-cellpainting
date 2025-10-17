@@ -8,7 +8,7 @@ process CELLPROFILER_PREPROCESS {
         : 'community.wave.seqera.io/library/cellprofiler:4.2.8--aff0a99749304a7f'}"
 
     input:
-    tuple val(meta), path(corr_images, stageAs: "images/*")
+    tuple val(meta), path(aligned_images, stageAs: "images/*")
     path preprocess_cppipe
     path barcodes, stageAs: "images/Barcodes.csv"
     path (plugins, stageAs: "plugins/*")
@@ -17,8 +17,8 @@ process CELLPROFILER_PREPROCESS {
     output:
     tuple val(meta), path("*.tiff")                      , emit: preprocessed_images
     tuple val(meta), path("overlay/*.tiff")              , emit: overlay
-    tuple val(meta), path("BarcodingPreprocessing*.csv") , emit: preprocess_stats
-    path("barcoding_preprocessing.load_data.csv")        , emit: load_data_csv
+    tuple val(meta), path("BarcodePreprocess*.csv")      , emit: preprocess_stats
+    tuple val(meta), path("load_data.csv")               , emit: load_data_csv
     path "versions.yml"                                  , emit: versions
 
     when:
@@ -47,10 +47,16 @@ process CELLPROFILER_PREPROCESS {
 
     stub:
     """
-    touch BarcodingPreprocess_Cells.csv
-    touch BarcodingPreprocess_Experiment.csv
-    touch BarcodingPreprocess_Image.csv
-    touch BarcodingPreprocess_Nuclei.csv
+    touch BarcodePreprocess_Cells.csv
+    touch BarcodePreprocess_Experiment.csv
+    touch BarcodePreprocess_Image.csv
+    touch BarcodePreprocess_Nuclei.csv
+    touch BarcodePreprocess_AllFoci.csv
+    touch BarcodePreprocess_Foci.csv
+    touch Plate_Plate1_Well_A1_Site0_Cycle01_A.tiff
+    touch load_data.csv
+    mkdir -p overlay
+    touch overlay/test.tiff
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":

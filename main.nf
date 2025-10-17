@@ -29,7 +29,6 @@ workflow NF_POOLED_CELLPAINTING {
 
     take:
     samplesheet // channel: samplesheet read in from --input
-    input_samplesheet // channel: input samplesheet read in from --input
 
     main:
 
@@ -79,8 +78,7 @@ workflow {
     // WORKFLOW: Run main workflow
     //
     NF_POOLED_CELLPAINTING (
-        PIPELINE_INITIALISATION.out.samplesheet,
-        params.input,
+        PIPELINE_INITIALISATION.out.samplesheet
     )
     //
     // SUBWORKFLOW: Run completion tasks

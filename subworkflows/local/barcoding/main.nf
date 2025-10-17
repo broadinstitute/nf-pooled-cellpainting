@@ -75,6 +75,21 @@ workflow BARCODING {
         Channel.fromPath("${projectDir}/assets/cellprofiler_plugins/*").collect()  // All Cellprofiler plugins
     )
 
+    // Combine all load_data.csv files with shared header, grouped by batch and plate
+    CELLPROFILER_PREPROCESS.out.load_data_csv
+        .map { meta, csv ->
+            [meta.subMap(['batch', 'plate', 'arm']), csv]
+        }
+        .groupTuple()
+        .flatMap { meta, csv_files ->
+            csv_files.collect { csv ->
+                [meta, csv]
+            }
+        }
+        .collectFile(keepHeader: true, skip: 1, storeDir: "${params.outdir}/workspace/load_data_csv") { meta, csv ->
+            def combined_name = "barcoding-preprocess.${meta.batch}-${meta.plate}_combined_load_data.csv"
+            [combined_name, csv]
+        }
 
     emit:
     // bam      = SAMTOOLS_SORT.out.bam           // channel: [ val(meta), [ bam ] ]
