@@ -29,7 +29,7 @@ nextflow_process {
                 ]
                 // Stitch script
                 input[1] = file("\${projectDir}/bin/stitch_crop.py", checkIfExists: true)
-                input[2] = params.crop_percent ?: 25
+                input[2] = 25
                 """
             }
         }
@@ -37,19 +37,13 @@ nextflow_process {
         then {
             assertAll(
                 { assert process.success },
-                { assert snapshot(
-                    process.out.stitched_images.collect { it.collect { file(it).name } },
-                    process.out.tile_config,
-                    process.out.cropped_images.collect { it.collect { file(it).name } },
-                    process.out.downsampled_images.collect { it.collect { file(it).name } },
-                    process.out.versions
-                ).match() }
+                { assert snapshot(process.out).match() }
             )
         }
 
     }
 
-    test("fiji - stitchcrop - painting - corrected_images - stub") {
+    test("fiji - stitchcrop - stub") {
 
         options "-stub"
 
@@ -67,7 +61,7 @@ nextflow_process {
                     ]
                 ]
                 input[1] = file("\${projectDir}/bin/stitch_crop.py", checkIfExists: true)
-                input[2] = params.crop_percent ?: 25
+                input[2] = 25
                 """
             }
         }
