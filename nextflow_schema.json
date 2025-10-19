@@ -85,10 +85,10 @@
                 },
                 "qc_painting_passed": {
                     "type": "boolean",
-                    "default": true,
                     "description": "Flag to check whether quality control for the painting arm has been performed"
                 }
-            }
+            },
+            "required": ["qc_painting_passed"]
         },
         "sbs_options": {
             "title": "Sequencing by Synthesis (SBS) options",
