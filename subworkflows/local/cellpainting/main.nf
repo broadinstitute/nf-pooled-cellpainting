@@ -10,7 +10,6 @@ include { QC_MONTAGEILLUM as QC_MONTAGE_ILLUM }                                 
 include { QC_MONTAGEILLUM as QC_MONTAGE_SEGCHECK }                                    from '../../../modules/local/qc/montageillum'
 include { CELLPROFILER_ILLUMAPPLY }                                                   from '../../../modules/local/cellprofiler/illumapply'
 include { CELLPROFILER_SEGCHECK }                                                     from '../../../modules/local/cellprofiler/segcheck'
-include { PYTHON_STITCHCROP }                                                         from '../../../modules/local/python/stitchcrop'
 include { FIJI_STITCHCROP }                                                           from '../../../modules/local/fiji/stitchcrop'
 workflow CELLPAINTING {
 
@@ -104,11 +103,6 @@ workflow CELLPAINTING {
             [meta, images]
         }
     .set { ch_corrected_images }
-
-    //  PYTHON_STITCHCROP (
-    //     ch_corrected_images,
-    //     'painting'
-    // )
 
     FIJI_STITCHCROP (
         ch_corrected_images,
