@@ -516,9 +516,7 @@ if os.path.isdir(input_dir):
                     + height
                     + " interpolation=Bilinear average create",
                 )
-                # Wait for the operation to complete
-                # TODO: Uncomment this after testing
-                # time.sleep(15)
+
                 im2 = IJ.getImage()
 
                 # STEP 9: Adjust the canvas size

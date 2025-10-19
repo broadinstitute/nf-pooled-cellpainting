@@ -99,6 +99,10 @@ workflow CELLPAINTING {
     )
 
     // STITCH & CROP IMAGES ////
+    // Conditional execution: only run if params.qc_painting_passed is true
+    // This allows the painting arm to stop at stitching/cropping if QC fails,
+    // while allowing the barcoding arm to proceed independently
+
     CELLPROFILER_ILLUMAPPLY.out.corrected_images.map{
         meta, images, _csv ->
             [meta, images]
@@ -106,23 +110,28 @@ workflow CELLPAINTING {
     .set { ch_corrected_images }
 
     // Create synchronization barrier - wait for ALL QC_MONTAGE_SEGCHECK to complete
-    // This ensures the qc_painting_passed check happens AFTER all QC is done
+    // This ensures all QC is done before checking params.qc_painting_passed
     QC_MONTAGE_SEGCHECK.out.versions
         .collect()  // Wait for all QC jobs across all plates/wells
         .set { ch_qc_complete }
 
-    // Combine corrected images with QC completion signal
-    // This makes each stitching job depend on QC completion, but allows parallel stitching
-    ch_corrected_images
-        .combine(ch_qc_complete)  // Add QC barrier - broadcasts to all items
-        .map { meta, images, _qc_signal -> [meta, images] }  // Drop signal, keep data
-        .set { ch_corrected_images_synced }
+    // Conditionally proceed with stitching based on QC parameter
+    if (params.qc_painting_passed) {
+        // Combine corrected images with QC completion signal
+        // This makes each stitching job depend on QC completion, but allows parallel stitching
+        ch_corrected_images
+            .combine(ch_qc_complete)  // Add QC barrier - broadcasts to all items
+            .map { meta, images, _qc_signal -> [meta, images] }  // Drop signal, keep data
+            .set { ch_corrected_images_synced }
 
-    FIJI_STITCHCROP (
-        ch_corrected_images_synced,
-        file("${projectDir}/bin/stitch_crop.py"),
-        crop_percent
-    )
+        FIJI_STITCHCROP (
+            ch_corrected_images_synced,
+            file("${projectDir}/bin/stitch_crop.py"),
+            crop_percent
+        )
+    } else {
+        log.info "Skipping FIJI_STITCHCROP for painting arm: params.qc_painting_passed = false"
+    }
 
     // emit:
     // // TODO nf-core: edit emitted channels

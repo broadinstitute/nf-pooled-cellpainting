@@ -22,7 +22,7 @@ process FIJI_STITCHCROP {
     path("versions.yml")                                            , emit: versions
 
     when:
-    (task.ext.when == null || task.ext.when) && params.qc_painting_passed
+    task.ext.when == null || task.ext.when
 
     script:
     // Allocate 75% of available memory to JVM heap (leaving 25% for non-heap, native memory, and OS)
