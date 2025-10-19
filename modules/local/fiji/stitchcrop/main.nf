@@ -49,7 +49,7 @@ process FIJI_STITCHCROP {
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
-        fiji: \$(/opt/fiji/Fiji.app/ImageJ-linux64 -h 2>&1 | grep "ImageJ launcher" | awk '{print \$3}')
+        fiji: \$(/opt/fiji/Fiji.app/ImageJ-linux64 -h 2>&1 | grep "ImageJ launcher" | awk '{print \$3}' || echo "unknown")
     END_VERSIONS
     """
 
@@ -66,7 +66,7 @@ process FIJI_STITCHCROP {
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
-        fiji: \$(/opt/fiji/Fiji.app/ImageJ-linux64 -h 2>&1 | grep "ImageJ launcher" | awk '{print \$3}')
+        fiji: \$(/opt/fiji/Fiji.app/ImageJ-linux64 -h 2>&1 | grep "ImageJ launcher" | awk '{print \$3}' || echo "unknown")
     END_VERSIONS
     """
 }
