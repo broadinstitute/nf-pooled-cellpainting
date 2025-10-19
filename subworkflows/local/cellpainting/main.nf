@@ -17,6 +17,7 @@ workflow CELLPAINTING {
     ch_samplesheet_cp
     cppipes
     range_skip
+    crop_percent
 
     main:
 
@@ -104,9 +105,23 @@ workflow CELLPAINTING {
         }
     .set { ch_corrected_images }
 
+    // Create synchronization barrier - wait for ALL QC_MONTAGE_SEGCHECK to complete
+    // This ensures the qc_painting_passed check happens AFTER all QC is done
+    QC_MONTAGE_SEGCHECK.out.versions
+        .collect()  // Wait for all QC jobs across all plates/wells
+        .set { ch_qc_complete }
+
+    // Combine corrected images with QC completion signal
+    // This makes each stitching job depend on QC completion, but allows parallel stitching
+    ch_corrected_images
+        .combine(ch_qc_complete)  // Add QC barrier - broadcasts to all items
+        .map { meta, images, _qc_signal -> [meta, images] }  // Drop signal, keep data
+        .set { ch_corrected_images_synced }
+
     FIJI_STITCHCROP (
-        ch_corrected_images,
-        file("${projectDir}/bin/stitch_crop.py")
+        ch_corrected_images_synced,
+        file("${projectDir}/bin/stitch_crop.py"),
+        crop_percent
     )
 
     // emit:

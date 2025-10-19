@@ -10,21 +10,21 @@ process FIJI_STITCHCROP {
     }
 
     input:
-    tuple val(meta), path(corrected_images, stageAs: 'images_corrected/*')
+    tuple val(meta), path(corrected_images, stageAs: 'images/*')
     path stitch_script
+    val crop_percent
 
     output:
-    path "stitched_images/*.tiff"                , emit: stitched_images
-    path "stitched_images/TileConfiguration.txt" , emit: tile_config
-    path "cropped_images/*.tiff"                 , emit: cropped_images
-    path "downsampled_images/*.tiff"             , emit: downsampled_images
-    path "versions.yml"                          , emit: versions
+    tuple val(meta), path("stitched_images/*.tiff")                 , emit: stitched_images
+    tuple val(meta), path("stitched_images/TileConfiguration.txt")  , emit: tile_config
+    tuple val(meta), path("cropped_images/*.tiff")                  , emit: cropped_images
+    tuple val(meta), path("downsampled_images/*.tiff")              , emit: downsampled_images
+    path("versions.yml")                                            , emit: versions
 
     when:
-    task.ext.when == null || task.ext.when
+    (task.ext.when == null || task.ext.when) && params.qc_painting_passed
 
     script:
-    def crop_percent = task.ext.crop_percent ?: 25
     // Allocate 75% of available memory to JVM heap (leaving 25% for non-heap, native memory, and OS)
     // Use a minimum of 2GB to ensure basic functionality
     def heap_size = task.memory ? Math.max(2, (task.memory.toGiga() * 0.75) as int) : 2

@@ -68,7 +68,8 @@ workflow POOLED_CELLPAINTING {
     CELLPAINTING (
         ch_samplesheet_cp,
         cppipes,
-        params.range_skip
+        params.range_skip,
+        params.crop_percent
     )
 
     // Process barcoding (sequencing by synthesis (SBS)) data

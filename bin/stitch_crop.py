@@ -86,9 +86,9 @@ def get_required_env(var_name):
 
 
 # Configuration parameters - simplified for Nextflow integration
-# Input files are staged by Nextflow to images_corrected/
+# Input files are staged by Nextflow to images/
 # Outputs go to flat directories in work dir (Nextflow handles final organization)
-input_dir = "images_corrected"  # Nextflow stages files here
+input_dir = "images"  # Nextflow stages files here
 output_base = "."  # Write outputs to work dir root
 localtemp = "/tmp/FIJI_temp"  # Temporary directory
 
@@ -101,7 +101,7 @@ columns = "2"  # Number of columns in the site grid
 # - 25% crop (CROP_PERCENT=25): 400x400
 # - 50% crop (CROP_PERCENT=50): 800x800
 # - No crop: ~1480x1480 (with some built-in crop)
-crop_percent_str = os.getenv("CROP_PERCENT", "25")
+crop_percent_str = os.getenv("CROP_PERCENT")
 if not crop_percent_str:  # Handle empty string case
     crop_percent_str = "25"
 crop_percent = int(crop_percent_str)
