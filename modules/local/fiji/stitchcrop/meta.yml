@@ -28,40 +28,68 @@ input:
         pattern: "*.{tif,tiff}"
         ontologies:
           - edam: http://edamontology.org/format_3547
-  - stitch_script:
-      type: file
-      description: Jython script for Fiji to perform stitching and cropping operations
-      pattern: "*.py"
+  - - stitch_script:
+        type: file
+        description: Jython script for Fiji to perform stitching and cropping operations
+        pattern: "*.py"
+        ontologies:
+          - edam: http://edamontology.org/format_3996
+  - - crop_percent:
+        type: integer
+        description: Percentage of each tile edge to crop (e.g., 25 means crop 25% from each edge)
+        pattern: "[0-9]+"
 
 output:
   - stitched_images:
-      - stitched_images:
+      - meta:
+          type: map
+          description: |
+            Groovy Map containing sample information
+            e.g. `[ id:'sample1', batch:'Batch1', plate:'Plate1', well:'A1' ]`
+      - "*.tiff":
           type: file
           description: Stitched full-well microscopy images created by combining multiple site images
           pattern: "stitched_images/*.{tif,tiff}"
           ontologies:
             - edam: http://edamontology.org/format_3547
   - tile_config:
-      - tile_config:
+      - meta:
+          type: map
+          description: |
+            Groovy Map containing sample information
+            e.g. `[ id:'sample1', batch:'Batch1', plate:'Plate1', well:'A1' ]`
+      - "TileConfiguration.txt":
           type: file
-          description: Fiji Grid/Collection stitching tile configuration file
+          description: Fiji Grid/Collection stitching tile configuration file containing image positions
           pattern: "stitched_images/TileConfiguration.txt"
+          ontologies:
+            - edam: http://edamontology.org/format_2330
   - cropped_images:
-      - cropped_images:
+      - meta:
+          type: map
+          description: |
+            Groovy Map containing sample information
+            e.g. `[ id:'sample1', batch:'Batch1', plate:'Plate1', well:'A1' ]`
+      - "*.tiff":
           type: file
-          description: Cropped tile images extracted from stitched images with configurable overlap
+          description: Cropped tile images extracted from stitched images for downstream analysis
           pattern: "cropped_images/*.{tif,tiff}"
           ontologies:
             - edam: http://edamontology.org/format_3547
   - downsampled_images:
-      - downsampled_images:
+      - meta:
+          type: map
+          description: |
+            Groovy Map containing sample information
+            e.g. `[ id:'sample1', batch:'Batch1', plate:'Plate1', well:'A1' ]`
+      - "*.tiff":
           type: file
-          description: Downsampled versions of stitched images for quality control and visualization
+          description: Downsampled (10x) versions of stitched images for quality control and visualization
           pattern: "downsampled_images/*.{tif,tiff}"
           ontologies:
             - edam: http://edamontology.org/format_3547
   - versions:
-      - versions:
+      - versions.yml:
           type: file
           description: File containing software versions
           pattern: "versions.yml"
