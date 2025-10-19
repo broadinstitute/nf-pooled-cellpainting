@@ -1,0 +1,102 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/nf-core/modules/master/modules/meta-schema.json
+name: "fiji_stitchcrop"
+description: Stitch multi-site microscopy images and crop into tiles using ImageJ/Fiji
+keywords:
+  - microscopy
+  - image processing
+  - stitching
+  - cropping
+  - fiji
+  - imagej
+tools:
+  - "fiji":
+      description: "ImageJ distribution with batteries included"
+      homepage: "https://fiji.sc/"
+      documentation: "https://imagej.net/software/fiji/"
+      tool_dev_url: "https://github.com/fiji/fiji"
+      licence: "GPL-2.0-or-later"
+
+input:
+  - - meta:
+        type: map
+        description: |
+          Groovy Map containing sample information
+          e.g. `[ id:'sample1', batch:'Batch1', plate:'Plate1', well:'A1' ]`
+    - corrected_images:
+        type: file
+        description: Illumination-corrected TIFF images from multiple sites
+        pattern: "*.{tif,tiff}"
+        ontologies:
+          - edam: http://edamontology.org/format_3547
+  - - stitch_script:
+        type: file
+        description: Jython script for Fiji to perform stitching and cropping operations
+        pattern: "*.py"
+        ontologies:
+          - edam: http://edamontology.org/format_3996
+  - - crop_percent:
+        type: integer
+        description: Percentage of each tile edge to crop (e.g., 25 means crop 25% from each edge)
+        pattern: "[0-9]+"
+
+output:
+  - stitched_images:
+      - meta:
+          type: map
+          description: |
+            Groovy Map containing sample information
+            e.g. `[ id:'sample1', batch:'Batch1', plate:'Plate1', well:'A1' ]`
+      - "*.tiff":
+          type: file
+          description: Stitched full-well microscopy images created by combining multiple site images
+          pattern: "stitched_images/*.{tif,tiff}"
+          ontologies:
+            - edam: http://edamontology.org/format_3547
+  - tile_config:
+      - meta:
+          type: map
+          description: |
+            Groovy Map containing sample information
+            e.g. `[ id:'sample1', batch:'Batch1', plate:'Plate1', well:'A1' ]`
+      - "TileConfiguration.txt":
+          type: file
+          description: Fiji Grid/Collection stitching tile configuration file containing image positions
+          pattern: "stitched_images/TileConfiguration.txt"
+          ontologies:
+            - edam: http://edamontology.org/format_2330
+  - cropped_images:
+      - meta:
+          type: map
+          description: |
+            Groovy Map containing sample information
+            e.g. `[ id:'sample1', batch:'Batch1', plate:'Plate1', well:'A1' ]`
+      - "*.tiff":
+          type: file
+          description: Cropped tile images extracted from stitched images for downstream analysis
+          pattern: "cropped_images/*.{tif,tiff}"
+          ontologies:
+            - edam: http://edamontology.org/format_3547
+  - downsampled_images:
+      - meta:
+          type: map
+          description: |
+            Groovy Map containing sample information
+            e.g. `[ id:'sample1', batch:'Batch1', plate:'Plate1', well:'A1' ]`
+      - "*.tiff":
+          type: file
+          description: Downsampled (10x) versions of stitched images for quality control and visualization
+          pattern: "downsampled_images/*.{tif,tiff}"
+          ontologies:
+            - edam: http://edamontology.org/format_3547
+  - versions:
+      - versions.yml:
+          type: file
+          description: File containing software versions
+          pattern: "versions.yml"
+          ontologies:
+            - edam: http://edamontology.org/format_3750
+
+authors:
+  - "@FloWuenne"
+maintainers:
+  - "@FloWuenne"

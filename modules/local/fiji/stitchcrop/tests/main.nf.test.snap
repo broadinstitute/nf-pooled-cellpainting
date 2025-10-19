@@ -1,0 +1,238 @@
+{
+    "fiji - stitchcrop - stub": {
+        "content": [
+            {
+                "0": [
+                    [
+                        {
+                            "batch": "Batch1",
+                            "plate": "Plate1",
+                            "arm": "painting",
+                            "well": "A1",
+                            "id": "Batch1_Plate1_painting_A1"
+                        },
+                        "Plate1-A1_Stitched_DNA.tiff:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "1": [
+                    [
+                        {
+                            "batch": "Batch1",
+                            "plate": "Plate1",
+                            "arm": "painting",
+                            "well": "A1",
+                            "id": "Batch1_Plate1_painting_A1"
+                        },
+                        "TileConfiguration.txt:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "2": [
+                    [
+                        {
+                            "batch": "Batch1",
+                            "plate": "Plate1",
+                            "arm": "painting",
+                            "well": "A1",
+                            "id": "Batch1_Plate1_painting_A1"
+                        },
+                        "Plate1-A1_DNA_Site_1.tiff:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "3": [
+                    [
+                        {
+                            "batch": "Batch1",
+                            "plate": "Plate1",
+                            "arm": "painting",
+                            "well": "A1",
+                            "id": "Batch1_Plate1_painting_A1"
+                        },
+                        "Plate1-A1_Stitched_DNA.tiff:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "4": [
+                    "versions.yml:md5,e500c7db4923f1d098d8c81b3f69a0f0"
+                ],
+                "cropped_images": [
+                    [
+                        {
+                            "batch": "Batch1",
+                            "plate": "Plate1",
+                            "arm": "painting",
+                            "well": "A1",
+                            "id": "Batch1_Plate1_painting_A1"
+                        },
+                        "Plate1-A1_DNA_Site_1.tiff:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "downsampled_images": [
+                    [
+                        {
+                            "batch": "Batch1",
+                            "plate": "Plate1",
+                            "arm": "painting",
+                            "well": "A1",
+                            "id": "Batch1_Plate1_painting_A1"
+                        },
+                        "Plate1-A1_Stitched_DNA.tiff:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "stitched_images": [
+                    [
+                        {
+                            "batch": "Batch1",
+                            "plate": "Plate1",
+                            "arm": "painting",
+                            "well": "A1",
+                            "id": "Batch1_Plate1_painting_A1"
+                        },
+                        "Plate1-A1_Stitched_DNA.tiff:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "tile_config": [
+                    [
+                        {
+                            "batch": "Batch1",
+                            "plate": "Plate1",
+                            "arm": "painting",
+                            "well": "A1",
+                            "id": "Batch1_Plate1_painting_A1"
+                        },
+                        "TileConfiguration.txt:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "versions": [
+                    "versions.yml:md5,e500c7db4923f1d098d8c81b3f69a0f0"
+                ]
+            }
+        ],
+        "meta": {
+            "nf-test": "0.9.2",
+            "nextflow": "25.04.6"
+        },
+        "timestamp": "2025-10-19T17:19:00.648803686"
+    },
+    "fiji - stitchcrop - painting - corrected_images": {
+        "content": [
+            {
+                "0": [
+                    [
+                        {
+                            "batch": "Batch1",
+                            "plate": "Plate1",
+                            "arm": "painting",
+                            "well": "A1",
+                            "id": "Batch1_Plate1_painting_A1"
+                        },
+                        "Plate1-A1_Stitched_CorrCHN2.tiff:md5,27bc343b8e7ab64c309f887d45ef2b71"
+                    ]
+                ],
+                "1": [
+                    [
+                        {
+                            "batch": "Batch1",
+                            "plate": "Plate1",
+                            "arm": "painting",
+                            "well": "A1",
+                            "id": "Batch1_Plate1_painting_A1"
+                        },
+                        "TileConfiguration.txt:md5,6abaf50b31115b6687c9b9052c26cf74"
+                    ]
+                ],
+                "2": [
+                    [
+                        {
+                            "batch": "Batch1",
+                            "plate": "Plate1",
+                            "arm": "painting",
+                            "well": "A1",
+                            "id": "Batch1_Plate1_painting_A1"
+                        },
+                        [
+                            "Plate1-A1_CorrCHN2_Site_1.tiff:md5,da4278a1615e31d56180d68f1430e481",
+                            "Plate1-A1_CorrCHN2_Site_2.tiff:md5,b1e220ca7c579efcb82b08c1d44407cd",
+                            "Plate1-A1_CorrCHN2_Site_3.tiff:md5,1e0894b8e489adc8845217fb6a3f1942",
+                            "Plate1-A1_CorrCHN2_Site_4.tiff:md5,b9c5a9afa7f8d0ef708c44124da9e411"
+                        ]
+                    ]
+                ],
+                "3": [
+                    [
+                        {
+                            "batch": "Batch1",
+                            "plate": "Plate1",
+                            "arm": "painting",
+                            "well": "A1",
+                            "id": "Batch1_Plate1_painting_A1"
+                        },
+                        "Plate1-A1_Stitched_CorrCHN2.tiff:md5,be397878119d2868c094bf2c304d5cf1"
+                    ]
+                ],
+                "4": [
+                    "versions.yml:md5,e500c7db4923f1d098d8c81b3f69a0f0"
+                ],
+                "cropped_images": [
+                    [
+                        {
+                            "batch": "Batch1",
+                            "plate": "Plate1",
+                            "arm": "painting",
+                            "well": "A1",
+                            "id": "Batch1_Plate1_painting_A1"
+                        },
+                        [
+                            "Plate1-A1_CorrCHN2_Site_1.tiff:md5,da4278a1615e31d56180d68f1430e481",
+                            "Plate1-A1_CorrCHN2_Site_2.tiff:md5,b1e220ca7c579efcb82b08c1d44407cd",
+                            "Plate1-A1_CorrCHN2_Site_3.tiff:md5,1e0894b8e489adc8845217fb6a3f1942",
+                            "Plate1-A1_CorrCHN2_Site_4.tiff:md5,b9c5a9afa7f8d0ef708c44124da9e411"
+                        ]
+                    ]
+                ],
+                "downsampled_images": [
+                    [
+                        {
+                            "batch": "Batch1",
+                            "plate": "Plate1",
+                            "arm": "painting",
+                            "well": "A1",
+                            "id": "Batch1_Plate1_painting_A1"
+                        },
+                        "Plate1-A1_Stitched_CorrCHN2.tiff:md5,be397878119d2868c094bf2c304d5cf1"
+                    ]
+                ],
+                "stitched_images": [
+                    [
+                        {
+                            "batch": "Batch1",
+                            "plate": "Plate1",
+                            "arm": "painting",
+                            "well": "A1",
+                            "id": "Batch1_Plate1_painting_A1"
+                        },
+                        "Plate1-A1_Stitched_CorrCHN2.tiff:md5,27bc343b8e7ab64c309f887d45ef2b71"
+                    ]
+                ],
+                "tile_config": [
+                    [
+                        {
+                            "batch": "Batch1",
+                            "plate": "Plate1",
+                            "arm": "painting",
+                            "well": "A1",
+                            "id": "Batch1_Plate1_painting_A1"
+                        },
+                        "TileConfiguration.txt:md5,6abaf50b31115b6687c9b9052c26cf74"
+                    ]
+                ],
+                "versions": [
+                    "versions.yml:md5,e500c7db4923f1d098d8c81b3f69a0f0"
+                ]
+            }
+        ],
+        "meta": {
+            "nf-test": "0.9.2",
+            "nextflow": "25.04.6"
+        },
+        "timestamp": "2025-10-19T17:15:49.630230991"
+    }
+}

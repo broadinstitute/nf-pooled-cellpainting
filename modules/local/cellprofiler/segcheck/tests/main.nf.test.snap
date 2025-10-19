@@ -2,18 +2,18 @@
     "cellprofiler - segcheck - microscopy_images": {
         "content": [
             [
-                "SegmentationCheck_Cells.csv:md5,e0be71e9d53962b1026dd9fbaaa9cab8",
+                "SegmentationCheck_Cells.csv:md5,c946f4728ae99b65da1270a3a2938da9",
                 "SegmentationCheck_ConfluentRegions.csv:md5,01fa119326227de0e78d4fa10c624eea",
-                "SegmentationCheck_Nuclei.csv:md5,4a2cee29269cdc10a895b29e7ab54228",
-                "SegmentationCheck_PreCells.csv:md5,dfc4416016141a0edc410beb909eb37a",
+                "SegmentationCheck_Nuclei.csv:md5,952a0685f18d2b324b8a2360d8fe893d",
+                "SegmentationCheck_PreCells.csv:md5,5c575493b49cb6a43420d620912bf1fc",
                 "load_data.csv:md5,ab4384f9e1989e24122a227beefff2d6"
             ]
         ],
         "meta": {
             "nf-test": "0.9.2",
-            "nextflow": "25.04.7"
+            "nextflow": "25.04.6"
         },
-        "timestamp": "2025-10-08T15:30:33.444775"
+        "timestamp": "2025-10-19T17:40:27.559800157"
     },
     "cellprofiler - segcheck - stub": {
         "content": [

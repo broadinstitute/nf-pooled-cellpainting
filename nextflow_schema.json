@@ -40,6 +40,10 @@
                     "description": "Path to barcodes.csv file for SBS data.",
                     "fa_icon": "fas fa-qrcode"
                 },
+                "crop_percent": {
+                    "type": "integer",
+                    "default": 25
+                },
                 "multichannel_parallel": {
                     "type": "boolean"
                 },
@@ -78,8 +82,13 @@
                     "type": "integer",
                     "default": 16,
                     "description": "Sampling frequency for Segmentation check to process subset of images for validation"
+                },
+                "qc_painting_passed": {
+                    "type": "boolean",
+                    "description": "Flag to check whether quality control for the painting arm has been performed"
                 }
-            }
+            },
+            "required": ["qc_painting_passed"]
         },
         "sbs_options": {
             "title": "Sequencing by Synthesis (SBS) options",
