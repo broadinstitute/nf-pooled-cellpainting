@@ -53,7 +53,10 @@ nextflow_process {
                 { assert snapshot(
                     process.out.preprocessed_images,
                     process.out.overlay,
-                    process.out.preprocess_stats.get(0).get(1).findAll { file(it).name != "BarcodePreprocessing_Experiment.csv" && file(it).name != "BarcodePreprocessing_Image.csv" },
+                    process.out.preprocess_stats.get(0).get(1).findAll {
+                        file(it).name != "BarcodePreprocessing_Experiment.csv" &&
+                        file(it).name != "BarcodePreprocessing_Image.csv"
+                    },
                     process.out.versions
                 ).match() }
             )
