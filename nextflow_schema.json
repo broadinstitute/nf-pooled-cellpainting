@@ -124,10 +124,6 @@
                     "type": "string",
                     "description": "Cellprofiler pipeline for Cell painting illumination calculation."
                 },
-                "sbs_illum_calc_pipe": {
-                    "type": "string",
-                    "description": "Cellprofiler pipeline for SBS illumination calculation."
-                },
                 "cp_illum_apply_pipe": {
                     "type": "string",
                     "description": "Cellprofiler pipeline for applying illumination profiles for cell painting arm."
@@ -136,9 +132,17 @@
                     "type": "string",
                     "description": "Cellprofiler pipeline for running segmentation QC check."
                 },
+                "sbs_illum_calc_pipe": {
+                    "type": "string",
+                    "description": "Cellprofiler pipeline for SBS illumination calculation."
+                },
                 "sbs_illum_apply_pipe": {
                     "type": "string",
                     "description": "Cellprofiler pipeline for illumination profiles for barcoding arm."
+                },
+                "sbs_preprocess_pipe": {
+                    "type": "string",
+                    "description": "Cellprofiler pipeline for SBS preprocessing."
                 }
             }
         },
