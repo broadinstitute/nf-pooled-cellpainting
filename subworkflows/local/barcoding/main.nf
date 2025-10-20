@@ -33,6 +33,7 @@ workflow BARCODING {
         ILLUMINATION_LOAD_DATA_CSV.out.images_with_load_data_csv,
         cppipes['illumination_calc_sbs']
     )
+    ch_versions = ch_versions.mix(CELLPROFILER_ILLUMCALC.out.versions)
 
     //// QC illumination correction profiles ////
     CELLPROFILER_ILLUMCALC.out.illumination_corrections
@@ -49,6 +50,7 @@ workflow BARCODING {
         ch_illumination_corrections_qc,
         ".*Cycle.*\\.npy\$"  // Pattern for barcoding: files with Cycle in name
     )
+    ch_versions = ch_versions.mix(QC_MONTAGE_ILLUM.out.versions)
 
     // //// Apply illumination correction ////
     ILLUMINATION_APPLY_LOAD_DATA_CSV(
@@ -63,6 +65,7 @@ workflow BARCODING {
         ILLUMINATION_APPLY_LOAD_DATA_CSV.out.images_with_illum_load_data_csv,
         cppipes['illumination_apply_sbs']
     )
+    ch_versions = ch_versions.mix(CELLPROFILER_ILLUMAPPLY_BARCODING.out.versions)
 
     // Reshape CELLPROFILER_ILLUMAPPLY output for PREPROCESS
     CELLPROFILER_ILLUMAPPLY_BARCODING.out.corrected_images.map{ meta, images, _csv ->
@@ -76,6 +79,7 @@ workflow BARCODING {
         barcodes,
         Channel.fromPath("${projectDir}/assets/cellprofiler_plugins/*").collect()  // All Cellprofiler plugins
     )
+    ch_versions = ch_versions.mix(CELLPROFILER_PREPROCESS.out.versions)
 
     // Combine all load_data.csv files with shared header, grouped by batch and plate
     CombineLoadDataCSV.combine(
@@ -85,17 +89,20 @@ workflow BARCODING {
         'barcoding-preprocess'
     )
 
-    // STITCH & CROP IMAGES ////
-    FIJI_STITCHCROP (
-        CELLPROFILER_PREPROCESS.out.preprocessed_images,
-        file("${projectDir}/bin/stitch_crop.py"),
-        crop_percent
-    )
+    if (params.qc_barcoding_passed) {
+        // STITCH & CROP IMAGES ////
+        FIJI_STITCHCROP (
+            CELLPROFILER_PREPROCESS.out.preprocessed_images,
+            file("${projectDir}/bin/stitch_crop.py"),
+            crop_percent
+        )
+    //ch_versions = ch_versions.mix(FIJI_STITCHCROP.out.versions)
+
+    } else {
+        log.info "Skipping FIJI_STITCHCROP for barcoding arm: params.qc_barcoding_passed = false"
+    }
 
     emit:
-    // bam      = SAMTOOLS_SORT.out.bam           // channel: [ val(meta), [ bam ] ]
-    // bai      = SAMTOOLS_INDEX.out.bai          // channel: [ val(meta), [ bai ] ]
-    // csi      = SAMTOOLS_INDEX.out.csi          // channel: [ val(meta), [ csi ] ]
-
-    versions = ch_versions                     // channel: [ versions.yml ]
+    corrected_cropped_images  = FIJI_STITCHCROP.out.cropped_images  // channel: [ val(meta), [ cropped_images ] ]
+    versions                  = ch_versions                         // channel: [ versions.yml ]
 }

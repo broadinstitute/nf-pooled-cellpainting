@@ -29,7 +29,7 @@ workflow POOLED_CELLPAINTING {
 
     main:
 
-    // ch_versions = Channel.empty()
+    ch_versions = Channel.empty()
     // ch_multiqc_files = Channel.empty()
 
     // Generate barcodes channel from barcodes.csv file
@@ -71,6 +71,7 @@ workflow POOLED_CELLPAINTING {
         params.range_skip,
         params.crop_percent
     )
+    ch_versions = ch_versions.mix(CELLPAINTING.out.versions)
 
     // Process barcoding (sequencing by synthesis (SBS)) data
 
@@ -81,18 +82,19 @@ workflow POOLED_CELLPAINTING {
         barcodes,
         params.crop_percent
     )
+    ch_versions = ch_versions.mix(BARCODING.out.versions)
 
 
     //
     // Collate and save software versions
-    //
-    // softwareVersionsToYAML(ch_versions)
-    //     .collectFile(
-    //         storeDir: "${params.outdir}/pipeline_info",
-    //         name:  'nf-pooled-cellpainting_software_'  + 'mqc_'  + 'versions.yml',
-    //         sort: true,
-    //         newLine: true
-    //     ).set { ch_collated_versions }
+
+    softwareVersionsToYAML(ch_versions)
+        .collectFile(
+            storeDir: "${params.outdir}/pipeline_info",
+            name:  'nf-pooled-cellpainting_software_'  + 'mqc_'  + 'versions.yml',
+            sort: true,
+            newLine: true
+        ).set { ch_collated_versions }
 
 
     //
