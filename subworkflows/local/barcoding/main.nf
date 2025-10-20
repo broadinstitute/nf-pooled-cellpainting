@@ -98,13 +98,13 @@ workflow BARCODING {
             crop_percent
         )
         ch_cropped_images = FIJI_STITCHCROP.out.cropped_images
-    //ch_versions = ch_versions.mix(FIJI_STITCHCROP.out.versions)
+    ch_versions = ch_versions.mix(FIJI_STITCHCROP.out.versions)
 
     } else {
-        log.info "Skipping FIJI_STITCHCROP for barcoding arm: params.qc_barcoding_passed = false"
+        log.info "Skipping FIJI_STITCHCROP for barcoding arm: QC not passed (params.qc_barcoding_passed = false). Review QC montages and set qc_barcoding_passed=true to proceed."
     }
 
     emit:
     corrected_cropped_images  = ch_cropped_images // channel: [ val(meta), [ cropped_images ] ]
-    versions                  = ch_versions                         // channel: [ versions.yml ]
+    versions                  = ch_versions       // channel: [ versions.yml ]
 }

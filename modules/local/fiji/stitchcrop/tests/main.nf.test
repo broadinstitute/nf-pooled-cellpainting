@@ -53,7 +53,7 @@ nextflow_process {
             process {
                 """
                 input[0] = [
-                    [batch:'Batch1', plate:'Plate1', arm:'painting', well:'A1', id:'Batch1_Plate1_painting_A1'],
+                    [batch:'Batch1', plate:'Plate1', arm:'barcoding', well:'A1', id:'Batch1_Plate1_barcoding_A1'],
                     [
                         file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/images/Batch1/images_corrected/barcoding/Plate1/Plate1-A1-0/Plate_Plate1_Well_A1_Site_0_Cycle01_A.tiff"),
                         file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/images/Batch1/images_corrected/barcoding/Plate1/Plate1-A1-0/Plate_Plate1_Well_A1_Site_0_Cycle01_C.tiff"),

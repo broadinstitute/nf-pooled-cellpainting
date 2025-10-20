@@ -5,7 +5,7 @@
 */
 include { MULTIQC                } from '../modules/nf-core/multiqc/main'
 include { CELLPAINTING           } from '../subworkflows/local/cellpainting'
-include { BARCODING           } from '../subworkflows/local/barcoding'
+include { BARCODING              } from '../subworkflows/local/barcoding'
 
 
 include { paramsSummaryMap       } from 'plugin/nf-schema'

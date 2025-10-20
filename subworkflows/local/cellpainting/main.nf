@@ -137,9 +137,9 @@ workflow CELLPAINTING {
             crop_percent
         )
         ch_cropped_images = FIJI_STITCHCROP.out.cropped_images
-        //ch_versions = ch_versions.mix(FIJI_STITCHCROP.out.versions)
+        ch_versions = ch_versions.mix(FIJI_STITCHCROP.out.versions)
     } else {
-        log.info "Skipping FIJI_STITCHCROP for painting arm: params.qc_painting_passed = false"
+        log.info "Skipping FIJI_STITCHCROP for painting arm: QC not passed (params.qc_painting_passed = false). Review QC montages and set qc_painting_passed=true to proceed."
     }
 
     emit:
