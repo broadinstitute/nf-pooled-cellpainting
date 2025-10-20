@@ -20,6 +20,8 @@ workflow CELLPAINTING {
     crop_percent
 
     main:
+    ch_versions = Channel.empty()
+    ch_cropped_images = Channel.empty()
 
     //// Calculate illumination correction profiles ////
 
@@ -36,6 +38,8 @@ workflow CELLPAINTING {
         ILLUMINATION_CALC_LOAD_DATA_CSV.out.images_with_load_data_csv,
         cppipes['illumination_calc_cp']
     )
+
+    ch_versions = ch_versions.mix(CELLPROFILER_ILLUMCALC.out.versions)
 
     //// QC illumination correction profiles ////
     CELLPROFILER_ILLUMCALC.out.illumination_corrections
@@ -69,6 +73,7 @@ workflow CELLPAINTING {
         ILLUMINATION_APPLY_LOAD_DATA_CSV.out.images_with_illum_load_data_csv,
         cppipes['illumination_apply_cp']
     )
+    ch_versions = ch_versions.mix(CELLPROFILER_ILLUMAPPLY.out.versions)
 
     // Reshape CELLPROFILER_ILLUMAPPLY output for SEGCHECK
     CELLPROFILER_ILLUMAPPLY.out.corrected_images.map{ meta, images, _csv ->
@@ -81,10 +86,11 @@ workflow CELLPAINTING {
         cppipes['segcheck_cp'],
         range_skip
     )
+    ch_versions = ch_versions.mix(CELLPROFILER_SEGCHECK.out.versions)
 
     // Reshape CELLPROFILER_SEGCHECK output for QC montage
     CELLPROFILER_SEGCHECK.out.segcheck_res
-        .map{ meta, csv_files, png_files ->
+        .map{ meta, ch_versionscsv_files, png_files ->
             [meta.subMap(['batch', 'plate']) + [arm: "painting"], png_files]
         }
         .groupTuple()
@@ -97,6 +103,7 @@ workflow CELLPAINTING {
         ch_segcheck_qc,
         ".*\\.png\$"  // Pattern for segcheck: all PNG files
     )
+    ch_versions = ch_versions.mix(QC_MONTAGE_SEGCHECK.out.versions)
 
     // STITCH & CROP IMAGES ////
     // Conditional execution: only run if params.qc_painting_passed is true
@@ -129,11 +136,13 @@ workflow CELLPAINTING {
             file("${projectDir}/bin/stitch_crop.py"),
             crop_percent
         )
+        ch_cropped_images = FIJI_STITCHCROP.out.cropped_images
+        ch_versions = ch_versions.mix(FIJI_STITCHCROP.out.versions)
     } else {
-        log.info "Skipping FIJI_STITCHCROP for painting arm: params.qc_painting_passed = false"
+        log.info "Skipping FIJI_STITCHCROP for painting arm: QC not passed (params.qc_painting_passed = false). Review QC montages and set qc_painting_passed=true to proceed."
     }
 
-    // emit:
-    // // TODO nf-core: edit emitted channels
-    // versions = ch_versions                     // channel: [ versions.yml ]
+    emit:
+    corrected_cropped_images  = ch_cropped_images // channel: [ val(meta), [ cropped_images ] ]
+    versions                  = ch_versions       // channel: [ versions.yml ]
 }

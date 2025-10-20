@@ -29,11 +29,15 @@
                     "description": "The output directory where the results will be saved. You have to use absolute paths to storage on Cloud infrastructure.",
                     "fa_icon": "fas fa-folder-open"
                 },
-                "stop_after": {
-                    "type": "string",
-                    "default": "complete",
-                    "description": "Stop the pipeline execution after running this process.",
-                    "fa_icon": "fas fa-ban"
+                "qc_painting_passed": {
+                    "type": "boolean",
+                    "description": "Flag to check whether quality control for the painting arm has been performed",
+                    "fa_icon": "far fa-check-circle"
+                },
+                "qc_barcoding_passed": {
+                    "type": "boolean",
+                    "description": "Flag to check whether quality control for the barcoding arm has been performed",
+                    "fa_icon": "fas fa-check-circle"
                 },
                 "barcodes": {
                     "type": "string",
@@ -42,10 +46,12 @@
                 },
                 "crop_percent": {
                     "type": "integer",
-                    "default": 25
+                    "default": 25,
+                    "fa_icon": "fas fa-cut"
                 },
                 "multichannel_parallel": {
-                    "type": "boolean"
+                    "type": "boolean",
+                    "fa_icon": "fas fa-grip-lines"
                 },
                 "multiqc_title": {
                     "type": "string",
@@ -82,13 +88,8 @@
                     "type": "integer",
                     "default": 16,
                     "description": "Sampling frequency for Segmentation check to process subset of images for validation"
-                },
-                "qc_painting_passed": {
-                    "type": "boolean",
-                    "description": "Flag to check whether quality control for the painting arm has been performed"
                 }
-            },
-            "required": ["qc_painting_passed"]
+            }
         },
         "sbs_options": {
             "title": "Sequencing by Synthesis (SBS) options",
