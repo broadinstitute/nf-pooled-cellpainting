@@ -77,7 +77,8 @@ workflow POOLED_CELLPAINTING {
     // Run barcoding subworkflow
     BARCODING(
         ch_samplesheet_sbs,
-        cppipes
+        cppipes,
+        barcodes
     )
 
 

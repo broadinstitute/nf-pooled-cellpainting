@@ -1,0 +1,185 @@
+{
+    "cellprofiler - preprocess - sbs_images": {
+        "content": [
+            [
+                [
+                    {
+                        "id": "Batch1_Plate1_barcoding_A1",
+                        "batch": "Batch1",
+                        "plate": "Plate1",
+                        "well": "A1",
+                        "arm": "barcoding"
+                    },
+                    [
+                        "Plate_Plate1_Well_A1_Site_0_Cycle01_A.tiff:md5,9da5c59dcd00b234eabc69d4790f99fd",
+                        "Plate_Plate1_Well_A1_Site_0_Cycle01_C.tiff:md5,e5331f0052ac4bb52fd43005301e4471",
+                        "Plate_Plate1_Well_A1_Site_0_Cycle01_DNA.tiff:md5,3e2ebd5abe7635723af002f30c6bd53b",
+                        "Plate_Plate1_Well_A1_Site_0_Cycle01_G.tiff:md5,62101dde068bb9bfffa2fec325c552d8",
+                        "Plate_Plate1_Well_A1_Site_0_Cycle01_T.tiff:md5,a9cdcaf3a92827f21590c70c3d00bfb1",
+                        "Plate_Plate1_Well_A1_Site_0_Cycle02_A.tiff:md5,f9139724678a511f325b6fa4c3929db7",
+                        "Plate_Plate1_Well_A1_Site_0_Cycle02_C.tiff:md5,ddc3c3335048a2e27840097b72fed7bf",
+                        "Plate_Plate1_Well_A1_Site_0_Cycle02_G.tiff:md5,79f1562c776b7b4c49ac38e0948bda7f",
+                        "Plate_Plate1_Well_A1_Site_0_Cycle02_T.tiff:md5,ac451cb0e4a8dd669271fa51e7513d51",
+                        "Plate_Plate1_Well_A1_Site_0_Cycle03_A.tiff:md5,95b78690ee68ce1535cf3e78049d0162",
+                        "Plate_Plate1_Well_A1_Site_0_Cycle03_C.tiff:md5,56c08727b98b096e8d390f2f9c562665",
+                        "Plate_Plate1_Well_A1_Site_0_Cycle03_G.tiff:md5,6890d98c7836ac35091a63cb4cabb2e0",
+                        "Plate_Plate1_Well_A1_Site_0_Cycle03_T.tiff:md5,5e1cac575cf1472ff2e84b5672b1c9b2"
+                    ]
+                ]
+            ],
+            [
+                [
+                    {
+                        "id": "Batch1_Plate1_barcoding_A1",
+                        "batch": "Batch1",
+                        "plate": "Plate1",
+                        "well": "A1",
+                        "arm": "barcoding"
+                    },
+                    "Plate_Plate1_Well_A1_Site_0_StDev_Overlay.tiff:md5,2269c3ac3a740a9dea8799859f363a87"
+                ]
+            ],
+            [
+                "BarcodePreprocessing_AllFoci.csv:md5,3818e0b6b37cb6d093a897714b7ed355",
+                "BarcodePreprocessing_BarcodeFoci.csv:md5,4fbb614bd97a5fffd4369eeff83bb502",
+                "BarcodePreprocessing_Foci.csv:md5,2cd4043a11636e3e9c244c9855ed9827",
+                "BarcodePreprocessing_Nuclei.csv:md5,939220babec985ae55740ce6ea423d17"
+            ],
+            [
+                "versions.yml:md5,f4b0463411335dba45560870b62c868c"
+            ]
+        ],
+        "meta": {
+            "nf-test": "0.9.2",
+            "nextflow": "25.04.7"
+        },
+        "timestamp": "2025-10-17T14:25:15.40803"
+    },
+    "cellprofiler - preprocess - sbs_images - stub": {
+        "content": [
+            {
+                "0": [
+                    [
+                        {
+                            "id": "Batch1_Plate1_barcoding_A1",
+                            "batch": "Batch1",
+                            "plate": "Plate1",
+                            "well": "A1",
+                            "arm": "barcoding"
+                        },
+                        "Plate_Plate1_Well_A1_Site0_Cycle01_A.tiff:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "1": [
+                    [
+                        {
+                            "id": "Batch1_Plate1_barcoding_A1",
+                            "batch": "Batch1",
+                            "plate": "Plate1",
+                            "well": "A1",
+                            "arm": "barcoding"
+                        },
+                        "test.tiff:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "2": [
+                    [
+                        {
+                            "id": "Batch1_Plate1_barcoding_A1",
+                            "batch": "Batch1",
+                            "plate": "Plate1",
+                            "well": "A1",
+                            "arm": "barcoding"
+                        },
+                        [
+                            "BarcodePreprocess_AllFoci.csv:md5,d41d8cd98f00b204e9800998ecf8427e",
+                            "BarcodePreprocess_Cells.csv:md5,d41d8cd98f00b204e9800998ecf8427e",
+                            "BarcodePreprocess_Experiment.csv:md5,d41d8cd98f00b204e9800998ecf8427e",
+                            "BarcodePreprocess_Foci.csv:md5,d41d8cd98f00b204e9800998ecf8427e",
+                            "BarcodePreprocess_Image.csv:md5,d41d8cd98f00b204e9800998ecf8427e",
+                            "BarcodePreprocess_Nuclei.csv:md5,d41d8cd98f00b204e9800998ecf8427e"
+                        ]
+                    ]
+                ],
+                "3": [
+                    [
+                        {
+                            "id": "Batch1_Plate1_barcoding_A1",
+                            "batch": "Batch1",
+                            "plate": "Plate1",
+                            "well": "A1",
+                            "arm": "barcoding"
+                        },
+                        "load_data.csv:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "4": [
+                    "versions.yml:md5,f4b0463411335dba45560870b62c868c"
+                ],
+                "load_data_csv": [
+                    [
+                        {
+                            "id": "Batch1_Plate1_barcoding_A1",
+                            "batch": "Batch1",
+                            "plate": "Plate1",
+                            "well": "A1",
+                            "arm": "barcoding"
+                        },
+                        "load_data.csv:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "overlay": [
+                    [
+                        {
+                            "id": "Batch1_Plate1_barcoding_A1",
+                            "batch": "Batch1",
+                            "plate": "Plate1",
+                            "well": "A1",
+                            "arm": "barcoding"
+                        },
+                        "test.tiff:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "preprocess_stats": [
+                    [
+                        {
+                            "id": "Batch1_Plate1_barcoding_A1",
+                            "batch": "Batch1",
+                            "plate": "Plate1",
+                            "well": "A1",
+                            "arm": "barcoding"
+                        },
+                        [
+                            "BarcodePreprocess_AllFoci.csv:md5,d41d8cd98f00b204e9800998ecf8427e",
+                            "BarcodePreprocess_Cells.csv:md5,d41d8cd98f00b204e9800998ecf8427e",
+                            "BarcodePreprocess_Experiment.csv:md5,d41d8cd98f00b204e9800998ecf8427e",
+                            "BarcodePreprocess_Foci.csv:md5,d41d8cd98f00b204e9800998ecf8427e",
+                            "BarcodePreprocess_Image.csv:md5,d41d8cd98f00b204e9800998ecf8427e",
+                            "BarcodePreprocess_Nuclei.csv:md5,d41d8cd98f00b204e9800998ecf8427e"
+                        ]
+                    ]
+                ],
+                "preprocessed_images": [
+                    [
+                        {
+                            "id": "Batch1_Plate1_barcoding_A1",
+                            "batch": "Batch1",
+                            "plate": "Plate1",
+                            "well": "A1",
+                            "arm": "barcoding"
+                        },
+                        "Plate_Plate1_Well_A1_Site0_Cycle01_A.tiff:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "versions": [
+                    "versions.yml:md5,f4b0463411335dba45560870b62c868c"
+                ]
+            }
+        ],
+        "meta": {
+            "nf-test": "0.9.2",
+            "nextflow": "25.04.7"
+        },
+        "timestamp": "2025-10-16T16:58:56.146413"
+    }
+}

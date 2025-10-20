@@ -51,6 +51,14 @@ PIPELINE_CONFIGS = {
         'file_cols_template': ['FileName_{channel}'],
         'include_illum_files': False,
         'parse_function': 'parse_corrected_image'
+    },
+    'preprocess': {
+        'description': 'Barcoding preprocessing - uses cycle-based corrected images',
+        'file_pattern': r'Plate_.*_Well_.*_Site_.*_Cycle\d+_(DNA|DAPI|[ACGT])\.tiff?$',
+        'metadata_cols': ['Metadata_Plate', 'Metadata_Site', 'Metadata_Well', 'Metadata_Well_Value'],
+        'file_cols_template': ['FileName_Cycle{cycle}_{channel}'],
+        'include_illum_files': False,
+        'parse_function': 'parse_preprocess_image'
     }
 }
 
@@ -106,6 +114,44 @@ def parse_corrected_image(filename: str) -> Optional[Dict]:
             'site': int(match.group(3)),
             'channel': match.group(4)
         }
+    return None
+
+
+def parse_preprocess_image(filename: str) -> Optional[Dict]:
+    """
+    Parse barcoding preprocess image filename with cycle information.
+
+    Pattern: Plate_{plate}_Well_{well}_Site_{site}_Cycle{cycle}_{channel}.tiff
+    where channel is one of A, C, G, T (or DNA/DAPI for Cycle01)
+
+    Returns dict with: plate, well, site, cycle, channel
+    """
+    # Try standard pattern first (for A, C, G, T)
+    pattern = r'Plate_(.+?)_Well_(.+?)_Site_(\d+)_Cycle(\d+)_([ACGT])\.tiff?'
+    match = re.match(pattern, filename)
+
+    if match:
+        return {
+            'plate': match.group(1),
+            'well': match.group(2),
+            'site': int(match.group(3)),
+            'cycle': match.group(4),  # Keep as string (e.g., "01", "02", "03")
+            'channel': match.group(5)
+        }
+
+    # Try DNA pattern for Cycle01 (accepts both DNA and DAPI, normalizes to DNA)
+    dna_pattern = r'Plate_(.+?)_Well_(.+?)_Site_(\d+)_Cycle(\d+)_(DNA|DAPI)\.tiff?'
+    dna_match = re.match(dna_pattern, filename)
+
+    if dna_match:
+        return {
+            'plate': dna_match.group(1),
+            'well': dna_match.group(2),
+            'site': int(dna_match.group(3)),
+            'cycle': dna_match.group(4),
+            'channel': 'DNA'  # Normalize DAPI to DNA for consistency
+        }
+
     return None
 
 
@@ -194,12 +240,18 @@ def collect_and_group_files(
         if key not in grouped:
             grouped[key] = {'images': {}, 'illum': {}}
 
-        # Store based on whether it's multi-channel or single-channel
+        # Store based on whether it's multi-channel, single-channel, or cycle-based
         try:
             if 'channels' in parsed:
                 # Multi-channel image - store with frames info
                 grouped[key]['images']['_file'] = filename
                 grouped[key]['images']['_parsed'] = parsed
+            elif 'cycle' in parsed:
+                # Cycle-based image (for preprocess pipeline)
+                cycle = parsed['cycle']
+                channel = parsed['channel']
+                cycle_channel_key = f"Cycle{cycle}_{channel}"
+                grouped[key]['images'][cycle_channel_key] = filename
             else:
                 # Single-channel image
                 channel = parsed['channel']
@@ -328,12 +380,22 @@ def generate_csv_rows(
                             file=sys.stderr
                         )
             else:
-                # Single-channel files
+                # Single-channel or cycle-based files
                 if not file_data['images']:
                     raise ValueError(f"No image files for {plate}/{well}/Site{site}")
 
-                for channel, filename in sorted(file_data['images'].items()):
-                    row[f'FileName_{channel}'] = filename
+                # Check if this is cycle-based (preprocess pipeline)
+                is_cycle_based = any('Cycle' in key for key in file_data['images'].keys())
+
+                if is_cycle_based:
+                    # For preprocess: add FileName_Cycle{cycle}_{channel} columns
+                    for cycle_channel_key, filename in sorted(file_data['images'].items()):
+                        # cycle_channel_key is like "Cycle01_A", "Cycle01_C", etc.
+                        row[f'FileName_{cycle_channel_key}'] = filename
+                else:
+                    # For other pipelines: add FileName_{channel} columns
+                    for channel, filename in sorted(file_data['images'].items()):
+                        row[f'FileName_{channel}'] = filename
 
             rows.append(row)
 
