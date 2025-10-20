@@ -21,6 +21,7 @@ workflow CELLPAINTING {
 
     main:
     ch_versions = Channel.empty()
+    ch_cropped_images = Channel.empty()
 
     //// Calculate illumination correction profiles ////
 
@@ -135,12 +136,13 @@ workflow CELLPAINTING {
             file("${projectDir}/bin/stitch_crop.py"),
             crop_percent
         )
+        ch_cropped_images = FIJI_STITCHCROP.out.cropped_images
         //ch_versions = ch_versions.mix(FIJI_STITCHCROP.out.versions)
     } else {
         log.info "Skipping FIJI_STITCHCROP for painting arm: params.qc_painting_passed = false"
     }
 
     emit:
-    corrected_cropped_images  = FIJI_STITCHCROP.out.cropped_images // channel: [ val(meta), [ cropped_images ] ]
-    versions                  = ch_versions                     // channel: [ versions.yml ]
+    corrected_cropped_images  = ch_cropped_images // channel: [ val(meta), [ cropped_images ] ]
+    versions                  = ch_versions       // channel: [ versions.yml ]
 }

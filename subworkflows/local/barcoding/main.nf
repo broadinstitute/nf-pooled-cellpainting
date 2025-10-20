@@ -21,6 +21,7 @@ workflow BARCODING {
 
     main:
     ch_versions = Channel.empty()
+    ch_cropped_images = Channel.empty()
 
     ILLUMINATION_LOAD_DATA_CSV (
         ch_samplesheet_sbs,
@@ -96,6 +97,7 @@ workflow BARCODING {
             file("${projectDir}/bin/stitch_crop.py"),
             crop_percent
         )
+        ch_cropped_images = FIJI_STITCHCROP.out.cropped_images
     //ch_versions = ch_versions.mix(FIJI_STITCHCROP.out.versions)
 
     } else {
@@ -103,6 +105,6 @@ workflow BARCODING {
     }
 
     emit:
-    corrected_cropped_images  = FIJI_STITCHCROP.out.cropped_images  // channel: [ val(meta), [ cropped_images ] ]
+    corrected_cropped_images  = ch_cropped_images // channel: [ val(meta), [ cropped_images ] ]
     versions                  = ch_versions                         // channel: [ versions.yml ]
 }
