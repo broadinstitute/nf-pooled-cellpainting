@@ -78,7 +78,8 @@ workflow POOLED_CELLPAINTING {
     BARCODING(
         ch_samplesheet_sbs,
         cppipes,
-        barcodes
+        barcodes,
+        params.crop_percent
     )
 
 
