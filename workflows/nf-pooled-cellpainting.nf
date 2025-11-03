@@ -106,7 +106,7 @@ workflow POOLED_CELLPAINTING {
         ch_cropped_images,
         cppipes['combinedanalysis_cppipe'],
         barcodes,
-        Channel.fromPath("${projectDir}/assets/cellprofiler_plugins/*").collect()  // All Cellprofiler plugins
+        Channel.fromPath("${projectDir}/assets/cellprofiler_plugins/callbarcodes.py").collect()  // All Cellprofiler plugins
     )
 
     //

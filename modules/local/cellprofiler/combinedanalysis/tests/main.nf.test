@@ -48,7 +48,6 @@ nextflow_process {
                 input[1] = file("\${projectDir}/assets/cellprofiler/combined_analysis.cppipe", checkIfExists: true)
                 input[2] = file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/workspace/metadata/Barcodes.csv", checkIfExists: true)
                 input[3] = [
-                    file("\${projectDir}/assets/cellprofiler_plugins/compensatecolors.py", checkIfExists: true),
                     file("\${projectDir}/assets/cellprofiler_plugins/callbarcodes.py", checkIfExists: true)
                 ]
                 """
@@ -115,7 +114,6 @@ nextflow_process {
                 input[1] = file("\${projectDir}/assets/cellprofiler/combined_analysis.cppipe", checkIfExists: true)
                 input[2] = file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/workspace/metadata/Barcodes.csv", checkIfExists: true)
                 input[3] = [
-                    file("\${projectDir}/assets/cellprofiler_plugins/compensatecolors.py", checkIfExists: true),
                     file("\${projectDir}/assets/cellprofiler_plugins/callbarcodes.py", checkIfExists: true)
                 ]
                 """
