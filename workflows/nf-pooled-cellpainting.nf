@@ -3,9 +3,10 @@
     IMPORT MODULES / SUBWORKFLOWS / FUNCTIONS
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
-include { MULTIQC                } from '../modules/nf-core/multiqc/main'
-include { CELLPAINTING           } from '../subworkflows/local/cellpainting'
-include { BARCODING              } from '../subworkflows/local/barcoding'
+include { MULTIQC                        } from '../modules/nf-core/multiqc/main'
+include { CELLPAINTING                    } from '../subworkflows/local/cellpainting'
+include { BARCODING                       } from '../subworkflows/local/barcoding'
+include { CELLPROFILER_COMBINEDANALYSIS  } from '../modules/local/cellprofiler/combinedanalysis/main'
 
 
 include { paramsSummaryMap       } from 'plugin/nf-schema'
@@ -84,6 +85,33 @@ workflow POOLED_CELLPAINTING {
     )
     ch_versions = ch_versions.mix(BARCODING.out.versions)
 
+    //// Combined analysis of CP and SBS data ////
+
+    // Extract site from basename, create new ID (without arm), and group by site
+    CELLPAINTING.out.cropped_images
+        .mix(BARCODING.out.cropped_images)
+        .flatMap { meta, images ->
+            images.collect { image ->
+                def site_match = image.baseName =~ /Site_(\d+)/
+                def site = site_match ? "Site_${site_match[0][1]}" : "Site_unknown"
+                def new_meta = meta.subMap(['batch', 'plate', 'well']) + [id: "${meta.batch}-${meta.plate}-${meta.well}-${site}", site: site]
+                [new_meta, image]
+            }
+        }
+        .groupTuple()
+        .map { meta, images -> [meta, images.flatten()] }
+        .set { ch_cropped_images }
+
+    ch_cropped_images.view { meta, images ->
+        "COMBINED: ${meta.id} has ${images.size()} images"
+    }
+
+
+    CELLPROFILER_COMBINEDANALYSIS (
+        ch_cropped_images,
+        cppipes['combinedanalysis_cppipe'],
+        barcodes
+    )
 
     //
     // Collate and save software versions

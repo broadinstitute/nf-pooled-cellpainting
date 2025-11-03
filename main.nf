@@ -33,12 +33,13 @@ workflow NF_POOLED_CELLPAINTING {
     main:
 
     cppipes = [
-        'illumination_calc_cp'   : params.cp_illum_calc_pipe    ?: "${projectDir}/assets/cellprofiler/cp_illumination_calc.cppipe.template",
-        'illumination_apply_cp'  : params.cp_illum_apply_pipe   ?: "${projectDir}/assets/cellprofiler/cp_illumination_apply.cppipe.template",
-        'illumination_calc_sbs'  : params.sbs_illum_calc_pipe   ?: "${projectDir}/assets/cellprofiler/sbs_illumination_calc.cppipe.template",
-        'illumination_apply_sbs' : params.sbs_illum_apply_pipe  ?: "${projectDir}/assets/cellprofiler/sbs_illumination_apply.cppipe.template",
-        'segcheck_cp'            : params.cp_segcheck_pipe      ?: "${projectDir}/assets/cellprofiler/cp_segcheck.cppipe",
-        'preprocess_sbs'         : params.sbs_preprocess_pipe   ?: "${projectDir}/assets/cellprofiler/sbs_preprocess.cppipe",
+        'illumination_calc_cp'    : params.cp_illum_calc_pipe       ?: "${projectDir}/assets/cellprofiler/cp_illumination_calc.cppipe.template",
+        'illumination_apply_cp'   : params.cp_illum_apply_pipe      ?: "${projectDir}/assets/cellprofiler/cp_illumination_apply.cppipe.template",
+        'illumination_calc_sbs'   : params.sbs_illum_calc_pipe      ?: "${projectDir}/assets/cellprofiler/sbs_illumination_calc.cppipe.template",
+        'illumination_apply_sbs'  : params.sbs_illum_apply_pipe     ?: "${projectDir}/assets/cellprofiler/sbs_illumination_apply.cppipe.template",
+        'segcheck_cp'             : params.cp_segcheck_pipe         ?: "${projectDir}/assets/cellprofiler/cp_segcheck.cppipe",
+        'preprocess_sbs'          : params.sbs_preprocess_pipe      ?: "${projectDir}/assets/cellprofiler/sbs_preprocess.cppipe",
+        'combinedanalysis_cppipe' : params.combinedanalysis_cppipe  ?: "${projectDir}/assets/cellprofiler/combined_analysis.cppipe"
     ]
 
     //

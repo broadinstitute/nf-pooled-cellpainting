@@ -143,6 +143,6 @@ workflow CELLPAINTING {
     }
 
     emit:
-    corrected_cropped_images  = ch_cropped_images // channel: [ val(meta), [ cropped_images ] ]
+    cropped_images            = ch_cropped_images // channel: [ val(meta), [ cropped_images ] ]
     versions                  = ch_versions       // channel: [ versions.yml ]
 }
