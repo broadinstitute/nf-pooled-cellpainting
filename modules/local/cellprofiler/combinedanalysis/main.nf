@@ -50,32 +50,38 @@ process CELLPROFILER_COMBINEDANALYSIS {
 
     stub:
     """
-    mkdir -p results/segmentation_masks
+    # Set writable cache directories for CellProfiler and dependencies
+    export MPLCONFIGDIR=\${PWD}/.matplotlib
+    export HOME=\${PWD}
+    export XDG_CACHE_HOME=\${PWD}/.cache
+    mkdir -p \${MPLCONFIGDIR} \${XDG_CACHE_HOME}
+
+    mkdir -p segmentation_masks
 
     # Create stub overlay PNG files
-    touch results/Plate1-B1_CorrDNA_Site_4_Overlay.png
-    touch results/Plate1-B1_CorrDNA_Site_4_SpotOverlay.png
+    touch Plate1-B1_CorrDNA_Site_4_Overlay.png
+    touch Plate1-B1_CorrDNA_Site_4_SpotOverlay.png
 
     # Create stub CSV statistics files
-    touch results/BarcodeFoci.csv
-    touch results/Cells.csv
-    touch results/ConfluentRegions.csv
-    touch results/Cytoplasm.csv
-    touch results/Experiment.csv
-    touch results/Foci_NonCellEdge.csv
-    touch results/Foci_PreMask.csv
-    touch results/Foci.csv
-    touch results/Image.csv
-    touch results/Nuclei.csv
-    touch results/PreCells.csv
-    touch results/RelateObjects.csv
-    touch results/ResizeConfluent.csv
-    touch results/ResizeCells.csv
-    touch results/Resize_Foci.csv
-    touch results/ResizeNuclei.csv
+    touch BarcodeFoci.csv
+    touch Cells.csv
+    touch ConfluentRegions.csv
+    touch Cytoplasm.csv
+    touch Experiment.csv
+    touch Foci_NonCellEdge.csv
+    touch Foci_PreMask.csv
+    touch Foci.csv
+    touch Image.csv
+    touch Nuclei.csv
+    touch PreCells.csv
+    touch RelateObjects.csv
+    touch ResizeConfluent.csv
+    touch ResizeCells.csv
+    touch Resize_Foci.csv
+    touch ResizeNuclei.csv
 
     # Create stub segmentation masks
-    touch results/segmentation_masks/stub_mask.tiff
+    touch segmentation_masks/stub_mask.tiff
 
     # Create stub load_data.csv
     touch load_data.csv

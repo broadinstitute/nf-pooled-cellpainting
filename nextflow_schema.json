@@ -46,8 +46,8 @@
                 },
                 "crop_percent": {
                     "type": "integer",
-                    "default": 25,
-                    "fa_icon": "fas fa-cut"
+                    "fa_icon": "fas fa-cut",
+                    "description": "Percentage of crop subset applied to data."
                 },
                 "multichannel_parallel": {
                     "type": "boolean",
@@ -63,7 +63,7 @@
         "cellpainting_options": {
             "title": "Cellpainting options",
             "type": "object",
-            "description": "",
+            "description": "Configuration options for the painting arm of the pipeline.",
             "default": "",
             "fa_icon": "fas fa-paint-brush",
             "properties": {
@@ -94,7 +94,7 @@
         "sbs_options": {
             "title": "Sequencing by Synthesis (SBS) options",
             "type": "object",
-            "description": "",
+            "description": "Configuration options for the barcoding (SBS) arm of the pipeline.",
             "default": "",
             "properties": {
                 "sbs_img_overlap_pct": {
@@ -118,7 +118,7 @@
         "cellprofiler_group": {
             "title": "Cellprofiler Pipelines",
             "type": "object",
-            "description": "",
+            "description": "Paths to custom cellprofiler pipeline files (cppipe)",
             "default": "",
             "properties": {
                 "cp_illum_calc_pipe": {
@@ -144,6 +144,10 @@
                 "sbs_preprocess_pipe": {
                     "type": "string",
                     "description": "Cellprofiler pipeline for SBS preprocessing."
+                },
+                "combinedanalysis_cppipe": {
+                    "type": "string",
+                    "description": "Cellprofiler pipeline for combined analysis."
                 }
             }
         },
