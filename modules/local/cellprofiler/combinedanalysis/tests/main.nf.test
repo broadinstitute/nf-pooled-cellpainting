@@ -59,10 +59,7 @@ nextflow_process {
                 { assert process.success },
                 { assert snapshot(
                     process.out.overlay_images,
-                    process.out.csv_stats.get(0).get(1).findAll {
-                        file(it).name != "CombinedAnalysis_Experiment.csv" &&
-                        file(it).name != "CombinedAnalysis_Image.csv"
-                    },
+                    process.out.csv_stats,
                     process.out.load_data_csv,
                     process.out.versions
                 ).match() }

@@ -1,12 +1,14 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/nf-core/modules/master/modules/meta-schema.json
 name: "cellprofiler_combinedanalysis"
-description: Runs CellProfiler combined analysis using both cell painting corrected images and barcoding cropped images. Uses a dedicated script (generate_combined_load_data.py) to generate the load_data.csv file specific to combined analysis.
+description: Runs CellProfiler combined analysis using both cell painting corrected images and barcoding cropped images. Performs cell segmentation, nuclei identification, and feature extraction combining both imaging modalities. Uses a dedicated script (generate_combined_load_data.py) to generate the load_data.csv file specific to combined analysis.
 keywords:
   - cell-profiler
   - cell-painting
   - barcoding
   - combined-analysis
   - image-analysis
+  - cell-segmentation
+  - high-content-imaging
 tools:
   - "cellprofiler":
       description: "CellProfiler is free, open-source software for quantitative analysis
@@ -30,43 +32,79 @@ input:
         type: map
         description: |
           Groovy Map containing sample information
-          e.g. `[ id:'plate1' ]`
+          e.g. `[ id:'Batch1_Plate1_A1_1', batch:'Batch1', plate:'Plate1', well:'A1', site:1 ]`
     - cropped_images:
         type: file
-        description: Cropped images for combined analysis (both cell painting corrected and barcoding images)
+        description: Cropped images for combined analysis including both cell painting corrected images (CorrDNA, CorrPhalloidin, CorrCHN2) and barcoding cropped images (Cycle##_A, Cycle##_C, Cycle##_G, Cycle##_T, Cycle##_DNA)
         pattern: "*.{tif,tiff}"
   - combinedanalysis_cppipe:
       type: file
-      description: CellProfiler pipeline file for combined analysis
+      description: CellProfiler pipeline file for combined analysis containing the analysis workflow
       pattern: "*.cppipe"
+      ontologies:
+        - edam: "http://edamontology.org/format_3464" # XML
   - barcodes:
       type: file
-      description: Barcodes CSV file for combined analysis
+      description: Barcodes CSV file containing barcode reference information for cell identification
       pattern: "*.csv"
+      ontologies:
+        - edam: "http://edamontology.org/format_3752" # CSV
+  - plugins:
+      type: file
+      description: CellProfiler plugin files (e.g., callbarcodes.py) required for custom analysis modules
+      pattern: "*.py"
 
 output:
-  ### TODO nf-core: Add a description of all of the variables used as output
-  bam:
-    - - meta:
-          type: map
-          description: |
-            Groovy Map containing sample information
-            e.g. `[ id:'sample1' ]`
-      - "*.bam":
+  - overlay_images:
+      - - meta:
+            type: map
+            description: |
+              Groovy Map containing sample information
+              e.g. `[ id:'Batch1_Plate1_A1_1', batch:'Batch1', plate:'Plate1', well:'A1', site:1 ]`
+        - "*.png":
+            type: file
+            description: Overlay images showing segmentation results and detected objects (e.g., cell outlines, nuclei, foci)
+            pattern: "*.png"
+            ontologies:
+              - edam: "http://edamontology.org/format_3603" # PNG
+  - csv_stats:
+      - - meta:
+            type: map
+            description: |
+              Groovy Map containing sample information
+              e.g. `[ id:'Batch1_Plate1_A1_1', batch:'Batch1', plate:'Plate1', well:'A1', site:1 ]`
+        - "*.csv":
+            type: file
+            description: CSV files containing quantitative measurements and statistics for different object types (Nuclei, Cells, Cytoplasm, Foci, etc.)
+            pattern: "*.csv"
+            ontologies:
+              - edam: "http://edamontology.org/format_3752" # CSV
+  - segmentation_masks:
+      - - meta:
+            type: map
+            description: |
+              Groovy Map containing sample information
+              e.g. `[ id:'Batch1_Plate1_A1_1', batch:'Batch1', plate:'Plate1', well:'A1', site:1 ]`
+        - "segmentation_masks/*.tiff":
+            type: file
+            description: Segmentation mask images showing identified regions/objects
+            pattern: "*.{tif,tiff}"
+            ontologies:
+              - edam: "http://edamontology.org/format_3591" # TIFF
+  - load_data_csv:
+      - "load_data.csv":
           type: file
-          description: Sorted BAM/CRAM/SAM file
-          pattern: "*.{bam,cram,sam}"
+          description: Generated load_data.csv file used by CellProfiler to load and organize input images
+          pattern: "load_data.csv"
           ontologies:
-            - edam: "http://edamontology.org/format_2572" # BAM
-            - edam: "http://edamontology.org/format_2573" # CRAM
-            - edam: "http://edamontology.org/format_3462" # SAM
-  versions:
-    - "versions.yml":
-        type: file
-        description: File containing software versions
-        pattern: "versions.yml"
-        ontologies:
-          - edam: "http://edamontology.org/format_3750" # YAML
+            - edam: "http://edamontology.org/format_3752" # CSV
+  - versions:
+      - "versions.yml":
+          type: file
+          description: File containing software versions
+          pattern: "versions.yml"
+          ontologies:
+            - edam: "http://edamontology.org/format_3750" # YAML
 
 authors:
   - "@FloWuenne"
