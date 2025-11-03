@@ -62,7 +62,7 @@ PIPELINE_CONFIGS = {
     },
     'combined': {
         'description': 'Combined analysis - uses both cropped cell painting and barcoding images',
-        'file_pattern': r'(Plate_.*_Well_.*_Site_.*_Corr.*\.tiff?|.*_Site_\d+\.tiff?)$',
+        'file_pattern': r'(Plate\d+-[A-Z]\d+_Corr.*_Site_\d+\.tiff?|Plate\d+-[A-Z]\d+_Cycle\d+_[ACGTDAPI]+_Site_\d+\.tiff?)$',
         'metadata_cols': ['Metadata_Plate', 'Metadata_Site', 'Metadata_Well', 'Metadata_Well_Value'],
         'file_cols_template': ['FileName_Cycle{cycle}_{channel}', 'FileName_Corr{channel}'],
         'include_illum_files': False,
@@ -168,35 +168,37 @@ def parse_combined_image(filename: str) -> Optional[Dict]:
     Parse combined analysis image filenames from both cell painting and barcoding.
 
     Patterns:
-    - Cell painting corrected: Plate_{plate}_Well_{well}_Site_{site}_Corr{channel}.tiff
-    - Barcoding cropped: Cycle{cycle}_{channel}_Site_{site}.tiff
+    - Cell painting corrected: Plate{plate}-{well}_Corr{channel}_Site_{site}.tiff
+    - Barcoding cropped: Plate{plate}-{well}_Cycle{cycle}_{channel}_Site_{site}.tiff
       where channel is one of A, C, G, T, DNA
 
     Returns dict with: plate, well, site, and either (channel) or (cycle, channel)
     """
-    # Try cell painting corrected pattern first
-    cp_pattern = r'Plate_(.+?)_Well_(.+?)_Site_(\d+)_Corr(.+?)\.tiff?'
+    # Try barcoding cropped pattern first (Plate{plate}-{well}_Cycle{cycle}_{channel}_Site_{site}.tiff)
+    barcode_pattern = r'(Plate\d+)-([A-Z]\d+)_Cycle(\d+)_([ACGT]|DNA|DAPI)_Site_(\d+)\.tiff?'
+    barcode_match = re.match(barcode_pattern, filename)
+
+    if barcode_match:
+        return {
+            'plate': barcode_match.group(1),
+            'well': barcode_match.group(2),
+            'cycle': barcode_match.group(3),
+            'channel': 'DNA' if barcode_match.group(4) == 'DAPI' else barcode_match.group(4),  # Normalize DAPI to DNA
+            'site': int(barcode_match.group(5)),
+            'type': 'barcoding'
+        }
+
+    # Try cell painting corrected pattern (Plate{plate}-{well}_Corr{channel}_Site_{site}.tiff)
+    cp_pattern = r'(Plate\d+)-([A-Z]\d+)_Corr(.+?)_Site_(\d+)\.tiff?'
     cp_match = re.match(cp_pattern, filename)
 
     if cp_match:
         return {
             'plate': cp_match.group(1),
             'well': cp_match.group(2),
-            'site': int(cp_match.group(3)),
-            'channel': cp_match.group(4),
+            'channel': cp_match.group(3),
+            'site': int(cp_match.group(4)),
             'type': 'cellpainting'
-        }
-
-    # Try barcoding cropped pattern (Cycle{cycle}_{channel}_Site_{site}.tiff)
-    barcode_pattern = r'Cycle(\d+)_([ACGT]|DNA)_Site_(\d+)\.tiff?'
-    barcode_match = re.match(barcode_pattern, filename)
-
-    if barcode_match:
-        return {
-            'cycle': barcode_match.group(1),
-            'channel': barcode_match.group(2),
-            'site': int(barcode_match.group(3)),
-            'type': 'barcoding'
         }
 
     return None

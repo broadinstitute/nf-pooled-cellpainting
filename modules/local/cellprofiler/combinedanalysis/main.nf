@@ -24,7 +24,7 @@ process CELLPROFILER_COMBINEDANALYSIS {
     def prefix = task.ext.prefix ?: "${meta.id}"
     """
     generate_load_data_csv.py \\
-        --pipeline-type preprocess \\
+        --pipeline-type combined \\
         --images-dir ./images \\
         --output load_data.csv
 
