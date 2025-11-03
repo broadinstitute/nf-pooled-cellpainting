@@ -8,32 +8,39 @@ process CELLPROFILER_COMBINEDANALYSIS {
         'biocontainers/cellprofiler:4.2.8--pyhdfd78af_0' }"
 
     input:
-    tuple val(meta), path(cropped_images, stageAs: "images/*.tif")
+    tuple val(meta), path(cropped_images, stageAs: "images/*")
     path combinedanalysis_cppipe
     path barcodes, stageAs: "images/Barcodes.csv"
+    path plugins, stageAs: "plugins/*"
 
     output:
-    tuple val(meta), path("*.bam"), emit: bam
-    path "versions.yml"           , emit: versions
+    tuple val(meta), path("*.png")                     , emit: overlay_images
+    tuple val(meta), path("*.csv")                     , emit: csv_stats
+    tuple val(meta), path("segmentation_masks/*.tiff") , emit: segmentation_masks, optional: true
+    path "load_data.csv"                               , emit: load_data_csv
+    path "versions.yml"                                , emit: versions
 
     when:
     task.ext.when == null || task.ext.when
 
     script:
-    def args = task.ext.args ?: ''
-    def prefix = task.ext.prefix ?: "${meta.id}"
     """
-    generate_load_data_csv.py \\
-        --pipeline-type combined \\
+    # Set writable cache directories for CellProfiler and dependencies
+    export MPLCONFIGDIR=\${PWD}/.matplotlib
+    export HOME=\${PWD}
+    export XDG_CACHE_HOME=\${PWD}/.cache
+    mkdir -p \${MPLCONFIGDIR} \${XDG_CACHE_HOME}
+
+    generate_combined_load_data.py \\
         --images-dir ./images \\
         --output load_data.csv
 
     cellprofiler -c -r \\
-        ${task.ext.args ?: ''} \\
         -p ${combinedanalysis_cppipe} \\
         -o . \\
         --data-file=load_data.csv \\
-        --image-directory ./images/
+        --image-directory ./images/ \\
+        --plugins-directory=./plugins/
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
@@ -42,19 +49,36 @@ process CELLPROFILER_COMBINEDANALYSIS {
     """
 
     stub:
-    def args = task.ext.args ?: ''
-    def prefix = task.ext.prefix ?: "${meta.id}"
-    // TODO nf-core: A stub section should mimic the execution of the original module as best as possible
-    //               Have a look at the following examples:
-    //               Simple example: https://github.com/nf-core/modules/blob/818474a292b4860ae8ff88e149fbcda68814114d/modules/nf-core/bcftools/annotate/main.nf#L47-L63
-    //               Complex example: https://github.com/nf-core/modules/blob/818474a292b4860ae8ff88e149fbcda68814114d/modules/nf-core/bedtools/split/main.nf#L38-L54
-    // TODO nf-core: If the module doesn't use arguments ($args), you SHOULD remove:
-    //               - The definition of args `def args = task.ext.args ?: ''` above.
-    //               - The use of the variable in the script `echo $args ` below.
     """
-    echo $args
+    mkdir -p results/segmentation_masks
 
-    touch ${prefix}.bam
+    # Create stub overlay PNG files
+    touch results/Plate1-B1_CorrDNA_Site_4_Overlay.png
+    touch results/Plate1-B1_CorrDNA_Site_4_SpotOverlay.png
+
+    # Create stub CSV statistics files
+    touch results/BarcodeFoci.csv
+    touch results/Cells.csv
+    touch results/ConfluentRegions.csv
+    touch results/Cytoplasm.csv
+    touch results/Experiment.csv
+    touch results/Foci_NonCellEdge.csv
+    touch results/Foci_PreMask.csv
+    touch results/Foci.csv
+    touch results/Image.csv
+    touch results/Nuclei.csv
+    touch results/PreCells.csv
+    touch results/RelateObjects.csv
+    touch results/ResizeConfluent.csv
+    touch results/ResizeCells.csv
+    touch results/Resize_Foci.csv
+    touch results/ResizeNuclei.csv
+
+    # Create stub segmentation masks
+    touch results/segmentation_masks/stub_mask.tiff
+
+    # Create stub load_data.csv
+    touch load_data.csv
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":

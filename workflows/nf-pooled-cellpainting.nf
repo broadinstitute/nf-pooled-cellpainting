@@ -4,8 +4,8 @@
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
 include { MULTIQC                        } from '../modules/nf-core/multiqc/main'
-include { CELLPAINTING                    } from '../subworkflows/local/cellpainting'
-include { BARCODING                       } from '../subworkflows/local/barcoding'
+include { CELLPAINTING                   } from '../subworkflows/local/cellpainting'
+include { BARCODING                      } from '../subworkflows/local/barcoding'
 include { CELLPROFILER_COMBINEDANALYSIS  } from '../modules/local/cellprofiler/combinedanalysis/main'
 
 
@@ -26,7 +26,7 @@ workflow POOLED_CELLPAINTING {
     ch_samplesheet           // channel: samplesheet read in from --input
     barcodes                 // file: path to barcodes.csv file
     cppipes                  // array: paths to cpipe template files
-    multichannel_parallel // boolean: whether to run cell painting in parallel for multi-channel images per FOV
+    multichannel_parallel    // boolean: whether to run cell painting in parallel for multi-channel images per FOV
 
     main:
 
@@ -102,15 +102,11 @@ workflow POOLED_CELLPAINTING {
         .map { meta, images -> [meta, images.flatten()] }
         .set { ch_cropped_images }
 
-    ch_cropped_images.view { meta, images ->
-        "COMBINED: ${meta.id} has ${images.size()} images"
-    }
-
-
     CELLPROFILER_COMBINEDANALYSIS (
         ch_cropped_images,
         cppipes['combinedanalysis_cppipe'],
-        barcodes
+        barcodes,
+        Channel.fromPath("${projectDir}/assets/cellprofiler_plugins/*").collect()  // All Cellprofiler plugins
     )
 
     //

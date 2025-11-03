@@ -1,38 +1,48 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/nf-core/modules/master/modules/meta-schema.json
-# # TODO nf-core: Add a description of the module and list keywords
 name: "cellprofiler_combinedanalysis"
-description: write your description here
+description: Runs CellProfiler combined analysis using both cell painting corrected images and barcoding cropped images. Uses a dedicated script (generate_combined_load_data.py) to generate the load_data.csv file specific to combined analysis.
 keywords:
-  - sort
-  - example
-  - genomics
+  - cell-profiler
+  - cell-painting
+  - barcoding
+  - combined-analysis
+  - image-analysis
 tools:
-  ## TODO nf-core: Add a description and other details for the software below
   - "cellprofiler":
       description: "CellProfiler is free, open-source software for quantitative analysis
         of biological images."
       homepage: "https://cellprofiler-manual.s3.amazonaws.com/CellProfiler-4.2.8/index.html"
       documentation: "https://cellprofiler-manual.s3.amazonaws.com/CellProfiler-4.2.8/index.html"
       tool_dev_url: "https://github.com/CellProfiler/CellProfiler"
-      doi: ""
+      doi: "10.1371/journal.pbio.1000412"
       licence: ["BSD-3-clause"]
-      identifier: null
+      identifier: biotools:cellprofiler
+  - "generate_combined_load_data.py":
+      description: "Custom Python script for generating load_data.csv files specifically
+        for combined analysis with both cell painting and barcoding images"
+      homepage: "https://github.com"
+      documentation: "https://github.com"
+      tool_dev_url: "https://github.com"
+      licence: ["MIT"]
 
 input:
-  ### TODO nf-core: Add a description of all of the variables used as input
   - - meta:
         type: map
         description: |
           Groovy Map containing sample information
-          e.g. `[ id:'sample1' ]`
-    - bam:
+          e.g. `[ id:'plate1' ]`
+    - cropped_images:
         type: file
-        description: Sorted BAM/CRAM/SAM file
-        pattern: "*.{bam,cram,sam}"
-        ontologies:
-          - edam: "http://edamontology.org/format_2572" # BAM
-          - edam: "http://edamontology.org/format_2573" # CRAM
-          - edam: "http://edamontology.org/format_3462" # SAM
+        description: Cropped images for combined analysis (both cell painting corrected and barcoding images)
+        pattern: "*.{tif,tiff}"
+  - combinedanalysis_cppipe:
+      type: file
+      description: CellProfiler pipeline file for combined analysis
+      pattern: "*.cppipe"
+  - barcodes:
+      type: file
+      description: Barcodes CSV file for combined analysis
+      pattern: "*.csv"
 
 output:
   ### TODO nf-core: Add a description of all of the variables used as output
