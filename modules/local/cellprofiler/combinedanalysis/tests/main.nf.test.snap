@@ -135,5 +135,26 @@
             "nextflow": "25.10.0"
         },
         "timestamp": "2025-11-03T12:32:45.620408"
+    },
+    "cellprofiler - combinedanalysis - cropped_images": {
+        "content": [
+            [
+                
+            ],
+            [
+                
+            ],
+            [
+                
+            ],
+            [
+                
+            ]
+        ],
+        "meta": {
+            "nf-test": "0.9.2",
+            "nextflow": "25.10.0"
+        },
+        "timestamp": "2025-11-04T15:20:11.40269"
     }
 }
