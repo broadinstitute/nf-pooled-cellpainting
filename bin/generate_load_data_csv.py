@@ -59,6 +59,14 @@ PIPELINE_CONFIGS = {
         'file_cols_template': ['FileName_Cycle{cycle}_{channel}'],
         'include_illum_files': False,
         'parse_function': 'parse_preprocess_image'
+    },
+    'combined': {
+        'description': 'Combined analysis - uses both cropped cell painting and barcoding images',
+        'file_pattern': r'(Plate\d+-[A-Z]\d+_Corr.*_Site_\d+\.tiff?|Plate\d+-[A-Z]\d+_Cycle\d+_[ACGTDAPI]+_Site_\d+\.tiff?)$',
+        'metadata_cols': ['Metadata_Plate', 'Metadata_Site', 'Metadata_Well', 'Metadata_Well_Value'],
+        'file_cols_template': ['FileName_Cycle{cycle}_{channel}', 'FileName_Corr{channel}'],
+        'include_illum_files': False,
+        'parse_function': 'parse_combined_image'
     }
 }
 
@@ -155,6 +163,47 @@ def parse_preprocess_image(filename: str) -> Optional[Dict]:
     return None
 
 
+def parse_combined_image(filename: str) -> Optional[Dict]:
+    """
+    Parse combined analysis image filenames from both cell painting and barcoding.
+
+    Patterns:
+    - Cell painting corrected: Plate{plate}-{well}_Corr{channel}_Site_{site}.tiff
+    - Barcoding cropped: Plate{plate}-{well}_Cycle{cycle}_{channel}_Site_{site}.tiff
+      where channel is one of A, C, G, T, DNA
+
+    Returns dict with: plate, well, site, and either (channel) or (cycle, channel)
+    """
+    # Try barcoding cropped pattern first (Plate{plate}-{well}_Cycle{cycle}_{channel}_Site_{site}.tiff)
+    barcode_pattern = r'(Plate\d+)-([A-Z]\d+)_Cycle(\d+)_([ACGT]|DNA|DAPI)_Site_(\d+)\.tiff?'
+    barcode_match = re.match(barcode_pattern, filename)
+
+    if barcode_match:
+        return {
+            'plate': barcode_match.group(1),
+            'well': barcode_match.group(2),
+            'cycle': barcode_match.group(3),
+            'channel': 'DNA' if barcode_match.group(4) == 'DAPI' else barcode_match.group(4),  # Normalize DAPI to DNA
+            'site': int(barcode_match.group(5)),
+            'type': 'barcoding'
+        }
+
+    # Try cell painting corrected pattern (Plate{plate}-{well}_Corr{channel}_Site_{site}.tiff)
+    cp_pattern = r'(Plate\d+)-([A-Z]\d+)_Corr(.+?)_Site_(\d+)\.tiff?'
+    cp_match = re.match(cp_pattern, filename)
+
+    if cp_match:
+        return {
+            'plate': cp_match.group(1),
+            'well': cp_match.group(2),
+            'channel': cp_match.group(3),
+            'site': int(cp_match.group(4)),
+            'type': 'cellpainting'
+        }
+
+    return None
+
+
 def infer_plate_from_path(file_path: str) -> str:
     """
     Try to infer plate name from file path.
@@ -164,6 +213,26 @@ def infer_plate_from_path(file_path: str) -> str:
     if match:
         return f'Plate{match.group(1)}'
     return 'Unknown'
+
+
+def infer_plate_well_from_path(file_path: str) -> Tuple[Optional[str], Optional[str]]:
+    """
+    Try to infer plate and well from file path for combined analysis.
+    Looks for patterns like 'Plate1/Plate1-A1/' or 'Plate1-A1/' in the path.
+
+    Returns: (plate, well) tuple or (None, None) if not found
+    """
+    # Try pattern with plate directory: Plate1/Plate1-A1/
+    match = re.search(r'(Plate\d+)/(Plate\d+)-([A-Z]\d+)', file_path)
+    if match:
+        return match.group(2), match.group(3)
+
+    # Try pattern without plate directory: Plate1-A1/
+    match = re.search(r'(Plate\d+)-([A-Z]\d+)', file_path)
+    if match:
+        return match.group(1), match.group(2)
+
+    return None, None
 
 
 def collect_and_group_files(
@@ -227,12 +296,25 @@ def collect_and_group_files(
 
         # Validate required metadata fields
         try:
-            plate = parsed.get('plate', infer_plate_from_path(img_path))
-            well = parsed['well']
-            site = parsed['site']
+            # For combined analysis barcoding files, plate/well are not in filename
+            if pipeline_type == 'combined' and parsed.get('type') == 'barcoding':
+                inferred_plate, inferred_well = infer_plate_well_from_path(img_path)
+                if not inferred_plate or not inferred_well:
+                    raise ValueError(f"Could not infer plate/well from path: {img_path}")
+                plate = inferred_plate
+                well = inferred_well
+                site = parsed['site']
+            else:
+                plate = parsed.get('plate', infer_plate_from_path(img_path))
+                well = parsed['well']
+                site = parsed['site']
         except KeyError as e:
             missing_metadata.append((filename, str(e)))
             print(f"⚠ Missing required metadata in '{filename}': {e}", file=sys.stderr)
+            continue
+        except ValueError as e:
+            missing_metadata.append((filename, str(e)))
+            print(f"⚠ {e}", file=sys.stderr)
             continue
 
         key = (plate, well, site)
@@ -240,12 +322,25 @@ def collect_and_group_files(
         if key not in grouped:
             grouped[key] = {'images': {}, 'illum': {}}
 
-        # Store based on whether it's multi-channel, single-channel, or cycle-based
+        # Store based on whether it's multi-channel, single-channel, cycle-based, or combined
         try:
             if 'channels' in parsed:
                 # Multi-channel image - store with frames info
                 grouped[key]['images']['_file'] = filename
                 grouped[key]['images']['_parsed'] = parsed
+            elif pipeline_type == 'combined':
+                # Combined analysis - store both cell painting and barcoding files
+                if parsed.get('type') == 'barcoding':
+                    # Barcoding file: Cycle{cycle}_{channel}
+                    cycle = parsed['cycle']
+                    channel = parsed['channel']
+                    cycle_channel_key = f"Cycle{cycle}_{channel}"
+                    grouped[key]['images'][cycle_channel_key] = filename
+                elif parsed.get('type') == 'cellpainting':
+                    # Cell painting corrected file: Corr{channel}
+                    channel = parsed['channel']
+                    corr_key = f"Corr{channel}"
+                    grouped[key]['images'][corr_key] = filename
             elif 'cycle' in parsed:
                 # Cycle-based image (for preprocess pipeline)
                 cycle = parsed['cycle']
@@ -384,18 +479,25 @@ def generate_csv_rows(
                 if not file_data['images']:
                     raise ValueError(f"No image files for {plate}/{well}/Site{site}")
 
-                # Check if this is cycle-based (preprocess pipeline)
-                is_cycle_based = any('Cycle' in key for key in file_data['images'].keys())
-
-                if is_cycle_based:
-                    # For preprocess: add FileName_Cycle{cycle}_{channel} columns
-                    for cycle_channel_key, filename in sorted(file_data['images'].items()):
-                        # cycle_channel_key is like "Cycle01_A", "Cycle01_C", etc.
-                        row[f'FileName_{cycle_channel_key}'] = filename
+                # For combined analysis, we need to handle both cycle-based and corrected files
+                if pipeline_type == 'combined':
+                    # Add all files with their appropriate column names
+                    for key, filename in sorted(file_data['images'].items()):
+                        # Keys are like "Cycle01_A", "Cycle01_DNA", "CorrDNA", "CorrCHN2"
+                        row[f'FileName_{key}'] = filename
                 else:
-                    # For other pipelines: add FileName_{channel} columns
-                    for channel, filename in sorted(file_data['images'].items()):
-                        row[f'FileName_{channel}'] = filename
+                    # Check if this is cycle-based (preprocess pipeline)
+                    is_cycle_based = any('Cycle' in key for key in file_data['images'].keys())
+
+                    if is_cycle_based:
+                        # For preprocess: add FileName_Cycle{cycle}_{channel} columns
+                        for cycle_channel_key, filename in sorted(file_data['images'].items()):
+                            # cycle_channel_key is like "Cycle01_A", "Cycle01_C", etc.
+                            row[f'FileName_{cycle_channel_key}'] = filename
+                    else:
+                        # For other pipelines: add FileName_{channel} columns
+                        for channel, filename in sorted(file_data['images'].items()):
+                            row[f'FileName_{channel}'] = filename
 
             rows.append(row)
 

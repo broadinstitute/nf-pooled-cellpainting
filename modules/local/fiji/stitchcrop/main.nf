@@ -1,18 +1,18 @@
 process FIJI_STITCHCROP {
     tag "${meta.id}"
-    label 'process_high'
+    label 'process_medium'
 
     conda "${moduleDir}/environment.yml"
-    container 'docker.io/fiji/fiji:latest'
+    container 'docker.io/fiji/fiji:20220415'
 
     containerOptions {
+        // Fiji docker image has an entrypoint that interferes with Nextflow's command execution
         workflow.containerEngine == 'docker' ? '--entrypoint=""' : ''
     }
 
     input:
     tuple val(meta), path(corrected_images, stageAs: 'images/*')
     path stitch_script
-    val crop_percent
 
     output:
     tuple val(meta), path("stitched_images/*.tiff")                 , emit: stitched_images
@@ -30,8 +30,7 @@ process FIJI_STITCHCROP {
     def heap_size = task.memory ? Math.max(2, (task.memory.toGiga() * 0.75) as int) : 2
     def threads = task.cpus ?: 1
     """
-    # Set environment variables for Fiji script (simplified for Nextflow integration)
-    export CROP_PERCENT=${crop_percent}
+    # Set environment variables for Fiji python script
     export STITCH_AUTORUN=true
 
     # Configure Java memory directly via JVM heap options

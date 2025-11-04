@@ -17,7 +17,6 @@ workflow CELLPAINTING {
     ch_samplesheet_cp
     cppipes
     range_skip
-    crop_percent
 
     main:
     ch_versions = Channel.empty()
@@ -133,8 +132,7 @@ workflow CELLPAINTING {
 
         FIJI_STITCHCROP (
             ch_corrected_images_synced,
-            file("${projectDir}/bin/stitch_crop.py"),
-            crop_percent
+            file("${projectDir}/bin/stitch_crop.py")
         )
         ch_cropped_images = FIJI_STITCHCROP.out.cropped_images
         ch_versions = ch_versions.mix(FIJI_STITCHCROP.out.versions)
@@ -143,6 +141,6 @@ workflow CELLPAINTING {
     }
 
     emit:
-    corrected_cropped_images  = ch_cropped_images // channel: [ val(meta), [ cropped_images ] ]
+    cropped_images            = ch_cropped_images // channel: [ val(meta), [ cropped_images ] ]
     versions                  = ch_versions       // channel: [ versions.yml ]
 }
