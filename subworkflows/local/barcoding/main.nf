@@ -17,7 +17,6 @@ workflow BARCODING {
     ch_samplesheet_sbs
     cppipes
     barcodes
-    crop_percent
 
     main:
     ch_versions = Channel.empty()
@@ -94,8 +93,7 @@ workflow BARCODING {
         // STITCH & CROP IMAGES ////
         FIJI_STITCHCROP (
             CELLPROFILER_PREPROCESS.out.preprocessed_images,
-            file("${projectDir}/bin/stitch_crop.py"),
-            crop_percent
+            file("${projectDir}/bin/stitch_crop.py")
         )
         ch_cropped_images = FIJI_STITCHCROP.out.cropped_images
     ch_versions = ch_versions.mix(FIJI_STITCHCROP.out.versions)

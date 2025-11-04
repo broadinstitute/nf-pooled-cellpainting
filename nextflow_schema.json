@@ -44,11 +44,6 @@
                     "description": "Path to barcodes.csv file for SBS data.",
                     "fa_icon": "fas fa-qrcode"
                 },
-                "crop_percent": {
-                    "type": "integer",
-                    "fa_icon": "fas fa-cut",
-                    "description": "Percentage of crop subset applied to data."
-                },
                 "multichannel_parallel": {
                     "type": "boolean",
                     "fa_icon": "fas fa-grip-lines"

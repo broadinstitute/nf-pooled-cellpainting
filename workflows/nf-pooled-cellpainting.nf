@@ -70,7 +70,6 @@ workflow POOLED_CELLPAINTING {
         ch_samplesheet_cp,
         cppipes,
         params.range_skip,
-        params.crop_percent
     )
     ch_versions = ch_versions.mix(CELLPAINTING.out.versions)
 
@@ -81,7 +80,6 @@ workflow POOLED_CELLPAINTING {
         ch_samplesheet_sbs,
         cppipes,
         barcodes,
-        params.crop_percent
     )
     ch_versions = ch_versions.mix(BARCODING.out.versions)
 
