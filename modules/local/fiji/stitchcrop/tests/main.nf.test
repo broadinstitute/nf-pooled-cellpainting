@@ -31,7 +31,6 @@ nextflow_process {
                 ]
                 // Stitch script
                 input[1] = file("\${projectDir}/bin/stitch_crop.py", checkIfExists: true)
-                input[2] = 25
                 """
             }
         }
