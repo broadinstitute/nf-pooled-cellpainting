@@ -96,14 +96,14 @@ localtemp = "/tmp/FIJI_temp"  # Temporary directory
 rows = "2"  # Number of rows in the site grid
 columns = "2"  # Number of columns in the site grid
 
-# Dynamically set size based on crop percentage (default to 25% crop)
+# Dynamically set size based on crop percentage (default to no crop for real datasets)
 # Original images are 1600x1600, after crop:
-# - 25% crop (CROP_PERCENT=25): 400x400
+# - 25% crop (CROP_PERCENT=25): 400x400 (test data)
 # - 50% crop (CROP_PERCENT=50): 800x800
-# - No crop: ~1480x1480 (with some built-in crop)
-crop_percent_str = os.getenv("CROP_PERCENT")
+# - No crop (default): ~1480x1480 (with some built-in crop)
+crop_percent_str = os.getenv("CROP_PERCENT", "100")
 if not crop_percent_str:  # Handle empty string case
-    crop_percent_str = "25"
+    crop_percent_str = "100"
 crop_percent = int(crop_percent_str)
 if crop_percent == 25:
     size = "400"
@@ -467,8 +467,8 @@ if os.path.isdir(input_dir):
                 filename = thisprefix + "_Well_" + eachwell + "_Site_{i}_" + thissuffix
 
                 # Set up output filenames with well prefix for flat structure
-                # Format: Plate1-A1_Stitched_DNA.tiff
-                fileoutname = "{}_Stitched_{}.tiff".format(well_prefix, thissuffixnicename)
+                # Format: Plate1-A1-DNA-Stitched.tiff
+                fileoutname = "{}-{}-Stitched.tiff".format(well_prefix, thissuffixnicename)
 
                 # STEP 7: Run the ImageJ stitching operation for this channel and well
                 IJ.run(
@@ -578,11 +578,11 @@ if os.path.isdir(input_dir):
                         im_tile = im.crop()
 
                         # Save the cropped tile with well prefix
-                        # Format: Plate1-A1_DNA_Site_1.tiff
-                        tile_filename = "{}_{}_Site_{}.tiff".format(
+                        # Format: Plate1-A1-Site1-DNA.tiff
+                        tile_filename = "{}-Site{}-{}.tiff".format(
                             well_prefix,
-                            thissuffixnicename,
-                            each_tile_num
+                            each_tile_num,
+                            thissuffixnicename
                         )
                         savefile(
                             im_tile,

@@ -3,9 +3,10 @@ process FIJI_STITCHCROP {
     label 'process_medium'
 
     conda "${moduleDir}/environment.yml"
-    container 'docker.io/fiji/fiji:latest'
+    container 'docker.io/fiji/fiji:20220415'
 
     containerOptions {
+        // Fiji docker image has an entrypoint that interferes with Nextflow's command execution
         workflow.containerEngine == 'docker' ? '--entrypoint=""' : ''
     }
 
