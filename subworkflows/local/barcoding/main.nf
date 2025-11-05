@@ -4,10 +4,8 @@
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
 
-include { CELLPROFILER_LOAD_DATA_CSV as ILLUMINATION_LOAD_DATA_CSV }                  from '../cellprofiler_load_data_csv'
 include { CELLPROFILER_ILLUMCALC }                                                    from '../../../modules/local/cellprofiler/illumcalc'
 include { QC_MONTAGEILLUM as QC_MONTAGE_ILLUM }                                       from '../../../modules/local/qc/montageillum'
-include { CELLPROFILER_LOAD_DATA_CSV_WITH_ILLUM as ILLUMINATION_APPLY_LOAD_DATA_CSV } from '../cellprofiler_load_data_csv_with_illum'
 include { CELLPROFILER_ILLUMAPPLY as CELLPROFILER_ILLUMAPPLY_BARCODING }              from '../../../modules/local/cellprofiler/illumapply'
 include { CELLPROFILER_PREPROCESS }                                                   from '../../../modules/local/cellprofiler/preprocess'
 include { FIJI_STITCHCROP }                                                           from '../../../modules/local/fiji/stitchcrop'
@@ -19,19 +17,33 @@ workflow BARCODING {
     barcodes
 
     main:
-    ch_versions = Channel.empty()
-    ch_cropped_images = Channel.empty()
+    ch_versions = channel.empty()
+    ch_cropped_images = channel.empty()
 
-    ILLUMINATION_LOAD_DATA_CSV (
-        ch_samplesheet_sbs,
-        ['batch', 'plate','cycle','channels'],
-        'illumination_sbs_calc',
-        true
-    )
+    // Group images by batch, plate, cycle, and channels for illumination calculation
+    ch_samplesheet_sbs
+        .map { meta, image ->
+            def group_key = [
+                batch: meta.batch,
+                plate: meta.plate,
+                cycle: meta.cycle,
+                channels: meta.channels,
+                id: "${meta.batch}_${meta.plate}_${meta.cycle}_${meta.channels}"
+            ]
+            [group_key, image]
+        }
+        .groupTuple()
+        .map { meta, images ->
+            // Get unique images
+            def unique_images = images.unique()
+            [meta, meta.channels, meta.cycle, unique_images]
+        }
+        .set { ch_illumcalc_input }
 
     CELLPROFILER_ILLUMCALC (
-        ILLUMINATION_LOAD_DATA_CSV.out.images_with_load_data_csv,
-        cppipes['illumination_calc_sbs']
+        ch_illumcalc_input,
+        cppipes['illumination_calc_sbs'],
+        true  // has_cycles = true for barcoding
     )
     ch_versions = ch_versions.mix(CELLPROFILER_ILLUMCALC.out.versions)
 
@@ -52,18 +64,12 @@ workflow BARCODING {
     )
     ch_versions = ch_versions.mix(QC_MONTAGE_ILLUM.out.versions)
 
-    // //// Apply illumination correction ////
-    ILLUMINATION_APPLY_LOAD_DATA_CSV(
-        ch_samplesheet_sbs,
-        ['batch', 'plate','arm','well'],
-        CELLPROFILER_ILLUMCALC.out.illumination_corrections,
-        'illumination_sbs_apply',
-        true
-    )
+    // logic to group files for ILLUMAPPLY
 
     CELLPROFILER_ILLUMAPPLY_BARCODING (
-        ILLUMINATION_APPLY_LOAD_DATA_CSV.out.images_with_illum_load_data_csv,
-        cppipes['illumination_apply_sbs']
+        ch_illumapply_input,
+        cppipes['illumination_apply_sbs'],
+        true  // has_cycles = true for barcoding
     )
     ch_versions = ch_versions.mix(CELLPROFILER_ILLUMAPPLY_BARCODING.out.versions)
 
@@ -77,7 +83,7 @@ workflow BARCODING {
         ch_sbs_corr_images,
         cppipes['preprocess_sbs'],
         barcodes,
-        Channel.fromPath("${projectDir}/assets/cellprofiler_plugins/*").collect()  // All Cellprofiler plugins
+        channel.fromPath("${projectDir}/assets/cellprofiler_plugins/*").collect()  // All Cellprofiler plugins
     )
     ch_versions = ch_versions.mix(CELLPROFILER_PREPROCESS.out.versions)
 

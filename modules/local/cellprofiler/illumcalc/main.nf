@@ -8,8 +8,9 @@ process CELLPROFILER_ILLUMCALC {
         : 'community.wave.seqera.io/library/cellprofiler:4.2.8--aff0a99749304a7f'}"
 
     input:
-    tuple val(meta), val(channels), path(images, stageAs: "images/*"), path(load_data_csv)
+    tuple val(meta), val(channels), val(cycle), path(images, stageAs: "images/*")
     path illumination_cppipe
+    val has_cycles
 
     output:
     tuple val(meta), path("*.npy"), emit: illumination_corrections
@@ -19,7 +20,19 @@ process CELLPROFILER_ILLUMCALC {
     task.ext.when == null || task.ext.when
 
     script:
+    def cycles_flag = has_cycles ? "--has-cycles" : ""
+    def cycle_arg = cycle ? "--cycle ${cycle}" : ""
+    def plate_arg = meta.plate ? "--plate ${meta.plate}" : ""
     """
+    # Generate load_data.csv
+    generate_load_data_csv.py \\
+        --pipeline-type illumcalc \\
+        --images-dir ./images \\
+        --output load_data.csv \\
+        --channels "${channels}" \\
+        ${cycle_arg} \\
+        ${plate_arg} \\
+        ${cycles_flag}
 
     # Check if illumination_cppipe ends with .template
     if [[ "${illumination_cppipe}" == *.template ]]; then
@@ -68,12 +81,12 @@ process CELLPROFILER_ILLUMCALC {
         cp ${illumination_cppipe} illumination.cppipe
     fi
 
-    cellprofiler -c -r \
-    ${task.ext.args ?: ''} \
-    -p illumination.cppipe \
-    -o . \
-    --data-file=${load_data_csv} \
-    --image-directory ./images/
+    cellprofiler -c -r \\
+        ${task.ext.args ?: ''} \\
+        -p illumination.cppipe \\
+        -o . \\
+        --data-file=load_data.csv \\
+        --image-directory ./images/
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
