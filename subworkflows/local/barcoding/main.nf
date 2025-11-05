@@ -64,7 +64,60 @@ workflow BARCODING {
     )
     ch_versions = ch_versions.mix(QC_MONTAGE_ILLUM.out.versions)
 
-    // logic to group files for ILLUMAPPLY
+    // Group images by well for ILLUMAPPLY
+    // Each well should get all its images across all cycles
+    ch_samplesheet_sbs
+        .map { meta, image ->
+            def group_key = [
+                batch: meta.batch,
+                plate: meta.plate,
+                well: meta.well,
+                channels: meta.channels,
+                arm: meta.arm,
+                id: "${meta.batch}_${meta.plate}_${meta.well}"
+            ]
+            [group_key, image, meta.cycle]
+        }
+        .groupTuple()
+        .map { meta, images, cycles ->
+            // Get unique images and cycles
+            def unique_images = images.unique()
+            def unique_cycles = cycles.unique().sort()
+            [meta, meta.channels, unique_cycles, unique_images]
+        }
+        .set { ch_images_by_well }
+
+    // Group npy files by batch and plate
+    // All wells in a plate share the same illumination correction files
+    CELLPROFILER_ILLUMCALC.out.illumination_corrections
+        .map { meta, npy_files ->
+            def group_key = [
+                batch: meta.batch,
+                plate: meta.plate
+            ]
+            [group_key, npy_files]
+        }
+        .groupTuple()
+        .map { meta, npy_files_list ->
+            [meta, npy_files_list.flatten()]
+        }
+        .set { ch_npy_by_plate }
+
+    // Combine images with npy files
+    // Each well gets all the npy files for its plate
+    ch_images_by_well
+        .map { meta, channels, cycles, images ->
+            def plate_key = [
+                batch: meta.batch,
+                plate: meta.plate
+            ]
+            [plate_key, meta, channels, cycles, images]
+        }
+        .combine(ch_npy_by_plate, by: 0)
+        .map { _plate_key, meta, channels, cycles, images, npy_files ->
+            [meta, channels, cycles, images, npy_files]
+        }
+        .set { ch_illumapply_input }
 
     CELLPROFILER_ILLUMAPPLY_BARCODING (
         ch_illumapply_input,

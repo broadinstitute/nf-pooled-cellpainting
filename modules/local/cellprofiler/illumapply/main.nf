@@ -21,7 +21,7 @@ process CELLPROFILER_ILLUMAPPLY {
 
     script:
     def cycles_flag = has_cycles ? "--has-cycles" : ""
-    def cycles_arg = cycles ? "--cycles ${cycles}" : ""
+    def cycles_arg = cycles ? "--cycles ${cycles.join(',')}" : ""
     def plate_arg = meta.plate ? "--plate ${meta.plate}" : ""
     """
     generate_load_data_csv.py \\

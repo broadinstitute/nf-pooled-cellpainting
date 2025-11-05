@@ -66,7 +66,59 @@ workflow CELLPAINTING {
         ".*\\.npy\$"  // Pattern for painting: all .npy files
     )
 
-    // logic to group files for ILLUMAPPLY
+    // Group images by well for ILLUMAPPLY
+    // Each well should get all its images (no cycles for cellpainting)
+    ch_samplesheet_cp
+        .map { meta, image ->
+            def group_key = [
+                batch: meta.batch,
+                plate: meta.plate,
+                well: meta.well,
+                channels: meta.channels,
+                arm: meta.arm,
+                id: "${meta.batch}_${meta.plate}_${meta.well}"
+            ]
+            [group_key, image]
+        }
+        .groupTuple()
+        .map { meta, images ->
+            // Get unique images
+            def unique_images = images.unique()
+            [meta, meta.channels, null, unique_images]  // null for cycles since cellpainting has no cycles
+        }
+        .set { ch_images_by_well }
+
+    // Group npy files by batch and plate
+    // All wells in a plate share the same illumination correction files
+    CELLPROFILER_ILLUMCALC.out.illumination_corrections
+        .map { meta, npy_files ->
+            def group_key = [
+                batch: meta.batch,
+                plate: meta.plate
+            ]
+            [group_key, npy_files]
+        }
+        .groupTuple()
+        .map { meta, npy_files_list ->
+            [meta, npy_files_list.flatten()]
+        }
+        .set { ch_npy_by_plate }
+
+    // Combine images with npy files
+    // Each well gets all the npy files for its plate
+    ch_images_by_well
+        .map { meta, channels, cycles, images ->
+            def plate_key = [
+                batch: meta.batch,
+                plate: meta.plate
+            ]
+            [plate_key, meta, channels, cycles, images]
+        }
+        .combine(ch_npy_by_plate, by: 0)
+        .map { _plate_key, meta, channels, cycles, images, npy_files ->
+            [meta, channels, cycles, images, npy_files]
+        }
+        .set { ch_illumapply_input }
 
     // Apply illumination correction to images
     CELLPROFILER_ILLUMAPPLY (
