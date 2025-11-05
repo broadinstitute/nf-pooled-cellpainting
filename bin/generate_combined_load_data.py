@@ -30,7 +30,7 @@ def parse_combined_image(filename: str) -> Optional[Dict]:
     Returns dict with: plate, well, site, type, and either (channel) or (cycle, channel)
     """
     # Try barcoding cropped pattern with cycles first
-    barcode_cycle_pattern = r'(Plate\d+)-([A-Z]\d+)-Site(\d+)-Cycle(\d+)-([ACGT]|DNA|DAPI)\.tiff?'
+    barcode_cycle_pattern = r'(Plate\d+)-([A-Z]\d+)-Site(\d+)-Cycle(\d+)_([ACGT]|DNA|DAPI)\.tiff?'
     barcode_cycle_match = re.match(barcode_cycle_pattern, filename)
 
     if barcode_cycle_match:
@@ -111,7 +111,7 @@ def collect_and_group_files(images_dir: str) -> Dict[Tuple, Dict]:
         raise IOError(f"Error searching for files in {images_dir}: {e}")
 
     # Combined analysis file pattern
-    file_pattern = r'(Plate\d+-[A-Z]\d+-Site\d+-Corr.*\.tiff?|Plate\d+-[A-Z]\d+-Site\d+-Cycle\d+-(A|C|G|T|DNA|DAPI)\.tiff?|Plate\d+-[A-Z]\d+-Site\d+-(A|C|G|T|DNA|DAPI)\.tiff?)$'
+    file_pattern = r'(Plate\d+-[A-Z]\d+-Site\d+-Corr.*\.tiff?|Plate\d+-[A-Z]\d+-Site\d+-Cycle\d+_([ACGT]|DNA|DAPI)\.tiff?|Plate\d+-[A-Z]\d+-Site\d+_([ACGT]|DNA|DAPI)\.tiff?)$'
 
     # Filter to matching files
     image_files = [

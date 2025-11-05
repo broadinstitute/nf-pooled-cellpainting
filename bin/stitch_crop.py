@@ -563,8 +563,8 @@ if os.path.isdir(input_dir):
                 # STEP 11: Crop the stitched image into tiles
                 for eachxtile in range(tileperside):
                     for eachytile in range(tileperside):
-                        # Calculate the tile number (1-based)
-                        each_tile_num = eachxtile * tileperside + eachytile + 1
+                        # Calculate the tile number (0-based, matching samplesheet)
+                        each_tile_num = eachxtile * tileperside + eachytile
 
                         # Select a rectangular region for this tile
                         IJ.makeRectangle(
@@ -578,7 +578,7 @@ if os.path.isdir(input_dir):
                         im_tile = im.crop()
 
                         # Save the cropped tile with well prefix
-                        # Format: Plate1-A1-Site1-DNA.tiff
+                        # Format: Plate1-A1-Site0-DNA.tiff
                         tile_filename = "{}-Site{}-{}.tiff".format(
                             well_prefix,
                             each_tile_num,

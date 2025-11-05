@@ -90,7 +90,7 @@ workflow POOLED_CELLPAINTING {
         .mix(BARCODING.out.cropped_images)
         .flatMap { meta, images ->
             images.collect { image ->
-                def site_match = image.baseName =~ /Site_(\d+)/
+                def site_match = image.baseName =~ /Site(\d+)/
                 def site = site_match ? "Site_${site_match[0][1]}" : "Site_unknown"
                 def new_meta = meta.subMap(['batch', 'plate', 'well']) + [id: "${meta.batch}-${meta.plate}-${meta.well}-${site}", site: site]
                 [new_meta, image]
