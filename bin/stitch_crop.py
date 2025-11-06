@@ -563,8 +563,8 @@ if os.path.isdir(input_dir):
                 # STEP 11: Crop the stitched image into tiles
                 for eachxtile in range(tileperside):
                     for eachytile in range(tileperside):
-                        # Calculate the tile number (0-based, matching samplesheet)
-                        each_tile_num = eachxtile * tileperside + eachytile
+                        # Calculate the tile number (1-indexed, matching samplesheet)
+                        each_tile_num = eachxtile * tileperside + eachytile + 1
 
                         # Select a rectangular region for this tile
                         IJ.makeRectangle(
@@ -579,11 +579,11 @@ if os.path.isdir(input_dir):
 
                         # Save the cropped tile with new naming pattern
                         # Format: Plate_Plate1_Well_A1_Site_1_DNA.tiff
-                        # Site number is 1-indexed (0 becomes 1, 1 becomes 2, etc.)
+                        # Site number matches the samplesheet (1-indexed, no conversion)
                         tile_filename = "Plate_{}_Well_{}_Site_{}_{}.tiff".format(
                             plate_id,
                             eachwell,
-                            each_tile_num + 1,  # Convert to 1-indexed
+                            each_tile_num,  # Use site number directly from samplesheet
                             thissuffixnicename
                         )
                         savefile(
