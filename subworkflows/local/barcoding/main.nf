@@ -42,7 +42,7 @@ workflow BARCODING {
 
     CELLPROFILER_ILLUMCALC (
         ch_illumcalc_input,
-        cppipes['illumination_calc_sbs'],
+        cppipes['barcoding_illumcalc_pipe'],
         true  // has_cycles = true for barcoding
     )
     ch_versions = ch_versions.mix(CELLPROFILER_ILLUMCALC.out.versions)
@@ -121,7 +121,7 @@ workflow BARCODING {
 
     CELLPROFILER_ILLUMAPPLY_BARCODING (
         ch_illumapply_input,
-        cppipes['illumination_apply_sbs'],
+        cppipes['barcoding_illumapply_pipe'],
         true  // has_cycles = true for barcoding
     )
     ch_versions = ch_versions.mix(CELLPROFILER_ILLUMAPPLY_BARCODING.out.versions)
@@ -134,7 +134,7 @@ workflow BARCODING {
     //// Barcoding preprocessing ////
     CELLPROFILER_PREPROCESS (
         ch_sbs_corr_images,
-        cppipes['preprocess_sbs'],
+        cppipes['barcoding_preprocess_cppipe'],
         barcodes,
         channel.fromPath("${projectDir}/assets/cellprofiler_plugins/*").collect()  // All Cellprofiler plugins
     )

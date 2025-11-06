@@ -112,29 +112,29 @@
             "description": "Paths to custom cellprofiler pipeline files (cppipe)",
             "default": "",
             "properties": {
-                "cp_illum_calc_pipe": {
+                "painting_illumcalc_cppipe": {
                     "type": "string",
-                    "description": "Cellprofiler pipeline for Cell painting illumination calculation."
+                    "description": "Cellprofiler pipeline for painting illumination calculation."
                 },
-                "cp_illum_apply_pipe": {
+                "painting_illumapply_cppipe": {
                     "type": "string",
-                    "description": "Cellprofiler pipeline for applying illumination profiles for cell painting arm."
+                    "description": "Cellprofiler pipeline for applying illumination profiles for painting arm."
                 },
-                "cp_segcheck_pipe": {
+                "painting_segcheck_cppipe": {
                     "type": "string",
                     "description": "Cellprofiler pipeline for running segmentation QC check."
                 },
-                "sbs_illum_calc_pipe": {
+                "barcoding_illumcalc_cppipe": {
                     "type": "string",
-                    "description": "Cellprofiler pipeline for SBS illumination calculation."
+                    "description": "Cellprofiler pipeline for barcoding arm illumination calculation."
                 },
-                "sbs_illum_apply_pipe": {
+                "barcoding_illumapply_cppipe": {
                     "type": "string",
                     "description": "Cellprofiler pipeline for illumination profiles for barcoding arm."
                 },
-                "sbs_preprocess_pipe": {
+                "barcoding_preprocess_cppipe": {
                     "type": "string",
-                    "description": "Cellprofiler pipeline for SBS preprocessing."
+                    "description": "Cellprofiler pipeline for barcoding preprocessing."
                 },
                 "combinedanalysis_cppipe": {
                     "type": "string",
@@ -142,13 +142,13 @@
                 }
             },
             "required": [
-                "cp_illum_calc_pipe",
-                "cp_illum_apply_pipe",
-                "cp_segcheck_pipe",
-                "sbs_illum_calc_pipe",
-                "sbs_illum_apply_pipe",
-                "sbs_preprocess_pipe",
-                "combinedanalysis_cppipe"
+                "combinedanalysis_cppipe",
+                "painting_illumcalc_cppipe",
+                "painting_illumapply_cppipe",
+                "painting_segcheck_cppipe",
+                "barcoding_illumcalc_cppipe",
+                "barcoding_illumapply_cppipe",
+                "barcoding_preprocess_cppipe"
             ]
         },
         "institutional_config_options": {

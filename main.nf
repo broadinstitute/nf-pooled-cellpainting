@@ -32,14 +32,15 @@ workflow NF_POOLED_CELLPAINTING {
 
     main:
 
+    // Generate a map of CellProfiler pipelines
     cppipes = [
-        'illumination_calc_cp'    : params.cp_illum_calc_pipe, 
-        'illumination_apply_cp'   : params.cp_illum_apply_pipe,
-        'illumination_calc_sbs'   : params.sbs_illum_calc_pipe,
-        'illumination_apply_sbs'  : params.sbs_illum_apply_pipe,
-        'segcheck_cp'             : params.cp_segcheck_pipe,
-        'preprocess_sbs'          : params.sbs_preprocess_pipe,
-        'combinedanalysis_cppipe' : params.combinedanalysis_cppipe
+        'painting_illumcalc_cppipe'    : params.painting_illumcalc_cppipe,
+        'painting_illumapply_cppipe'   : params.painting_illumapply_cppipe,
+        'painting_segcheck_cppipe'     : params.painting_segcheck_cppipe,
+        'barcoding_illumcalc_cppipe'   : params.barcoding_illumcalc_cppipe,
+        'barcoding_illumapply_cppipe'  : params.barcoding_illumapply_cppipe,
+        'barcoding_preprocess_cppipe'  : params.barcoding_preprocess_cppipe,
+        'combinedanalysis_cppipe'      : params.combinedanalysis_cppipe
     ]
 
     //
