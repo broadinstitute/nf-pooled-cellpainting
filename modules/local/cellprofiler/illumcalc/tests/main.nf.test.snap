@@ -9,15 +9,15 @@
                         "channels": "CHN2-AF488",
                         "id": "Batch1_Plate1_CHN2-AF488"
                     },
-                    "Plate1_IllumCHN2-AF488.npy:md5,2e163331a7e3eec2a88cb4cf3947841a"
+                    "Plate1_IllumCHN2-AF488.npy:md5,dcf072c2e25cbeb8ca8c9d9044c2ff34"
                 ]
             ]
         ],
         "meta": {
-            "nf-test": "0.9.2",
-            "nextflow": "25.04.7"
+            "nf-test": "0.9.3",
+            "nextflow": "25.10.0"
         },
-        "timestamp": "2025-10-08T20:02:04.050054"
+        "timestamp": "2025-11-06T19:24:28.244774439"
     },
     "cellprofiler - illumcalc - multi-channel - in parallel": {
         "content": [
@@ -29,15 +29,15 @@
                         "channels": "CHN2-AF488",
                         "id": "Batch1_Plate1_CHN2-AF488"
                     },
-                    "Plate1_IllumCHN2-AF488.npy:md5,2e163331a7e3eec2a88cb4cf3947841a"
+                    "Plate1_IllumCHN2-AF488.npy:md5,dcf072c2e25cbeb8ca8c9d9044c2ff34"
                 ]
             ]
         ],
         "meta": {
-            "nf-test": "0.9.2",
-            "nextflow": "25.04.7"
+            "nf-test": "0.9.3",
+            "nextflow": "25.10.0"
         },
-        "timestamp": "2025-10-08T20:02:40.898949"
+        "timestamp": "2025-11-06T19:24:44.421491721"
     },
     "cellprofiler - illumcalc - stub": {
         "content": [
@@ -73,9 +73,9 @@
             }
         ],
         "meta": {
-            "nf-test": "0.9.2",
-            "nextflow": "25.04.7"
+            "nf-test": "0.9.3",
+            "nextflow": "25.10.0"
         },
-        "timestamp": "2025-10-08T20:02:53.567195"
+        "timestamp": "2025-11-06T19:24:55.245107321"
     }
 }

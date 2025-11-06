@@ -124,7 +124,7 @@
                             "well": "A1",
                             "id": "Batch1_Plate1_painting_A1"
                         },
-                        "Plate1-A1-CorrCHN2-Stitched.tiff:md5,27bc343b8e7ab64c309f887d45ef2b71"
+                        "Plate1-A1-CorrCHN2-Stitched.tiff:md5,c999f2c8aaebcd1fbfdb1af086fee63e"
                     ]
                 ],
                 "1": [
@@ -149,10 +149,10 @@
                             "id": "Batch1_Plate1_painting_A1"
                         },
                         [
-                            "Plate_Plate1_Well_A1_Site_1_CorrCHN2.tiff:md5,da4278a1615e31d56180d68f1430e481",
-                            "Plate_Plate1_Well_A1_Site_2_CorrCHN2.tiff:md5,b1e220ca7c579efcb82b08c1d44407cd",
-                            "Plate_Plate1_Well_A1_Site_3_CorrCHN2.tiff:md5,1e0894b8e489adc8845217fb6a3f1942",
-                            "Plate_Plate1_Well_A1_Site_4_CorrCHN2.tiff:md5,b9c5a9afa7f8d0ef708c44124da9e411"
+                            "Plate_Plate1_Well_A1_Site_1_CorrCHN2.tiff:md5,6703ea3b5f84b2c35202676db3f528be",
+                            "Plate_Plate1_Well_A1_Site_2_CorrCHN2.tiff:md5,a98280594e4c1942ede2182f2d1cb346",
+                            "Plate_Plate1_Well_A1_Site_3_CorrCHN2.tiff:md5,a98280594e4c1942ede2182f2d1cb346",
+                            "Plate_Plate1_Well_A1_Site_4_CorrCHN2.tiff:md5,a98280594e4c1942ede2182f2d1cb346"
                         ]
                     ]
                 ],
@@ -165,7 +165,7 @@
                             "well": "A1",
                             "id": "Batch1_Plate1_painting_A1"
                         },
-                        "Plate1-A1-CorrCHN2-Stitched.tiff:md5,be397878119d2868c094bf2c304d5cf1"
+                        "Plate1-A1-CorrCHN2-Stitched.tiff:md5,5cd9819bcfd6360219f8f6a5c2e81924"
                     ]
                 ],
                 "4": [
@@ -181,10 +181,10 @@
                             "id": "Batch1_Plate1_painting_A1"
                         },
                         [
-                            "Plate_Plate1_Well_A1_Site_1_CorrCHN2.tiff:md5,da4278a1615e31d56180d68f1430e481",
-                            "Plate_Plate1_Well_A1_Site_2_CorrCHN2.tiff:md5,b1e220ca7c579efcb82b08c1d44407cd",
-                            "Plate_Plate1_Well_A1_Site_3_CorrCHN2.tiff:md5,1e0894b8e489adc8845217fb6a3f1942",
-                            "Plate_Plate1_Well_A1_Site_4_CorrCHN2.tiff:md5,b9c5a9afa7f8d0ef708c44124da9e411"
+                            "Plate_Plate1_Well_A1_Site_1_CorrCHN2.tiff:md5,6703ea3b5f84b2c35202676db3f528be",
+                            "Plate_Plate1_Well_A1_Site_2_CorrCHN2.tiff:md5,a98280594e4c1942ede2182f2d1cb346",
+                            "Plate_Plate1_Well_A1_Site_3_CorrCHN2.tiff:md5,a98280594e4c1942ede2182f2d1cb346",
+                            "Plate_Plate1_Well_A1_Site_4_CorrCHN2.tiff:md5,a98280594e4c1942ede2182f2d1cb346"
                         ]
                     ]
                 ],
@@ -197,7 +197,7 @@
                             "well": "A1",
                             "id": "Batch1_Plate1_painting_A1"
                         },
-                        "Plate1-A1-CorrCHN2-Stitched.tiff:md5,be397878119d2868c094bf2c304d5cf1"
+                        "Plate1-A1-CorrCHN2-Stitched.tiff:md5,5cd9819bcfd6360219f8f6a5c2e81924"
                     ]
                 ],
                 "stitched_images": [
@@ -209,7 +209,7 @@
                             "well": "A1",
                             "id": "Batch1_Plate1_painting_A1"
                         },
-                        "Plate1-A1-CorrCHN2-Stitched.tiff:md5,27bc343b8e7ab64c309f887d45ef2b71"
+                        "Plate1-A1-CorrCHN2-Stitched.tiff:md5,c999f2c8aaebcd1fbfdb1af086fee63e"
                     ]
                 ],
                 "tile_config": [
@@ -233,6 +233,6 @@
             "nf-test": "0.9.3",
             "nextflow": "25.10.0"
         },
-        "timestamp": "2025-11-06T15:55:15.364579742"
+        "timestamp": "2025-11-06T19:26:27.748698349"
     }
 }
