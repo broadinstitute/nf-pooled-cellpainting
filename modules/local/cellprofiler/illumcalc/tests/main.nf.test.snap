@@ -1,5 +1,5 @@
 {
-    "cellprofiler - illumcalc - multi-channel - not parallel": {
+    "cellprofiler - illumcalc": {
         "content": [
             [
                 [
@@ -17,27 +17,7 @@
             "nf-test": "0.9.3",
             "nextflow": "25.10.0"
         },
-        "timestamp": "2025-11-06T19:24:28.244774439"
-    },
-    "cellprofiler - illumcalc - multi-channel - in parallel": {
-        "content": [
-            [
-                [
-                    {
-                        "batch": "Batch1",
-                        "plate": "Plate1",
-                        "channels": "CHN2-AF488",
-                        "id": "Batch1_Plate1_CHN2-AF488"
-                    },
-                    "Plate1_IllumCHN2-AF488.npy:md5,dcf072c2e25cbeb8ca8c9d9044c2ff34"
-                ]
-            ]
-        ],
-        "meta": {
-            "nf-test": "0.9.3",
-            "nextflow": "25.10.0"
-        },
-        "timestamp": "2025-11-06T19:24:44.421491721"
+        "timestamp": "2025-11-06T20:26:18.698746879"
     },
     "cellprofiler - illumcalc - stub": {
         "content": [
