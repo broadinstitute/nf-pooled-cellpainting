@@ -22,15 +22,16 @@ def parse_combined_image(filename: str) -> Optional[Dict]:
     Parse combined analysis image filenames from both cell painting and barcoding.
 
     Patterns:
-    - Cell painting corrected: Plate{plate}-{well}-Site{site}-Corr{channel}.tiff
-    - Barcoding cropped with cycles: Plate{plate}-{well}-Site{site}-Cycle{cycle}-{channel}.tiff
-    - Barcoding cropped without cycles: Plate{plate}-{well}-Site{site}-{channel}.tiff
-      where channel is one of A, C, G, T, DNA, DAPI
+    - Cell painting corrected: Plate_{plate}_Well_{well}_Site_{site}_Corr{channel}.tiff
+    - Barcoding cropped with cycles: Plate_{plate}_Well_{well}_Site_{site}_Cycle{cycle}_{channel}.tiff
+      where cycle is 2-digit zero-padded (01, 02, ..., 10, 11, etc.)
+      and channel is one of A, C, G, T, DNA, DAPI
 
     Returns dict with: plate, well, site, type, and either (channel) or (cycle, channel)
     """
     # Try barcoding cropped pattern with cycles first
-    barcode_cycle_pattern = r'(Plate\d+)-([A-Z]\d+)-Site(\d+)-Cycle(\d+)-([ACGT]|DNA|DAPI)\.tiff?'
+    # Note: cycle is 2-digit zero-padded (\d{2}) to handle cycles > 9
+    barcode_cycle_pattern = r'Plate_([A-Za-z0-9]+)_Well_([A-Z]\d+)_Site_(\d+)_Cycle(\d{2})_([ACGT]|DNA|DAPI)\.tiff?'
     barcode_cycle_match = re.match(barcode_cycle_pattern, filename)
 
     if barcode_cycle_match:
@@ -43,21 +44,8 @@ def parse_combined_image(filename: str) -> Optional[Dict]:
             'type': 'barcoding'
         }
 
-    # Try barcoding cropped pattern without cycles
-    barcode_pattern = r'(Plate\d+)-([A-Z]\d+)-Site(\d+)-([ACGT]|DNA|DAPI)\.tiff?'
-    barcode_match = re.match(barcode_pattern, filename)
-
-    if barcode_match:
-        return {
-            'plate': barcode_match.group(1),
-            'well': barcode_match.group(2),
-            'site': int(barcode_match.group(3)),
-            'channel': 'DNA' if barcode_match.group(4) == 'DAPI' else barcode_match.group(4),
-            'type': 'barcoding'
-        }
-
     # Try cell painting corrected pattern
-    cp_pattern = r'(Plate\d+)-([A-Z]\d+)-Site(\d+)-Corr(.+?)\.tiff?'
+    cp_pattern = r'Plate_([A-Za-z0-9]+)_Well_([A-Z]\d+)_Site_(\d+)_Corr(.+?)\.tiff?'
     cp_match = re.match(cp_pattern, filename)
 
     if cp_match:
@@ -76,9 +64,16 @@ def infer_plate_well_from_path(file_path: str) -> Tuple[Optional[str], Optional[
     """
     Infer plate and well from file path for barcoding files.
 
-    Looks for patterns like 'Plate1/Plate1-A1/' or 'Plate1-A1/' in the path.
+    Looks for patterns like 'Plate1/Plate1-A1/' or 'Plate1-A1/' in the path,
+    or from the new filename format 'Plate_PlateID_Well_WellID_...'
     Returns: (plate, well) tuple or (None, None) if not found
     """
+    # First try to extract from filename using new naming pattern
+    filename = os.path.basename(file_path)
+    filename_match = re.match(r'Plate_([A-Za-z0-9]+)_Well_([A-Z]\d+)_', filename)
+    if filename_match:
+        return filename_match.group(1), filename_match.group(2)
+
     # Try pattern with plate directory: Plate1/Plate1-A1/
     match = re.search(r'(Plate\d+)/(Plate\d+)-([A-Z]\d+)', file_path)
     if match:
@@ -110,8 +105,8 @@ def collect_and_group_files(images_dir: str) -> Dict[Tuple, Dict]:
     except Exception as e:
         raise IOError(f"Error searching for files in {images_dir}: {e}")
 
-    # Combined analysis file pattern
-    file_pattern = r'(Plate\d+-[A-Z]\d+-Site\d+-Corr.*\.tiff?|Plate\d+-[A-Z]\d+-Site\d+-Cycle\d+-(A|C|G|T|DNA|DAPI)\.tiff?|Plate\d+-[A-Z]\d+-Site\d+-(A|C|G|T|DNA|DAPI)\.tiff?)$'
+    # Combined analysis file pattern - matches new naming scheme
+    file_pattern = r'(Plate_[A-Za-z0-9]+_Well_[A-Z]\d+_Site_\d+_Corr.*\.tiff?|Plate_[A-Za-z0-9]+_Well_[A-Z]\d+_Site_\d+_Cycle\d{2}_([ACGT]|DNA|DAPI)\.tiff?)$'
 
     # Filter to matching files
     image_files = [
@@ -123,9 +118,8 @@ def collect_and_group_files(images_dir: str) -> Dict[Tuple, Dict]:
         raise ValueError(
             f"No combined analysis image files found in {images_dir}\n"
             f"Expected patterns:\n"
-            f"  - Cell painting: Plate#-Well-Site#-CorrChannel.tiff\n"
-            f"  - Barcoding with cycles: Plate#-Well-Site#-Cycle##-Channel.tiff\n"
-            f"  - Barcoding without cycles: Plate#-Well-Site#-Channel.tiff"
+            f"  - Cell painting: Plate_PlateID_Well_WellID_Site_#_CorrChannel.tiff\n"
+            f"  - Barcoding with cycles: Plate_PlateID_Well_WellID_Site_#_Cycle##_Channel.tiff"
         )
 
     print(f"✓ Found {len(image_files)} image files to process", file=sys.stderr)
@@ -151,20 +145,11 @@ def collect_and_group_files(images_dir: str) -> Dict[Tuple, Dict]:
             print(f"⚠ Skipping '{filename}': does not match expected pattern", file=sys.stderr)
             continue
 
-        # Get plate, well, site
+        # Get plate, well, site from parsed filename
+        # With the new naming pattern, all files have plate/well/site in the filename
         try:
-            # For barcoding files, plate/well must be inferred from path
-            if parsed.get('type') == 'barcoding':
-                inferred_plate, inferred_well = infer_plate_well_from_path(img_path)
-                if not inferred_plate or not inferred_well:
-                    raise ValueError(f"Could not infer plate/well from path: {img_path}")
-                plate = inferred_plate
-                well = inferred_well
-            else:
-                # Cell painting files have plate/well in filename
-                plate = parsed['plate']
-                well = parsed['well']
-
+            plate = parsed['plate']
+            well = parsed['well']
             site = parsed['site']
 
         except (KeyError, ValueError) as e:

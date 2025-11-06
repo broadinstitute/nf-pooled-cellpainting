@@ -3,8 +3,6 @@
     IMPORT MODULES / SUBWORKFLOWS / FUNCTIONS
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
-include { CELLPROFILER_LOAD_DATA_CSV as ILLUMINATION_CALC_LOAD_DATA_CSV }             from '../cellprofiler_load_data_csv'
-include { CELLPROFILER_LOAD_DATA_CSV_WITH_ILLUM as ILLUMINATION_APPLY_LOAD_DATA_CSV } from '../cellprofiler_load_data_csv_with_illum'
 include { CELLPROFILER_ILLUMCALC }                                                    from '../../../modules/local/cellprofiler/illumcalc'
 include { QC_MONTAGEILLUM as QC_MONTAGE_ILLUM }                                       from '../../../modules/local/qc/montageillum'
 include { QC_MONTAGEILLUM as QC_MONTAGE_SEGCHECK }                                    from '../../../modules/local/qc/montageillum'
@@ -19,23 +17,35 @@ workflow CELLPAINTING {
     range_skip
 
     main:
-    ch_versions = Channel.empty()
-    ch_cropped_images = Channel.empty()
+    ch_versions = channel.empty()
+    ch_cropped_images = channel.empty()
 
     //// Calculate illumination correction profiles ////
 
-    // Generate load_data.csv files for calculating illumination correction profiles
-    ILLUMINATION_CALC_LOAD_DATA_CSV (
-        ch_samplesheet_cp,
-        ['batch', 'plate', 'channels'],
-        'illumination_cp_calc',
-        false
-    )
+    // Group images by batch, plate, and channels for illumination calculation
+    ch_samplesheet_cp
+        .map { meta, image ->
+            def group_key = [
+                batch: meta.batch,
+                plate: meta.plate,
+                channels: meta.channels,
+                id: "${meta.batch}_${meta.plate}_${meta.channels}"
+            ]
+            [group_key, image]
+        }
+        .groupTuple()
+        .map { meta, images ->
+            // Get unique images
+            def unique_images = images.unique()
+            [meta, meta.channels, null, unique_images]  // null for cycle since cellpainting has no cycles
+        }
+        .set { ch_illumcalc_input }
 
     // Calculate illumination correction profiles
     CELLPROFILER_ILLUMCALC (
-        ILLUMINATION_CALC_LOAD_DATA_CSV.out.images_with_load_data_csv,
-        cppipes['illumination_calc_cp']
+        ch_illumcalc_input,
+        cppipes['illumination_calc_cp'],
+        false  // has_cycles = false for cellpainting
     )
 
     ch_versions = ch_versions.mix(CELLPROFILER_ILLUMCALC.out.versions)
@@ -56,21 +66,65 @@ workflow CELLPAINTING {
         ".*\\.npy\$"  // Pattern for painting: all .npy files
     )
 
-    //// Apply illumination correction ////
+    // Group images by well for ILLUMAPPLY
+    // Each well should get all its images (no cycles for cellpainting)
+    ch_samplesheet_cp
+        .map { meta, image ->
+            def group_key = [
+                batch: meta.batch,
+                plate: meta.plate,
+                well: meta.well,
+                channels: meta.channels,
+                arm: meta.arm,
+                id: "${meta.batch}_${meta.plate}_${meta.well}"
+            ]
+            [group_key, image]
+        }
+        .groupTuple()
+        .map { meta, images ->
+            // Get unique images
+            def unique_images = images.unique()
+            [meta, meta.channels, null, unique_images]  // null for cycles since cellpainting has no cycles
+        }
+        .set { ch_images_by_well }
 
-    // Generate load_data.csv files for applying illumination correction
-    ILLUMINATION_APPLY_LOAD_DATA_CSV(
-        ch_samplesheet_cp,
-        ['batch', 'plate','arm','well'],
-        CELLPROFILER_ILLUMCALC.out.illumination_corrections,
-        'illumination_cp_apply',
-        false
-    )
+    // Group npy files by batch and plate
+    // All wells in a plate share the same illumination correction files
+    CELLPROFILER_ILLUMCALC.out.illumination_corrections
+        .map { meta, npy_files ->
+            def group_key = [
+                batch: meta.batch,
+                plate: meta.plate
+            ]
+            [group_key, npy_files]
+        }
+        .groupTuple()
+        .map { meta, npy_files_list ->
+            [meta, npy_files_list.flatten()]
+        }
+        .set { ch_npy_by_plate }
+
+    // Combine images with npy files
+    // Each well gets all the npy files for its plate
+    ch_images_by_well
+        .map { meta, channels, cycles, images ->
+            def plate_key = [
+                batch: meta.batch,
+                plate: meta.plate
+            ]
+            [plate_key, meta, channels, cycles, images]
+        }
+        .combine(ch_npy_by_plate, by: 0)
+        .map { _plate_key, meta, channels, cycles, images, npy_files ->
+            [meta, channels, cycles, images, npy_files]
+        }
+        .set { ch_illumapply_input }
 
     // Apply illumination correction to images
     CELLPROFILER_ILLUMAPPLY (
-        ILLUMINATION_APPLY_LOAD_DATA_CSV.out.images_with_illum_load_data_csv,
-        cppipes['illumination_apply_cp']
+        ch_illumapply_input,
+        cppipes['illumination_apply_cp'],
+        false  // has_cycles = false for cellpainting
     )
     ch_versions = ch_versions.mix(CELLPROFILER_ILLUMAPPLY.out.versions)
 

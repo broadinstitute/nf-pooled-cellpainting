@@ -14,6 +14,8 @@ nextflow_process {
                 """
                 input[0] = [
                     [batch:'Batch1', plate:'Plate1', arm:'CP', well:'A01', id:'Batch1_Plate1_painting_A1'],
+                    'Phalloidin,CHN2,DNA',
+                    null,
                     [   file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1_sub25/Source1/images/Batch1/images/Plate1/20X_CP_Plate1_20240319_122800_179/WellA1_PointA1_0000_ChannelPhalloAF750,CHN2-AF488,DAPI_Seq0000.ome.tiff"),
                         file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1_sub25/Source1/images/Batch1/images/Plate1/20X_CP_Plate1_20240319_122800_179/WellA1_PointA1_0001_ChannelPhalloAF750,CHN2-AF488,DAPI_Seq0001.ome.tiff"),
                         file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1_sub25/Source1/images/Batch1/images/Plate1/20X_CP_Plate1_20240319_122800_179/WellA1_PointA1_0002_ChannelPhalloAF750,CHN2-AF488,DAPI_Seq0002.ome.tiff"),
@@ -22,10 +24,10 @@ nextflow_process {
                     [   file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/images/Batch1/illum/Plate1/Plate1_IllumPhalloidin.npy"),
                         file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/images/Batch1/illum/Plate1/Plate1_IllumCHN2.npy"),
                         file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/images/Batch1/illum/Plate1/Plate1_IllumDNA.npy")
-                    ],
-                    file("${projectDir}/modules/local/cellprofiler/illumapply/tests/load_data.csv", checkIfExists: true)
+                    ]
                 ]
                 input[1] = file("${projectDir}/assets/cellprofiler/cp_illumination_apply.cppipe.template")
+                input[2] = false
                 """
             }
         }
@@ -48,6 +50,8 @@ nextflow_process {
                 """
                 input[0] = [
                     [batch:'Batch1', plate:'Plate1', arm:'CP', well:'A01', id:'Batch1_Plate1_painting_A1'],
+                    'Phalloidin,CHN2,DNA',
+                    null,
                     [   file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1_sub25/Source1/images/Batch1/images/Plate1/20X_CP_Plate1_20240319_122800_179/WellA1_PointA1_0000_ChannelPhalloAF750,CHN2-AF488,DAPI_Seq0000.ome.tiff"),
                         file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1_sub25/Source1/images/Batch1/images/Plate1/20X_CP_Plate1_20240319_122800_179/WellA1_PointA1_0001_ChannelPhalloAF750,CHN2-AF488,DAPI_Seq0001.ome.tiff"),
                         file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1_sub25/Source1/images/Batch1/images/Plate1/20X_CP_Plate1_20240319_122800_179/WellA1_PointA1_0002_ChannelPhalloAF750,CHN2-AF488,DAPI_Seq0002.ome.tiff"),
@@ -56,10 +60,10 @@ nextflow_process {
                     [   file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/images/Batch1/illum/Plate1/Plate1_IllumPhalloidin.npy"),
                         file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/images/Batch1/illum/Plate1/Plate1_IllumCHN2.npy"),
                         file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/images/Batch1/illum/Plate1/Plate1_IllumDNA.npy")
-                    ],
-                    file("${projectDir}/modules/local/cellprofiler/illumapply/tests/load_data.csv", checkIfExists: true)
+                    ]
                 ]
                 input[1] = file("${projectDir}/assets/cellprofiler/cp_illumination_apply.cppipe.template")
+                input[2] = false
                 """
             }
         }

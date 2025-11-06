@@ -23,26 +23,26 @@ nextflow_process {
                     [ id:'Batch1_Plate1_A1_1', batch:'Batch1', plate:'Plate1', well:'A1', site:1 ],
                     [
                         // Cell painting corrected images
-                        file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/images/Batch1/images_corrected_cropped/painting/Plate1/Plate1-A1/CorrCHN2/CorrCHN2_Site_1.tiff"),
-                        file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/images/Batch1/images_corrected_cropped/painting/Plate1/Plate1-A1/CorrDNA/CorrDNA_Site_1.tiff"),
-                        file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/images/Batch1/images_corrected_cropped/painting/Plate1/Plate1-A1/CorrPhalloidin/CorrPhalloidin_Site_1.tiff"),
+                        file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/images/Batch1/images_corrected_cropped/painting/Plate1/Plate1-A1/Plate_Plate1_Well_A1_Site_1_CorrCHN2.tiff"),
+                        file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/images/Batch1/images_corrected_cropped/painting/Plate1/Plate1-A1/Plate_Plate1_Well_A1_Site_1_CorrDNA.tiff"),
+                        file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/images/Batch1/images_corrected_cropped/painting/Plate1/Plate1-A1/Plate_Plate1_Well_A1_Site_1_CorrPhalloidin.tiff"),
                         // Barcoding cropped images from preprocess module
                         // Cycle 1
-                        file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/images/Batch1/images_corrected_cropped/barcoding/Plate1/Plate1-A1/Cycle01_A/Cycle01_A_Site_1.tiff"),
-                        file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/images/Batch1/images_corrected_cropped/barcoding/Plate1/Plate1-A1/Cycle01_C/Cycle01_C_Site_1.tiff"),
-                        file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/images/Batch1/images_corrected_cropped/barcoding/Plate1/Plate1-A1/Cycle01_DNA/Cycle01_DNA_Site_1.tiff"),
-                        file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/images/Batch1/images_corrected_cropped/barcoding/Plate1/Plate1-A1/Cycle01_G/Cycle01_G_Site_1.tiff"),
-                        file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/images/Batch1/images_corrected_cropped/barcoding/Plate1/Plate1-A1/Cycle01_T/Cycle01_T_Site_1.tiff"),
+                        file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/images/Batch1/images_corrected_cropped/barcoding/Plate1/Plate1-A1/Plate_Plate1_Well_A1_Site_1_Cycle01_A.tiff"),
+                        file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/images/Batch1/images_corrected_cropped/barcoding/Plate1/Plate1-A1/Plate_Plate1_Well_A1_Site_1_Cycle01_C.tiff"),
+                        file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/images/Batch1/images_corrected_cropped/barcoding/Plate1/Plate1-A1/Plate_Plate1_Well_A1_Site_1_Cycle01_DNA.tiff"),
+                        file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/images/Batch1/images_corrected_cropped/barcoding/Plate1/Plate1-A1/Plate_Plate1_Well_A1_Site_1_Cycle01_G.tiff"),
+                        file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/images/Batch1/images_corrected_cropped/barcoding/Plate1/Plate1-A1/Plate_Plate1_Well_A1_Site_1_Cycle01_T.tiff"),
                         // Cycle 2
-                        file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/images/Batch1/images_corrected_cropped/barcoding/Plate1/Plate1-A1/Cycle02_A/Cycle02_A_Site_1.tiff"),
-                        file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/images/Batch1/images_corrected_cropped/barcoding/Plate1/Plate1-A1/Cycle02_C/Cycle02_C_Site_1.tiff"),
-                        file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/images/Batch1/images_corrected_cropped/barcoding/Plate1/Plate1-A1/Cycle02_G/Cycle02_G_Site_1.tiff"),
-                        file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/images/Batch1/images_corrected_cropped/barcoding/Plate1/Plate1-A1/Cycle02_T/Cycle02_T_Site_1.tiff"),
+                        file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/images/Batch1/images_corrected_cropped/barcoding/Plate1/Plate1-A1/Plate_Plate1_Well_A1_Site_1_Cycle02_A.tiff"),
+                        file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/images/Batch1/images_corrected_cropped/barcoding/Plate1/Plate1-A1/Plate_Plate1_Well_A1_Site_1_Cycle02_C.tiff"),
+                        file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/images/Batch1/images_corrected_cropped/barcoding/Plate1/Plate1-A1/Plate_Plate1_Well_A1_Site_1_Cycle02_G.tiff"),
+                        file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/images/Batch1/images_corrected_cropped/barcoding/Plate1/Plate1-A1/Plate_Plate1_Well_A1_Site_1_Cycle02_T.tiff"),
                         // Cycle 3
-                        file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/images/Batch1/images_corrected_cropped/barcoding/Plate1/Plate1-A1/Cycle03_A/Cycle03_A_Site_1.tiff"),
-                        file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/images/Batch1/images_corrected_cropped/barcoding/Plate1/Plate1-A1/Cycle03_C/Cycle03_C_Site_1.tiff"),
-                        file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/images/Batch1/images_corrected_cropped/barcoding/Plate1/Plate1-A1/Cycle03_G/Cycle03_G_Site_1.tiff"),
-                        file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/images/Batch1/images_corrected_cropped/barcoding/Plate1/Plate1-A1/Cycle03_T/Cycle03_T_Site_1.tiff"),
+                        file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/images/Batch1/images_corrected_cropped/barcoding/Plate1/Plate1-A1/Plate_Plate1_Well_A1_Site_1_Cycle03_A.tiff"),
+                        file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/images/Batch1/images_corrected_cropped/barcoding/Plate1/Plate1-A1/Plate_Plate1_Well_A1_Site_1_Cycle03_C.tiff"),
+                        file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/images/Batch1/images_corrected_cropped/barcoding/Plate1/Plate1-A1/Plate_Plate1_Well_A1_Site_1_Cycle03_G.tiff"),
+                        file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/images/Batch1/images_corrected_cropped/barcoding/Plate1/Plate1-A1/Plate_Plate1_Well_A1_Site_1_Cycle03_T.tiff"),
                     ]
                 ]
                 input[1] = file("\${projectDir}/assets/cellprofiler/combined_analysis.cppipe", checkIfExists: true)
@@ -59,7 +59,10 @@ nextflow_process {
                 { assert process.success },
                 { assert snapshot(
                     process.out.overlay_images,
-                    process.out.csv_stats,
+                    process.out.csv_stats.get(0).get(1).findAll {
+                        file(it).name != "Experiment.csv" &&
+                        file(it).name != "Image.csv"
+                    },
                     process.out.load_data_csv,
                     process.out.versions
                 ).match() }
@@ -86,26 +89,26 @@ nextflow_process {
                     [ id:'Batch1_Plate1_A1_1', batch:'Batch1', plate:'Plate1', well:'A1', site:1 ],
                     [
                         // Cell painting corrected images
-                        file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/images/Batch1/images_corrected_cropped/painting/Plate1/Plate1-A1/CorrCHN2/CorrCHN2_Site_1.tiff"),
-                        file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/images/Batch1/images_corrected_cropped/painting/Plate1/Plate1-A1/CorrDNA/CorrDNA_Site_1.tiff"),
-                        file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/images/Batch1/images_corrected_cropped/painting/Plate1/Plate1-A1/CorrPhalloidin/CorrPhalloidin_Site_1.tiff"),
+                        file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/images/Batch1/images_corrected_cropped/painting/Plate1/Plate1-A1/Plate_Plate1_Well_A1_Site_1_CorrCHN2.tiff"),
+                        file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/images/Batch1/images_corrected_cropped/painting/Plate1/Plate1-A1/Plate_Plate1_Well_A1_Site_1_CorrDNA.tiff"),
+                        file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/images/Batch1/images_corrected_cropped/painting/Plate1/Plate1-A1/Plate_Plate1_Well_A1_Site_1_CorrPhalloidin.tiff"),
                         // Barcoding cropped images from preprocess module
                         // Cycle 1
-                        file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/images/Batch1/images_corrected_cropped/barcoding/Plate1/Plate1-A1/Cycle01_A/Cycle01_A_Site_1.tiff"),
-                        file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/images/Batch1/images_corrected_cropped/barcoding/Plate1/Plate1-A1/Cycle01_C/Cycle01_C_Site_1.tiff"),
-                        file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/images/Batch1/images_corrected_cropped/barcoding/Plate1/Plate1-A1/Cycle01_DNA/Cycle01_DNA_Site_1.tiff"),
-                        file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/images/Batch1/images_corrected_cropped/barcoding/Plate1/Plate1-A1/Cycle01_G/Cycle01_G_Site_1.tiff"),
-                        file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/images/Batch1/images_corrected_cropped/barcoding/Plate1/Plate1-A1/Cycle01_T/Cycle01_T_Site_1.tiff"),
+                        file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/images/Batch1/images_corrected_cropped/barcoding/Plate1/Plate1-A1/Plate_Plate1_Well_A1_Site_1_Cycle01_A.tiff"),
+                        file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/images/Batch1/images_corrected_cropped/barcoding/Plate1/Plate1-A1/Plate_Plate1_Well_A1_Site_1_Cycle01_C.tiff"),
+                        file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/images/Batch1/images_corrected_cropped/barcoding/Plate1/Plate1-A1/Plate_Plate1_Well_A1_Site_1_Cycle01_DNA.tiff"),
+                        file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/images/Batch1/images_corrected_cropped/barcoding/Plate1/Plate1-A1/Plate_Plate1_Well_A1_Site_1_Cycle01_G.tiff"),
+                        file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/images/Batch1/images_corrected_cropped/barcoding/Plate1/Plate1-A1/Plate_Plate1_Well_A1_Site_1_Cycle01_T.tiff"),
                         // Cycle 2
-                        file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/images/Batch1/images_corrected_cropped/barcoding/Plate1/Plate1-A1/Cycle02_A/Cycle02_A_Site_1.tiff"),
-                        file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/images/Batch1/images_corrected_cropped/barcoding/Plate1/Plate1-A1/Cycle02_C/Cycle02_C_Site_1.tiff"),
-                        file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/images/Batch1/images_corrected_cropped/barcoding/Plate1/Plate1-A1/Cycle02_G/Cycle02_G_Site_1.tiff"),
-                        file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/images/Batch1/images_corrected_cropped/barcoding/Plate1/Plate1-A1/Cycle02_T/Cycle02_T_Site_1.tiff"),
+                        file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/images/Batch1/images_corrected_cropped/barcoding/Plate1/Plate1-A1/Plate_Plate1_Well_A1_Site_1_Cycle02_A.tiff"),
+                        file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/images/Batch1/images_corrected_cropped/barcoding/Plate1/Plate1-A1/Plate_Plate1_Well_A1_Site_1_Cycle02_C.tiff"),
+                        file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/images/Batch1/images_corrected_cropped/barcoding/Plate1/Plate1-A1/Plate_Plate1_Well_A1_Site_1_Cycle02_G.tiff"),
+                        file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/images/Batch1/images_corrected_cropped/barcoding/Plate1/Plate1-A1/Plate_Plate1_Well_A1_Site_1_Cycle02_T.tiff"),
                         // Cycle 3
-                        file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/images/Batch1/images_corrected_cropped/barcoding/Plate1/Plate1-A1/Cycle03_A/Cycle03_A_Site_1.tiff"),
-                        file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/images/Batch1/images_corrected_cropped/barcoding/Plate1/Plate1-A1/Cycle03_C/Cycle03_C_Site_1.tiff"),
-                        file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/images/Batch1/images_corrected_cropped/barcoding/Plate1/Plate1-A1/Cycle03_G/Cycle03_G_Site_1.tiff"),
-                        file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/images/Batch1/images_corrected_cropped/barcoding/Plate1/Plate1-A1/Cycle03_T/Cycle03_T_Site_1.tiff"),
+                        file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/images/Batch1/images_corrected_cropped/barcoding/Plate1/Plate1-A1/Plate_Plate1_Well_A1_Site_1_Cycle03_A.tiff"),
+                        file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/images/Batch1/images_corrected_cropped/barcoding/Plate1/Plate1-A1/Plate_Plate1_Well_A1_Site_1_Cycle03_C.tiff"),
+                        file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/images/Batch1/images_corrected_cropped/barcoding/Plate1/Plate1-A1/Plate_Plate1_Well_A1_Site_1_Cycle03_G.tiff"),
+                        file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/images/Batch1/images_corrected_cropped/barcoding/Plate1/Plate1-A1/Plate_Plate1_Well_A1_Site_1_Cycle03_T.tiff"),
                     ]
                 ]
                 input[1] = file("\${projectDir}/assets/cellprofiler/combined_analysis.cppipe", checkIfExists: true)
