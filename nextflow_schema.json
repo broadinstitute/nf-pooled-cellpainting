@@ -140,7 +140,16 @@
                     "type": "string",
                     "description": "Cellprofiler pipeline for combined analysis."
                 }
-            }
+            },
+            "required": [
+                "cp_illum_calc_pipe",
+                "cp_illum_apply_pipe",
+                "cp_segcheck_pipe",
+                "sbs_illum_calc_pipe",
+                "sbs_illum_apply_pipe",
+                "sbs_preprocess_pipe",
+                "combinedanalysis_cppipe"
+            ]
         },
         "institutional_config_options": {
             "title": "Institutional config options",
