@@ -48,8 +48,7 @@ workflow NF_POOLED_CELLPAINTING {
     POOLED_CELLPAINTING (
         samplesheet,
         params.barcodes,
-        cppipes,
-        params.multichannel_parallel
+        cppipes
     )
     // emit:
     // multiqc_report = POOLED_CELLPAINTING.out.multiqc_report // channel: /path/to/multiqc_report.html
