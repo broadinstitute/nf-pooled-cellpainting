@@ -577,11 +577,13 @@ if os.path.isdir(input_dir):
                         # Crop the selected region
                         im_tile = im.crop()
 
-                        # Save the cropped tile with well prefix
-                        # Format: Plate1-A1-Site0-DNA.tiff
-                        tile_filename = "{}-Site{}-{}.tiff".format(
-                            well_prefix,
-                            each_tile_num,
+                        # Save the cropped tile with new naming pattern
+                        # Format: Plate_Plate1_Well_A1_Site_1_DNA.tiff
+                        # Site number is 1-indexed (0 becomes 1, 1 becomes 2, etc.)
+                        tile_filename = "Plate_{}_Well_{}_Site_{}_{}.tiff".format(
+                            plate_id,
+                            eachwell,
+                            each_tile_num + 1,  # Convert to 1-indexed
                             thissuffixnicename
                         )
                         savefile(

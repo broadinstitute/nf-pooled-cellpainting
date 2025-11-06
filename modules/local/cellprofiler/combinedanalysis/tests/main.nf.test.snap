@@ -139,22 +139,48 @@
     "cellprofiler - combinedanalysis - cropped_images": {
         "content": [
             [
-                
+                [
+                    {
+                        "id": "Batch1_Plate1_A1_1",
+                        "batch": "Batch1",
+                        "plate": "Plate1",
+                        "well": "A1",
+                        "site": 1
+                    },
+                    [
+                        "Plate_Plate1_Well_A1_Site_1_CorrDNA_Overlay.png:md5,558d67be9c5df94ce28ecccd36f16816",
+                        "Plate_Plate1_Well_A1_Site_1_CorrDNA_SpotOverlay.png:md5,2aad3d6cbf610808eeb6df4c1b93abf2"
+                    ]
+                ]
             ],
             [
-                
+                "BarcodeFoci.csv:md5,369b07e7548aa5983fae15aa9c85a622",
+                "Cells.csv:md5,3ef63605eea80ff48eecd1919e5985bd",
+                "ConfluentRegions.csv:md5,a571723aaf676b899a9362c1eacf1b7d",
+                "Cytoplasm.csv:md5,5ab3918f2d39921532934c41e00266b9",
+                "Foci.csv:md5,d09b37eb4ad3233983efda281975700e",
+                "Foci_NonCellEdge.csv:md5,923156591d4f74bfb9ccadb9576647a7",
+                "Foci_PreMask.csv:md5,c3f364c619b5e388f8aa238d8523f058",
+                "Nuclei.csv:md5,f017cce0a06a70e90d7984b4e885d8f9",
+                "PreCells.csv:md5,59eb1c22358c63029aecd42d08e7c95b",
+                "RelateObjects.csv:md5,97688f3232e25310f47b8c1eced403df",
+                "ResizeCells.csv:md5,1528f5797b504200f8486418857a1638",
+                "ResizeConfluent.csv:md5,4c60f3b1f8805e61294a9e966038f042",
+                "ResizeNuclei.csv:md5,39cb23062d871f268f34acab7abc9a81",
+                "Resize_Foci.csv:md5,eff36225848122cc5f6c3d616bf454ad",
+                "load_data.csv:md5,51da288bdbcda5de97cb5d8843f1a37b"
             ],
             [
-                
+                "load_data.csv:md5,51da288bdbcda5de97cb5d8843f1a37b"
             ],
             [
-                
+                "versions.yml:md5,795803aa173c77404af3cf020ec3f8d2"
             ]
         ],
         "meta": {
-            "nf-test": "0.9.2",
+            "nf-test": "0.9.3",
             "nextflow": "25.10.0"
         },
-        "timestamp": "2025-11-04T15:20:11.40269"
+        "timestamp": "2025-11-06T14:50:06.112090985"
     }
 }
