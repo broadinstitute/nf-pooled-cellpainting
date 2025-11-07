@@ -14,6 +14,7 @@ process CELLPROFILER_ILLUMCALC {
 
     output:
     tuple val(meta), path("*.npy"), emit: illumination_corrections
+    path "load_data.csv", emit: load_data_csv
     path "versions.yml", emit: versions
 
     when:

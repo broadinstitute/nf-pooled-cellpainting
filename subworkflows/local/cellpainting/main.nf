@@ -49,6 +49,13 @@ workflow CELLPAINTING {
         painting_illumcalc_cppipe,
         false  // has_cycles = false for cellpainting
     )
+    // Merge load_data CSVs across all samples
+    CELLPROFILER_ILLUMCALC.out.load_data_csv.collectFile(
+        name: "painting-illumcalc.load_data.csv",
+        keepHeader: true,
+        skip: 1,
+        storeDir: "${params.outdir}/workspace/load_data_csv/"
+    )
 
     ch_versions = ch_versions.mix(CELLPROFILER_ILLUMCALC.out.versions)
 
@@ -129,6 +136,13 @@ workflow CELLPAINTING {
         false  // has_cycles = false for cellpainting
     )
     ch_versions = ch_versions.mix(CELLPROFILER_ILLUMAPPLY.out.versions)
+    // Merge load_data CSVs across all samples
+    CELLPROFILER_ILLUMAPPLY.out.load_data_csv.collectFile(
+        name: "painting-illumapply.load_data.csv",
+        keepHeader: true,
+        skip: 1,
+        storeDir: "${params.outdir}/workspace/load_data_csv/"
+    )
 
     // Reshape CELLPROFILER_ILLUMAPPLY output for SEGCHECK
     CELLPROFILER_ILLUMAPPLY.out.corrected_images.map{ meta, images, _csv ->
@@ -142,6 +156,13 @@ workflow CELLPAINTING {
         range_skip
     )
     ch_versions = ch_versions.mix(CELLPROFILER_SEGCHECK.out.versions)
+    // Merge load_data CSVs across all samples
+    CELLPROFILER_SEGCHECK.out.load_data_csv.collectFile(
+        name: "painting-segcheck.load_data.csv",
+        keepHeader: true,
+        skip: 1,
+        storeDir: "${params.outdir}/workspace/load_data_csv/"
+    )
 
     // Reshape CELLPROFILER_SEGCHECK output for QC montage
     CELLPROFILER_SEGCHECK.out.segcheck_res

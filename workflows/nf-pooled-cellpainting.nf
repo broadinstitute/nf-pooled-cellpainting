@@ -101,6 +101,15 @@ workflow POOLED_CELLPAINTING {
         barcodes,
         Channel.fromPath("${projectDir}/assets/cellprofiler_plugins/callbarcodes.py").collect()  // All Cellprofiler plugins
     )
+    ch_versions = ch_versions.mix(CELLPROFILER_COMBINEDANALYSIS.out.versions)
+    // Merge load_data CSVs across all samples
+    CELLPROFILER_COMBINEDANALYSIS.out.load_data_csv.collectFile(
+        name: "combined_analysis.load_data.csv",
+        keepHeader: true,
+        skip: 1,
+        storeDir: "${params.outdir}/workspace/load_data_csv/"
+    )
+    
 
     //
     // Collate and save software versions
@@ -109,7 +118,6 @@ workflow POOLED_CELLPAINTING {
         .collectFile(
             storeDir: "${params.outdir}/pipeline_info",
             name:  'nf-pooled-cellpainting_software_'  + 'mqc_'  + 'versions.yml',
-            sort: true,
             newLine: true
         ).set { ch_collated_versions }
 

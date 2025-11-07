@@ -50,6 +50,13 @@ workflow BARCODING {
         true  // has_cycles = true for barcoding
     )
     ch_versions = ch_versions.mix(CELLPROFILER_ILLUMCALC.out.versions)
+    // Merge load_data CSVs across all samples
+    CELLPROFILER_ILLUMCALC.out.load_data_csv.collectFile(
+        name: "barcoding-illumcalc.load_data.csv",
+        keepHeader: true,
+        skip: 1,
+        storeDir: "${params.outdir}/workspace/load_data_csv/"
+    )
 
     //// QC illumination correction profiles ////
     CELLPROFILER_ILLUMCALC.out.illumination_corrections
@@ -129,6 +136,13 @@ workflow BARCODING {
         true  // has_cycles = true for barcoding
     )
     ch_versions = ch_versions.mix(CELLPROFILER_ILLUMAPPLY_BARCODING.out.versions)
+    // Merge load_data CSVs across all samples
+    CELLPROFILER_ILLUMAPPLY_BARCODING.out.load_data_csv.collectFile(
+        name: "barcoding-illumapply.load_data.csv",
+        keepHeader: true,
+        skip: 1,
+        storeDir: "${params.outdir}/workspace/load_data_csv/"
+    )
 
     // Reshape CELLPROFILER_ILLUMAPPLY output for PREPROCESS
     CELLPROFILER_ILLUMAPPLY_BARCODING.out.corrected_images.map{ meta, images, _csv ->
@@ -143,14 +157,13 @@ workflow BARCODING {
         channel.fromPath("${projectDir}/assets/cellprofiler_plugins/*").collect()  // All Cellprofiler plugins
     )
     ch_versions = ch_versions.mix(CELLPROFILER_PREPROCESS.out.versions)
-
-    // Combine all load_data.csv files with shared header, grouped by batch and plate
-    CELLPROFILER_PREPROCESS.out.load_data_csv.collect().subscribe { csv_list ->
-        def all_records = csv_list.collectMany { it.splitCsv(header: true) }
-        def output = file("${params.outdir}/workspace/load_data_csv/barcoding-preprocess.load_data.csv")
-        output.parent.mkdirs()
-        mergeCsv(all_records, output, header: true, sep: ',')
-    }
+    // Merge load_data CSVs across all samples
+    CELLPROFILER_PREPROCESS.out.load_data_csv.collectFile(
+        name: "barcoding-preprocess.load_data.csv",
+        keepHeader: true,
+        skip: 1,
+        storeDir: "${params.outdir}/workspace/load_data_csv/"
+    )
 
     if (params.qc_barcoding_passed) {
         // STITCH & CROP IMAGES ////
