@@ -13,7 +13,9 @@ workflow CELLPAINTING {
 
     take:
     ch_samplesheet_cp
-    cppipes
+    painting_illumcalc_cppipe
+    painting_illumapply_cppipe
+    painting_segcheck_cppipe
     range_skip
 
     main:
@@ -44,7 +46,7 @@ workflow CELLPAINTING {
     // Calculate illumination correction profiles
     CELLPROFILER_ILLUMCALC (
         ch_illumcalc_input,
-        cppipes['painting_illumcalc_cppipe'],
+        painting_illumcalc_cppipe,
         false  // has_cycles = false for cellpainting
     )
 
@@ -123,7 +125,7 @@ workflow CELLPAINTING {
     // Apply illumination correction to images
     CELLPROFILER_ILLUMAPPLY (
         ch_illumapply_input,
-        cppipes['painting_illumapply_pipe'],
+        painting_illumapply_cppipe,
         false  // has_cycles = false for cellpainting
     )
     ch_versions = ch_versions.mix(CELLPROFILER_ILLUMAPPLY.out.versions)
@@ -136,7 +138,7 @@ workflow CELLPAINTING {
     //// Segmentation quality check ////
     CELLPROFILER_SEGCHECK (
         ch_sub_corr_images,
-        cppipes['painting_segcheck_cppipe'],
+        painting_segcheck_cppipe,
         range_skip
     )
     ch_versions = ch_versions.mix(CELLPROFILER_SEGCHECK.out.versions)
@@ -191,7 +193,7 @@ workflow CELLPAINTING {
         ch_cropped_images = FIJI_STITCHCROP.out.cropped_images
         ch_versions = ch_versions.mix(FIJI_STITCHCROP.out.versions)
     } else {
-        log.info "Skipping FIJI_STITCHCROP for painting arm: QC not passed (params.qc_painting_passed = false). Review QC montages and set qc_painting_passed=true to proceed."
+        log.info "Stopping before FIJI_STITCHCROP for painting arm: QC not passed (params.qc_painting_passed = false). Perform QC for painting assay and set qc_painting_passed=true to proceed."
     }
 
     emit:

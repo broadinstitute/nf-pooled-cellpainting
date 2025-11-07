@@ -13,7 +13,9 @@ workflow BARCODING {
 
     take:
     ch_samplesheet_sbs
-    cppipes
+    barcoding_illumcalc_cppipe
+    barcoding_illumapply_cppipe
+    barcoding_preprocess_cppipe
     barcodes
 
     main:
@@ -42,7 +44,7 @@ workflow BARCODING {
 
     CELLPROFILER_ILLUMCALC (
         ch_illumcalc_input,
-        cppipes['barcoding_illumcalc_pipe'],
+        barcoding_illumcalc_cppipe,
         true  // has_cycles = true for barcoding
     )
     ch_versions = ch_versions.mix(CELLPROFILER_ILLUMCALC.out.versions)
@@ -121,7 +123,7 @@ workflow BARCODING {
 
     CELLPROFILER_ILLUMAPPLY_BARCODING (
         ch_illumapply_input,
-        cppipes['barcoding_illumapply_pipe'],
+        barcoding_illumapply_cppipe,
         true  // has_cycles = true for barcoding
     )
     ch_versions = ch_versions.mix(CELLPROFILER_ILLUMAPPLY_BARCODING.out.versions)
@@ -134,7 +136,7 @@ workflow BARCODING {
     //// Barcoding preprocessing ////
     CELLPROFILER_PREPROCESS (
         ch_sbs_corr_images,
-        cppipes['barcoding_preprocess_cppipe'],
+        barcoding_preprocess_cppipe,
         barcodes,
         channel.fromPath("${projectDir}/assets/cellprofiler_plugins/*").collect()  // All Cellprofiler plugins
     )
@@ -158,7 +160,7 @@ workflow BARCODING {
     ch_versions = ch_versions.mix(FIJI_STITCHCROP.out.versions)
 
     } else {
-        log.info "Skipping FIJI_STITCHCROP for barcoding arm: QC not passed (params.qc_barcoding_passed = false). Review QC montages and set qc_barcoding_passed=true to proceed."
+        log.info "Stopping before FIJI_STITCHCROP for barcoding arm: QC not passed (params.qc_barcoding_passed = false). Perform QC for barcoding assay and set qc_barcoding_passed=true to proceed."
     }
 
     emit:

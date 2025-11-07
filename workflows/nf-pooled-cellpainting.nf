@@ -9,10 +9,10 @@ include { BARCODING                      } from '../subworkflows/local/barcoding
 include { CELLPROFILER_COMBINEDANALYSIS  } from '../modules/local/cellprofiler/combinedanalysis/main'
 
 
-include { paramsSummaryMap       } from 'plugin/nf-schema'
-include { paramsSummaryMultiqc   } from '../subworkflows/nf-core/utils_nfcore_pipeline'
-include { softwareVersionsToYAML } from '../subworkflows/nf-core/utils_nfcore_pipeline'
-include { methodsDescriptionText } from '../subworkflows/local/utils_nfcore_nf-pooled-cellpainting_pipeline'
+include { paramsSummaryMap               } from 'plugin/nf-schema'
+include { paramsSummaryMultiqc           } from '../subworkflows/nf-core/utils_nfcore_pipeline'
+include { softwareVersionsToYAML         } from '../subworkflows/nf-core/utils_nfcore_pipeline'
+include { methodsDescriptionText         } from '../subworkflows/local/utils_nfcore_nf-pooled-cellpainting_pipeline'
 
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -25,7 +25,6 @@ workflow POOLED_CELLPAINTING {
     take:
     ch_samplesheet           // channel: samplesheet read in from --input
     barcodes                 // file: path to barcodes.csv file
-    cppipes                  // array: paths to cpipe template files
 
     main:
 
@@ -44,22 +43,24 @@ workflow POOLED_CELLPAINTING {
 
         }
         .branch { meta, _images ->
-            cp: meta.arm == 'painting'
-            sbs: meta.arm == 'barcoding'
+            painting: meta.arm == 'painting'
+            barcoding: meta.arm == 'barcoding'
         }
 
     // Add meta.arm back into each channel
-    ch_samplesheet_cp = ch_samplesheet.cp.map { meta, image ->
+    ch_samplesheet_painting = ch_samplesheet.painting.map { meta, image ->
         [meta + [arm: 'painting'], image]
     }
-    ch_samplesheet_sbs = ch_samplesheet.sbs.map { meta, image ->
+    ch_samplesheet_barcoding = ch_samplesheet.barcoding.map { meta, image ->
         [meta + [arm: 'barcoding'], image]
     }
 
     // Process cell painting (CP) data
     CELLPAINTING (
-        ch_samplesheet_cp,
-        cppipes,
+        ch_samplesheet_painting,
+        params.painting_illumcalc_cppipe,
+        params.painting_illumapply_cppipe,
+        params.painting_segcheck_cppipe,
         params.range_skip,
     )
     ch_versions = ch_versions.mix(CELLPAINTING.out.versions)
@@ -68,8 +69,10 @@ workflow POOLED_CELLPAINTING {
 
     // Run barcoding subworkflow
     BARCODING(
-        ch_samplesheet_sbs,
-        cppipes,
+        ch_samplesheet_barcoding,
+        params.barcoding_illumcalc_cppipe,
+        params.barcoding_illumapply_cppipe,
+        params.barcoding_preprocess_cppipe,
         barcodes,
     )
     ch_versions = ch_versions.mix(BARCODING.out.versions)
@@ -94,7 +97,7 @@ workflow POOLED_CELLPAINTING {
 
     CELLPROFILER_COMBINEDANALYSIS (
         ch_cropped_images,
-        cppipes['combinedanalysis_cppipe'],
+        params.combinedanalysis_cppipe,
         barcodes,
         Channel.fromPath("${projectDir}/assets/cellprofiler_plugins/callbarcodes.py").collect()  // All Cellprofiler plugins
     )
