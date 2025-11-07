@@ -3,12 +3,14 @@
     IMPORT MODULES / SUBWORKFLOWS / FUNCTIONS
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
+include { mergeCsv ; mergeText } from 'plugin/nf-boost'
 
 include { CELLPROFILER_ILLUMCALC }                                                    from '../../../modules/local/cellprofiler/illumcalc'
 include { QC_MONTAGEILLUM as QC_MONTAGE_ILLUM }                                       from '../../../modules/local/qc/montageillum'
 include { CELLPROFILER_ILLUMAPPLY as CELLPROFILER_ILLUMAPPLY_BARCODING }              from '../../../modules/local/cellprofiler/illumapply'
 include { CELLPROFILER_PREPROCESS }                                                   from '../../../modules/local/cellprofiler/preprocess'
 include { FIJI_STITCHCROP }                                                           from '../../../modules/local/fiji/stitchcrop'
+
 workflow BARCODING {
 
     take:
@@ -143,12 +145,12 @@ workflow BARCODING {
     ch_versions = ch_versions.mix(CELLPROFILER_PREPROCESS.out.versions)
 
     // Combine all load_data.csv files with shared header, grouped by batch and plate
-    CombineLoadDataCSV.combine(
-        CELLPROFILER_PREPROCESS.out.load_data_csv,
-        ['batch', 'plate', 'arm'],
-        "${params.outdir}/workspace/load_data_csv",
-        'barcoding-preprocess'
-    )
+    CELLPROFILER_PREPROCESS.out.load_data_csv.collect().subscribe { csv_list ->
+        def all_records = csv_list.collectMany { it.splitCsv(header: true) }
+        def output = file("${params.outdir}/workspace/load_data_csv/barcoding-preprocess.load_data.csv")
+        output.parent.mkdirs()
+        mergeCsv(all_records, output, header: true, sep: ',')
+    }
 
     if (params.qc_barcoding_passed) {
         // STITCH & CROP IMAGES ////
