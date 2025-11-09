@@ -15,6 +15,7 @@ process CELLPROFILER_SEGCHECK {
 
     output:
     tuple val(meta), path("*.csv"), path("*.png"), emit: segcheck_res
+    path "load_data.csv"                         , emit: load_data_csv
     path "versions.yml"                          , emit: versions
 
     when:
@@ -43,6 +44,7 @@ process CELLPROFILER_SEGCHECK {
 
     stub:
     """
+    touch load_data.csv
     touch image1.png
     touch SegmentationCheck_Cells.csv
     touch SegmentationCheck_ConfluentRegions.csv

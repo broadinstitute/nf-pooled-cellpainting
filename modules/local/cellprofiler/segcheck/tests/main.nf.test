@@ -7,7 +7,7 @@ nextflow_process {
     tag "cellprofiler"
     tag "cellprofiler/segcheck"
 
-    test("cellprofiler - segcheck - microscopy_images") {
+    test("cellprofiler - segcheck - painting") {
 
         when {
             process {
@@ -20,7 +20,7 @@ nextflow_process {
                         file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/images/Batch1/images_corrected/painting/Plate1/Plate1-A1-0/Plate_Plate1_Well_A1_Site_0_CorrPhalloidin.tiff"),
                     ]
                 ]
-                input[1] = file("\${projectDir}/assets/cellprofiler/cp_segcheck.cppipe", checkIfExists: true)
+                input[1] = file("\${projectDir}/assets/cellprofiler/painting_segcheck.cppipe", checkIfExists: true)
                 input[2] = 1
                 """
             }
@@ -50,7 +50,7 @@ nextflow_process {
                         file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/images/Batch1/images_corrected/painting/Plate1/Plate1-A1-0/Plate_Plate1_Well_A1_Site_0_CorrPhalloidin.tiff"),
                     ]
                 ]
-                input[1] = file("\${projectDir}/assets/cellprofiler/cp_segcheck.cppipe", checkIfExists: true)
+                input[1] = file("\${projectDir}/assets/cellprofiler/painting_segcheck.cppipe", checkIfExists: true)
                 input[2] = 1
                 """
             }

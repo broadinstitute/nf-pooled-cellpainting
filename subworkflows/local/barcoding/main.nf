@@ -3,17 +3,19 @@
     IMPORT MODULES / SUBWORKFLOWS / FUNCTIONS
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
-
 include { CELLPROFILER_ILLUMCALC }                                                    from '../../../modules/local/cellprofiler/illumcalc'
 include { QC_MONTAGEILLUM as QC_MONTAGE_ILLUM }                                       from '../../../modules/local/qc/montageillum'
 include { CELLPROFILER_ILLUMAPPLY as CELLPROFILER_ILLUMAPPLY_BARCODING }              from '../../../modules/local/cellprofiler/illumapply'
 include { CELLPROFILER_PREPROCESS }                                                   from '../../../modules/local/cellprofiler/preprocess'
 include { FIJI_STITCHCROP }                                                           from '../../../modules/local/fiji/stitchcrop'
+
 workflow BARCODING {
 
     take:
     ch_samplesheet_sbs
-    cppipes
+    barcoding_illumcalc_cppipe
+    barcoding_illumapply_cppipe
+    barcoding_preprocess_cppipe
     barcodes
 
     main:
@@ -42,10 +44,17 @@ workflow BARCODING {
 
     CELLPROFILER_ILLUMCALC (
         ch_illumcalc_input,
-        cppipes['illumination_calc_sbs'],
+        barcoding_illumcalc_cppipe,
         true  // has_cycles = true for barcoding
     )
     ch_versions = ch_versions.mix(CELLPROFILER_ILLUMCALC.out.versions)
+    // Merge load_data CSVs across all samples
+    CELLPROFILER_ILLUMCALC.out.load_data_csv.collectFile(
+        name: "barcoding-illumcalc.load_data.csv",
+        keepHeader: true,
+        skip: 1,
+        storeDir: "${params.outdir}/workspace/load_data_csv/"
+    )
 
     //// QC illumination correction profiles ////
     CELLPROFILER_ILLUMCALC.out.illumination_corrections
@@ -121,10 +130,17 @@ workflow BARCODING {
 
     CELLPROFILER_ILLUMAPPLY_BARCODING (
         ch_illumapply_input,
-        cppipes['illumination_apply_sbs'],
+        barcoding_illumapply_cppipe,
         true  // has_cycles = true for barcoding
     )
     ch_versions = ch_versions.mix(CELLPROFILER_ILLUMAPPLY_BARCODING.out.versions)
+    // Merge load_data CSVs across all samples
+    CELLPROFILER_ILLUMAPPLY_BARCODING.out.load_data_csv.collectFile(
+        name: "barcoding-illumapply.load_data.csv",
+        keepHeader: true,
+        skip: 1,
+        storeDir: "${params.outdir}/workspace/load_data_csv/"
+    )
 
     // Reshape CELLPROFILER_ILLUMAPPLY output for PREPROCESS
     CELLPROFILER_ILLUMAPPLY_BARCODING.out.corrected_images.map{ meta, images, _csv ->
@@ -134,18 +150,17 @@ workflow BARCODING {
     //// Barcoding preprocessing ////
     CELLPROFILER_PREPROCESS (
         ch_sbs_corr_images,
-        cppipes['preprocess_sbs'],
+        barcoding_preprocess_cppipe,
         barcodes,
-        channel.fromPath("${projectDir}/assets/cellprofiler_plugins/*").collect()  // All Cellprofiler plugins
+        channel.fromPath([params.callbarcodes_plugin, params.compensatecolors_plugin]).collect()  // CellProfiler plugins
     )
     ch_versions = ch_versions.mix(CELLPROFILER_PREPROCESS.out.versions)
-
-    // Combine all load_data.csv files with shared header, grouped by batch and plate
-    CombineLoadDataCSV.combine(
-        CELLPROFILER_PREPROCESS.out.load_data_csv,
-        ['batch', 'plate', 'arm'],
-        "${params.outdir}/workspace/load_data_csv",
-        'barcoding-preprocess'
+    // Merge load_data CSVs across all samples
+    CELLPROFILER_PREPROCESS.out.load_data_csv.collectFile(
+        name: "barcoding-preprocess.load_data.csv",
+        keepHeader: true,
+        skip: 1,
+        storeDir: "${params.outdir}/workspace/load_data_csv/"
     )
 
     if (params.qc_barcoding_passed) {
@@ -158,7 +173,7 @@ workflow BARCODING {
     ch_versions = ch_versions.mix(FIJI_STITCHCROP.out.versions)
 
     } else {
-        log.info "Skipping FIJI_STITCHCROP for barcoding arm: QC not passed (params.qc_barcoding_passed = false). Review QC montages and set qc_barcoding_passed=true to proceed."
+        log.info "Stopping before FIJI_STITCHCROP for barcoding arm: QC not passed (params.qc_barcoding_passed = false). Perform QC for barcoding assay and set qc_barcoding_passed=true to proceed."
     }
 
     emit:

@@ -14,6 +14,7 @@ process CELLPROFILER_ILLUMAPPLY {
 
     output:
     tuple val(meta), path("*.tiff"), path("*.csv"), emit: corrected_images
+    path "load_data.csv", emit: load_data_csv
     path "versions.yml", emit: versions
 
     when:
@@ -53,6 +54,7 @@ process CELLPROFILER_ILLUMAPPLY {
     """
     echo $args
 
+    touch load_data.csv
     touch Plate_${meta.plate}_Well_${meta.well}_Site_${meta.site}_CorrPhalloidin.tiff
     touch PaintingIllumApplication_Cells.csv
     touch PaintingIllumApplication_ConfluentRegions.csv

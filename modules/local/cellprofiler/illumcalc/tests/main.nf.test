@@ -7,7 +7,7 @@ nextflow_process {
     tag "cellprofiler"
     tag "cellprofiler/illumcalc"
 
-    test("cellprofiler - illumcalc") {
+    test("cellprofiler - illumcalc - painting") {
 
         when {
             params {
@@ -32,7 +32,7 @@ nextflow_process {
                         file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1_sub25/Source1/images/Batch1/images/Plate1/20X_CP_Plate1_20240319_122800_179/WellB1_PointB1_0002_ChannelPhalloAF750,CHN2-AF488,DAPI_Seq3077.ome.tiff"),
                         file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1_sub25/Source1/images/Batch1/images/Plate1/20X_CP_Plate1_20240319_122800_179/WellB1_PointB1_0003_ChannelPhalloAF750,CHN2-AF488,DAPI_Seq3078.ome.tiff")]
                 ]
-                input[1] = "${projectDir}/assets/cellprofiler/cp_illumination_calc.cppipe.template"
+                input[1] = "${projectDir}/assets/cellprofiler/painting_illumcalc_cppipe.template"
                 input[2] = false
                 """
             }
@@ -71,7 +71,7 @@ nextflow_process {
                         file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1_sub25/Source1/images/Batch1/images/Plate1/20X_CP_Plate1_20240319_122800_179/WellB1_PointB1_0002_ChannelPhalloAF750,CHN2-AF488,DAPI_Seq3077.ome.tiff"),
                         file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1_sub25/Source1/images/Batch1/images/Plate1/20X_CP_Plate1_20240319_122800_179/WellB1_PointB1_0003_ChannelPhalloAF750,CHN2-AF488,DAPI_Seq3078.ome.tiff")]
                 ]
-                input[1] = "${projectDir}/assets/cellprofiler/cp_illumination_calc.cppipe.template"
+                input[1] = "${projectDir}/assets/cellprofiler/painting_illumcalc_cppipe.template"
                 input[2] = false
                 """
             }

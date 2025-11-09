@@ -7,7 +7,7 @@ nextflow_process {
     tag "cellprofiler"
     tag "cellprofiler/illumapply"
 
-    test("cellprofiler - illumapply") {
+    test("cellprofiler - illumapply - painting") {
 
         when {
             process {
@@ -26,7 +26,7 @@ nextflow_process {
                         file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/images/Batch1/illum/Plate1/Plate1_IllumDNA.npy")
                     ]
                 ]
-                input[1] = file("${projectDir}/assets/cellprofiler/cp_illumination_apply.cppipe.template")
+                input[1] = file("${projectDir}/assets/cellprofiler/painting_illumapply.cppipe")
                 input[2] = false
                 """
             }
@@ -62,7 +62,7 @@ nextflow_process {
                         file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/images/Batch1/illum/Plate1/Plate1_IllumDNA.npy")
                     ]
                 ]
-                input[1] = file("${projectDir}/assets/cellprofiler/cp_illumination_apply.cppipe.template")
+                input[1] = file("${projectDir}/assets/cellprofiler/painting_illumapply.cppipe")
                 input[2] = false
                 """
             }

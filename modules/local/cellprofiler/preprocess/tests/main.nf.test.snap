@@ -1,5 +1,5 @@
 {
-    "cellprofiler - preprocess - sbs_images": {
+    "cellprofiler - preprocess - barcoding": {
         "content": [
             [
                 [
@@ -50,10 +50,10 @@
             ]
         ],
         "meta": {
-            "nf-test": "0.9.2",
-            "nextflow": "25.04.7"
+            "nf-test": "0.9.3",
+            "nextflow": "25.10.0"
         },
-        "timestamp": "2025-10-17T14:25:15.40803"
+        "timestamp": "2025-11-07T19:52:55.369621889"
     },
     "cellprofiler - preprocess - sbs_images - stub": {
         "content": [
@@ -102,31 +102,13 @@
                     ]
                 ],
                 "3": [
-                    [
-                        {
-                            "id": "Batch1_Plate1_barcoding_A1",
-                            "batch": "Batch1",
-                            "plate": "Plate1",
-                            "well": "A1",
-                            "arm": "barcoding"
-                        },
-                        "load_data.csv:md5,d41d8cd98f00b204e9800998ecf8427e"
-                    ]
+                    "load_data.csv:md5,d41d8cd98f00b204e9800998ecf8427e"
                 ],
                 "4": [
                     "versions.yml:md5,f4b0463411335dba45560870b62c868c"
                 ],
                 "load_data_csv": [
-                    [
-                        {
-                            "id": "Batch1_Plate1_barcoding_A1",
-                            "batch": "Batch1",
-                            "plate": "Plate1",
-                            "well": "A1",
-                            "arm": "barcoding"
-                        },
-                        "load_data.csv:md5,d41d8cd98f00b204e9800998ecf8427e"
-                    ]
+                    "load_data.csv:md5,d41d8cd98f00b204e9800998ecf8427e"
                 ],
                 "overlay": [
                     [
@@ -177,9 +159,9 @@
             }
         ],
         "meta": {
-            "nf-test": "0.9.2",
-            "nextflow": "25.04.7"
+            "nf-test": "0.9.3",
+            "nextflow": "25.10.0"
         },
-        "timestamp": "2025-10-16T16:58:56.146413"
+        "timestamp": "2025-11-07T19:53:06.87553027"
     }
 }

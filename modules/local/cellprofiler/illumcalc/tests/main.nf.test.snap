@@ -1,5 +1,5 @@
 {
-    "cellprofiler - illumcalc": {
+    "cellprofiler - illumcalc - painting": {
         "content": [
             [
                 [
@@ -17,7 +17,7 @@
             "nf-test": "0.9.3",
             "nextflow": "25.10.0"
         },
-        "timestamp": "2025-11-06T20:26:18.698746879"
+        "timestamp": "2025-11-07T19:52:26.551860416"
     },
     "cellprofiler - illumcalc - stub": {
         "content": [
@@ -30,10 +30,13 @@
                             "channels": "CHN2-AF488",
                             "id": "Batch1_Plate1_CHN2-AF488"
                         },
-                        "Plate1_IllumCHN2-AF488.npy:md5,1950d1deb8bc1c4cc1c859cd0174ecc3"
+                        "Plate1_IllumCHN2-AF488.npy:md5,d41d8cd98f00b204e9800998ecf8427e"
                     ]
                 ],
                 "1": [
+                    "load_data.csv:md5,d41d8cd98f00b204e9800998ecf8427e"
+                ],
+                "2": [
                     "versions.yml:md5,98d323b6db96db92395d35d733f6af55"
                 ],
                 "illumination_corrections": [
@@ -44,8 +47,11 @@
                             "channels": "CHN2-AF488",
                             "id": "Batch1_Plate1_CHN2-AF488"
                         },
-                        "Plate1_IllumCHN2-AF488.npy:md5,1950d1deb8bc1c4cc1c859cd0174ecc3"
+                        "Plate1_IllumCHN2-AF488.npy:md5,d41d8cd98f00b204e9800998ecf8427e"
                     ]
+                ],
+                "load_data_csv": [
+                    "load_data.csv:md5,d41d8cd98f00b204e9800998ecf8427e"
                 ],
                 "versions": [
                     "versions.yml:md5,98d323b6db96db92395d35d733f6af55"
@@ -56,6 +62,6 @@
             "nf-test": "0.9.3",
             "nextflow": "25.10.0"
         },
-        "timestamp": "2025-11-06T19:24:55.245107321"
+        "timestamp": "2025-11-09T01:56:07.238342742"
     }
 }

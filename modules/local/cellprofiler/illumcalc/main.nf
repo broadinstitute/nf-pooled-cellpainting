@@ -14,6 +14,7 @@ process CELLPROFILER_ILLUMCALC {
 
     output:
     tuple val(meta), path("*.npy"), emit: illumination_corrections
+    path "load_data.csv", emit: load_data_csv
     path "versions.yml", emit: versions
 
     when:
@@ -96,7 +97,8 @@ process CELLPROFILER_ILLUMCALC {
 
     stub:
     """
-    echo 'this is not an illumination correction' > ${meta.plate}_Illum${channels}.npy
+    touch ${meta.plate}_Illum${channels}.npy
+    touch load_data.csv
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":

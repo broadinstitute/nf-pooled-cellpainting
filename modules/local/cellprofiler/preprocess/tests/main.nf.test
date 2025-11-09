@@ -7,7 +7,7 @@ nextflow_process {
     tag "cellprofiler"
     tag "cellprofiler/preprocess"
 
-    test("cellprofiler - preprocess - sbs_images") {
+    test("cellprofiler - preprocess - barcoding") {
 
         when {
             process {
@@ -37,11 +37,11 @@ nextflow_process {
 
                     ]
                 ]
-                input[1] = file("${projectDir}/assets/cellprofiler/sbs_preprocess.cppipe", checkIfExists: true)
+                input[1] = file("${projectDir}/assets/cellprofiler/barcoding_preprocess.cppipe", checkIfExists: true)
                 input[2] = file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/workspace/metadata/Barcodes.csv", checkIfExists: true)
                 input[3] = [
-                    file("${projectDir}/assets/cellprofiler_plugins/compensatecolors.py", checkIfExists: true),
-                    file("${projectDir}/assets/cellprofiler_plugins/callbarcodes.py", checkIfExists: true)
+                    file(params.compensatecolors_plugin, checkIfExists: true),
+                    file(params.callbarcodes_plugin, checkIfExists: true)
                 ]
                 """
             }
@@ -90,11 +90,11 @@ nextflow_process {
 
                     ]
                 ]
-                input[1] = file("${projectDir}/assets/cellprofiler/sbs_preprocess.cppipe", checkIfExists: true)
+                input[1] = file("${projectDir}/assets/cellprofiler/barcoding_preprocess.cppipe", checkIfExists: true)
                 input[2] = file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/workspace/metadata/Barcodes.csv", checkIfExists: true)
                 input[3] = [
-                    file("${projectDir}/assets/cellprofiler_plugins/compensatecolors.py", checkIfExists: true),
-                    file("${projectDir}/assets/cellprofiler_plugins/callbarcodes.py", checkIfExists: true)
+                    file(params.compensatecolors_plugin, checkIfExists: true),
+                    file(params.callbarcodes_plugin, checkIfExists: true)
                 ]
                 """
             }

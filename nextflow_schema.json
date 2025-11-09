@@ -51,6 +51,24 @@
                 }
             }
         },
+        "cellprofiler_plugins": {
+            "title": "Cellprofiler plugins",
+            "type": "object",
+            "description": "",
+            "default": "",
+            "properties": {
+                "callbarcodes_plugin": {
+                    "type": "string",
+                    "default": "https://raw.githubusercontent.com/CellProfiler/CellProfiler-plugins/refs/heads/master/active_plugins/callbarcodes.py",
+                    "description": "Cellprofiler plugin for calling barcodes."
+                },
+                "compensatecolors_plugin": {
+                    "type": "string",
+                    "default": "https://raw.githubusercontent.com/CellProfiler/CellProfiler-plugins/refs/heads/master/active_plugins/compensatecolors.py",
+                    "description": "Cellprofiler plugin for compensating colors."
+                }
+            }
+        },
         "cellpainting_options": {
             "title": "Cellpainting options",
             "type": "object",
@@ -112,35 +130,44 @@
             "description": "Paths to custom cellprofiler pipeline files (cppipe)",
             "default": "",
             "properties": {
-                "cp_illum_calc_pipe": {
+                "painting_illumcalc_cppipe": {
                     "type": "string",
-                    "description": "Cellprofiler pipeline for Cell painting illumination calculation."
+                    "description": "Cellprofiler pipeline for painting illumination calculation."
                 },
-                "cp_illum_apply_pipe": {
+                "painting_illumapply_cppipe": {
                     "type": "string",
-                    "description": "Cellprofiler pipeline for applying illumination profiles for cell painting arm."
+                    "description": "Cellprofiler pipeline for applying illumination profiles for painting arm."
                 },
-                "cp_segcheck_pipe": {
+                "painting_segcheck_cppipe": {
                     "type": "string",
                     "description": "Cellprofiler pipeline for running segmentation QC check."
                 },
-                "sbs_illum_calc_pipe": {
+                "barcoding_illumcalc_cppipe": {
                     "type": "string",
-                    "description": "Cellprofiler pipeline for SBS illumination calculation."
+                    "description": "Cellprofiler pipeline for barcoding arm illumination calculation."
                 },
-                "sbs_illum_apply_pipe": {
+                "barcoding_illumapply_cppipe": {
                     "type": "string",
                     "description": "Cellprofiler pipeline for illumination profiles for barcoding arm."
                 },
-                "sbs_preprocess_pipe": {
+                "barcoding_preprocess_cppipe": {
                     "type": "string",
-                    "description": "Cellprofiler pipeline for SBS preprocessing."
+                    "description": "Cellprofiler pipeline for barcoding preprocessing."
                 },
                 "combinedanalysis_cppipe": {
                     "type": "string",
                     "description": "Cellprofiler pipeline for combined analysis."
                 }
-            }
+            },
+            "required": [
+                "painting_illumcalc_cppipe",
+                "painting_illumapply_cppipe",
+                "painting_segcheck_cppipe",
+                "barcoding_illumcalc_cppipe",
+                "barcoding_illumapply_cppipe",
+                "barcoding_preprocess_cppipe",
+                "combinedanalysis_cppipe"
+            ]
         },
         "institutional_config_options": {
             "title": "Institutional config options",
@@ -270,6 +297,9 @@
     "allOf": [
         {
             "$ref": "#/$defs/input_output_options"
+        },
+        {
+            "$ref": "#/$defs/cellprofiler_plugins"
         },
         {
             "$ref": "#/$defs/cellpainting_options"
