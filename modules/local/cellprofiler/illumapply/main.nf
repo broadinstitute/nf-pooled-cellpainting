@@ -15,7 +15,7 @@ process CELLPROFILER_ILLUMAPPLY {
     output:
     tuple val(meta), path("*.tiff"), path("*.csv"), emit: corrected_images
     path "load_data.csv", emit: load_data_csv
-    path "versions.yml", emit: versions 
+    path "versions.yml", emit: versions
 
     when:
     task.ext.when == null || task.ext.when

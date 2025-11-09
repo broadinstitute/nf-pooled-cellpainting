@@ -109,7 +109,7 @@ workflow POOLED_CELLPAINTING {
         skip: 1,
         storeDir: "${params.outdir}/workspace/load_data_csv/"
     )
-    
+
 
     //
     // Collate and save software versions

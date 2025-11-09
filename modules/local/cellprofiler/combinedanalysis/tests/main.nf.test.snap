@@ -148,26 +148,26 @@
                         "site": 1
                     },
                     [
-                        "Plate_Plate1_Well_A1_Site_1_CorrDNA_Overlay.png:md5,558d67be9c5df94ce28ecccd36f16816",
-                        "Plate_Plate1_Well_A1_Site_1_CorrDNA_SpotOverlay.png:md5,2aad3d6cbf610808eeb6df4c1b93abf2"
+                        "Plate_Plate1_Well_A1_Site_1_CorrDNA_Overlay.png:md5,2cbc9510902fbf8ed005fbad4870765f",
+                        "Plate_Plate1_Well_A1_Site_1_CorrDNA_SpotOverlay.png:md5,2446ccc3366c2b13645fbaf0f1c1639f"
                     ]
                 ]
             ],
             [
-                "BarcodeFoci.csv:md5,369b07e7548aa5983fae15aa9c85a622",
-                "Cells.csv:md5,3ef63605eea80ff48eecd1919e5985bd",
+                "BarcodeFoci.csv:md5,50fdeb39dfc9feb493ea99c853d48247",
+                "Cells.csv:md5,cae890c62280ecb64c7ccf2f2af5d21f",
                 "ConfluentRegions.csv:md5,a571723aaf676b899a9362c1eacf1b7d",
-                "Cytoplasm.csv:md5,5ab3918f2d39921532934c41e00266b9",
-                "Foci.csv:md5,d09b37eb4ad3233983efda281975700e",
-                "Foci_NonCellEdge.csv:md5,923156591d4f74bfb9ccadb9576647a7",
-                "Foci_PreMask.csv:md5,c3f364c619b5e388f8aa238d8523f058",
-                "Nuclei.csv:md5,f017cce0a06a70e90d7984b4e885d8f9",
-                "PreCells.csv:md5,59eb1c22358c63029aecd42d08e7c95b",
-                "RelateObjects.csv:md5,97688f3232e25310f47b8c1eced403df",
-                "ResizeCells.csv:md5,1528f5797b504200f8486418857a1638",
+                "Cytoplasm.csv:md5,3c841d4b704bdabd6af4b6b0125ae009",
+                "Foci.csv:md5,7604b596cbba3b0219bfde83f7426e60",
+                "Foci_NonCellEdge.csv:md5,1e93f880215bc3027569b7cfcf3e7535",
+                "Foci_PreMask.csv:md5,c28ac85ded1923097b26ecebfebb77c0",
+                "Nuclei.csv:md5,5785e46fc060d258dd2dd36dc0bddf64",
+                "PreCells.csv:md5,aae61b9ce945eb5dab3beeeac923f258",
+                "RelateObjects.csv:md5,525d7b8563448cace8eb7f8218c04056",
+                "ResizeCells.csv:md5,a3390714a58a840a65fab58df55b3a80",
                 "ResizeConfluent.csv:md5,4c60f3b1f8805e61294a9e966038f042",
-                "ResizeNuclei.csv:md5,39cb23062d871f268f34acab7abc9a81",
-                "Resize_Foci.csv:md5,eff36225848122cc5f6c3d616bf454ad",
+                "ResizeNuclei.csv:md5,14a68baf7f171aef37f8b134f7295b39",
+                "Resize_Foci.csv:md5,1bc5f6c77268a6d4e46225010d874773",
                 "load_data.csv:md5,51da288bdbcda5de97cb5d8843f1a37b"
             ],
             [
@@ -181,6 +181,6 @@
             "nf-test": "0.9.3",
             "nextflow": "25.10.0"
         },
-        "timestamp": "2025-11-06T14:50:06.112090985"
+        "timestamp": "2025-11-07T19:43:21.205482275"
     }
 }

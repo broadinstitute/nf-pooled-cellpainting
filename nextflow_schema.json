@@ -51,6 +51,24 @@
                 }
             }
         },
+        "cellprofiler_plugins": {
+            "title": "Cellprofiler plugins",
+            "type": "object",
+            "description": "",
+            "default": "",
+            "properties": {
+                "callbarcodes_plugin": {
+                    "type": "string",
+                    "default": "https://raw.githubusercontent.com/CellProfiler/CellProfiler-plugins/refs/heads/master/active_plugins/callbarcodes.py",
+                    "description": "Cellprofiler plugin for calling barcodes."
+                },
+                "compensatecolors_plugin": {
+                    "type": "string",
+                    "default": "https://raw.githubusercontent.com/CellProfiler/CellProfiler-plugins/refs/heads/master/active_plugins/compensatecolors.py",
+                    "description": "Cellprofiler plugin for compensating colors."
+                }
+            }
+        },
         "cellpainting_options": {
             "title": "Cellpainting options",
             "type": "object",
@@ -142,13 +160,13 @@
                 }
             },
             "required": [
-                "combinedanalysis_cppipe",
                 "painting_illumcalc_cppipe",
                 "painting_illumapply_cppipe",
                 "painting_segcheck_cppipe",
                 "barcoding_illumcalc_cppipe",
                 "barcoding_illumapply_cppipe",
-                "barcoding_preprocess_cppipe"
+                "barcoding_preprocess_cppipe",
+                "combinedanalysis_cppipe"
             ]
         },
         "institutional_config_options": {
@@ -279,6 +297,9 @@
     "allOf": [
         {
             "$ref": "#/$defs/input_output_options"
+        },
+        {
+            "$ref": "#/$defs/cellprofiler_plugins"
         },
         {
             "$ref": "#/$defs/cellpainting_options"
