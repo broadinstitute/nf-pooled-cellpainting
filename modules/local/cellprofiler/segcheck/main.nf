@@ -44,6 +44,7 @@ process CELLPROFILER_SEGCHECK {
 
     stub:
     """
+    touch load_data.csv
     touch image1.png
     touch SegmentationCheck_Cells.csv
     touch SegmentationCheck_ConfluentRegions.csv

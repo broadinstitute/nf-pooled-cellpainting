@@ -97,7 +97,8 @@ process CELLPROFILER_ILLUMCALC {
 
     stub:
     """
-    echo 'this is not an illumination correction' > ${meta.plate}_Illum${channels}.npy
+    touch ${meta.plate}_Illum${channels}.npy
+    touch load_data.csv
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":

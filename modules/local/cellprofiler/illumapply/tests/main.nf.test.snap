@@ -22,49 +22,60 @@
         },
         "timestamp": "2025-11-07T19:51:58.83089448"
     },
-    "cellprofiler - illumapply": {
-        "content": [
-            [
-                "Plate_Plate1_Well_A1_Site_0_CorrCHN2.tiff:md5,8a032ce185843d3c48a065f112028a1a",
-                "Plate_Plate1_Well_A1_Site_0_CorrDNA.tiff:md5,6197b037d52a02eb9ca4126deb6541d0",
-                "Plate_Plate1_Well_A1_Site_0_CorrPhalloidin.tiff:md5,dcc4cff58d3cbb293f80160450afc872",
-                "Plate_Plate1_Well_A1_Site_1_CorrCHN2.tiff:md5,ba8272d60a12af3127af9822115ab7f1",
-                "Plate_Plate1_Well_A1_Site_1_CorrDNA.tiff:md5,c026c91aa7d9a0b8919ed32c00cda082",
-                "Plate_Plate1_Well_A1_Site_1_CorrPhalloidin.tiff:md5,344d9e4bed21b776b5849b6829a6c2c0",
-                "Plate_Plate1_Well_A1_Site_2_CorrCHN2.tiff:md5,f50714f6bfc11a5e36f8e6afac34fd2d",
-                "Plate_Plate1_Well_A1_Site_2_CorrDNA.tiff:md5,a813732c29e643b41308a4b09fd9477a",
-                "Plate_Plate1_Well_A1_Site_2_CorrPhalloidin.tiff:md5,af7ea4235511dedb50dd30c9a3765f54",
-                "Plate_Plate1_Well_A1_Site_3_CorrCHN2.tiff:md5,8d118306767d7c74b9a15de106f5bc11",
-                "Plate_Plate1_Well_A1_Site_3_CorrDNA.tiff:md5,52171b8c17bfebdf212201ec1e252577",
-                "Plate_Plate1_Well_A1_Site_3_CorrPhalloidin.tiff:md5,048366f9b941ca37e7ca274d9cd9c2c3"
-            ]
-        ],
-        "meta": {
-            "nf-test": "0.9.2",
-            "nextflow": "25.04.6"
-        },
-        "timestamp": "2025-10-19T17:39:32.031306526"
-    },
     "cellprofiler - illumapply - stub": {
         "content": [
             {
                 "0": [
-                    
+                    [
+                        {
+                            "batch": "Batch1",
+                            "plate": "Plate1",
+                            "arm": "CP",
+                            "well": "A01",
+                            "id": "Batch1_Plate1_painting_A1"
+                        },
+                        "Plate_Plate1_Well_A01_Site_null_CorrPhalloidin.tiff:md5,d41d8cd98f00b204e9800998ecf8427e",
+                        [
+                            "PaintingIllumApplication_Cells.csv:md5,d41d8cd98f00b204e9800998ecf8427e",
+                            "PaintingIllumApplication_ConfluentRegions.csv:md5,d41d8cd98f00b204e9800998ecf8427e",
+                            "PaintingIllumApplication_Experiment.csv:md5,d41d8cd98f00b204e9800998ecf8427e",
+                            "PaintingIllumApplication_Image.csv:md5,d41d8cd98f00b204e9800998ecf8427e",
+                            "PaintingIllumApplication_Nuclei.csv:md5,d41d8cd98f00b204e9800998ecf8427e",
+                            "load_data.csv:md5,d41d8cd98f00b204e9800998ecf8427e"
+                        ]
+                    ]
                 ],
                 "1": [
-                    
+                    "load_data.csv:md5,d41d8cd98f00b204e9800998ecf8427e"
                 ],
                 "2": [
-                    
+                    "versions.yml:md5,fcc737a6b71b0afbb10e43104dd6c549"
                 ],
                 "corrected_images": [
-                    
+                    [
+                        {
+                            "batch": "Batch1",
+                            "plate": "Plate1",
+                            "arm": "CP",
+                            "well": "A01",
+                            "id": "Batch1_Plate1_painting_A1"
+                        },
+                        "Plate_Plate1_Well_A01_Site_null_CorrPhalloidin.tiff:md5,d41d8cd98f00b204e9800998ecf8427e",
+                        [
+                            "PaintingIllumApplication_Cells.csv:md5,d41d8cd98f00b204e9800998ecf8427e",
+                            "PaintingIllumApplication_ConfluentRegions.csv:md5,d41d8cd98f00b204e9800998ecf8427e",
+                            "PaintingIllumApplication_Experiment.csv:md5,d41d8cd98f00b204e9800998ecf8427e",
+                            "PaintingIllumApplication_Image.csv:md5,d41d8cd98f00b204e9800998ecf8427e",
+                            "PaintingIllumApplication_Nuclei.csv:md5,d41d8cd98f00b204e9800998ecf8427e",
+                            "load_data.csv:md5,d41d8cd98f00b204e9800998ecf8427e"
+                        ]
+                    ]
                 ],
                 "load_data_csv": [
-                    
+                    "load_data.csv:md5,d41d8cd98f00b204e9800998ecf8427e"
                 ],
                 "versions": [
-                    
+                    "versions.yml:md5,fcc737a6b71b0afbb10e43104dd6c549"
                 ]
             }
         ],
@@ -72,6 +83,6 @@
             "nf-test": "0.9.3",
             "nextflow": "25.10.0"
         },
-        "timestamp": "2025-11-07T19:43:55.859505209"
+        "timestamp": "2025-11-09T01:55:39.698630852"
     }
 }

@@ -19,38 +19,42 @@
         },
         "timestamp": "2025-11-07T19:52:26.551860416"
     },
-    "cellprofiler - illumcalc": {
-        "content": [
-            [
-                
-            ]
-        ],
-        "meta": {
-            "nf-test": "0.9.3",
-            "nextflow": "25.10.0"
-        },
-        "timestamp": "2025-11-07T19:44:06.22849896"
-    },
     "cellprofiler - illumcalc - stub": {
         "content": [
             {
                 "0": [
-                    
+                    [
+                        {
+                            "batch": "Batch1",
+                            "plate": "Plate1",
+                            "channels": "CHN2-AF488",
+                            "id": "Batch1_Plate1_CHN2-AF488"
+                        },
+                        "Plate1_IllumCHN2-AF488.npy:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
                 ],
                 "1": [
-                    
+                    "load_data.csv:md5,d41d8cd98f00b204e9800998ecf8427e"
                 ],
                 "2": [
-                    
+                    "versions.yml:md5,98d323b6db96db92395d35d733f6af55"
                 ],
                 "illumination_corrections": [
-                    
+                    [
+                        {
+                            "batch": "Batch1",
+                            "plate": "Plate1",
+                            "channels": "CHN2-AF488",
+                            "id": "Batch1_Plate1_CHN2-AF488"
+                        },
+                        "Plate1_IllumCHN2-AF488.npy:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
                 ],
                 "load_data_csv": [
-                    
+                    "load_data.csv:md5,d41d8cd98f00b204e9800998ecf8427e"
                 ],
                 "versions": [
-                    
+                    "versions.yml:md5,98d323b6db96db92395d35d733f6af55"
                 ]
             }
         ],
@@ -58,6 +62,6 @@
             "nf-test": "0.9.3",
             "nextflow": "25.10.0"
         },
-        "timestamp": "2025-11-07T19:44:17.668659067"
+        "timestamp": "2025-11-09T01:56:07.238342742"
     }
 }
