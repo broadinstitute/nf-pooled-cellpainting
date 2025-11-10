@@ -154,14 +154,9 @@
                 ]
             ],
             [
-                "BarcodeFoci.csv:md5,3bdac39f065cd97c1bc39e7add98442a",
-                "Cells.csv:md5,73f002a4e82b7350e96b50ac6cffd08c",
                 "ConfluentRegions.csv:md5,a571723aaf676b899a9362c1eacf1b7d",
-                "Cytoplasm.csv:md5,435777bc3b4b0597aa640505603b2126",
-                "Foci.csv:md5,5a78931620a15a5f0b953226955c1587",
                 "Foci_NonCellEdge.csv:md5,fb97e2060f0ef5c5efb6908ef68606d7",
                 "Foci_PreMask.csv:md5,0587e4260f0bcb287474a571a8ce4c05",
-                "Nuclei.csv:md5,78b7c31c340ad766000478340da33a58",
                 "PreCells.csv:md5,b9fab8ffba6485496697635e78a61353",
                 "RelateObjects.csv:md5,3da81709fbb8fa99eba7722e911114ad",
                 "ResizeCells.csv:md5,1c1eed0479d840b039a526d59d82b7c5",
@@ -181,6 +176,6 @@
             "nf-test": "0.9.3",
             "nextflow": "25.10.0"
         },
-        "timestamp": "2025-11-10T20:17:14.512921578"
+        "timestamp": "2025-11-10T20:34:10.949948283"
     }
 }

@@ -61,11 +61,23 @@ nextflow_process {
                     process.out.overlay_images,
                     process.out.csv_stats.get(0).get(1).findAll {
                         file(it).name != "Experiment.csv" &&
-                        file(it).name != "Image.csv"
+                        file(it).name != "Image.csv" &&
+                        file(it).name != "BarcodeFoci.csv" &&
+                        file(it).name != "Cells.csv" &&
+                        file(it).name != "Cytoplasm.csv" &&
+                        file(it).name != "Foci.csv" &&
+                        file(it).name != "Nuclei.csv"
                     },
                     process.out.load_data_csv,
                     process.out.versions
-                ).match() }
+                ).match() },
+                { assert process.out.csv_stats.get(0).get(1).any { file(it).name == "Experiment.csv" } },
+                { assert process.out.csv_stats.get(0).get(1).any { file(it).name == "Image.csv" } },
+                { assert process.out.csv_stats.get(0).get(1).any { file(it).name == "BarcodeFoci.csv" } },
+                { assert process.out.csv_stats.get(0).get(1).any { file(it).name == "Cells.csv" } },
+                { assert process.out.csv_stats.get(0).get(1).any { file(it).name == "Cytoplasm.csv" } },
+                { assert process.out.csv_stats.get(0).get(1).any { file(it).name == "Foci.csv" } },
+                { assert process.out.csv_stats.get(0).get(1).any { file(it).name == "Nuclei.csv" } }
             )
         }
 
