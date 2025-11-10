@@ -3,9 +3,9 @@ process CELLPROFILER_ILLUMCALC {
     label 'process_medium'
 
     conda "${moduleDir}/environment.yml"
-    container "${workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container
-        ? 'oras://community.wave.seqera.io/library/cellprofiler:4.2.8--7c1bd3a82764de92'
-        : 'community.wave.seqera.io/library/cellprofiler:4.2.8--aff0a99749304a7f'}"
+    container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
+        'oras://community.wave.seqera.io/library/cellprofiler:4.2.8--7c1bd3a82764de92':
+        'community.wave.seqera.io/library/cellprofiler:4.2.8--aff0a99749304a7f' }"
 
     input:
     tuple val(meta), val(channels), val(cycle), path(images, stageAs: "images/*")
@@ -83,7 +83,6 @@ process CELLPROFILER_ILLUMCALC {
     fi
 
     cellprofiler -c -r \\
-        ${task.ext.args ?: ''} \\
         -p illumination.cppipe \\
         -o . \\
         --data-file=load_data.csv \\

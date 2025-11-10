@@ -3,9 +3,9 @@ process CELLPROFILER_ILLUMAPPLY {
     label 'process_medium'
 
     conda "${moduleDir}/environment.yml"
-    container "${workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container
-        ? 'oras://community.wave.seqera.io/library/cellprofiler:4.2.8--7c1bd3a82764de92'
-        : 'community.wave.seqera.io/library/cellprofiler:4.2.8--aff0a99749304a7f'}"
+    container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
+        'oras://community.wave.seqera.io/library/cellprofiler:4.2.8--7c1bd3a82764de92':
+        'community.wave.seqera.io/library/cellprofiler:4.2.8--aff0a99749304a7f' }"
 
     input:
     tuple val(meta), val(channels), val(cycles), path(images, stageAs: "images/img*/*"), path(npy_files, stageAs: "images/*")
@@ -36,7 +36,6 @@ process CELLPROFILER_ILLUMAPPLY {
         ${cycles_flag}
 
     cellprofiler -c -r \\
-        ${task.ext.args ?: ''} \\
         -p ${illumination_apply_cppipe} \\
         -o . \\
         --data-file=load_data.csv \\
@@ -49,11 +48,7 @@ process CELLPROFILER_ILLUMAPPLY {
     """
 
     stub:
-    def args = task.ext.args ?: ''
-    def prefix = task.ext.prefix ?: "${meta.id}"
     """
-    echo $args
-
     touch load_data.csv
     touch Plate_${meta.plate}_Well_${meta.well}_Site_${meta.site}_CorrPhalloidin.tiff
     touch PaintingIllumApplication_Cells.csv

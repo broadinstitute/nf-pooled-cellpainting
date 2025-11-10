@@ -39,8 +39,8 @@
             },
             "site": {
                 "type": "integer",
-                "minimum": 1,
-                "errorMessage": "FOV of the image must be a positive integer (starting at 1)",
+                "minimum": 0,
+                "errorMessage": "FOV of the image must be a non-negative integer (starting at 0 or 1, but be consistent)",
                 "meta": ["site"]
             },
             "cycle": {

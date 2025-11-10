@@ -1,9 +1,15 @@
 reports:
-  workspace/qc_reports/**/1_illumination_painting/painting*.png:
-    display: "Cell painting illumination correction profiles montage"
-  workspace/qc_reports/**/5_illumination_barcoding/barcoding*.png:
-    display: "Sequencing by synthesis illumination correction profiles montage"
+  workspace/qc_reports/**/1_illumination_painting/*.png:
+    display: "Painting illumination correction profiles montage."
   workspace/qc_reports/**/3_segmentation/painting*.png:
-    display: "Cell painting segmentation check montage"
+    display: "Cell painting segmentation check montage."
+  workspace/qc_reports/**/4_stitching_painting/*.png:
+    display: "Painting crop and stitching montage."
+  workspace/qc_reports/**/5_illumination_barcoding/*.png:
+    display: "Barcoding illumination correction profiles montage."
   workspace/qc_reports/**/6_alignment/*qc_barcode_align.html:
     display: "Barcoding alignment QC report."
+  workspace/qc_reports/**/7_preprocessing/*qc_barcode_preprocess.html:
+    display: "Barcoding preprocessing QC report."
+  workspace/qc_reports/**/8_stitching_barcoding/*.png:
+    display: "Barcoding crop and stitching montage."
