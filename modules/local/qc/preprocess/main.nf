@@ -1,4 +1,4 @@
-process QC_BARCODEALIGN {
+process QC_PREPROCESS {
     tag "$meta.id"
     label 'process_single'
 
@@ -7,16 +7,15 @@ process QC_BARCODEALIGN {
 
     input:
     tuple val(meta), val(wells), path(csv_files, stageAs: 'input_?/*'), val(num_cycles)
-    path qc_barcodealign_script
-    val shift_threshold
-    val corr_threshold
+    path qc_preprocess_script
+    path barcode_library
     val rows
     val columns
 
     output:
-    tuple val(meta), path("*_qc_barcode_align.ipynb"), emit: notebook
+    tuple val(meta), path("*_qc_barcode_preprocess.ipynb"), emit: notebook
     tuple val(meta), path("*.html") , emit: html_report
-    path "*.png", emit: png_reports
+        path "*.png", emit: png_reports
     path "versions.yml", emit: versions
 
     when:
@@ -38,29 +37,28 @@ process QC_BARCODEALIGN {
     # Organize them by well name
     i=1
     for well in "\${wells[@]}"; do
-        if [ -f "input_\${i}/BarcodingApplication_Image.csv" ]; then
+        if [ -f "input_\${i}/BarcodePreprocessing_Foci.csv" ]; then
             mkdir -p "analysis_input/\$well"
-            cp "input_\${i}/BarcodingApplication_Image.csv" "analysis_input/\$well/BarcodingApplication_Image.csv"
+            cp "input_\${i}/BarcodePreprocessing_Foci.csv" "analysis_input/\$well/BarcodePreprocessing_Foci.csv"
         fi
         ((i++))
     done
 
     # Convert Python script to notebook
-    jupytext --to ipynb ${qc_barcodealign_script} -o qc_barcode_align_template.ipynb
+    jupytext --to ipynb ${qc_preprocess_script} -o qc_barcode_preprocess_template.ipynb
 
     # Run papermill to execute notebook with parameters
-    papermill qc_barcode_align_template.ipynb \\
-        ${prefix}_qc_barcode_align.ipynb \\
+    papermill qc_barcode_preprocess_template.ipynb \\
+        ${prefix}_qc_barcode_preprocess.ipynb \\
         -p input_dir './analysis_input' \\
         -p output_dir '.' \\
         -p use_cache false \\
         -p numcycles ${num_cycles} \\
-        -p shift_threshold ${shift_threshold} \\
-        -p corr_threshold ${corr_threshold} \\
+        -p barcode_library_path ${barcode_library} \\
         ${rows_param} \\
         ${columns_param}
 
-    jupyter nbconvert --to html ${prefix}_qc_barcode_align.ipynb
+    jupyter nbconvert --to html ${prefix}_qc_barcode_preprocess.ipynb
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
@@ -73,9 +71,9 @@ process QC_BARCODEALIGN {
     stub:
     def prefix = task.ext.prefix ?: "${meta.id}"
     """
-    touch ${prefix}_qc_barcode_align.ipynb
-    touch ${prefix}_qc_barcode_align.html
-    touch ${prefix}_qc_barcode_align.png
+    touch ${prefix}_qc_barcode_preprocess.ipynb
+    touch ${prefix}_qc_barcode_preprocess.html
+    touch ${prefix}_qc_barcode_preprocess.png
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":

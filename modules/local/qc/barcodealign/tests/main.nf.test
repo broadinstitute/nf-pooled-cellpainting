@@ -29,6 +29,8 @@ nextflow_process {
                 input[1] = file("${projectDir}/bin/qc_barcode_align.py", checkIfExists: true)
                 input[2] = 50.0 // shift_threshold
                 input[3] = 0.9  // corr_threshold
+                input[4] = 2    // rows
+                input[5] = 2    // columns
                 """
             }
         }
@@ -39,7 +41,11 @@ nextflow_process {
                 { assert snapshot(process.out.versions).match() },
                 // Check that notebook and HTML files exist (not reproducible due to timestamps)
                 { assert process.out.notebook.get(0).get(1) ==~ /.*\.ipynb/ },
-                { assert process.out.html_report.get(0).get(1) ==~ /.*\.html/ }
+                { assert process.out.html_report.get(0).get(1) ==~ /.*\.html/ },
+                // Check that PNG files exist (multiple files generated)
+                { assert process.out.png_reports.get(0) instanceof List },
+                { assert process.out.png_reports.get(0).size() > 0 },
+                { assert process.out.png_reports.get(0).every { it.toString().endsWith('.png') } }
             )
         }
 
@@ -65,6 +71,8 @@ nextflow_process {
                 input[1] = file("${projectDir}/bin/qc_barcode_align.py", checkIfExists: true)
                 input[2] = 50.0
                 input[3] = 0.9
+                input[4] = 2
+                input[5] = 2
                 """
             }
         }
@@ -75,7 +83,9 @@ nextflow_process {
                 { assert snapshot(process.out.versions).match() },
                 // Check that stub files exist
                 { assert process.out.notebook.get(0).get(1) ==~ /.*\.ipynb/ },
-                { assert process.out.html_report.get(0).get(1) ==~ /.*\.html/ }
+                { assert process.out.html_report.get(0).get(1) ==~ /.*\.html/ },
+                // Check that PNG file exists (stub creates single file)
+                { assert process.out.png_reports.get(0) ==~ /.*\.png/ }
             )
         }
 

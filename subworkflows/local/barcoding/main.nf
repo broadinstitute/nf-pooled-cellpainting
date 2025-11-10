@@ -7,6 +7,7 @@ include { CELLPROFILER_ILLUMCALC }                                              
 include { QC_MONTAGEILLUM as QC_MONTAGEILLUM_BARCODING }                                       from '../../../modules/local/qc/montageillum'
 include { CELLPROFILER_ILLUMAPPLY as CELLPROFILER_ILLUMAPPLY_BARCODING }              from '../../../modules/local/cellprofiler/illumapply'
 include { CELLPROFILER_PREPROCESS }                                                   from '../../../modules/local/cellprofiler/preprocess'
+include { QC_PREPROCESS }                                                             from '../../../modules/local/qc/preprocess'
 include { FIJI_STITCHCROP }                                                           from '../../../modules/local/fiji/stitchcrop'
 include { QC_BARCODEALIGN }                                                           from '../../../modules/local/qc/barcodealign'
 
@@ -186,7 +187,9 @@ workflow BARCODING {
         ch_qc_barcode_input,
         file("${projectDir}/bin/qc_barcode_align.py"),
         params.barcoding_shift_threshold,
-        params.barcoding_corr_threshold
+        params.barcoding_corr_threshold,
+        params.acquisition_geometry_rows,
+        params.acquisition_geometry_columns
     )
     ch_versions = ch_versions.mix(QC_BARCODEALIGN.out.versions)
 
@@ -210,6 +213,38 @@ workflow BARCODING {
         skip: 1,
         storeDir: "${params.outdir}/workspace/load_data_csv/"
     )
+
+    //// QC: Barcode preprocessing ////
+    // Group preprocessing stats by plate and collect wells
+    CELLPROFILER_PREPROCESS.out.preprocess_stats
+        .map { meta, csv_files ->
+            def plate_key = [
+                batch: meta.batch,
+                plate: meta.plate
+            ]
+            // Find the BarcodePreprocess_Image.csv file
+            def image_csv = csv_files.find { file -> file.name.contains('BarcodePreprocessing_Foci.csv') }
+            [plate_key, meta.well, image_csv]
+        }
+        .groupTuple()
+        .combine(ch_plate_cycles, by: 0)
+        .map { plate_key, wells, csvs, num_cycles ->
+            def qc_meta = plate_key + [
+                arm: "barcoding",
+                id: "${plate_key.batch}_${plate_key.plate}"
+            ]
+            [qc_meta, wells, csvs, num_cycles]
+        }
+        .set { ch_preprocess_qc_input }
+
+    QC_PREPROCESS (
+        ch_preprocess_qc_input,
+        file("${projectDir}/bin/qc_barcode_preprocess.py"),
+        barcodes,
+        params.acquisition_geometry_rows,
+        params.acquisition_geometry_columns
+    )
+    ch_versions = ch_versions.mix(QC_PREPROCESS.out.versions)
 
     if (params.qc_barcoding_passed) {
         // STITCH & CROP IMAGES ////

@@ -130,6 +130,14 @@
                     "type": "number",
                     "default": 0.9,
                     "description": "Correlation threshold for barcoding align QC step."
+                },
+                "acquisition_geometry_rows": {
+                    "type": "integer",
+                    "description": "Number of rows in acquisition geometry for QC spatial plots (square patterns)."
+                },
+                "acquisition_geometry_columns": {
+                    "type": "integer",
+                    "description": "Number of columns in acquisition geometry for QC spatial plots (square patterns)."
                 }
             },
             "fa_icon": "fas fa-dna"
