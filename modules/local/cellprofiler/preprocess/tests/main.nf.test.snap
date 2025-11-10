@@ -41,8 +41,6 @@
             ],
             [
                 "BarcodePreprocessing_AllFoci.csv:md5,3818e0b6b37cb6d093a897714b7ed355",
-                "BarcodePreprocessing_BarcodeFoci.csv:md5,4fbb614bd97a5fffd4369eeff83bb502",
-                "BarcodePreprocessing_Foci.csv:md5,2cd4043a11636e3e9c244c9855ed9827",
                 "BarcodePreprocessing_Nuclei.csv:md5,939220babec985ae55740ce6ea423d17"
             ],
             [
@@ -53,7 +51,7 @@
             "nf-test": "0.9.3",
             "nextflow": "25.10.0"
         },
-        "timestamp": "2025-11-07T19:52:55.369621889"
+        "timestamp": "2025-11-10T16:56:41.440360032"
     },
     "cellprofiler - preprocess - sbs_images - stub": {
         "content": [
@@ -92,12 +90,12 @@
                             "arm": "barcoding"
                         },
                         [
-                            "BarcodePreprocess_AllFoci.csv:md5,d41d8cd98f00b204e9800998ecf8427e",
-                            "BarcodePreprocess_Cells.csv:md5,d41d8cd98f00b204e9800998ecf8427e",
-                            "BarcodePreprocess_Experiment.csv:md5,d41d8cd98f00b204e9800998ecf8427e",
-                            "BarcodePreprocess_Foci.csv:md5,d41d8cd98f00b204e9800998ecf8427e",
-                            "BarcodePreprocess_Image.csv:md5,d41d8cd98f00b204e9800998ecf8427e",
-                            "BarcodePreprocess_Nuclei.csv:md5,d41d8cd98f00b204e9800998ecf8427e"
+                            "BarcodePreprocessing_AllFoci.csv:md5,d41d8cd98f00b204e9800998ecf8427e",
+                            "BarcodePreprocessing_BarcodeFoci.csv:md5,d41d8cd98f00b204e9800998ecf8427e",
+                            "BarcodePreprocessing_Experiment.csv:md5,d41d8cd98f00b204e9800998ecf8427e",
+                            "BarcodePreprocessing_Foci.csv:md5,d41d8cd98f00b204e9800998ecf8427e",
+                            "BarcodePreprocessing_Image.csv:md5,d41d8cd98f00b204e9800998ecf8427e",
+                            "BarcodePreprocessing_Nuclei.csv:md5,d41d8cd98f00b204e9800998ecf8427e"
                         ]
                     ]
                 ],
@@ -132,12 +130,12 @@
                             "arm": "barcoding"
                         },
                         [
-                            "BarcodePreprocess_AllFoci.csv:md5,d41d8cd98f00b204e9800998ecf8427e",
-                            "BarcodePreprocess_Cells.csv:md5,d41d8cd98f00b204e9800998ecf8427e",
-                            "BarcodePreprocess_Experiment.csv:md5,d41d8cd98f00b204e9800998ecf8427e",
-                            "BarcodePreprocess_Foci.csv:md5,d41d8cd98f00b204e9800998ecf8427e",
-                            "BarcodePreprocess_Image.csv:md5,d41d8cd98f00b204e9800998ecf8427e",
-                            "BarcodePreprocess_Nuclei.csv:md5,d41d8cd98f00b204e9800998ecf8427e"
+                            "BarcodePreprocessing_AllFoci.csv:md5,d41d8cd98f00b204e9800998ecf8427e",
+                            "BarcodePreprocessing_BarcodeFoci.csv:md5,d41d8cd98f00b204e9800998ecf8427e",
+                            "BarcodePreprocessing_Experiment.csv:md5,d41d8cd98f00b204e9800998ecf8427e",
+                            "BarcodePreprocessing_Foci.csv:md5,d41d8cd98f00b204e9800998ecf8427e",
+                            "BarcodePreprocessing_Image.csv:md5,d41d8cd98f00b204e9800998ecf8427e",
+                            "BarcodePreprocessing_Nuclei.csv:md5,d41d8cd98f00b204e9800998ecf8427e"
                         ]
                     ]
                 ],
@@ -162,6 +160,6 @@
             "nf-test": "0.9.3",
             "nextflow": "25.10.0"
         },
-        "timestamp": "2025-11-07T19:53:06.87553027"
+        "timestamp": "2025-11-10T16:56:53.232830672"
     }
 }
