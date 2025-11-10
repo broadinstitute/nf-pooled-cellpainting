@@ -169,7 +169,7 @@ IdentifyPrimaryObjects:[module_num:8|svn_version:'Unknown'|variable_revision_num
 
 MaskImage:[module_num:9|svn_version:'Unknown'|variable_revision_number:3|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
     Select the input image:CorrDNA
-    Name the output image:MaskedDAPI
+    Name the output image:MaskedDNA
     Use objects or an image as a mask?:Objects
     Select object for mask:ConfluentRegions
     Select image for mask:None
@@ -184,7 +184,7 @@ MaskImage:[module_num:10|svn_version:'Unknown'|variable_revision_number:3|show_w
     Invert the mask?:Yes
 
 IdentifyPrimaryObjects:[module_num:11|svn_version:'Unknown'|variable_revision_number:15|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
-    Select the input image:MaskedDAPI
+    Select the input image:MaskedDNA
     Name the primary objects to be identified:Nuclei
     Typical diameter of objects, in pixel units (Min,Max):10,80
     Discard objects outside the diameter range?:Yes

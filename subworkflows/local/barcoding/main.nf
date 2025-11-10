@@ -4,10 +4,11 @@
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
 include { CELLPROFILER_ILLUMCALC }                                                    from '../../../modules/local/cellprofiler/illumcalc'
-include { QC_MONTAGEILLUM as QC_MONTAGE_ILLUM }                                       from '../../../modules/local/qc/montageillum'
+include { QC_MONTAGEILLUM as QC_MONTAGEILLUM_BARCODING }                                       from '../../../modules/local/qc/montageillum'
 include { CELLPROFILER_ILLUMAPPLY as CELLPROFILER_ILLUMAPPLY_BARCODING }              from '../../../modules/local/cellprofiler/illumapply'
 include { CELLPROFILER_PREPROCESS }                                                   from '../../../modules/local/cellprofiler/preprocess'
 include { FIJI_STITCHCROP }                                                           from '../../../modules/local/fiji/stitchcrop'
+include { QC_BARCODEALIGN }                                                           from '../../../modules/local/qc/barcodealign'
 
 workflow BARCODING {
 
@@ -67,11 +68,11 @@ workflow BARCODING {
         }
         .set { ch_illumination_corrections_qc }
 
-    QC_MONTAGE_ILLUM (
+    QC_MONTAGEILLUM_BARCODING (
         ch_illumination_corrections_qc,
         ".*Cycle.*\\.npy\$"  // Pattern for barcoding: files with Cycle in name
     )
-    ch_versions = ch_versions.mix(QC_MONTAGE_ILLUM.out.versions)
+    ch_versions = ch_versions.mix(QC_MONTAGEILLUM_BARCODING.out.versions)
 
     // Group images by well for ILLUMAPPLY
     // Each well should get all its images across all cycles
@@ -141,6 +142,53 @@ workflow BARCODING {
         skip: 1,
         storeDir: "${params.outdir}/workspace/load_data_csv/"
     )
+
+    // QC of barcode alignment
+    // First, collect cycle information from the samplesheet to infer num_cycles
+    ch_samplesheet_sbs
+        .map { meta, _image ->
+            def plate_key = [
+                batch: meta.batch,
+                plate: meta.plate
+            ]
+            [plate_key, meta.cycle]
+        }
+        .groupTuple()
+        .map { plate_key, cycles ->
+            def num_cycles = cycles.unique().max()
+            [plate_key, num_cycles]
+        }
+        .set { ch_plate_cycles }
+
+    // Group CSV files by plate for QC analysis, keeping well-CSV correspondence
+    CELLPROFILER_ILLUMAPPLY_BARCODING.out.corrected_images
+        .map { meta, _images, csv_files ->
+            def plate_key = [
+                batch: meta.batch,
+                plate: meta.plate
+            ]
+            // Find the BarcodingApplication_Image.csv file
+            def image_csv = csv_files.find { file -> file.name.contains('Image.csv') }
+            [plate_key, meta.well, image_csv]
+        }
+        .groupTuple()
+        .combine(ch_plate_cycles, by: 0)
+        .map { plate_key, wells, csv_files, num_cycles ->
+            def qc_meta = plate_key + [
+                arm: "barcoding",
+                id: "${plate_key.batch}_${plate_key.plate}"
+            ]
+            [qc_meta, wells, csv_files, num_cycles]
+        }
+        .set { ch_qc_barcode_input }
+
+    QC_BARCODEALIGN (
+        ch_qc_barcode_input,
+        file("${projectDir}/bin/qc_barcode_align.py"),
+        params.barcoding_shift_threshold,
+        params.barcoding_corr_threshold
+    )
+    ch_versions = ch_versions.mix(QC_BARCODEALIGN.out.versions)
 
     // Reshape CELLPROFILER_ILLUMAPPLY output for PREPROCESS
     CELLPROFILER_ILLUMAPPLY_BARCODING.out.corrected_images.map{ meta, images, _csv ->
