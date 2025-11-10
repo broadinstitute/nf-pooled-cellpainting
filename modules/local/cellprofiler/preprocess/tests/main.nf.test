@@ -55,10 +55,17 @@ nextflow_process {
                     process.out.overlay,
                     process.out.preprocess_stats.get(0).get(1).findAll {
                         file(it).name != "BarcodePreprocessing_Experiment.csv" &&
-                        file(it).name != "BarcodePreprocessing_Image.csv"
+                        file(it).name != "BarcodePreprocessing_Image.csv" &&
+                        file(it).name != "BarcodePreprocessing_Foci.csv" &&
+                        file(it).name != "BarcodePreprocessing_BarcodeFoci.csv"
                     },
                     process.out.versions
-                ).match() }
+                ).match() },
+                { assert process.out.preprocess_stats.get(0).get(1).any { file(it).name == "BarcodePreprocessing_Experiment.csv" } },
+                { assert process.out.preprocess_stats.get(0).get(1).any { file(it).name == "BarcodePreprocessing_Image.csv" } },
+                { assert process.out.preprocess_stats.get(0).get(1).any { file(it).name == "BarcodePreprocessing_Foci.csv" } },
+                { assert process.out.preprocess_stats.get(0).get(1).any { file(it).name == "BarcodePreprocessing_BarcodeFoci.csv" } }
+
             )
         }
 

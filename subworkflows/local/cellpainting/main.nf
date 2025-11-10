@@ -4,7 +4,7 @@
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
 include { CELLPROFILER_ILLUMCALC }                                                    from '../../../modules/local/cellprofiler/illumcalc'
-include { QC_MONTAGEILLUM as QC_MONTAGE_ILLUM }                                       from '../../../modules/local/qc/montageillum'
+include { QC_MONTAGEILLUM as QC_MONTAGEILLUM_PAINTING }                                       from '../../../modules/local/qc/montageillum'
 include { QC_MONTAGEILLUM as QC_MONTAGE_SEGCHECK }                                    from '../../../modules/local/qc/montageillum'
 include { CELLPROFILER_ILLUMAPPLY }                                                   from '../../../modules/local/cellprofiler/illumapply'
 include { CELLPROFILER_SEGCHECK }                                                     from '../../../modules/local/cellprofiler/segcheck'
@@ -70,7 +70,7 @@ workflow CELLPAINTING {
         }
         .set { ch_illumination_corrections_qc }
 
-    QC_MONTAGE_ILLUM (
+    QC_MONTAGEILLUM_PAINTING (
         ch_illumination_corrections_qc,
         ".*\\.npy\$"  // Pattern for painting: all .npy files
     )

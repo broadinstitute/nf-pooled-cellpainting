@@ -1,0 +1,93 @@
+nextflow_process {
+
+    name "Test Process QC_PREPROCESS"
+    script "../main.nf"
+    process "QC_PREPROCESS"
+
+    tag "modules"
+    tag "modules_local"
+    tag "qc"
+    tag "qc/preprocess"
+
+    test("barcode preprocessing QC - 3 cycles - 3 wells") {
+
+        when {
+            process {
+                """
+                // Test data: CellProfiler preprocessing output CSV files containing foci detection metrics
+                // This QC module analyzes barcode preprocessing quality across multiple wells
+                input[0] = [
+                    [ id:'Batch1_Plate1', batch:'Batch1', plate:'Plate1', arm:'barcoding' ], // meta map
+                    ['A1', 'A2', 'B1'], // wells list
+                    [
+                        file('s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/images/Batch1/images_corrected/barcoding/Plate1/Plate1-A1-0/BarcodePreprocessing_Foci.csv', checkIfExists: true),
+                        file('s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/images/Batch1/images_corrected/barcoding/Plate1/Plate1-A1-1/BarcodePreprocessing_Foci.csv', checkIfExists: true),
+                        file('s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/images/Batch1/images_corrected/barcoding/Plate1/Plate1-A1-2/BarcodePreprocessing_Foci.csv', checkIfExists: true)
+                        //Currently using csv for sites instead of wells #TODO: UPDATE
+                    ], // CSV files (one per well)
+                    3 // num_cycles
+                ]
+                input[1] = file("${projectDir}/bin/qc_barcode_preprocess.py", checkIfExists: true)
+                input[2] = file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/workspace/metadata/Barcodes.csv", checkIfExists: true)
+                input[3] = 2    // rows
+                input[4] = 2    // columns
+                """
+            }
+        }
+
+        then {
+            assertAll(
+                { assert process.success },
+                { assert snapshot(process.out.versions).match() },
+                // Check that notebook and HTML files exist (not reproducible due to timestamps)
+                { assert process.out.notebook.get(0).get(1) ==~ /.*\.ipynb/ },
+                { assert process.out.html_report.get(0).get(1) ==~ /.*\.html/ },
+                // Check that PNG files exist (multiple files generated)
+                { assert process.out.png_reports.get(0) instanceof List },
+                { assert process.out.png_reports.get(0).size() > 0 },
+                { assert process.out.png_reports.get(0).every { it.toString().endsWith('.png') } }
+            )
+        }
+
+    }
+
+    test("barcode preprocessing QC - 3 cycles - 3 wells - stub") {
+
+        options "-stub"
+
+        when {
+            process {
+                """
+                input[0] = [
+                    [ id:'Batch1_Plate1', batch:'Batch1', plate:'Plate1', arm:'barcoding' ],
+                    ['A1', 'A2', 'B1'],
+                    [
+                        file('s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/images/Batch1/images_corrected/barcoding/Plate1/Plate1-A1-0/BarcodePreprocessing_BarcodeFoci.csv', checkIfExists: true),
+                        file('s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/images/Batch1/images_corrected/barcoding/Plate1/Plate1-A1-1/BarcodePreprocessing_BarcodeFoci.csv', checkIfExists: true),
+                        file('s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/images/Batch1/images_corrected/barcoding/Plate1/Plate1-A1-2/BarcodePreprocessing_BarcodeFoci.csv', checkIfExists: true)
+                    ],
+                    3
+                ]
+                input[1] = file("${projectDir}/bin/qc_barcode_preprocess.py", checkIfExists: true)
+                input[2] = file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/workspace/metadata/Barcodes.csv", checkIfExists: true)
+                input[3] = 2
+                input[4] = 2
+                """
+            }
+        }
+
+        then {
+            assertAll(
+                { assert process.success },
+                { assert snapshot(process.out.versions).match() },
+                // Check that stub files exist
+                { assert process.out.notebook.get(0).get(1) ==~ /.*\.ipynb/ },
+                { assert process.out.html_report.get(0).get(1) ==~ /.*\.html/ },
+                // Check that PNG file exists (stub creates single file)
+                { assert process.out.png_reports.get(0) ==~ /.*\.png/ }
+            )
+        }
+
+    }
+
+}

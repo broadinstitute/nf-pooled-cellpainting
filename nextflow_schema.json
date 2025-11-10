@@ -100,8 +100,8 @@
                 }
             }
         },
-        "sbs_options": {
-            "title": "Sequencing by Synthesis (SBS) options",
+        "barcoding_sequencing_by_synthesis_options": {
+            "title": "Barcoding (Sequencing-by-synthesis) options",
             "type": "object",
             "description": "Configuration options for the barcoding (SBS) arm of the pipeline.",
             "default": "",
@@ -120,6 +120,24 @@
                     "type": "string",
                     "default": "snake",
                     "fa_icon": "fas fa-sort-amount-down"
+                },
+                "barcoding_shift_threshold": {
+                    "type": "integer",
+                    "default": 50,
+                    "description": "Shift threshold for barcoding align QC step."
+                },
+                "barcoding_corr_threshold": {
+                    "type": "number",
+                    "default": 0.9,
+                    "description": "Correlation threshold for barcoding align QC step."
+                },
+                "acquisition_geometry_rows": {
+                    "type": "integer",
+                    "description": "Number of rows in acquisition geometry for QC spatial plots (square patterns)."
+                },
+                "acquisition_geometry_columns": {
+                    "type": "integer",
+                    "description": "Number of columns in acquisition geometry for QC spatial plots (square patterns)."
                 }
             },
             "fa_icon": "fas fa-dna"
@@ -305,7 +323,7 @@
             "$ref": "#/$defs/cellpainting_options"
         },
         {
-            "$ref": "#/$defs/sbs_options"
+            "$ref": "#/$defs/barcoding_sequencing_by_synthesis_options"
         },
         {
             "$ref": "#/$defs/cellprofiler_group"

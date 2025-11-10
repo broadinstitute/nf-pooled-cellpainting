@@ -1,0 +1,111 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/nf-core/modules/master/modules/meta-schema.json
+name: "qc_preprocess"
+description: Quality control analysis for barcode preprocessing in pooled cell painting experiments
+keywords:
+  - qc
+  - barcode
+  - preprocessing
+  - cellpainting
+  - imaging
+  - foci
+tools:
+  - "jupytext":
+      description: "Jupyter notebooks as Markdown documents, Julia, Python or R scripts"
+      homepage: "https://jupytext.readthedocs.io/"
+      documentation: "https://jupytext.readthedocs.io/"
+      tool_dev_url: "https://github.com/mwouts/jupytext"
+      licence: ["MIT"]
+  - "papermill":
+      description: "Parameterize, execute, and analyze Jupyter Notebooks"
+      homepage: "https://papermill.readthedocs.io/"
+      documentation: "https://papermill.readthedocs.io/"
+      tool_dev_url: "https://github.com/nteract/papermill"
+      licence: ["BSD-3-Clause"]
+  - "nbconvert":
+      description: "Converting Jupyter Notebooks"
+      homepage: "https://nbconvert.readthedocs.io/"
+      documentation: "https://nbconvert.readthedocs.io/"
+      tool_dev_url: "https://github.com/jupyter/nbconvert"
+      licence: ["BSD-3-Clause"]
+
+input:
+  - - meta:
+        type: map
+        description: |
+          Groovy Map containing plate information
+          e.g. `[ batch: 'Batch1', plate: 'Plate1', arm: 'barcoding', id: 'Batch1_Plate1' ]`
+    - wells:
+        type: list
+        description: List of well identifiers for the plate
+    - csv_files:
+        type: file
+        description: CellProfiler output CSV files from preprocessing (BarcodePreprocess_Image.csv files)
+        pattern: "*.csv"
+        ontologies:
+          - edam: "http://edamontology.org/format_3752" # CSV
+    - num_cycles:
+        type: integer
+        description: Number of barcoding cycles (inferred from samplesheet)
+  - qc_preprocess_script:
+      type: file
+      description: Python script containing the QC analysis notebook
+      pattern: "*.py"
+      ontologies:
+        - edam: "http://edamontology.org/format_3996" # Python script
+  - barcode_library:
+      type: file
+      description: Barcode library CSV file containing sgRNA sequences and gene annotations
+      pattern: "*.csv"
+      ontologies:
+        - edam: "http://edamontology.org/format_3752" # CSV
+  - rows:
+      type: integer
+      description: Number of rows in acquisition geometry (for square patterns). Set to null for circular patterns.
+  - columns:
+      type: integer
+      description: Number of columns in acquisition geometry (for square patterns). Set to null for circular patterns.
+
+output:
+  notebook:
+    - - meta:
+          type: map
+          description: |
+            Groovy Map containing plate information
+            e.g. `[ batch: 'Batch1', plate: 'Plate1', arm: 'barcoding', id: 'Batch1_Plate1' ]`
+      - "*.ipynb":
+          type: file
+          description: Executed Jupyter notebook with QC analysis of preprocessing results
+          pattern: "*.ipynb"
+          ontologies:
+            - edam: "http://edamontology.org/format_3464" # JSON
+  html_report:
+    - - meta:
+          type: map
+          description: |
+            Groovy Map containing plate information
+            e.g. `[ batch: 'Batch1', plate: 'Plate1', arm: 'barcoding', id: 'Batch1_Plate1' ]`
+      - "*.html":
+          type: file
+          description: HTML report of preprocessing QC analysis
+          pattern: "*.html"
+          ontologies:
+            - edam: "http://edamontology.org/format_2331" # HTML
+  png_reports:
+    - "*.png":
+        type: file
+        description: PNG plots visualizing barcode preprocessing quality metrics (foci distribution, spatial patterns, etc.)
+        pattern: "*.png"
+        ontologies:
+          - edam: "http://edamontology.org/format_3603" # PNG
+  versions:
+    - "versions.yml":
+        type: file
+        description: File containing software versions
+        pattern: "versions.yml"
+        ontologies:
+          - edam: "http://edamontology.org/format_3750" # YAML
+
+authors:
+  - "@FloWuenne"
+maintainers:
+  - "@FloWuenne"
