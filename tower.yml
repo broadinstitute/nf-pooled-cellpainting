@@ -11,4 +11,3 @@ reports:
     display: "Painting crop and stitching montage."
   workspace/qc_reports/**/8_stitching_barcodingg/*.png:
     display: "Barcoding crop and stitching montage."
-
