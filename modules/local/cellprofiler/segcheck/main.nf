@@ -3,9 +3,9 @@ process CELLPROFILER_SEGCHECK {
     label 'process_single'
 
     conda "${moduleDir}/environment.yml"
-    container "${workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container
-        ? 'oras://community.wave.seqera.io/library/cellprofiler:4.2.8--7c1bd3a82764de92'
-        : 'community.wave.seqera.io/library/cellprofiler:4.2.8--aff0a99749304a7f'}"
+    container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
+        'oras://community.wave.seqera.io/library/cellprofiler:4.2.8--7c1bd3a82764de92':
+        'community.wave.seqera.io/library/cellprofiler:4.2.8--aff0a99749304a7f' }"
 
     input:
     tuple val(meta), path(corr_images, stageAs: "images/*")

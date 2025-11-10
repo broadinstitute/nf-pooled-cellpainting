@@ -11,10 +11,10 @@ keywords:
 tools:
   - "cellprofiler":
       description: "CellProfiler is free, open-source software for quantitative analysis of biological images."
-      homepage: "https://cellprofiler.org"
+      homepage: "https://cellprofiler.org/"
       documentation: "https://cellprofiler-manual.s3.amazonaws.com/CellProfiler-4.2.8/index.html"
       tool_dev_url: "https://github.com/CellProfiler/CellProfiler"
-      doi: "10.1371/journal.pbio.1000502"
+      doi: "https://doi.org/10.1186/s12859-021-04344-9"
       licence: ["BSD-3-clause"]
       identifier: biotools:CellProfiler
 

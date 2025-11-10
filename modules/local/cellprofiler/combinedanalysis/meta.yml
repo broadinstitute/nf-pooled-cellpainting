@@ -11,21 +11,13 @@ keywords:
   - high-content-imaging
 tools:
   - "cellprofiler":
-      description: "CellProfiler is free, open-source software for quantitative analysis
-        of biological images."
-      homepage: "https://cellprofiler-manual.s3.amazonaws.com/CellProfiler-4.2.8/index.html"
+      description: "CellProfiler is free, open-source software for quantitative analysis of biological images."
+      homepage: "https://cellprofiler.org/"
       documentation: "https://cellprofiler-manual.s3.amazonaws.com/CellProfiler-4.2.8/index.html"
       tool_dev_url: "https://github.com/CellProfiler/CellProfiler"
-      doi: "10.1371/journal.pbio.1000412"
+      doi: "https://doi.org/10.1186/s12859-021-04344-9"
       licence: ["BSD-3-clause"]
-      identifier: biotools:cellprofiler
-  - "generate_combined_load_data.py":
-      description: "Custom Python script for generating load_data.csv files specifically
-        for combined analysis with both cell painting and barcoding images"
-      homepage: "https://github.com"
-      documentation: "https://github.com"
-      tool_dev_url: "https://github.com"
-      licence: ["MIT"]
+      identifier: biotools:CellProfiler
 
 input:
   - - meta:
