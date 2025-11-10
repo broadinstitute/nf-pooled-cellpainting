@@ -120,59 +120,6 @@ def merge_csvs(csvfolder, filename, column_list=None, filter_string=None):
 
 
 # %% [markdown]
-# ## Create Position Mapping for Spatial Plots
-#
-# This cell creates a mapping from site number to (x, y) position.
-# Supports both square and circular acquisition patterns.
-
-# %%
-# Only create position mapping if geometry is provided
-pos_df = None
-
-if rows and columns:
-    # Square/rectangular acquisition
-    print(f"Creating square position mapping: {rows}x{columns}")
-    pos_data = []
-    for site in range(rows * columns):
-        row = site // columns
-        col = site % columns
-        pos_data.append({"Metadata_Site": site, "x_loc": col, "y_loc": row})
-    pos_df = pd.DataFrame(pos_data)
-
-elif row_widths:
-    # Circular acquisition (from original notebook)
-    print(f"Creating circular position mapping with {len(row_widths)} rows")
-    max_width = max(row_widths)
-    pos_dict = {}
-    count = 0
-    # creates dict of (xpos,ypos) = imnumber
-    for row in range(len(row_widths)):
-        row_width = row_widths[row]
-        left_pos = int((max_width - row_width) / 2)
-        for col in range(row_width):
-            if row % 2 == 0:
-                pos_dict[(int(left_pos + col), row)] = count
-                count += 1
-            else:
-                right_pos = left_pos + row_width - 1
-                pos_dict[(int(right_pos - col), row)] = count
-                count += 1
-    # make dict into df
-    pos_df = (
-        pd.DataFrame.from_dict(pos_dict, orient="index")
-        .reset_index()
-        .rename(columns={"index": "loc", 0: "Metadata_Site"})
-    )
-    pos_df[["x_loc", "y_loc"]] = pd.DataFrame(
-        pos_df["loc"].tolist(), index=pos_df.index
-    )
-else:
-    print("No geometry provided - spatial plot will be skipped")
-
-if pos_df is not None:
-    print(f"Position mapping created for {len(pos_df)} sites")
-
-# %% [markdown]
 # ## Load Alignment Data
 
 # %%
@@ -217,10 +164,74 @@ else:
     df_image.to_parquet(cache_file, compression="gzip", index=False)
     print("Cache saved")
 
+# Detect site numbering convention (0-based or 1-based)
+min_site = df_image["Metadata_Site"].min()
+max_site = df_image["Metadata_Site"].max()
+site_offset = min_site
+print(f"Detected site numbering: starting at {min_site} ({'0-based' if min_site == 0 else '1-based'})")
+
 # Auto-detect imperwell if not set
 if imperwell is None:
-    imperwell = df_image["Metadata_Site"].max() + 1
+    # Calculate number of images per well (works for both 0-based and 1-based indexing)
+    imperwell = max_site - min_site + 1
     print(f"Auto-detected imperwell: {imperwell}")
+
+# %% [markdown]
+# ## Create Position Mapping for Spatial Plots
+#
+# This cell creates a mapping from site number to (x, y) position.
+# Supports both square and circular acquisition patterns.
+# Position mapping is created after data loading to detect the site numbering convention.
+
+# %%
+# Only create position mapping if geometry is provided
+pos_df = None
+
+if rows and columns:
+    # Square/rectangular acquisition
+    print(f"Creating square position mapping: {rows}x{columns}")
+    pos_data = []
+    for site in range(rows * columns):
+        row = site // columns
+        col = site % columns
+        # Use min_site offset to match data's site numbering convention
+        pos_data.append({"Metadata_Site": site + min_site, "x_loc": col, "y_loc": row})
+    pos_df = pd.DataFrame(pos_data)
+
+elif row_widths:
+    # Circular acquisition (from original notebook)
+    print(f"Creating circular position mapping with {len(row_widths)} rows")
+    max_width = max(row_widths)
+    pos_dict = {}
+    count = 0
+    # creates dict of (xpos,ypos) = imnumber
+    for row in range(len(row_widths)):
+        row_width = row_widths[row]
+        left_pos = int((max_width - row_width) / 2)
+        for col in range(row_width):
+            if row % 2 == 0:
+                # Use min_site offset to match data's site numbering convention
+                pos_dict[(int(left_pos + col), row)] = count + min_site
+                count += 1
+            else:
+                right_pos = left_pos + row_width - 1
+                # Use min_site offset to match data's site numbering convention
+                pos_dict[(int(right_pos - col), row)] = count + min_site
+                count += 1
+    # make dict into df
+    pos_df = (
+        pd.DataFrame.from_dict(pos_dict, orient="index")
+        .reset_index()
+        .rename(columns={"index": "loc", 0: "Metadata_Site"})
+    )
+    pos_df[["x_loc", "y_loc"]] = pd.DataFrame(
+        pos_df["loc"].tolist(), index=pos_df.index
+    )
+else:
+    print("No geometry provided - spatial plot will be skipped")
+
+if pos_df is not None:
+    print(f"Position mapping created for {len(pos_df)} sites (starting at site {min_site})")
 
 # %% [markdown]
 # ## Prepare Data for Analysis

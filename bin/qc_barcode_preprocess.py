@@ -269,6 +269,12 @@ else:
     df_foci.to_parquet(cache_file, compression="gzip", index=False)
     print("Cache saved")
 
+# Detect site numbering convention (0-based or 1-based)
+min_site = df_foci["Metadata_Site"].min()
+max_site = df_foci["Metadata_Site"].max()
+print(f"Detected site numbering: starting at {min_site} ({'0-based' if min_site == 0 else '1-based'})")
+print(f"Total sites per well: {max_site - min_site + 1}")
+
 # %%
 df_foci.head()
 
@@ -334,7 +340,8 @@ if rows and columns:
     for site in range(rows * columns):
         row = site // columns
         col = site % columns
-        pos_data.append({"Metadata_Site": site, "x_loc": col, "y_loc": row})
+        # Use min_site offset to match data's site numbering convention
+        pos_data.append({"Metadata_Site": site + min_site, "x_loc": col, "y_loc": row})
     pos_df = pd.DataFrame(pos_data)
 
 elif row_widths:
@@ -349,11 +356,13 @@ elif row_widths:
         left_pos = int((max_width - row_width) / 2)
         for col in range(row_width):
             if row % 2 == 0:
-                pos_dict[(int(left_pos + col), row)] = count
+                # Use min_site offset to match data's site numbering convention
+                pos_dict[(int(left_pos + col), row)] = count + min_site
                 count += 1
             else:
                 right_pos = left_pos + row_width - 1
-                pos_dict[(int(right_pos - col), row)] = count
+                # Use min_site offset to match data's site numbering convention
+                pos_dict[(int(right_pos - col), row)] = count + min_site
                 count += 1
     # make dict into df
     pos_df = (
@@ -366,6 +375,7 @@ elif row_widths:
     )
 
 if pos_df is not None:
+    print(f"Position mapping created for {len(pos_df)} sites (starting at site {min_site})")
     # % Perfect by well
     df_foci_slice = df_foci.loc[
         :, ["Metadata_Well", "Metadata_Site", "Barcode_MatchedTo_Score"]
