@@ -4,8 +4,9 @@
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
 include { CELLPROFILER_ILLUMCALC }                                                    from '../../../modules/local/cellprofiler/illumcalc'
-include { QC_MONTAGEILLUM as QC_MONTAGEILLUM_PAINTING }                                       from '../../../modules/local/qc/montageillum'
+include { QC_MONTAGEILLUM as QC_MONTAGEILLUM_PAINTING }                               from '../../../modules/local/qc/montageillum'
 include { QC_MONTAGEILLUM as QC_MONTAGE_SEGCHECK }                                    from '../../../modules/local/qc/montageillum'
+include { QC_MONTAGEILLUM as QC_MONTAGE_STITCHCROP_PAINTING }                         from '../../../modules/local/qc/montageillum'
 include { CELLPROFILER_ILLUMAPPLY }                                                   from '../../../modules/local/cellprofiler/illumapply'
 include { CELLPROFILER_SEGCHECK }                                                     from '../../../modules/local/cellprofiler/segcheck'
 include { FIJI_STITCHCROP }                                                           from '../../../modules/local/fiji/stitchcrop'
@@ -213,6 +214,23 @@ workflow CELLPAINTING {
         )
         ch_cropped_images = FIJI_STITCHCROP.out.cropped_images
         ch_versions = ch_versions.mix(FIJI_STITCHCROP.out.versions)
+
+        // QC montage for stitchcrop results
+        FIJI_STITCHCROP.out.downsampled_images
+            .map{ meta, tiff_files ->
+                [meta.subMap(['batch', 'plate']) + [arm: "painting"], tiff_files]
+            }
+            .groupTuple()
+            .map{ meta, tiff_files_list ->
+                [meta, tiff_files_list.flatten()]
+            }
+            .set { ch_stitchcrop_qc }
+
+        QC_MONTAGE_STITCHCROP_PAINTING (
+            ch_stitchcrop_qc,
+            ".*\\.tiff\$"  // Pattern for stitchcrop: all TIFF files
+        )
+        ch_versions = ch_versions.mix(QC_MONTAGE_STITCHCROP_PAINTING.out.versions)
     } else {
         log.info "Stopping before FIJI_STITCHCROP for painting arm: QC not passed (params.qc_painting_passed = false). Perform QC for painting assay and set qc_painting_passed=true to proceed."
     }
