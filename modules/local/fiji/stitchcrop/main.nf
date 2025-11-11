@@ -13,6 +13,19 @@ process FIJI_STITCHCROP {
     input:
     tuple val(meta), path(corrected_images, stageAs: 'images/*')
     path stitch_script
+    val round_or_square
+    val quarter_if_round
+    val overlap_pct
+    val scalingstring
+    val imperwell
+    val rows
+    val columns
+    val stitchorder
+    val tileperside
+    val final_tile_size
+    val xoffset_tiles
+    val yoffset_tiles
+    val compress
 
     output:
     tuple val(meta), path("stitched_images/*.tiff")                 , emit: stitched_images
@@ -29,6 +42,7 @@ process FIJI_STITCHCROP {
     // Use a minimum of 2GB to ensure basic functionality
     def heap_size = task.memory ? Math.max(2, (task.memory.toGiga() * 0.75) as int) : 2
     def threads = task.cpus ?: 1
+
     """
     # Set environment variables for Fiji python script
     export STITCH_AUTORUN=true
@@ -38,6 +52,21 @@ process FIJI_STITCHCROP {
     # Also set ImageJ-specific options and thread count
     export _JAVA_OPTIONS="-Xmx${heap_size}g -Duser.home=/tmp/fiji_prefs -Dij.dir=/opt/fiji/Fiji.app -Dscijava.thread.max=${threads}"
     mkdir -p /tmp/fiji_prefs
+
+    # Stitching parameters passed from subworkflow
+    export ROUND_OR_SQUARE="${round_or_square}"
+    export QUARTER_IF_ROUND="${quarter_if_round}"
+    export OVERLAP_PCT="${overlap_pct}"
+    export SCALINGSTRING="${scalingstring}"
+    export IMPERWELL="${imperwell ?: ''}"
+    export ROWS="${rows ?: ''}"
+    export COLUMNS="${columns ?: ''}"
+    export STITCHORDER="${stitchorder}"
+    export TILEPERSIDE="${tileperside}"
+    export FINAL_TILE_SIZE="${final_tile_size}"
+    export XOFFSET_TILES="${xoffset_tiles}"
+    export YOFFSET_TILES="${yoffset_tiles}"
+    export COMPRESS="${compress}"
 
     # Run Fiji in headless mode
     /opt/fiji/Fiji.app/ImageJ-linux64 \\
