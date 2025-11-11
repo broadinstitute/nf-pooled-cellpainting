@@ -76,6 +76,7 @@ workflow CELLPAINTING {
         ch_illumination_corrections_qc,
         ".*\\.npy\$"  // Pattern for painting: all .npy files
     )
+    ch_versions = ch_versions.mix(QC_MONTAGEILLUM_PAINTING.out.versions)
 
     // Group images by well for ILLUMAPPLY
     // Each well should get all its images (no cycles for cellpainting)

@@ -310,5 +310,5 @@ workflow BARCODING {
 
     emit:
     cropped_images  = ch_cropped_images // channel: [ val(meta), [ cropped_images ] ]
-    versions                  = ch_versions       // channel: [ versions.yml ]
+    versions        = ch_versions       // channel: [ versions.yml ]
 }
