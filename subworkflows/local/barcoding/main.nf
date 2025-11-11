@@ -25,6 +25,26 @@ workflow BARCODING {
     ch_versions = channel.empty()
     ch_cropped_images = channel.empty()
 
+    ////==========================================================================
+    //// PARALLELIZATION STRATEGY OVERVIEW
+    ////==========================================================================
+    // This workflow processes barcoding images through several steps, each with
+    // different parallelization granularity:
+    //
+    // 1. ILLUMCALC:  batch, plate, cycle, channels
+    //    - One job per plate per cycle per channel set
+    //
+    // 2. ILLUMAPPLY: batch, plate, well
+    //    - One job per well (processes all cycles/sites together)
+    //
+    // 3. PREPROCESS: batch, plate, well, site
+    //    - One job per site (splits well-level output from ILLUMAPPLY)
+    //    - See detailed comments at PREPROCESS section below for how to change this
+    //
+    // 4. STITCHCROP: batch, plate, well, site
+    //    - One job per site (inherits from PREPROCESS)
+    ////==========================================================================
+
     // Group images by batch, plate, cycle, and channels for illumination calculation
     ch_samplesheet_sbs
         .map { meta, image ->
@@ -76,11 +96,11 @@ workflow BARCODING {
     )
     ch_versions = ch_versions.mix(QC_MONTAGEILLUM_BARCODING.out.versions)
 
-    // Group images by well for ILLUMAPPLY
-    // Each well should get all its images across all cycles
+    // Group images by well for ILLUMAPPLY, preserving full metadata for each image
+    // Keep all original meta maps so we can use them after ILLUMAPPLY
     ch_samplesheet_sbs
         .map { meta, image ->
-            def group_key = [
+            def well_key = [
                 batch: meta.batch,
                 plate: meta.plate,
                 well: meta.well,
@@ -88,16 +108,21 @@ workflow BARCODING {
                 arm: meta.arm,
                 id: "${meta.batch}_${meta.plate}_${meta.well}"
             ]
-            [group_key, image, meta.cycle]
+            // Keep full meta alongside image
+            [well_key, [image: image, meta: meta]]
         }
         .groupTuple()
-        .map { meta, images, cycles ->
-            // Get unique images and cycles
-            def unique_images = images.unique()
-            def unique_cycles = cycles.unique().sort()
-            [meta, meta.channels, unique_cycles, unique_images]
+        .map { well_meta, image_meta_list ->
+            // Extract images and cycles for ILLUMAPPLY
+            def images = image_meta_list.collect { it.image }.unique()
+            def cycles = image_meta_list.collect { it.meta.cycle }.unique().sort()
+
+            // Keep all the original metadata maps
+            def image_metas = image_meta_list.collect { it.meta }
+
+            [well_meta, well_meta.channels, cycles, images, image_metas]
         }
-        .set { ch_images_by_well }
+        .set { ch_images_by_well_with_metas }
 
     // Group npy files by batch and plate
     // All wells in a plate share the same illumination correction files
@@ -117,22 +142,29 @@ workflow BARCODING {
 
     // Combine images with npy files
     // Each well gets all the npy files for its plate
-    ch_images_by_well
-        .map { meta, channels, cycles, images ->
+    ch_images_by_well_with_metas
+        .map { well_meta, channels, cycles, images, image_metas ->
             def plate_key = [
-                batch: meta.batch,
-                plate: meta.plate
+                batch: well_meta.batch,
+                plate: well_meta.plate
             ]
-            [plate_key, meta, channels, cycles, images]
+            [plate_key, well_meta, channels, cycles, images, image_metas]
         }
         .combine(ch_npy_by_plate, by: 0)
-        .map { _plate_key, meta, channels, cycles, images, npy_files ->
-            [meta, channels, cycles, images, npy_files]
+        .map { _plate_key, well_meta, channels, cycles, images, image_metas, npy_files ->
+            [
+                [well_meta, channels, cycles, images, npy_files],  // ILLUMAPPLY input
+                [well_meta, image_metas]  // All original metadata to pass through
+            ]
         }
-        .set { ch_illumapply_input }
+        .multiMap { illumapply_input, meta_passthrough ->
+            illumapply: illumapply_input
+            metas: meta_passthrough
+        }
+        .set { ch_split_for_illumapply }
 
     CELLPROFILER_ILLUMAPPLY_BARCODING (
-        ch_illumapply_input,
+        ch_split_for_illumapply.illumapply,
         barcoding_illumapply_cppipe,
         true  // has_cycles = true for barcoding
     )
@@ -194,10 +226,88 @@ workflow BARCODING {
     )
     ch_versions = ch_versions.mix(QC_BARCODEALIGN.out.versions)
 
-    // Reshape CELLPROFILER_ILLUMAPPLY output for PREPROCESS
-    CELLPROFILER_ILLUMAPPLY_BARCODING.out.corrected_images.map{ meta, images, _csv ->
-            [meta, images]
-    }.set { ch_sbs_corr_images }
+    ////==========================================================================
+    //// PREPROCESS PARALLELIZATION: Split well-level jobs into site-level jobs
+    ////==========================================================================
+    // CURRENT GROUPING: batch, plate, well, site
+    // This creates separate PREPROCESS jobs for each site within a well
+    //
+    // TO CHANGE PARALLELIZATION:
+    // - For well-level (coarser): Remove the site-splitting logic below and use:
+    //     CELLPROFILER_ILLUMAPPLY_BARCODING.out.corrected_images.map{ meta, images, _csv -> [meta, images] }
+    // - For plate-level: Also change ILLUMAPPLY grouping to batch,plate
+    // - For even finer: Could add channel-level or cycle-level splitting
+    ////==========================================================================
+
+    // Split ILLUMAPPLY output (grouped by well) into separate jobs per site
+    // Use the preserved metadata from samplesheet to know which sites exist
+    CELLPROFILER_ILLUMAPPLY_BARCODING.out.corrected_images
+        .map { well_meta, images, _csv ->
+            def well_key = [
+                batch: well_meta.batch,
+                plate: well_meta.plate,
+                well: well_meta.well
+            ]
+            [well_key, well_meta, images]
+        }
+        .join(
+            ch_split_for_illumapply.metas.map { well_meta, image_metas ->
+                def well_key = [
+                    batch: well_meta.batch,
+                    plate: well_meta.plate,
+                    well: well_meta.well
+                ]
+                [well_key, image_metas]
+            }
+        )
+        .flatMap { _well_key, well_meta, images, image_metas ->
+            // image_metas contains all original metadata maps from samplesheet
+            // Each has site, cycle, and all other metadata
+
+            // Get valid sites from samplesheet metadata (source of truth)
+            def valid_sites = image_metas.collect { meta -> meta.site }.unique().sort()
+
+            // Detect if there's an indexing offset between samplesheet and ILLUMAPPLY output
+            // Samplesheet might use 1-indexed (1,2,3,4) while ILLUMAPPLY uses 0-indexed (0,1,2,3)
+            def min_samplesheet_site = valid_sites.min()
+            def site_offset = min_samplesheet_site // If min is 1, offset is 1; if min is 0, offset is 0
+
+            // Group images by site using metadata as source of truth
+            def images_by_site = [:].withDefault { [] }
+
+            // Group images by extracted site, mapping to samplesheet site values
+            images.each { img ->
+                // Extract site from filename (ILLUMAPPLY output includes site in filename)
+                def site_matcher = img.name =~ /Site_(\d+)/
+                if (site_matcher.find()) {
+                    def filename_site = site_matcher.group(1).toInteger()
+
+                    // Convert filename site to samplesheet site (handle 0-indexing vs 1-indexing)
+                    def samplesheet_site = filename_site + site_offset
+
+                    // Validate that this site exists in samplesheet metadata (source of truth)
+                    if (valid_sites.contains(samplesheet_site)) {
+                        images_by_site[samplesheet_site] << img
+                    } else {
+                        log.warn "PREPROCESS: Image ${img.name} has filename site ${filename_site} (maps to ${samplesheet_site}), but samplesheet only has: ${valid_sites.join(', ')}"
+                    }
+                } else {
+                    log.warn "PREPROCESS: Could not extract site from filename: ${img.name}"
+                }
+            }
+
+            // Create separate channel emissions for each site found in metadata
+            def site_jobs = images_by_site.collect { site, site_images ->
+                def site_meta = well_meta.clone()
+                site_meta.site = site
+                site_meta.id = "${well_meta.id}_Site${site}"
+                [site_meta, site_images]
+            }
+
+            log.info "PREPROCESS: Split ${well_meta.id} into ${site_jobs.size()} site-level jobs (sites: ${images_by_site.keySet().sort().join(', ')}) - samplesheet has sites: ${valid_sites.join(', ')}"
+            return site_jobs
+        }
+        .set { ch_sbs_corr_images }
 
     //// Barcoding preprocessing ////
     CELLPROFILER_PREPROCESS (
@@ -249,8 +359,30 @@ workflow BARCODING {
 
     if (params.qc_barcoding_passed) {
         // STITCH & CROP IMAGES ////
+        // PREPROCESS outputs are per site, but STITCHCROP needs all sites together per well
+        // Re-group by well before stitching
+        CELLPROFILER_PREPROCESS.out.preprocessed_images
+            .map { meta, images ->
+                // Create well key (without site)
+                def well_key = [
+                    batch: meta.batch,
+                    plate: meta.plate,
+                    well: meta.well,
+                    channels: meta.channels,
+                    arm: meta.arm,
+                    id: "${meta.batch}_${meta.plate}_${meta.well}"
+                ]
+                [well_key, images]
+            }
+            .groupTuple()
+            .map { well_meta, images_list ->
+                // Flatten all site images into one list for the well
+                [well_meta, images_list.flatten()]
+            }
+            .set { ch_preprocess_by_well }
+
         FIJI_STITCHCROP (
-            CELLPROFILER_PREPROCESS.out.preprocessed_images,
+            ch_preprocess_by_well,
             file("${projectDir}/bin/stitch_crop.py")
         )
         ch_cropped_images = FIJI_STITCHCROP.out.cropped_images

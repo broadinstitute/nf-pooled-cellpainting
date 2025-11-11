@@ -78,37 +78,44 @@ workflow POOLED_CELLPAINTING {
     ch_versions = ch_versions.mix(BARCODING.out.versions)
 
     //// Combined analysis of CP and SBS data ////
+    // Only run if both painting and barcoding QC have passed
 
-    // Extract site from basename, create new ID (without arm), and group by site
-    CELLPAINTING.out.cropped_images
-        .mix(BARCODING.out.cropped_images)
-        .flatMap { meta, images ->
-            images.collect { image ->
-                // Updated regex to handle new naming: Site_1 (with underscore)
-                def site_match = image.baseName =~ /Site_(\d+)/
-                def site = site_match ? site_match[0][1].toInteger() : "unknown"
-                def new_meta = meta.subMap(['batch', 'plate', 'well']) + [id: "${meta.batch}_${meta.plate}_${meta.well}_${site}", site: site]
-                [new_meta, image]
+    if (params.qc_painting_passed && params.qc_barcoding_passed) {
+        // Combine cropped images from both arms
+        // Use concat to ensure both channels complete before grouping
+        // This prevents COMBINEDANALYSIS from starting prematurely with only one arm's data
+        CELLPAINTING.out.cropped_images
+            .concat(BARCODING.out.cropped_images)
+            .flatMap { meta, images ->
+                images.collect { image ->
+                    // Updated regex to handle new naming: Site_1 (with underscore)
+                    def site_match = image.baseName =~ /Site_(\d+)/
+                    def site = site_match ? site_match[0][1].toInteger() : "unknown"
+                    def new_meta = meta.subMap(['batch', 'plate', 'well']) + [id: "${meta.batch}_${meta.plate}_${meta.well}_${site}", site: site]
+                    [new_meta, image]
+                }
             }
-        }
-        .groupTuple()
-        .map { meta, images -> [meta, images.flatten()] }
-        .set { ch_cropped_images }
+            .groupTuple()
+            .map { meta, images -> [meta, images.flatten()] }
+            .set { ch_cropped_images }
 
-    CELLPROFILER_COMBINEDANALYSIS (
-        ch_cropped_images,
-        params.combinedanalysis_cppipe,
-        barcodes,
-        Channel.fromPath(params.callbarcodes_plugin).collect()  // CellProfiler callbarcodes plugin
-    )
-    ch_versions = ch_versions.mix(CELLPROFILER_COMBINEDANALYSIS.out.versions)
-    // Merge load_data CSVs across all samples
-    CELLPROFILER_COMBINEDANALYSIS.out.load_data_csv.collectFile(
-        name: "combined_analysis.load_data.csv",
-        keepHeader: true,
-        skip: 1,
-        storeDir: "${params.outdir}/workspace/load_data_csv/"
-    )
+        CELLPROFILER_COMBINEDANALYSIS (
+            ch_cropped_images,
+            params.combinedanalysis_cppipe,
+            barcodes,
+            Channel.fromPath(params.callbarcodes_plugin).collect()  // CellProfiler callbarcodes plugin
+        )
+        ch_versions = ch_versions.mix(CELLPROFILER_COMBINEDANALYSIS.out.versions)
+        // Merge load_data CSVs across all samples
+        CELLPROFILER_COMBINEDANALYSIS.out.load_data_csv.collectFile(
+            name: "combined_analysis.load_data.csv",
+            keepHeader: true,
+            skip: 1,
+            storeDir: "${params.outdir}/workspace/load_data_csv/"
+        )
+    } else {
+        log.info "Stopping before CELLPROFILER_COMBINEDANALYSIS: QC not passed for both arms (qc_painting_passed=${params.qc_painting_passed}, qc_barcoding_passed=${params.qc_barcoding_passed}). Set both to true to proceed."
+    }
 
 
     //

@@ -15,17 +15,18 @@ process CELLPROFILER_PREPROCESS {
 
 
     output:
-    tuple val(meta), path("*.tiff")                 , emit: preprocessed_images
-    tuple val(meta), path("overlay/*.tiff")         , emit: overlay
+    tuple val(meta), path("*.tiff")                    , emit: preprocessed_images
+    path "overlay/*.tiff", optional: true              , emit: overlay
     tuple val(meta), path("BarcodePreprocessing*.csv") , emit: preprocess_stats
-    path "load_data.csv"                            , emit: load_data_csv
-    path "versions.yml"                             , emit: versions
+    path "load_data.csv"                               , emit: load_data_csv
+    path "versions.yml"                                , emit: versions
 
     when:
     task.ext.when == null || task.ext.when
 
     script:
     """
+
     generate_load_data_csv.py \\
         --pipeline-type preprocess \\
         --images-dir ./images \\
