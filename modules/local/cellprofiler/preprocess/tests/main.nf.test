@@ -71,7 +71,7 @@ nextflow_process {
 
     }
 
-    test("cellprofiler - preprocess - sbs_images - stub") {
+    test("cellprofiler - preprocess - barcoding - stub") {
 
         options "-stub"
 
