@@ -13,3 +13,7 @@ SKILLS.md
 .nf-test.log
 .nf-test/
 .lineage
+
+# MkDocs
+site/
+.cache/
