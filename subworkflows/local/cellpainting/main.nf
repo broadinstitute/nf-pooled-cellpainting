@@ -7,7 +7,7 @@ include { CELLPROFILER_ILLUMCALC }                                              
 include { QC_MONTAGEILLUM as QC_MONTAGEILLUM_PAINTING }                               from '../../../modules/local/qc/montageillum'
 include { QC_MONTAGEILLUM as QC_MONTAGE_SEGCHECK }                                    from '../../../modules/local/qc/montageillum'
 include { QC_MONTAGEILLUM as QC_MONTAGE_STITCHCROP_PAINTING }                         from '../../../modules/local/qc/montageillum'
-include { CELLPROFILER_ILLUMAPPLY }                                                   from '../../../modules/local/cellprofiler/illumapply'
+include { CELLPROFILER_ILLUMAPPLY as CELLPROFILER_ILLUMAPPLY_PAINTING }                                                   from '../../../modules/local/cellprofiler/illumapply'
 include { CELLPROFILER_SEGCHECK }                                                     from '../../../modules/local/cellprofiler/segcheck'
 include { FIJI_STITCHCROP }                                                           from '../../../modules/local/fiji/stitchcrop'
 workflow CELLPAINTING {
@@ -25,22 +25,23 @@ workflow CELLPAINTING {
 
     //// Calculate illumination correction profiles ////
 
-    // Group images by batch, plate, and channels for illumination calculation
+    // Group images by batch and plate for illumination calculation
+    // All channels are processed together
     ch_samplesheet_cp
         .map { meta, image ->
             def group_key = [
                 batch: meta.batch,
                 plate: meta.plate,
-                channels: meta.channels,
-                id: "${meta.batch}_${meta.plate}_${meta.channels}"
+                id: "${meta.batch}_${meta.plate}"
             ]
-            [group_key, image]
+            [group_key, image, meta.channels]
         }
         .groupTuple()
-        .map { meta, images ->
-            // Get unique images
+        .map { meta, images, channels_list ->
+            // Get unique images and collect all channels
             def unique_images = images.unique()
-            [meta, meta.channels, null, unique_images]  // null for cycle since cellpainting has no cycles
+            def all_channels = channels_list.unique().sort().join(',')
+            [meta, all_channels, null, unique_images]  // null for cycle since cellpainting has no cycles
         }
         .set { ch_illumcalc_input }
 
@@ -84,17 +85,17 @@ workflow CELLPAINTING {
                 batch: meta.batch,
                 plate: meta.plate,
                 well: meta.well,
-                channels: meta.channels,
                 arm: meta.arm,
                 id: "${meta.batch}_${meta.plate}_${meta.well}"
             ]
-            [group_key, image]
+            [group_key, image, meta.channels]
         }
         .groupTuple()
-        .map { meta, images ->
-            // Get unique images
+        .map { meta, images, channels_list ->
+            // Get unique images and collect all channels
             def unique_images = images.unique()
-            [meta, meta.channels, null, unique_images]  // null for cycles since cellpainting has no cycles
+            def all_channels = channels_list.unique().sort().join(',')
+            [meta, all_channels, null, unique_images]  // null for cycles since cellpainting has no cycles
         }
         .set { ch_images_by_well }
 
@@ -131,22 +132,22 @@ workflow CELLPAINTING {
         .set { ch_illumapply_input }
 
     // Apply illumination correction to images
-    CELLPROFILER_ILLUMAPPLY (
+    CELLPROFILER_ILLUMAPPLY_PAINTING (
         ch_illumapply_input,
         painting_illumapply_cppipe,
         false  // has_cycles = false for cellpainting
     )
-    ch_versions = ch_versions.mix(CELLPROFILER_ILLUMAPPLY.out.versions)
+    ch_versions = ch_versions.mix(CELLPROFILER_ILLUMAPPLY_PAINTING.out.versions)
     // Merge load_data CSVs across all samples
-    CELLPROFILER_ILLUMAPPLY.out.load_data_csv.collectFile(
+    CELLPROFILER_ILLUMAPPLY_PAINTING.out.load_data_csv.collectFile(
         name: "painting-illumapply.load_data.csv",
         keepHeader: true,
         skip: 1,
         storeDir: "${params.outdir}/workspace/load_data_csv/"
     )
 
-    // Reshape CELLPROFILER_ILLUMAPPLY output for SEGCHECK
-    CELLPROFILER_ILLUMAPPLY.out.corrected_images.map{ meta, images, _csv ->
+    // Reshape CELLPROFILER_ILLUMAPPLY_PAINTING output for SEGCHECK
+    CELLPROFILER_ILLUMAPPLY_PAINTING.out.corrected_images.map{ meta, images, _csv ->
             [meta, images]
     }.set { ch_sub_corr_images }
 
@@ -187,7 +188,7 @@ workflow CELLPAINTING {
     // This allows the painting arm to stop at stitching/cropping if QC fails,
     // while allowing the barcoding arm to proceed independently
 
-    CELLPROFILER_ILLUMAPPLY.out.corrected_images.map{
+    CELLPROFILER_ILLUMAPPLY_PAINTING.out.corrected_images.map{
         meta, images, _csv ->
             [meta, images]
         }

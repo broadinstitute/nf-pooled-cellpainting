@@ -1,7 +1,7 @@
 reports:
   workspace/qc_reports/**/1_illumination_painting/*.png:
     display: "Painting illumination correction profiles montage."
-  workspace/qc_reports/**/3_segmentation/painting*.png:
+  workspace/qc_reports/**/3_segmentation/*.png:
     display: "Cell painting segmentation check montage."
   workspace/qc_reports/**/4_stitching_painting/*.png:
     display: "Painting crop and stitching montage."

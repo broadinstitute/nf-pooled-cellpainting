@@ -8,7 +8,8 @@ testing*
 *.pyc
 null/
 CLAUDE.md
-.claude/*
+SKILLS.md
+.claude/
 .nf-test.log
 .nf-test/
 .lineage
