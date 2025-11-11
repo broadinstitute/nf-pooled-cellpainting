@@ -39,8 +39,8 @@ workflow NF_POOLED_CELLPAINTING {
         samplesheet,
         params.barcodes
     )
-    // emit:
-    // multiqc_report = POOLED_CELLPAINTING.out.multiqc_report // channel: /path/to/multiqc_report.html
+    emit:
+    multiqc_report = POOLED_CELLPAINTING.out.multiqc_report // channel: /path/to/multiqc_report.html
 }
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -72,11 +72,11 @@ workflow {
     //
     // SUBWORKFLOW: Run completion tasks
     //
-    // PIPELINE_COMPLETION (
-    //     params.outdir
-    //     // params.monochrome_logs,
-    //     // POOLED_CELLPAINTING.out.multiqc_report
-    // )
+    PIPELINE_COMPLETION (
+        params.outdir,
+        params.monochrome_logs,
+        NF_POOLED_CELLPAINTING.out.multiqc_report
+    )
 }
 
 /*
