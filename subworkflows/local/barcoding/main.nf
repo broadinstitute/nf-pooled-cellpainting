@@ -35,14 +35,21 @@ workflow BARCODING {
                 cycle: meta.cycle,
                 id: "${meta.batch}_${meta.plate}_${meta.cycle}"
             ]
-            [group_key, image, meta.channels]
+            [group_key, image, meta.channels, meta]
         }
         .groupTuple()
-        .map { meta, images, channels_list ->
+        .map { meta, images, channels_list, meta_list ->
             // Get unique images and collect all channels
             def unique_images = images.unique()
             def all_channels = channels_list.unique().sort().join(',')
-            [meta, all_channels, meta.cycle, unique_images]
+            // Preserve an example of the full metadata (take first one and merge with group_key)
+            def example_meta = meta_list[0]
+            def full_meta = meta + [
+                well: example_meta.well,
+                site: example_meta.site,
+                arm: example_meta.arm
+            ]
+            [full_meta, all_channels, meta.cycle, unique_images]
         }
         .set { ch_illumcalc_input }
 

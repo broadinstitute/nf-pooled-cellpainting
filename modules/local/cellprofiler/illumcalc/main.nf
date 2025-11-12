@@ -21,19 +21,32 @@ process CELLPROFILER_ILLUMCALC {
     task.ext.when == null || task.ext.when
 
     script:
-    def cycles_flag = has_cycles ? "--has-cycles" : ""
-    def cycle_arg = cycle ? "--cycle ${cycle}" : ""
-    def plate_arg = meta.plate ? "--plate ${meta.plate}" : ""
+    // Build optional JSON fields
+    def cycle_json = cycle ? "\"cycle\": ${cycle}," : ""
+    def batch_json = meta.batch ? "\"batch\": \"${meta.batch}\"," : ""
+    def arm_json = meta.arm ? "\"arm\": \"${meta.arm}\"," : ""
+    // NOTE: Don't include well/site for ILLUMCALC - it processes multiple wells/sites
+    // and needs to discover them from filenames
     """
+    # Create metadata JSON file
+    cat > metadata.json << 'EOF'
+{
+    "plate": "${meta.plate}",
+    ${cycle_json}
+    ${batch_json}
+    ${arm_json}
+    "channels": "${channels}",
+    "id": "${meta.id}"
+}
+EOF
+
     # Generate load_data.csv
     generate_load_data_csv.py \\
         --pipeline-type illumcalc \\
         --images-dir ./images \\
         --output load_data.csv \\
-        --channels "${channels}" \\
-        ${cycle_arg} \\
-        ${plate_arg} \\
-        ${cycles_flag}
+        --metadata-json metadata.json \\
+        --channels "${channels}"
 
     # Check if illumination_cppipe ends with .template
     if [[ "${illumination_cppipe}" == *.template ]]; then

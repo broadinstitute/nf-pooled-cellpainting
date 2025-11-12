@@ -31,7 +31,20 @@ process CELLPROFILER_COMBINEDANALYSIS {
     export XDG_CACHE_HOME=\${PWD}/.cache
     mkdir -p \${MPLCONFIGDIR} \${XDG_CACHE_HOME}
 
+    # Write metadata to JSON file
+    cat <<EOF > metadata.json
+    {
+        "plate": "${meta.plate}",
+        "well": "${meta.well}",
+        "site": ${meta.site},
+        "batch": "${meta.batch}",
+        "arm": "${meta.arm}",
+        "id": "${meta.id}"
+    }
+    EOF
+
     generate_combined_load_data.py \\
+        --metadata-json metadata.json \\
         --images-dir ./images \\
         --output load_data.csv
 

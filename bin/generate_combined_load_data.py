@@ -11,89 +11,188 @@ Uses only Python standard library - no external dependencies.
 import argparse
 import csv
 import glob
+import json
 import os
 import re
 import sys
 from typing import Dict, List, Tuple, Optional
 
 
+def read_metadata_json(json_path: str) -> Dict:
+    """
+    Read and parse metadata from JSON file.
+
+    Expected JSON structure:
+    {
+        "plate": "Plate1",       # required
+        "well": "A1",            # optional - can parse from filename
+        "site": 1,               # optional - can parse from filename
+        "cycle": 1,              # optional
+        "channels": "DNA,Phalloidin",  # optional
+        "batch": "Batch1",       # optional
+        "arm": "painting"        # optional
+    }
+
+    Returns dict with metadata. Only 'plate' is required.
+    'well' and 'site' can be parsed from filenames if not provided.
+    """
+    if not os.path.exists(json_path):
+        raise FileNotFoundError(f"Metadata JSON file not found: {json_path}")
+
+    try:
+        with open(json_path, 'r') as f:
+            metadata = json.load(f)
+    except json.JSONDecodeError as e:
+        raise ValueError(f"Invalid JSON in metadata file {json_path}: {e}")
+    except IOError as e:
+        raise IOError(f"Error reading metadata file {json_path}: {e}")
+
+    # Validate required fields - only plate is mandatory
+    if not isinstance(metadata, dict):
+        raise ValueError(f"Metadata JSON must be a dictionary, got {type(metadata)}")
+
+    if 'plate' not in metadata:
+        raise ValueError(
+            "Metadata JSON is missing required field: 'plate'. "
+            "Only 'plate' is mandatory; 'well' and 'site' are optional and can be parsed from filenames."
+        )
+
+    # Extract fields with defaults
+    result = {
+        'plate': metadata.get('plate'),
+        'well': metadata.get('well'),
+        'site': metadata.get('site'),
+        'cycle': metadata.get('cycle'),
+        'channels': metadata.get('channels'),
+        'batch': metadata.get('batch'),
+        'arm': metadata.get('arm')
+    }
+
+    # Convert site to int if present
+    if result['site'] is not None:
+        try:
+            result['site'] = int(result['site'])
+        except (ValueError, TypeError):
+            raise ValueError(f"Invalid site value in metadata: {result['site']}, must be an integer")
+
+    # Log warnings for missing optional fields
+    if result['well'] is None:
+        print("⚠ Warning: 'well' field not found in metadata JSON - will parse from filename", file=sys.stderr)
+    if result['site'] is None:
+        print("⚠ Warning: 'site' field not found in metadata JSON - will parse from filename", file=sys.stderr)
+
+    print(f"✓ Loaded metadata from JSON: {json_path}", file=sys.stderr)
+    print(f"  Plate: {result['plate']}, Well: {result['well']}, Site: {result['site']}", file=sys.stderr)
+
+    return result
+
+
+def parse_well_from_filename(filename: str) -> Optional[str]:
+    """
+    Parse well identifier from filename as fallback when not in JSON metadata.
+
+    Pattern: Well_{well} in combined analysis filenames
+    Example: Plate_Plate1_Well_A1_Site_1_Corr... -> "A1"
+
+    Returns:
+        Well identifier (e.g., "A1") or None if not found
+    """
+    match = re.search(r'Well_([A-Z]\d+)_', filename)
+    if match:
+        return match.group(1)
+    return None
+
+
+def parse_site_from_filename(filename: str) -> Optional[int]:
+    """
+    Parse site number from filename as fallback when not in JSON metadata.
+
+    Pattern: Site_{site} in combined analysis filenames
+    Example: Plate_Plate1_Well_A1_Site_1_Corr... -> 1
+
+    Returns:
+        Site number (int) or None if not found
+    """
+    match = re.search(r'Site_(\d+)_', filename)
+    if match:
+        return int(match.group(1))
+    return None
+
+
 def parse_combined_image(filename: str) -> Optional[Dict]:
     """
-    Parse combined analysis image filenames from both cell painting and barcoding.
+    Parse channel information from combined analysis image filenames.
 
     Patterns:
-    - Cell painting corrected: Plate_{plate}_Well_{well}_Site_{site}_Corr{channel}.tiff
-    - Barcoding cropped with cycles: Plate_{plate}_Well_{well}_Site_{site}_Cycle{cycle}_{channel}.tiff
+    - Cell painting corrected: Plate_*_Well_*_Site_*_Corr{channel}.tiff
+    - Barcoding cropped with cycles: Plate_*_Well_*_Site_*_Cycle{cycle}_{channel}.tiff
       where cycle is 2-digit zero-padded (01, 02, ..., 10, 11, etc.)
       and channel is one of A, C, G, T, DNA, DAPI
 
-    Returns dict with: plate, well, site, type, and either (channel) or (cycle, channel)
+    Returns dict with: type (barcoding/cellpainting), channel, and cycle (for barcoding only)
+    Note: plate always comes from JSON metadata
+    Note: well and site can come from JSON or be parsed from filename
     """
     # Try barcoding cropped pattern with cycles first
     # Note: cycle is 2-digit zero-padded (\d{2}) to handle cycles > 9
-    barcode_cycle_pattern = r'Plate_([A-Za-z0-9]+)_Well_([A-Z]\d+)_Site_(\d+)_Cycle(\d{2})_([ACGT]|DNA|DAPI)\.tiff?'
+    barcode_cycle_pattern = r'Plate_[A-Za-z0-9]+_Well_[A-Z]\d+_Site_\d+_Cycle(\d{2})_([ACGT]|DNA|DAPI)\.tiff?'
     barcode_cycle_match = re.match(barcode_cycle_pattern, filename)
 
     if barcode_cycle_match:
         return {
-            'plate': barcode_cycle_match.group(1),
-            'well': barcode_cycle_match.group(2),
-            'site': int(barcode_cycle_match.group(3)),
-            'cycle': barcode_cycle_match.group(4),
-            'channel': 'DNA' if barcode_cycle_match.group(5) == 'DAPI' else barcode_cycle_match.group(5),
+            'cycle': barcode_cycle_match.group(1),
+            'channel': 'DNA' if barcode_cycle_match.group(2) == 'DAPI' else barcode_cycle_match.group(2),
             'type': 'barcoding'
         }
 
     # Try cell painting corrected pattern
-    cp_pattern = r'Plate_([A-Za-z0-9]+)_Well_([A-Z]\d+)_Site_(\d+)_Corr(.+?)\.tiff?'
+    cp_pattern = r'Plate_[A-Za-z0-9]+_Well_[A-Z]\d+_Site_\d+_Corr(.+?)\.tiff?'
     cp_match = re.match(cp_pattern, filename)
 
     if cp_match:
         return {
-            'plate': cp_match.group(1),
-            'well': cp_match.group(2),
-            'site': int(cp_match.group(3)),
-            'channel': cp_match.group(4),
+            'channel': cp_match.group(1),
             'type': 'cellpainting'
         }
 
     return None
 
 
-def infer_plate_well_from_path(file_path: str) -> Tuple[Optional[str], Optional[str]]:
-    """
-    Infer plate and well from file path for barcoding files.
-
-    Looks for patterns like 'Plate1/Plate1-A1/' or 'Plate1-A1/' in the path,
-    or from the new filename format 'Plate_PlateID_Well_WellID_...'
-    Returns: (plate, well) tuple or (None, None) if not found
-    """
-    # First try to extract from filename using new naming pattern
-    filename = os.path.basename(file_path)
-    filename_match = re.match(r'Plate_([A-Za-z0-9]+)_Well_([A-Z]\d+)_', filename)
-    if filename_match:
-        return filename_match.group(1), filename_match.group(2)
-
-    # Try pattern with plate directory: Plate1/Plate1-A1/
-    match = re.search(r'(Plate\d+)/(Plate\d+)-([A-Z]\d+)', file_path)
-    if match:
-        return match.group(2), match.group(3)
-
-    # Try pattern without plate directory: Plate1-A1/
-    match = re.search(r'(Plate\d+)-([A-Z]\d+)', file_path)
-    if match:
-        return match.group(1), match.group(2)
-
-    return None, None
-
-
-def collect_and_group_files(images_dir: str) -> Dict[Tuple, Dict]:
+def collect_and_group_files(images_dir: str, metadata: Dict) -> Dict[Tuple, Dict]:
     """
     Collect and group combined analysis image files.
+
+    Args:
+        images_dir: Directory containing image files
+        metadata: Required metadata dict from JSON (must contain plate; well/site optional)
 
     Returns:
         Dict mapping (plate, well, site) -> {'barcoding': {...}, 'cellpainting': {...}}
     """
+    # Validate metadata is provided and contains required fields
+    if not metadata:
+        raise ValueError("Metadata is required. JSON metadata file must be provided via --metadata-json")
+
+    # Only plate is required - well and site can be parsed from filenames
+    if 'plate' not in metadata:
+        raise ValueError(
+            "Metadata JSON is missing required field: 'plate'. "
+            "Plate must always come from metadata JSON."
+        )
+
+    # Check if we need to parse well/site from filenames
+    use_json_well = metadata.get('well') is not None
+    use_json_site = metadata.get('site') is not None
+
+    if use_json_well and use_json_site:
+        print("✓ Using well and site from JSON metadata", file=sys.stderr)
+    elif use_json_well:
+        print("✓ Using well from JSON metadata, will parse site from filenames", file=sys.stderr)
+    elif use_json_site:
+        print("✓ Using site from JSON metadata, will parse well from filenames", file=sys.stderr)
+    else:
+        print("✓ Will parse both well and site from filenames (not in JSON metadata)", file=sys.stderr)
+
     # Validate input directory
     if not os.path.isdir(images_dir):
         raise FileNotFoundError(f"Images directory not found: {images_dir}")
@@ -129,10 +228,13 @@ def collect_and_group_files(images_dir: str) -> Dict[Tuple, Dict]:
     parse_errors = []
     missing_metadata = []
 
+    # Extract plate from metadata (always required)
+    plate = metadata['plate']
+
     for img_path in image_files:
         filename = os.path.basename(img_path)
 
-        # Parse the filename
+        # Parse the filename for channel information
         try:
             parsed = parse_combined_image(filename)
         except Exception as e:
@@ -145,21 +247,28 @@ def collect_and_group_files(images_dir: str) -> Dict[Tuple, Dict]:
             print(f"⚠ Skipping '{filename}': does not match expected pattern", file=sys.stderr)
             continue
 
-        # Get plate, well, site from parsed filename
-        # With the new naming pattern, all files have plate/well/site in the filename
-        try:
-            plate = parsed['plate']
-            well = parsed['well']
-            site = parsed['site']
+        # Get well: from JSON or parse from filename
+        if use_json_well:
+            well = metadata['well']
+        else:
+            well = parse_well_from_filename(filename)
+            if not well:
+                missing_metadata.append((filename, "Could not parse well from filename (not in JSON)"))
+                print(f"⚠ Skipping '{filename}': Could not parse well from filename", file=sys.stderr)
+                continue
 
-        except (KeyError, ValueError) as e:
-            missing_metadata.append((filename, str(e)))
-            print(f"⚠ {e}", file=sys.stderr)
-            continue
+        # Get site: from JSON or parse from filename
+        if use_json_site:
+            site = metadata['site']
+        else:
+            site = parse_site_from_filename(filename)
+            if site is None:
+                missing_metadata.append((filename, "Could not parse site from filename (not in JSON)"))
+                print(f"⚠ Skipping '{filename}': Could not parse site from filename", file=sys.stderr)
+                continue
 
         # Create grouping key
         key = (plate, well, site)
-
         if key not in grouped:
             grouped[key] = {'barcoding': {}, 'cellpainting': {}}
 
@@ -182,7 +291,17 @@ def collect_and_group_files(images_dir: str) -> Dict[Tuple, Dict]:
     if missing_metadata:
         print(f"⚠ Warning: {len(missing_metadata)} file(s) had missing metadata", file=sys.stderr)
 
-    print(f"✓ Successfully grouped {len(grouped)} unique (plate, well, site) combinations", file=sys.stderr)
+    # Log metadata source
+    if use_json_well and use_json_site:
+        print(f"✓ Using JSON metadata for plate/well/site: {plate}/{metadata['well']}/Site{metadata['site']}", file=sys.stderr)
+    elif use_json_well:
+        print(f"✓ Using JSON metadata for plate/well, parsed sites from filenames: {plate}/{metadata['well']}", file=sys.stderr)
+    elif use_json_site:
+        print(f"✓ Using JSON metadata for plate/site, parsed wells from filenames: {plate}/Site{metadata['site']}", file=sys.stderr)
+    else:
+        print(f"✓ Using JSON metadata for plate, parsed well/site from filenames: {plate}", file=sys.stderr)
+
+    print(f"✓ Successfully grouped {len(grouped)} unique (plate, well, site) combination(s)", file=sys.stderr)
 
     return grouped
 
@@ -308,6 +427,13 @@ def main():
         default=1,
         help='Subsampling interval - use every Nth site (default: 1 = all sites)'
     )
+    parser.add_argument(
+        '--metadata-json',
+        type=str,
+        required=True,
+        help='JSON file containing metadata (plate, well, site, etc.). '
+             'This file is required and provides the plate/well/site values for all images.'
+    )
 
     args = parser.parse_args()
 
@@ -321,13 +447,19 @@ def main():
     print(f"Images directory: {args.images_dir}", file=sys.stderr)
     if args.range_skip > 1:
         print(f"Subsampling: every {args.range_skip} sites", file=sys.stderr)
+    print(f"Metadata JSON: {args.metadata_json}", file=sys.stderr)
     print(f"Output file: {args.output}", file=sys.stderr)
     print(f"{'='*60}\n", file=sys.stderr)
 
     try:
+        # Read metadata from JSON (required)
+        print(f"Step 0: Loading metadata from JSON...", file=sys.stderr)
+        metadata = read_metadata_json(args.metadata_json)
+        print()
+
         # Collect and group files
         print(f"Step 1/3: Collecting and grouping files...", file=sys.stderr)
-        grouped = collect_and_group_files(args.images_dir)
+        grouped = collect_and_group_files(args.images_dir, metadata)
 
         # Generate rows
         print(f"\nStep 2/3: Generating CSV rows...", file=sys.stderr)

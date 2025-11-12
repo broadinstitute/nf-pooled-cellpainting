@@ -26,8 +26,21 @@ process CELLPROFILER_PREPROCESS {
 
     script:
     """
+    cat << EOF > metadata.json
+{
+    "plate": "${meta.plate}",
+    "well": "${meta.well}",
+    "site": ${meta.site},
+    "cycle": ${meta.cycle ?: 'null'},
+    "channels": "${meta.channels ?: ''}",
+    "batch": "${meta.batch}",
+    "arm": "${meta.arm}",
+    "id": "${meta.id}"
+}
+EOF
 
     generate_load_data_csv.py \\
+        --metadata-json metadata.json \\
         --pipeline-type preprocess \\
         --images-dir ./images \\
         --output load_data.csv

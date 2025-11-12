@@ -21,19 +21,27 @@ process CELLPROFILER_ILLUMAPPLY {
     task.ext.when == null || task.ext.when
 
     script:
-    def cycles_flag = has_cycles ? "--has-cycles" : ""
-    def cycles_arg = cycles ? "--cycles ${cycles.join(',')}" : ""
-    def plate_arg = meta.plate ? "--plate ${meta.plate}" : ""
     """
+    cat << EOF > metadata.json
+{
+    "plate": "${meta.plate}",
+    "well": "${meta.well}",
+    "site": ${meta.site},
+    "cycle": ${meta.cycle ?: 'null'},
+    "channels": "${channels}",
+    "batch": "${meta.batch ?: ''}",
+    "arm": "${meta.arm ?: ''}",
+    "id": "${meta.id}"
+}
+EOF
+
     generate_load_data_csv.py \\
         --pipeline-type illumapply \\
         --images-dir ./images \\
         --illum-dir ./images \\
         --output load_data.csv \\
         --channels "${channels}" \\
-        ${cycles_arg} \\
-        ${plate_arg} \\
-        ${cycles_flag}
+        --metadata-json metadata.json
 
     cellprofiler -c -r \\
         -p ${illumination_apply_cppipe} \\
