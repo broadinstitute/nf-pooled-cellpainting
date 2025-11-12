@@ -28,6 +28,7 @@ lint:
     - validation.summary.afterText
   multiqc_config:
     - report_comment
+    - export_plots
   files_exist:
     - LICENSE
     - CODE_OF_CONDUCT.md

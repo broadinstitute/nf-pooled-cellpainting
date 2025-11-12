@@ -1,4 +1,6 @@
 reports:
+  workspace/multiqc/multiqc_report.html:
+    display: "MultiQC report with pipeline versions and workflow summary."
   workspace/qc_reports/**/1_illumination_painting/*.png:
     display: "Painting illumination correction profiles montage."
   workspace/qc_reports/**/3_segmentation/*.png:
