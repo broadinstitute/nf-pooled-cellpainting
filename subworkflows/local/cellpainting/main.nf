@@ -212,7 +212,20 @@ workflow CELLPAINTING {
 
         FIJI_STITCHCROP (
             ch_corrected_images_synced,
-            file("${projectDir}/bin/stitch_crop.py")
+            file("${projectDir}/bin/stitch_crop.py"),
+            params.painting_round_or_square,
+            params.painting_quarter_if_round,
+            params.painting_overlap_pct,
+            params.painting_scalingstring,
+            params.painting_imperwell,
+            params.painting_rows,
+            params.painting_columns,
+            params.painting_stitchorder,
+            params.tileperside,
+            params.final_tile_size,
+            params.painting_xoffset_tiles,
+            params.painting_yoffset_tiles,
+            params.compress
         )
         ch_cropped_images = FIJI_STITCHCROP.out.cropped_images
         ch_versions = ch_versions.mix(FIJI_STITCHCROP.out.versions)

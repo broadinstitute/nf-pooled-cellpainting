@@ -31,6 +31,20 @@ nextflow_process {
                 ]
                 // Stitch script
                 input[1] = file("\${projectDir}/bin/stitch_crop.py", checkIfExists: true)
+                // Painting-specific stitching parameters
+                input[2] = "square"                    // painting_round_or_square
+                input[3] = true                        // painting_quarter_if_round
+                input[4] = 10                          // painting_overlap_pct
+                input[5] = 2                           // painting_scalingstring
+                input[6] = "unused"                    // painting_imperwell
+                input[7] = 2                           // painting_rows
+                input[8] = 2                           // painting_columns
+                input[9] = "Grid: snake by rows"      // painting_stitchorder
+                input[10] = 2                          // tileperside
+                input[11] = 800                        // final_tile_size
+                input[12] = 0                          // painting_xoffset_tiles
+                input[13] = 0                          // painting_yoffset_tiles
+                input[14] = true                       // compress
                 """
             }
         }
@@ -116,6 +130,20 @@ nextflow_process {
                 ]
                 // Stitch script
                 input[1] = file("\${projectDir}/bin/stitch_crop.py", checkIfExists: true)
+                // Barcoding-specific stitching parameters
+                input[2] = "square"                    // barcoding_round_or_square
+                input[3] = true                        // barcoding_quarter_if_round
+                input[4] = 10                          // barcoding_overlap_pct
+                input[5] = 2                           // barcoding_scalingstring
+                input[6] = "unused"                    // barcoding_imperwell
+                input[7] = 2                           // barcoding_rows
+                input[8] = 2                           // barcoding_columns
+                input[9] = "Grid: snake by rows"      // barcoding_stitchorder
+                input[10] = 2                          // tileperside
+                input[11] = 800                        // final_tile_size
+                input[12] = 0                          // barcoding_xoffset_tiles
+                input[13] = 0                          // barcoding_yoffset_tiles
+                input[14] = true                       // compress
                 """
             }
         }
@@ -146,6 +174,20 @@ nextflow_process {
                     ]
                 ]
                 input[1] = file("\${projectDir}/bin/stitch_crop.py", checkIfExists: true)
+                // Painting-specific stitching parameters
+                input[2] = "square"                    // painting_round_or_square
+                input[3] = true                        // painting_quarter_if_round
+                input[4] = 10                          // painting_overlap_pct
+                input[5] = 2                           // painting_scalingstring
+                input[6] = "unused"                    // painting_imperwell
+                input[7] = 2                           // painting_rows
+                input[8] = 2                           // painting_columns
+                input[9] = "Grid: snake by rows"      // painting_stitchorder
+                input[10] = 2                          // tileperside
+                input[11] = 800                        // final_tile_size
+                input[12] = 0                          // painting_xoffset_tiles
+                input[13] = 0                          // painting_yoffset_tiles
+                input[14] = true                       // compress
                 """
             }
         }

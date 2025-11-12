@@ -282,7 +282,20 @@ workflow BARCODING {
 
         FIJI_STITCHCROP (
             ch_preprocess_by_well,
-            file("${projectDir}/bin/stitch_crop.py")
+            file("${projectDir}/bin/stitch_crop.py"),
+            params.barcoding_round_or_square,
+            params.barcoding_quarter_if_round,
+            params.barcoding_overlap_pct,
+            params.barcoding_scalingstring,
+            params.barcoding_imperwell,
+            params.barcoding_rows,
+            params.barcoding_columns,
+            params.barcoding_stitchorder,
+            params.tileperside,
+            params.final_tile_size,
+            params.barcoding_xoffset_tiles,
+            params.barcoding_yoffset_tiles,
+            params.compress
         )
         ch_cropped_images = FIJI_STITCHCROP.out.cropped_images
         ch_versions = ch_versions.mix(FIJI_STITCHCROP.out.versions)

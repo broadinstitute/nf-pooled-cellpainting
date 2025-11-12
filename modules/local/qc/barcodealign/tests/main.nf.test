@@ -20,9 +20,7 @@ nextflow_process {
                     [ id:'Batch1_Plate1', batch:'Batch1', plate:'Plate1', arm:'barcoding' ], // meta map
                     ['A1', 'A2', 'B1'], // wells list
                     [
-                        file('s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/images/Batch1/images_aligned/barcoding/Plate1/Plate1-A1-0/BarcodingApplication_Image.csv', checkIfExists: true),
-                        file('s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/images/Batch1/images_aligned/barcoding/Plate1/Plate1-A1-1/BarcodingApplication_Image.csv', checkIfExists: true),
-                        file('s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/images/Batch1/images_aligned/barcoding/Plate1/Plate1-A1-2/BarcodingApplication_Image.csv', checkIfExists: true)
+                        file('s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/images/Batch1/images_aligned/barcoding/Plate1/Plate1-A1/BarcodingApplication_Image.csv', checkIfExists: true)
                     ], // CSV files (one per well), currently one per site due to online data availability TODO: UPDATE
                     3 // num_cycles
                 ]
@@ -62,9 +60,7 @@ nextflow_process {
                     [ id:'Batch1_Plate1', batch:'Batch1', plate:'Plate1', arm:'barcoding' ],
                     ['A1', 'A2', 'B1'],
                     [
-                        file('s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/images/Batch1/images_aligned/barcoding/Plate1/Plate1-A1-0/BarcodingApplication_Image.csv', checkIfExists: true),
-                        file('s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/images/Batch1/images_aligned/barcoding/Plate1/Plate1-A1-1/BarcodingApplication_Image.csv', checkIfExists: true),
-                        file('s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/images/Batch1/images_aligned/barcoding/Plate1/Plate1-A1-2/BarcodingApplication_Image.csv', checkIfExists: true)
+                        file('s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/images/Batch1/images_aligned/barcoding/Plate1/Plate1-A1/BarcodingApplication_Image.csv', checkIfExists: true)
                     ],
                     3
                 ]

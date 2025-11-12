@@ -51,97 +51,6 @@
                 }
             }
         },
-        "cellprofiler_plugins": {
-            "title": "Cellprofiler plugins",
-            "type": "object",
-            "description": "",
-            "default": "",
-            "properties": {
-                "callbarcodes_plugin": {
-                    "type": "string",
-                    "default": "https://raw.githubusercontent.com/CellProfiler/CellProfiler-plugins/refs/heads/master/active_plugins/callbarcodes.py",
-                    "description": "Cellprofiler plugin for calling barcodes."
-                },
-                "compensatecolors_plugin": {
-                    "type": "string",
-                    "default": "https://raw.githubusercontent.com/CellProfiler/CellProfiler-plugins/refs/heads/master/active_plugins/compensatecolors.py",
-                    "description": "Cellprofiler plugin for compensating colors."
-                }
-            }
-        },
-        "cellpainting_options": {
-            "title": "Cellpainting options",
-            "type": "object",
-            "description": "Configuration options for the painting arm of the pipeline.",
-            "default": "",
-            "fa_icon": "fas fa-paint-brush",
-            "properties": {
-                "cp_img_overlap_pct": {
-                    "type": "integer",
-                    "default": 10,
-                    "fa_icon": "fas fa-percentage",
-                    "description": "Cell painting image overlap in percentage."
-                },
-                "cp_img_frame_type": {
-                    "type": "string",
-                    "default": "round",
-                    "fa_icon": "fas fa-crop-alt"
-                },
-                "cp_acquisition_order": {
-                    "type": "string",
-                    "default": "snake",
-                    "fa_icon": "fas fa-sort-amount-down",
-                    "description": "Acuisition order of images for cell painting arm."
-                },
-                "range_skip": {
-                    "type": "integer",
-                    "default": 16,
-                    "description": "Sampling frequency for Segmentation check to process subset of images for validation"
-                }
-            }
-        },
-        "barcoding_sequencing_by_synthesis_options": {
-            "title": "Barcoding (Sequencing-by-synthesis) options",
-            "type": "object",
-            "description": "Configuration options for the barcoding (SBS) arm of the pipeline.",
-            "default": "",
-            "properties": {
-                "sbs_img_overlap_pct": {
-                    "type": "integer",
-                    "default": 10,
-                    "fa_icon": "fas fa-percentage"
-                },
-                "sbs_img_frame_type": {
-                    "type": "string",
-                    "default": "round",
-                    "fa_icon": "fas fa-crop-alt"
-                },
-                "sbs_acquisition_order": {
-                    "type": "string",
-                    "default": "snake",
-                    "fa_icon": "fas fa-sort-amount-down"
-                },
-                "barcoding_shift_threshold": {
-                    "type": "integer",
-                    "default": 50,
-                    "description": "Shift threshold for barcoding align QC step."
-                },
-                "barcoding_corr_threshold": {
-                    "type": "number",
-                    "default": 0.9,
-                    "description": "Correlation threshold for barcoding align QC step."
-                },
-                "acquisition_geometry_rows": {
-                    "type": "integer",
-                    "description": "Number of rows in acquisition geometry for QC spatial plots (square patterns)."
-                },
-                "acquisition_geometry_columns": {
-                    "type": "integer",
-                    "description": "Number of columns in acquisition geometry for QC spatial plots (square patterns)."
-                }
-            },
-            "fa_icon": "fas fa-dna"
-        },
         "cellprofiler_group": {
             "title": "Cellprofiler Pipelines",
             "type": "object",
@@ -186,6 +95,167 @@
                 "barcoding_preprocess_cppipe",
                 "combinedanalysis_cppipe"
             ]
+        },
+        "painting_arm_parameters": {
+            "title": "Painting arm parameters",
+            "type": "object",
+            "description": "Configuration options for the paintingarm of the pipeline.",
+            "default": "",
+            "properties": {
+                "painting_round_or_square": {
+                    "type": "string",
+                    "default": "round",
+                    "description": "Well shape for processing"
+                },
+                "painting_quarter_if_round": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Whether to divide round wells into quarters for processing"
+                },
+                "painting_overlap_pct": {
+                    "type": "integer",
+                    "default": 10,
+                    "description": "Image overlap percentage"
+                },
+                "painting_scalingstring": {
+                    "type": "integer",
+                    "default": 1
+                },
+                "painting_imperwell": {
+                    "type": "string",
+                    "default": "unused",
+                    "description": "Number of images per well"
+                },
+                "painting_rows": {
+                    "type": "integer",
+                    "default": 2,
+                    "description": "Rows for image grid layout"
+                },
+                "painting_columns": {
+                    "type": "integer",
+                    "default": 2,
+                    "description": "Columns for image grid layout"
+                },
+                "painting_stitchorder": {
+                    "type": "string",
+                    "default": "Grid: snake by rows",
+                    "description": "Tile arrangement method"
+                },
+                "painting_xoffset_tiles": {
+                    "type": "integer",
+                    "default": 0,
+                    "description": "Optional offsets for troubleshooting stitching misalignments"
+                },
+                "painting_yoffset_tiles": {
+                    "type": "integer",
+                    "default": 0,
+                    "description": "Optional offsets for troubleshooting stitching misalignments"
+                }
+            },
+            "fa_icon": "fas fa-paint-brush"
+        },
+        "barcoding_sequencing_by_synthesis_options": {
+            "title": "Barcoding (Sequencing-by-synthesis) options",
+            "type": "object",
+            "description": "Configuration options for the barcoding (SBS) arm of the pipeline.",
+            "default": "",
+            "properties": {
+                "barcoding_round_or_square": {
+                    "type": "string",
+                    "default": "round",
+                    "description": "Well shape for processing"
+                },
+                "barcoding_quarter_if_round": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Whether to divide round wells into quarters for processing"
+                },
+                "barcoding_overlap_pct": {
+                    "type": "integer",
+                    "default": 10,
+                    "description": "Image overlap percentage"
+                },
+                "barcoding_scalingstring": {
+                    "type": "number",
+                    "default": 1.99,
+                    "description": "Number of images per well"
+                },
+                "barcoding_imperwell": {
+                    "type": "string",
+                    "default": "unused",
+                    "description": "Number of images per well"
+                },
+                "barcoding_rows": {
+                    "type": "integer",
+                    "default": 2,
+                    "description": "Rows for image grid layout"
+                },
+                "barcoding_columns": {
+                    "type": "integer",
+                    "default": 2,
+                    "description": "Columns for image grid layout"
+                },
+                "barcoding_stitchorder": {
+                    "type": "string",
+                    "default": "Grid: snake by rows",
+                    "description": "Tile arrangement method"
+                },
+                "barcoding_xoffset_tiles": {
+                    "type": "integer",
+                    "default": 0,
+                    "description": "Optional offsets for troubleshooting stitching misalignments"
+                },
+                "barcoding_yoffset_tiles": {
+                    "type": "integer",
+                    "default": 0,
+                    "description": "Optional offsets for troubleshooting stitching misalignments"
+                },
+                "barcoding_shift_threshold": {
+                    "type": "integer",
+                    "default": 50,
+                    "description": "Shift threshold for barcoding align QC step."
+                },
+                "barcoding_corr_threshold": {
+                    "type": "number",
+                    "default": 0.9,
+                    "description": "Correlation threshold for barcoding align QC step."
+                },
+                "acquisition_geometry_rows": {
+                    "type": "integer",
+                    "description": "Number of rows in acquisition geometry for QC spatial plots (square patterns).",
+                    "default": 2
+                },
+                "acquisition_geometry_columns": {
+                    "type": "integer",
+                    "description": "Number of columns in acquisition geometry for QC spatial plots (square patterns).",
+                    "default": 2
+                }
+            },
+            "fa_icon": "fas fa-dna"
+        },
+        "general_pipeline_parameters_for_both_arms": {
+            "title": "General pipeline parameters for both arms",
+            "type": "object",
+            "description": "",
+            "default": "",
+            "properties": {
+                "tileperside": {
+                    "type": "integer",
+                    "default": 10,
+                    "description": "Number of tiles to create along each axis"
+                },
+                "final_tile_size": {
+                    "type": "integer",
+                    "default": 5500,
+                    "description": "Pixel dimensions for output tiles"
+                },
+                "compress": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Whether to compress output files"
+                }
+            },
+            "fa_icon": "fas fa-cog"
         },
         "institutional_config_options": {
             "title": "Institutional config options",
@@ -234,6 +304,25 @@
                     "fa_icon": "fas fa-users-cog"
                 }
             }
+        },
+        "cellprofiler_plugins": {
+            "title": "Cellprofiler plugins",
+            "type": "object",
+            "description": "",
+            "default": "",
+            "properties": {
+                "callbarcodes_plugin": {
+                    "type": "string",
+                    "default": "https://raw.githubusercontent.com/CellProfiler/CellProfiler-plugins/refs/heads/master/active_plugins/callbarcodes.py",
+                    "description": "Cellprofiler plugin for calling barcodes."
+                },
+                "compensatecolors_plugin": {
+                    "type": "string",
+                    "default": "https://raw.githubusercontent.com/CellProfiler/CellProfiler-plugins/refs/heads/master/active_plugins/compensatecolors.py",
+                    "description": "Cellprofiler plugin for compensating colors."
+                }
+            },
+            "fa_icon": "fas fa-plug"
         },
         "generic_options": {
             "title": "Generic options",
@@ -317,19 +406,22 @@
             "$ref": "#/$defs/input_output_options"
         },
         {
-            "$ref": "#/$defs/cellprofiler_plugins"
+            "$ref": "#/$defs/cellprofiler_group"
         },
         {
-            "$ref": "#/$defs/cellpainting_options"
+            "$ref": "#/$defs/painting_arm_parameters"
         },
         {
             "$ref": "#/$defs/barcoding_sequencing_by_synthesis_options"
         },
         {
-            "$ref": "#/$defs/cellprofiler_group"
+            "$ref": "#/$defs/general_pipeline_parameters_for_both_arms"
         },
         {
             "$ref": "#/$defs/institutional_config_options"
+        },
+        {
+            "$ref": "#/$defs/cellprofiler_plugins"
         },
         {
             "$ref": "#/$defs/generic_options"

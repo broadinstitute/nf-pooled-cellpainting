@@ -92,65 +92,73 @@ input_dir = "images"  # Nextflow stages files here
 output_base = "."  # Write outputs to work dir root
 localtemp = "/tmp/FIJI_temp"  # Temporary directory
 
-# Grid stitching parameters
-rows = "2"  # Number of rows in the site grid
-columns = "2"  # Number of columns in the site grid
+# Grid stitching parameters - read from environment
+rows = os.getenv("ROWS", "2")  # Number of rows in the site grid
+columns = os.getenv("COLUMNS", "2")  # Number of columns in the site grid
 
 # Dynamically set size based on crop percentage (default to no crop for real datasets)
 # Original images are 1600x1600, after crop:
 # - 25% crop (CROP_PERCENT=25): 400x400 (test data)
 # - 50% crop (CROP_PERCENT=50): 800x800
 # - No crop (default): ~1480x1480 (with some built-in crop)
+# NOTE: final_tile_size can now be overridden via FINAL_TILE_SIZE environment variable
 crop_percent_str = os.getenv("CROP_PERCENT", "100")
 if not crop_percent_str:  # Handle empty string case
     crop_percent_str = "100"
 crop_percent = int(crop_percent_str)
 if crop_percent == 25:
     size = "400"
-    final_tile_size = "800"
+    final_tile_size_default = "800"
     logger.info(
         "=== CROP_PERCENT=25 detected: Using 400x400 input images, 800x800 output tiles ==="
     )
 elif crop_percent == 50:
     size = "800"
-    final_tile_size = "1600"
+    final_tile_size_default = "1600"
     logger.info(
         "=== CROP_PERCENT=50 detected: Using 800x800 input images, 1600x1600 output tiles ==="
     )
 else:
     # Default/no crop
     size = "1480"
-    final_tile_size = "2960"
+    final_tile_size_default = "2960"
     logger.info(
         "=== No crop/default: Using 1480x1480 input images, 2960x2960 output tiles ==="
     )
+
+# Allow FINAL_TILE_SIZE to override the calculated value
+final_tile_size = os.getenv("FINAL_TILE_SIZE", final_tile_size_default)
 
 logger.info(
     "Configuration: Input size={}x{}, Final tile size={}x{}".format(
         size, size, final_tile_size, final_tile_size
     )
 )
-overlap_pct = "10"  # Percentage overlap between adjacent images
 
-# Tiling parameters
-tileperside = "2"  # Number of tiles to create per side when cropping
-scalingstring = "1.99"  # Scaling factor to apply to images
-round_or_square = "square"  # Shape of the well (square or round)
-xoffset_tiles = "0"  # X offset for tile cropping
-yoffset_tiles = "0"  # Y offset for tile cropping
-compress = "True"  # Whether to compress output TIFF files
+# Stitching parameters - read from environment variables set by Nextflow
+overlap_pct = os.getenv("OVERLAP_PCT", "10")  # Percentage overlap between adjacent images
+round_or_square = os.getenv("ROUND_OR_SQUARE", "square")  # Shape of the well (square or round)
+quarter_if_round = os.getenv("QUARTER_IF_ROUND", "true")  # Whether to quarter round wells
+
+# Tiling parameters - read from environment
+tileperside = os.getenv("TILEPERSIDE", "2")  # Number of tiles to create per side when cropping
+scalingstring = os.getenv("SCALINGSTRING", "1.99")  # Scaling factor to apply to images
+imperwell = os.getenv("IMPERWELL", "")  # Number of images per well (used if round)
+stitchorder = os.getenv("STITCHORDER", "Grid: snake by rows")  # Grid stitching order
+
+# Troubleshooting parameters - read from environment
+xoffset_tiles = os.getenv("XOFFSET_TILES", "0")  # X offset for tile cropping
+yoffset_tiles = os.getenv("YOFFSET_TILES", "0")  # Y offset for tile cropping
+compress = os.getenv("COMPRESS", "True")  # Whether to compress output TIFF files
 
 # Channel information
 channame = "DNA"  # Target channel name for processing (always DNA for this workflow)
 
-# Unused parameters (kept for compatibility)
-imperwell = "unused"
-stitchorder = "unused"
+# Unused parameters (kept for compatibility with data flow handled by Nextflow)
 filterstring = "unused"
 awsdownload = "unused"
 bucketname = "unused"
 downloadfilter = "unused"
-quarter_if_round = "unused"
 
 # Log configuration
 logger.info("=== Configuration ===")
@@ -158,6 +166,12 @@ logger.info("Input directory: {}".format(input_dir))
 logger.info("Output base: {}".format(output_base))
 logger.info("Channel: {}".format(channame))
 logger.info("Grid: {}x{} with {}% overlap".format(rows, columns, overlap_pct))
+logger.info("Round or Square: {}".format(round_or_square))
+logger.info("Quarter if round: {}".format(quarter_if_round))
+logger.info("Tiles per side: {}".format(tileperside))
+logger.info("Scaling factor: {}".format(scalingstring))
+logger.info("Stitch order: {}".format(stitchorder))
+logger.info("Compress output: {}".format(compress))
 
 plugin = LociExporter()
 
@@ -567,9 +581,10 @@ if os.path.isdir(input_dir):
                         each_tile_num = eachxtile * tileperside + eachytile + 1
 
                         # Select a rectangular region for this tile
+                        # Apply offset to adjust tile positions if needed
                         IJ.makeRectangle(
-                            eachxtile * tilesize,  # X position
-                            eachytile * tilesize,  # Y position
+                            eachxtile * tilesize + int(xoffset_tiles),  # X position
+                            eachytile * tilesize + int(yoffset_tiles),  # Y position
                             tilesize,  # Width
                             tilesize,  # Height
                         )
