@@ -8,7 +8,7 @@ process CELLPROFILER_SEGCHECK {
         'community.wave.seqera.io/library/cellprofiler:4.2.8--aff0a99749304a7f' }"
 
     input:
-    tuple val(meta), path(corr_images, stageAs: "images/*")
+    tuple val(meta), path(corr_images, stageAs: "images/*"), val(image_metas)
     path segcheck_cppipe
     val range_skip
 
@@ -22,11 +22,37 @@ process CELLPROFILER_SEGCHECK {
     task.ext.when == null || task.ext.when
 
     script:
+    // Build optional JSON fields
+    def batch_json = meta.batch ? "\"batch\": \"${meta.batch}\"," : ""
+    def arm_json = meta.arm ? "\"arm\": \"${meta.arm}\"," : ""
+    def channels_json = meta.channels ? "\"channels\": \"${meta.channels}\"," : ""
+    // Build image_metadata array with well+site+filename+channel for each image
+    def image_metadata_json = image_metas.collect { m ->
+        def fname = m.filename ?: 'MISSING'
+        def channel = m.channel ?: 'UNKNOWN'
+        "        {\"well\": \"${m.well}\", \"site\": ${m.site}, \"filename\": \"${fname}\", \"channel\": \"${channel}\"}"
+    }.join(',\n')
     """
+    # Create metadata JSON file
+    cat > metadata.json << 'EOF'
+{
+    "plate": "${meta.plate}",
+    ${batch_json}
+    ${arm_json}
+    ${channels_json}
+    "id": "${meta.id}",
+    "image_metadata": [
+${image_metadata_json}
+    ]
+}
+EOF
+
+    # Generate load_data.csv
     generate_load_data_csv.py \\
         --pipeline-type segcheck \\
         --images-dir ./images \\
         --output load_data.csv \\
+        --metadata-json metadata.json \\
         --range-skip ${range_skip}
 
     cellprofiler -c -r \\
@@ -37,9 +63,9 @@ process CELLPROFILER_SEGCHECK {
         --image-directory ./images/
 
     cat <<-END_VERSIONS > versions.yml
-    "${task.process}":
-        cellprofiler: \$(cellprofiler --version)
-    END_VERSIONS
+	"${task.process}":
+	    cellprofiler: \$(cellprofiler --version)
+	END_VERSIONS
     """
 
     stub:
@@ -54,8 +80,8 @@ process CELLPROFILER_SEGCHECK {
     touch SegmentationCheck_PreCells.csv
 
     cat <<-END_VERSIONS > versions.yml
-    "${task.process}":
-        cellprofiler: \$(cellprofiler --version)
-    END_VERSIONS
+	"${task.process}":
+	    cellprofiler: \$(cellprofiler --version)
+	END_VERSIONS
     """
 }

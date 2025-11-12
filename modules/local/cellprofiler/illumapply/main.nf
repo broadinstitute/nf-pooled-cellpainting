@@ -8,7 +8,7 @@ process CELLPROFILER_ILLUMAPPLY {
         'community.wave.seqera.io/library/cellprofiler:4.2.8--aff0a99749304a7f' }"
 
     input:
-    tuple val(meta), val(channels), val(cycles), path(images, stageAs: "images/img*/*"), path(npy_files, stageAs: "images/*")
+    tuple val(meta), val(channels), val(cycles), path(images, stageAs: "images/img*/*"), val(image_metas), path(npy_files, stageAs: "images/*")
     path illumination_apply_cppipe
     val has_cycles
 
@@ -22,31 +22,48 @@ process CELLPROFILER_ILLUMAPPLY {
 
     script:
     // Build optional JSON fields
-    def cycle_json = meta.cycle ? "\"cycle\": ${meta.cycle}," : ""
+    // Use "cycles" (plural) if it's a list, "cycle" (singular) if it's a single value
+    def cycle_json = ""
+    if (cycles instanceof List) {
+        // Convert list to JSON array format
+        def cycles_str = cycles.collect { it.toString() }.join(', ')
+        cycle_json = "\"cycles\": [${cycles_str}],"
+    } else if (cycles) {
+        cycle_json = "\"cycle\": ${cycles},"
+    }
     def batch_json = meta.batch ? "\"batch\": \"${meta.batch}\"," : ""
     def arm_json = meta.arm ? "\"arm\": \"${meta.arm}\"," : ""
-    // NOTE: Don't include site for ILLUMAPPLY - it processes multiple sites per well
-    // and needs to discover them from filenames
+    // Build image_metadata array with well+site+filename for each image
+    def image_metadata_json = image_metas.collect { m ->
+        def fname = m.filename ?: 'MISSING'
+        def cycle_field = m.cycle ? ", \"cycle\": ${m.cycle}" : ""
+        "        {\"well\": \"${m.well}\", \"site\": ${m.site}, \"filename\": \"${fname}\"${cycle_field}}"
+    }.join(',\n')
     """
-    cat << EOF > metadata.json
+    # Create metadata JSON file
+    cat > metadata.json << 'EOF'
 {
     "plate": "${meta.plate}",
-    "well": "${meta.well}",
     ${cycle_json}
     ${batch_json}
     ${arm_json}
     "channels": "${channels}",
-    "id": "${meta.id}"
+    "id": "${meta.id}",
+    "image_metadata": [
+${image_metadata_json}
+    ]
 }
 EOF
 
+    # Generate load_data.csv
     generate_load_data_csv.py \\
         --pipeline-type illumapply \\
         --images-dir ./images \\
         --illum-dir ./images \\
         --output load_data.csv \\
+        --metadata-json metadata.json \\
         --channels "${channels}" \\
-        --metadata-json metadata.json
+        ${has_cycles ? '--has-cycles' : ''}
 
     cellprofiler -c -r \\
         -p ${illumination_apply_cppipe} \\

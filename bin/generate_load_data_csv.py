@@ -44,7 +44,7 @@ PIPELINE_CONFIGS = {
         'metadata_cols': None,  # Dynamic based on has_cycles
         'metadata_cols_base': ['Metadata_Plate', 'Metadata_Well', 'Metadata_Site'],
         'metadata_cols_with_cycles': ['Metadata_Plate', 'Metadata_Well', 'Metadata_Site', 'Metadata_Cycle'],
-        'file_cols_template': ['PathName_Orig{channel}', 'FileName_Orig{channel}', 'Frame_Orig{channel}'],
+        'file_cols_template': ['FileName_Orig{channel}', 'Frame_Orig{channel}'],
         'include_illum_files': False,
         'supports_cycles': True,
         'supports_subdirs': False,
@@ -403,11 +403,23 @@ def load_metadata_json(metadata_json_path: str) -> Dict:
             # Preserve filename if present
             if 'filename' in entry:
                 metadata_entry['filename'] = str(entry['filename'])
+            # Preserve cycle if present (for multi-cycle images)
+            if 'cycle' in entry:
+                metadata_entry['cycle'] = int(entry['cycle'])
+            # Preserve channel if present (for single-channel images like segcheck)
+            if 'channel' in entry:
+                metadata_entry['channel'] = str(entry['channel'])
             result['image_metadata'].append(metadata_entry)
 
     # Extract optional fields
-    if 'cycle' in metadata:
+    if 'cycle' in metadata and metadata['cycle'] is not None:
         result['cycle'] = int(metadata['cycle'])
+    if 'cycles' in metadata and metadata['cycles'] is not None:
+        # Handle list of cycles for multi-cycle processing
+        if isinstance(metadata['cycles'], list):
+            result['cycles'] = [int(c) for c in metadata['cycles']]
+        else:
+            result['cycles'] = [int(metadata['cycles'])]
     if 'channels' in metadata:
         # Handle both comma-separated string and list
         if isinstance(metadata['channels'], str):
@@ -610,7 +622,8 @@ def collect_and_group_files(
 
     # If using image_metadata array, match files by FILENAME
     if use_image_metadata:
-        # Match files to metadata entries by filename
+        # Match files to metadata entries by filename - NO parsing needed!
+        # All metadata comes from JSON
         plate = metadata_json['plate']
 
         # Build a map of filename -> file path
@@ -624,6 +637,8 @@ def collect_and_group_files(
             well = entry['well']
             site = entry['site']
             expected_filename = entry.get('filename')
+            entry_cycle = entry.get('cycle')  # Get cycle from entry if present
+            entry_channel = entry.get('channel')  # Get channel from entry if present (for single-channel files)
 
             if not expected_filename:
                 print(f"⚠ Warning: No filename in metadata entry for well={well}, site={site}", file=sys.stderr)
@@ -634,75 +649,39 @@ def collect_and_group_files(
                 continue
 
             img_path = file_map[expected_filename]
-            filename = os.path.basename(img_path)
             rel_path = os.path.relpath(img_path, images_dir)
             key = (plate, well, site)
-
-            # Parse the image file to extract channel info
-            try:
-                parsed = parse_func(filename)
-            except Exception as e:
-                parse_errors.append((filename, str(e)))
-                print(f"⚠ Error parsing filename '{filename}': {e}", file=sys.stderr)
-                continue
-
-            if not parsed:
-                parse_errors.append((filename, "Failed to match expected pattern"))
-                print(f"⚠ Skipping '{filename}': does not match expected pattern", file=sys.stderr)
-                continue
 
             # Initialize grouped entry if not exists
             if key not in grouped:
                 grouped[key] = {'images': {}, 'illum': {}, 'cycles': set()}
 
-            # Process the file based on its type
-            try:
-                if 'channels' in parsed:
-                    # Multi-channel image
-                    if 'cycle' in parsed:
-                        # Cycle detected in filename - store per cycle
-                        cycle_num = parsed['cycle']
-                        grouped[key]['cycles'].add(cycle_num)
-                        if '_files_by_cycle' not in grouped[key]['images']:
-                            grouped[key]['images']['_files_by_cycle'] = {}
-                        grouped[key]['images']['_files_by_cycle'][cycle_num] = {
-                            'file': rel_path,
-                            'parsed': parsed
-                        }
-                    elif metadata_cycles:
-                        # Multi-cycle mode but no cycle in filename - store separately for post-processing
-                        grouped[key]['images'][rel_path] = rel_path
-                    else:
-                        # Single-cycle multi-channel image
-                        grouped[key]['images']['_file'] = rel_path
-                        grouped[key]['images']['_parsed'] = parsed
-                elif pipeline_type == 'combined':
-                    # Combined analysis - store both cell painting and barcoding files
-                    if parsed.get('type') == 'barcoding':
-                        # Barcoding file: Cycle{cycle}_{channel}
-                        cycle = parsed['cycle']
-                        channel = parsed['channel']
-                        cycle_channel_key = f"Cycle{cycle}_{channel}"
-                        grouped[key]['images'][cycle_channel_key] = rel_path
-                    elif parsed.get('type') == 'cellpainting':
-                        # Cell painting corrected file: Corr{channel}
-                        channel = parsed['channel']
-                        corr_key = f"Corr{channel}"
-                        grouped[key]['images'][corr_key] = rel_path
-                elif 'cycle' in parsed:
-                    # Cycle-based image (for preprocess pipeline)
-                    cycle = parsed['cycle']
-                    channel = parsed['channel']
-                    cycle_channel_key = f"Cycle{cycle}_{channel}"
-                    grouped[key]['images'][cycle_channel_key] = rel_path
-                else:
-                    # Single-channel image
-                    channel = parsed['channel']
-                    grouped[key]['images'][channel] = rel_path
-            except KeyError as e:
-                missing_metadata.append((filename, f"Missing channel information: {e}"))
-                print(f"⚠ Error processing '{filename}': Missing channel information: {e}", file=sys.stderr)
-                continue
+            # Store file based on whether it has cycle/channel information
+            # NO PARSING - just use metadata from JSON
+            if entry_cycle is not None and entry_channel:
+                # Cycle + channel (like preprocess: Cycle01_DNA)
+                cycle_channel_key = f"Cycle{entry_cycle:02d}_{entry_channel}"
+                grouped[key]['images'][cycle_channel_key] = rel_path
+            elif entry_cycle is not None:
+                # Multi-cycle only: store per cycle
+                cycle_num = entry_cycle
+                grouped[key]['cycles'].add(cycle_num)
+                if '_files_by_cycle' not in grouped[key]['images']:
+                    grouped[key]['images']['_files_by_cycle'] = {}
+                # Only store if not already present (same file may be referenced multiple times)
+                if cycle_num not in grouped[key]['images']['_files_by_cycle']:
+                    grouped[key]['images']['_files_by_cycle'][cycle_num] = {
+                        'file': rel_path
+                    }
+            elif entry_channel:
+                # Single-channel file (like segcheck corrected images)
+                grouped[key]['images'][entry_channel] = rel_path
+            elif metadata_cycles:
+                # Multi-cycle mode from JSON but no cycle in entry - store for post-processing
+                grouped[key]['images'][rel_path] = rel_path
+            else:
+                # Multi-channel single file
+                grouped[key]['images']['_file'] = rel_path
 
         print(f"✓ Created {len(grouped)} entries from image_metadata array", file=sys.stderr)
 
@@ -845,14 +824,10 @@ def collect_and_group_files(
 
             for idx, cycle_num in enumerate(sorted(metadata_cycles)):
                 img_path = sorted_paths[idx][1]
-                filename = os.path.basename(img_path)
-                parsed = parse_func(filename)
-
-                if parsed and 'channels' in parsed:
-                    grouped[key]['images']['_files_by_cycle'][cycle_num] = {
-                        'file': img_path,
-                        'parsed': parsed
-                    }
+                # No parsing needed - just store the file path
+                grouped[key]['images']['_files_by_cycle'][cycle_num] = {
+                    'file': img_path
+                }
 
         print(f"✓ Assigned images to {len(metadata_cycles)} cycles", file=sys.stderr)
 
@@ -1026,38 +1001,25 @@ def generate_csv_rows(
                 files_by_cycle = file_data['images']['_files_by_cycle']
                 illum_by_cycle = file_data['illum'].get('_by_cycle', {})
 
+                # Get channels from JSON metadata (required!)
+                if metadata_json and 'channels' in metadata_json:
+                    channels_to_use = metadata_json['channels']
+                elif metadata_channels:
+                    channels_to_use = metadata_channels
+                else:
+                    raise ValueError("Channels must be specified in JSON metadata or CLI args")
+
                 # Sort cycles to ensure consistent column order
                 for cycle_num in sorted(files_by_cycle.keys()):
                     cycle_info = files_by_cycle[cycle_num]
-                    parsed = cycle_info['parsed']
                     filename = cycle_info['file']
-
-                    if 'channels' not in parsed or 'frames' not in parsed:
-                        raise ValueError(f"Missing channels or frames data for {filename}")
-
-                    # Priority: JSON metadata channels > CLI arg channels > parsed channels
-                    if metadata_json and 'channels' in metadata_json:
-                        channels_to_use = metadata_json['channels']
-                    elif metadata_channels:
-                        channels_to_use = metadata_channels
-                    else:
-                        channels_to_use = parsed['channels']
-
                     cycle_str = f"{cycle_num:02d}"
 
                     # Add FileName and Frame for each channel in this cycle
+                    # Frame number is just the index in the channels list
                     for frame_idx, channel in enumerate(channels_to_use):
-                        # For metadata channels, use frame index; for parsed channels, look up frame
-                        if metadata_channels:
-                            frame = frame_idx
-                        else:
-                            if channel not in parsed['frames']:
-                                raise KeyError(f"Frame information missing for channel '{channel}'")
-                            frame = parsed['frames'][channel]
-
-                        row[f'PathName_Cycle{cycle_str}_Orig{channel}'] = os.path.dirname(filename) or '.'
-                        row[f'FileName_Cycle{cycle_str}_Orig{channel}'] = os.path.basename(filename)
-                        row[f'Frame_Cycle{cycle_str}_Orig{channel}'] = frame
+                        row[f'FileName_Cycle{cycle_str}_Orig{channel}'] = filename
+                        row[f'Frame_Cycle{cycle_str}_Orig{channel}'] = frame_idx
 
                         # Add illumination file if available for this cycle
                         if cycle_num in illum_by_cycle and channel in illum_by_cycle[cycle_num]:
@@ -1082,43 +1044,30 @@ def generate_csv_rows(
 
             elif '_file' in file_data['images']:
                 # Single non-cycle multi-channel image
-                parsed = file_data['images']['_parsed']
                 filename = file_data['images']['_file']
 
-                if 'channels' not in parsed or 'frames' not in parsed:
-                    raise ValueError(f"Missing channels or frames data for {filename}")
-
-                # Priority: JSON metadata channels > CLI arg channels > parsed channels
+                # Get channels from JSON metadata (required!)
                 if metadata_json and 'channels' in metadata_json:
                     channels_to_use = metadata_json['channels']
                 elif metadata_channels:
                     channels_to_use = metadata_channels
                 else:
-                    channels_to_use = parsed['channels']
+                    raise ValueError("Channels must be specified in JSON metadata or CLI args")
 
                 # Determine if we need cycle-specific column names
                 use_cycle_columns = config.get('cycle_aware', False) and metadata_cycle is not None
 
                 # Add FileName and Frame for each channel
+                # Frame number is just the index in the channels list
                 for frame_idx, channel in enumerate(channels_to_use):
-                    # For metadata channels, use frame index; for parsed channels, look up frame
-                    if metadata_channels:
-                        frame = frame_idx
-                    else:
-                        if channel not in parsed['frames']:
-                            raise KeyError(f"Frame information missing for channel '{channel}'")
-                        frame = parsed['frames'][channel]
-
                     # Generate column names with or without cycle prefix
                     if use_cycle_columns:
                         cycle_str = f"{metadata_cycle:02d}"
-                        row[f'PathName_Cycle{cycle_str}_Orig{channel}'] = os.path.dirname(filename) or '.'
-                        row[f'FileName_Cycle{cycle_str}_Orig{channel}'] = os.path.basename(filename)
-                        row[f'Frame_Cycle{cycle_str}_Orig{channel}'] = frame
+                        row[f'FileName_Cycle{cycle_str}_Orig{channel}'] = filename
+                        row[f'Frame_Cycle{cycle_str}_Orig{channel}'] = frame_idx
                     else:
-                        row[f'PathName_Orig{channel}'] = os.path.dirname(filename) or '.'
-                        row[f'FileName_Orig{channel}'] = os.path.basename(filename)
-                        row[f'Frame_Orig{channel}'] = frame
+                        row[f'FileName_Orig{channel}'] = filename
+                        row[f'Frame_Orig{channel}'] = frame_idx
 
                     # Add illumination file if available
                     # Match illumination files by channel name (they should use metadata channel names)
@@ -1358,7 +1307,10 @@ def main():
         metadata_cycles = None
         if args.cycles:
             metadata_cycles = [int(c.strip()) for c in args.cycles.split(',')]
-            print(f"✓ Using multi-cycle mode with cycles: {metadata_cycles}", file=sys.stderr)
+            print(f"✓ Using CLI arg cycles (overriding JSON): {metadata_cycles}", file=sys.stderr)
+        elif 'cycles' in metadata_json:
+            metadata_cycles = metadata_json['cycles']
+            print(f"✓ Using cycles from JSON metadata: {metadata_cycles}", file=sys.stderr)
 
         # Collect and group files
         print(f"\nStep 1/4: Collecting and grouping files...", file=sys.stderr)

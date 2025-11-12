@@ -93,27 +93,52 @@ workflow CELLPAINTING {
     )
     ch_versions = ch_versions.mix(QC_MONTAGEILLUM_PAINTING.out.versions)
 
-    // Group images by well for ILLUMAPPLY
-    // Each well should get all its images (no cycles for cellpainting)
+    // Group images by site for ILLUMAPPLY
+    // Each site should get all its images
     ch_samplesheet_cp
         .map { meta, image ->
-            def group_key = [
+            def site_key = [
                 batch: meta.batch,
                 plate: meta.plate,
                 well: meta.well,
+                site: meta.site,
                 arm: meta.arm,
-                id: "${meta.batch}_${meta.plate}_${meta.well}"
+                id: "${meta.batch}_${meta.plate}_${meta.well}_Site${meta.site}"
             ]
-            [group_key, image, meta.channels]
+            [site_key, image, meta]
         }
         .groupTuple()
-        .map { meta, images, channels_list ->
-            // Get unique images and collect all channels
-            def unique_images = images.unique()
-            def all_channels = channels_list.unique().sort().join(',')
-            [meta, all_channels, null, unique_images]  // null for cycles since cellpainting has no cycles
+        .map { site_meta, images, meta_list ->
+            // Zip images with metadata to keep them synchronized
+            def paired = [images, meta_list].transpose().unique()
+            def unique_images = paired.collect { it[0] }
+            def unique_metas = paired.collect { it[1] }
+
+            def all_channels = meta_list[0].channels
+            // Check if images have MULTIPLE cycles (not just a single cycle value)
+            // Only treat as multi-cycle if there are 2+ distinct cycle values
+            def all_cycles = unique_metas.collect { it.cycle }.findAll { it != null }.unique().sort()
+            def unique_cycles = (all_cycles.size() > 1) ? all_cycles : null
+
+            // Enrich metadata with filenames to enable matching
+            def metas_with_filenames = []
+            unique_images.eachWithIndex { img, idx ->
+                def m = unique_metas[idx]
+                def basename = img.name
+                // Create new map with filename added
+                def enriched = [:]
+                enriched.putAll(m)
+                enriched.filename = basename
+                // Only include cycle if we have multiple cycles
+                if (unique_cycles == null && enriched.containsKey('cycle')) {
+                    enriched.remove('cycle')
+                }
+                metas_with_filenames << enriched
+            }
+            // Pass the group metadata, channels, cycles (null or list), unique images, and metadata with filenames
+            [site_meta, all_channels, unique_cycles, unique_images, metas_with_filenames]
         }
-        .set { ch_images_by_well }
+        .set { ch_images_by_site }
 
     // Group npy files by batch and plate
     // All wells in a plate share the same illumination correction files
@@ -132,18 +157,20 @@ workflow CELLPAINTING {
         .set { ch_npy_by_plate }
 
     // Combine images with npy files
-    // Each well gets all the npy files for its plate
-    ch_images_by_well
-        .map { meta, channels, cycles, images ->
+    // Each site gets all the npy files for its plate
+    ch_images_by_site
+        .map { site_meta, channels, cycles, images, image_metas ->
             def plate_key = [
-                batch: meta.batch,
-                plate: meta.plate
+                batch: site_meta.batch,
+                plate: site_meta.plate
             ]
-            [plate_key, meta, channels, cycles, images]
+            // Store channels in meta for downstream use
+            def enriched_meta = site_meta + [channels: channels]
+            [plate_key, enriched_meta, channels, cycles, images, image_metas]
         }
         .combine(ch_npy_by_plate, by: 0)
-        .map { _plate_key, meta, channels, cycles, images, npy_files ->
-            [meta, channels, cycles, images, npy_files]
+        .map { _plate_key, enriched_meta, channels, cycles, images, image_metas, npy_files ->
+            [enriched_meta, channels, cycles, images, image_metas, npy_files]
         }
         .set { ch_illumapply_input }
 
@@ -163,8 +190,20 @@ workflow CELLPAINTING {
     )
 
     // Reshape CELLPROFILER_ILLUMAPPLY_PAINTING output for SEGCHECK
+    // Build image metadata for corrected images
     CELLPROFILER_ILLUMAPPLY_PAINTING.out.corrected_images.map{ meta, images, _csv ->
-            [meta, images]
+        // Build image_metas for corrected images with filenames and channel extracted
+        def image_metas = images.collect { img ->
+            // Extract channel from corrected image filename: Plate_X_Well_Y_Site_Z_CorrCHANNEL.tiff
+            def channel = img.name.replaceAll(/.*_Corr(.+?)\.tiff?$/, '$1')
+            [
+                well: meta.well,
+                site: meta.site,
+                filename: img.name,
+                channel: channel
+            ]
+        }
+        [meta, images, image_metas]
     }.set { ch_sub_corr_images }
 
     //// Segmentation quality check ////
@@ -204,11 +243,27 @@ workflow CELLPAINTING {
     // This allows the painting arm to stop at stitching/cropping if QC fails,
     // while allowing the barcoding arm to proceed independently
 
-    CELLPROFILER_ILLUMAPPLY_PAINTING.out.corrected_images.map{
-        meta, images, _csv ->
-            [meta, images]
+    // ILLUMAPPLY outputs are per site, but STITCHCROP needs all sites together per well
+    // Re-group by well before stitching
+    CELLPROFILER_ILLUMAPPLY_PAINTING.out.corrected_images
+        .map { meta, images, _csv ->
+            // Create well key (without site)
+            def well_key = [
+                batch: meta.batch,
+                plate: meta.plate,
+                well: meta.well,
+                channels: meta.channels,
+                arm: meta.arm,
+                id: "${meta.batch}_${meta.plate}_${meta.well}"
+            ]
+            [well_key, images]
         }
-    .set { ch_corrected_images }
+        .groupTuple()
+        .map { well_meta, images_list ->
+            // Flatten all site images into one list for the well
+            [well_meta, images_list.flatten()]
+        }
+        .set { ch_corrected_images_by_well }
 
     // Create synchronization barrier - wait for ALL QC_MONTAGE_SEGCHECK to complete
     // This ensures all QC is done before checking params.qc_painting_passed
@@ -220,7 +275,7 @@ workflow CELLPAINTING {
     if (params.qc_painting_passed) {
         // Combine corrected images with QC completion signal
         // This makes each stitching job depend on QC completion, but allows parallel stitching
-        ch_corrected_images
+        ch_corrected_images_by_well
             .combine(ch_qc_complete)  // Add QC barrier - broadcasts to all items
             .map { meta, images, _qc_signal -> [meta, images] }  // Drop signal, keep data
             .set { ch_corrected_images_synced }

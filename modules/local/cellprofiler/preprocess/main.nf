@@ -8,7 +8,7 @@ process CELLPROFILER_PREPROCESS {
         'community.wave.seqera.io/library/cellprofiler:4.2.8--aff0a99749304a7f' }"
 
     input:
-    tuple val(meta), path(aligned_images, stageAs: "images/*")
+    tuple val(meta), path(aligned_images, stageAs: "images/*"), val(image_metas)
     path preprocess_cppipe
     path barcodes, stageAs: "images/Barcodes.csv"
     path (plugins, stageAs: "plugins/*")
@@ -25,20 +25,33 @@ process CELLPROFILER_PREPROCESS {
     task.ext.when == null || task.ext.when
 
     script:
+    // Build optional JSON fields
+    def batch_json = meta.batch ? "\"batch\": \"${meta.batch}\"," : ""
+    def arm_json = meta.arm ? "\"arm\": \"${meta.arm}\"," : ""
+    def channels_json = meta.channels ? "\"channels\": \"${meta.channels}\"," : ""
+    // Build image_metadata array with well+site+filename+cycle+channel for each image
+    def image_metadata_json = image_metas.collect { m ->
+        def fname = m.filename ?: 'MISSING'
+        def cycle = m.cycle ?: 'UNKNOWN'
+        def channel = m.channel ?: 'UNKNOWN'
+        "        {\"well\": \"${m.well}\", \"site\": ${m.site}, \"filename\": \"${fname}\", \"cycle\": ${cycle}, \"channel\": \"${channel}\"}"
+    }.join(',\n')
     """
-    cat << EOF > metadata.json
+    # Create metadata JSON file
+    cat > metadata.json << 'EOF'
 {
     "plate": "${meta.plate}",
-    "well": "${meta.well}",
-    "site": ${meta.site},
-    "cycle": ${meta.cycle ?: 'null'},
-    "channels": "${meta.channels ?: ''}",
-    "batch": "${meta.batch}",
-    "arm": "${meta.arm}",
-    "id": "${meta.id}"
+    ${batch_json}
+    ${arm_json}
+    ${channels_json}
+    "id": "${meta.id}",
+    "image_metadata": [
+${image_metadata_json}
+    ]
 }
 EOF
 
+    # Generate load_data.csv
     generate_load_data_csv.py \\
         --metadata-json metadata.json \\
         --pipeline-type preprocess \\

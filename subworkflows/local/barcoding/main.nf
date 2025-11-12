@@ -104,15 +104,38 @@ workflow BARCODING {
                 arm: meta.arm,
                 id: "${meta.batch}_${meta.plate}_${meta.well}_Site${meta.site}"
             ]
-            [site_key, image, meta.cycle, meta.channels]
+            [site_key, image, meta]
         }
         .groupTuple()
-        .map { site_meta, images, cycles, channels_list ->
-            // Get unique cycles and channels for this site
-            def unique_cycles = cycles.unique().sort()
-            def all_channels = channels_list.unique().sort().join(',')
+        .map { site_meta, images, meta_list ->
+            // Zip images with metadata to keep them synchronized
+            def paired = [images, meta_list].transpose().unique()
+            def unique_images = paired.collect { it[0] }
+            def unique_metas = paired.collect { it[1] }
 
-            [site_meta, all_channels, unique_cycles, images]
+            // Get unique cycles and channels for this site
+            // For barcoding, we expect multiple cycles
+            def all_cycles = unique_metas.collect { it.cycle }.findAll { it != null }.unique().sort()
+            def unique_cycles = (all_cycles.size() > 1) ? all_cycles : null
+            def all_channels = unique_metas[0].channels
+
+            // Enrich metadata with filenames to enable matching
+            def metas_with_filenames = []
+            unique_images.eachWithIndex { img, idx ->
+                def m = unique_metas[idx]
+                def basename = img.name
+                // Create new map with filename added
+                def enriched = [:]
+                enriched.putAll(m)
+                enriched.filename = basename
+                // Only include cycle if we have multiple cycles
+                if (unique_cycles == null && enriched.containsKey('cycle')) {
+                    enriched.remove('cycle')
+                }
+                metas_with_filenames << enriched
+            }
+
+            [site_meta, all_channels, unique_cycles, unique_images, metas_with_filenames]
         }
         .set { ch_images_by_site }
 
@@ -135,16 +158,16 @@ workflow BARCODING {
     // Combine images with npy files
     // Each site gets all the npy files for its plate
     ch_images_by_site
-        .map { site_meta, channels, cycles, images ->
+        .map { site_meta, channels, cycles, images, image_metas ->
             def plate_key = [
                 batch: site_meta.batch,
                 plate: site_meta.plate
             ]
-            [plate_key, site_meta, channels, cycles, images]
+            [plate_key, site_meta, channels, cycles, images, image_metas]
         }
         .combine(ch_npy_by_plate, by: 0)
-        .map { _plate_key, site_meta, channels, cycles, images, npy_files ->
-            [site_meta, channels, cycles, images, npy_files]
+        .map { _plate_key, site_meta, channels, cycles, images, image_metas, npy_files ->
+            [site_meta, channels, cycles, images, image_metas, npy_files]
         }
         .set { ch_illumapply_input }
 
@@ -214,10 +237,25 @@ workflow BARCODING {
     ch_versions = ch_versions.mix(QC_BARCODEALIGN.out.versions)
 
     // ILLUMAPPLY already runs per site, so corrected_images has site metadata
-    // Just extract the images for PREPROCESS
+    // Build image metadata for PREPROCESS from corrected images
     CELLPROFILER_ILLUMAPPLY_BARCODING.out.corrected_images
         .map { site_meta, images, _csv ->
-            [site_meta, images]
+            // Build image_metas for corrected images with cycle and channel extracted
+            def image_metas = images.collect { img ->
+                // Extract cycle and channel from corrected image filename
+                // Pattern: Plate_X_Well_Y_Site_Z_Cycle01_DNA.tiff
+                def match = (img.name =~ /.*_Cycle(\d+)_(.+?)\.tiff?$/)
+                def cycle = match ? match[0][1] as Integer : null
+                def channel = match ? match[0][2] : 'UNKNOWN'
+                [
+                    well: site_meta.well,
+                    site: site_meta.site,
+                    filename: img.name,
+                    cycle: cycle,
+                    channel: channel
+                ]
+            }
+            [site_meta, images, image_metas]
         }
         .set { ch_sbs_corr_images }
 
