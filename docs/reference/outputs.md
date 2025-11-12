@@ -38,6 +38,7 @@ results/
 **Location**: `results/painting/illum/`
 
 **Files**:
+
 ```
 {batch}/
   {plate}/
@@ -47,6 +48,7 @@ results/
 **Description**: NumPy arrays containing illumination correction functions for each channel. Used to correct uneven illumination across the field of view.
 
 **Example**:
+
 ```
 results/painting/illum/batch1/P001/
   P001_IllumDAPI.npy
@@ -59,6 +61,7 @@ results/painting/illum/batch1/P001/
 **Location**: `results/painting/corrected/`
 
 **Files**:
+
 ```
 {batch}/
   {plate}/
@@ -69,6 +72,7 @@ results/painting/illum/batch1/P001/
 **Description**: Multi-frame TIFF images with illumination correction applied. One file per channel per site.
 
 **Example**:
+
 ```
 results/painting/corrected/batch1/P001/A01/
   P001_A01_1_CorrDAPI.tif
@@ -81,6 +85,7 @@ results/painting/corrected/batch1/P001/A01/
 **Location**: `results/painting/stitched_cropped/`
 
 **Files**:
+
 ```
 {batch}/
   {plate}/
@@ -98,6 +103,7 @@ results/painting/corrected/batch1/P001/A01/
 **Location**: `results/barcoding/illum/`
 
 **Files**:
+
 ```
 {batch}/
   {plate}/
@@ -108,6 +114,7 @@ results/painting/corrected/batch1/P001/A01/
 **Description**: Cycle-specific illumination correction functions.
 
 **Example**:
+
 ```
 results/barcoding/illum/batch1/P001/1/
   P001_Cycle1_IllumCy3.npy
@@ -119,6 +126,7 @@ results/barcoding/illum/batch1/P001/1/
 **Location**: `results/barcoding/corrected/`
 
 **Files**:
+
 ```
 {batch}/
   {plate}/
@@ -135,6 +143,7 @@ results/barcoding/illum/batch1/P001/1/
 **Location**: `results/barcoding/preprocessed/`
 
 **Files**:
+
 ```
 {batch}/
   {plate}/
@@ -160,6 +169,7 @@ results/barcoding/illum/batch1/P001/1/
 **Location**: `results/combined/analysis/{batch}/{plate}/{well}/{site}/`
 
 **Files**:
+
 ```
 {plate}_{well}_{site}_Nuclei.tif
 {plate}_{well}_{site}_Cells.tif
@@ -167,6 +177,7 @@ results/barcoding/illum/batch1/P001/1/
 ```
 
 **Description**: Binary masks for segmented objects:
+
 - **Nuclei**: Nuclear segmentation
 - **Cells**: Whole cell segmentation
 - **Cytoplasm**: Cytoplasm only (Cells - Nuclei)
@@ -174,6 +185,7 @@ results/barcoding/illum/batch1/P001/1/
 ### Overlay Images
 
 **Files**:
+
 ```
 {plate}_{well}_{site}_Overlay.tif
 ```
@@ -183,6 +195,7 @@ results/barcoding/illum/batch1/P001/1/
 ### Feature Measurements
 
 **Files**:
+
 ```
 Image.csv
 Nuclei.csv
@@ -197,30 +210,30 @@ Experiment.csv
 
 Per-image measurements:
 
-| Column | Description |
-|--------|-------------|
-| `ImageNumber` | Unique image identifier |
-| `Metadata_Plate` | Plate identifier |
-| `Metadata_Well` | Well position |
-| `Metadata_Site` | Site number |
-| `Count_Nuclei` | Number of nuclei detected |
-| `Count_Cells` | Number of cells detected |
+| Column           | Description               |
+| ---------------- | ------------------------- |
+| `ImageNumber`    | Unique image identifier   |
+| `Metadata_Plate` | Plate identifier          |
+| `Metadata_Well`  | Well position             |
+| `Metadata_Site`  | Site number               |
+| `Count_Nuclei`   | Number of nuclei detected |
+| `Count_Cells`    | Number of cells detected  |
 
 #### Nuclei.csv / Cells.csv
 
 Per-object measurements:
 
-| Column | Description |
-|--------|-------------|
-| `ObjectNumber` | Unique object ID within image |
-| `ImageNumber` | Reference to Image.csv |
-| `Metadata_Barcode` | Assigned barcode sequence |
-| `Location_Center_X` | X coordinate of object center |
-| `Location_Center_Y` | Y coordinate of object center |
-| `AreaShape_Area` | Object area in pixels |
-| `Intensity_MeanIntensity_*` | Mean intensity per channel |
-| `Texture_*` | Texture features |
-| `Granularity_*` | Granularity features |
+| Column                      | Description                   |
+| --------------------------- | ----------------------------- |
+| `ObjectNumber`              | Unique object ID within image |
+| `ImageNumber`               | Reference to Image.csv        |
+| `Metadata_Barcode`          | Assigned barcode sequence     |
+| `Location_Center_X`         | X coordinate of object center |
+| `Location_Center_Y`         | Y coordinate of object center |
+| `AreaShape_Area`            | Object area in pixels         |
+| `Intensity_MeanIntensity_*` | Mean intensity per channel    |
+| `Texture_*`                 | Texture features              |
+| `Granularity_*`             | Granularity features          |
 
 #### Experiment.csv
 
@@ -233,6 +246,7 @@ Pipeline metadata and run parameters.
 **Location**: `results/qc/montage_illum/`
 
 **Files**:
+
 ```
 {arm}/{batch}/{plate}/
   {plate}_IllumMontage_{channel}.png
@@ -245,6 +259,7 @@ Pipeline metadata and run parameters.
 **Location**: `results/qc/montage_segcheck/`
 
 **Files**:
+
 ```
 {batch}/{plate}/{well}/
   {plate}_{well}_SegCheckMontage.png
@@ -257,6 +272,7 @@ Pipeline metadata and run parameters.
 **Location**: `results/qc/montage_preprocess/`
 
 **Files**:
+
 ```
 {batch}/{plate}/{well}/{site}/
   {plate}_{well}_{site}_PreprocessMontage.png
@@ -275,6 +291,7 @@ Pipeline metadata and run parameters.
 **Location**: `results/qc/barcode_align/`
 
 **Files**:
+
 ```
 {batch}/{plate}/
   shift_summary.csv
@@ -285,6 +302,7 @@ Pipeline metadata and run parameters.
 ```
 
 **Description**:
+
 - **shift_summary.csv**: Per-site pixel shift statistics
 - **correlation_matrix.csv**: Cycle-to-cycle correlation coefficients
 - **Plots**: Visual summaries of alignment quality
@@ -292,15 +310,15 @@ Pipeline metadata and run parameters.
 
 #### shift_summary.csv
 
-| Column | Description |
-|--------|-------------|
-| `Plate` | Plate identifier |
-| `Well` | Well position |
-| `Site` | Site number |
+| Column         | Description             |
+| -------------- | ----------------------- |
+| `Plate`        | Plate identifier        |
+| `Well`         | Well position           |
+| `Site`         | Site number             |
 | `Mean_Shift_X` | Mean X-axis pixel shift |
 | `Mean_Shift_Y` | Mean Y-axis pixel shift |
-| `Max_Shift` | Maximum shift magnitude |
-| `Pass` | Boolean QC pass/fail |
+| `Max_Shift`    | Maximum shift magnitude |
+| `Pass`         | Boolean QC pass/fail    |
 
 ## Load Data CSV Archive
 
@@ -315,11 +333,13 @@ Pipeline metadata and run parameters.
 **Location**: `results/pipeline_info/`
 
 **Files**:
+
 - `execution_report.html`: Resource usage and task statistics
 - `execution_timeline.html`: Timeline visualization
 - `execution_trace.txt`: Detailed execution log
 
 **Usage**:
+
 ```bash
 nextflow run main.nf -with-report results/pipeline_info/execution_report.html
 ```
@@ -356,21 +376,18 @@ nextflow run main.nf -with-report results/pipeline_info/execution_report.html
 
 Approximate storage needs (example experiment):
 
-| Component | Per Plate | Per Experiment (96 wells) |
-|-----------|-----------|---------------------------|
-| Raw images | 50 GB | 5 TB |
-| Illumination functions | 100 MB | 10 GB |
-| Corrected images | 50 GB | 5 TB |
-| Stitched images | 20 GB | 2 TB |
-| Segmentation masks | 5 GB | 500 GB |
-| Feature CSVs | 500 MB | 50 GB |
-| QC outputs | 1 GB | 100 GB |
-| **Total** | **~127 GB** | **~12.7 TB** |
+| Component              | Per Plate   | Per Experiment (96 wells) |
+| ---------------------- | ----------- | ------------------------- |
+| Raw images             | 50 GB       | 5 TB                      |
+| Illumination functions | 100 MB      | 10 GB                     |
+| Corrected images       | 50 GB       | 5 TB                      |
+| Stitched images        | 20 GB       | 2 TB                      |
+| Segmentation masks     | 5 GB        | 500 GB                    |
+| Feature CSVs           | 500 MB      | 50 GB                     |
+| QC outputs             | 1 GB        | 100 GB                    |
+| **Total**              | **~127 GB** | **~12.7 TB**              |
 
-!!! note "Storage Optimization"
-    - Enable compression for TIFF files
-    - Archive intermediate outputs after QC
-    - Use cloud tiered storage for older results
+!!! note "Storage Optimization" - Enable compression for TIFF files - Archive intermediate outputs after QC - Use cloud tiered storage for older results
 
 ## Accessing Outputs
 

@@ -58,10 +58,10 @@ Nextflow stores intermediate files in `work/`. Size requirements:
 - **Stitched images**: Variable based on stitching configuration
 
 !!! tip "Storage Management"
-    Use `-resume` to avoid re-computing completed tasks. Clean work directory periodically:
-    ```bash
+Use `-resume` to avoid re-computing completed tasks. Clean work directory periodically:
+`bash
     nextflow clean -f
-    ```
+    `
 
 ### Output Directory
 

@@ -7,11 +7,11 @@
 - **Nextflow** `>= 23.04.0`
 - **Java** `>= 11`
 - **Container engine**: One of:
-    - Docker
-    - Singularity/Apptainer
-    - Podman
-    - Shifter
-    - Charliecloud
+  - Docker
+  - Singularity/Apptainer
+  - Podman
+  - Shifter
+  - Charliecloud
 
 ### Optional
 

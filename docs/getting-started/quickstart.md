@@ -91,10 +91,7 @@ path,arm,batch,plate,well,channels,site,cycle,n_frames
 /data/barcoding/,barcoding,batch1,P001,A01,Cy3-Cy5,1,3,4
 ```
 
-!!! note
-    - `painting` rows have empty `cycle` column
-    - `barcoding` rows must have `cycle` values
-    - `path` should point to directory containing TIFF images
+!!! note - `painting` rows have empty `cycle` column - `barcoding` rows must have `cycle` values - `path` should point to directory containing TIFF images
 
 ## Understanding Outputs
 

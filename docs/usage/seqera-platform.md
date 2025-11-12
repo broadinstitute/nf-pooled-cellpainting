@@ -25,10 +25,10 @@ Execute the pipeline on cloud and HPC infrastructure using Seqera Platform.
 1. Navigate to **Compute Environments** in Seqera Platform
 2. Click **Add Compute Environment**
 3. Select your infrastructure:
-    - **AWS Batch**: Automatic EC2 provisioning
-    - **Azure Batch**: Azure VM provisioning
-    - **Google Cloud Batch**: GCP compute instances
-    - **HPC Cluster**: SLURM, SGE, PBS, LSF
+   - **AWS Batch**: Automatic EC2 provisioning
+   - **Azure Batch**: Azure VM provisioning
+   - **Google Cloud Batch**: GCP compute instances
+   - **HPC Cluster**: SLURM, SGE, PBS, LSF
 4. Configure credentials and resource limits
 5. Save the compute environment
 
@@ -47,10 +47,10 @@ Execute the pipeline on cloud and HPC infrastructure using Seqera Platform.
 1. Navigate to **Launchpad**
 2. Select **nf-pooled-cellpainting**
 3. Configure run parameters:
-    - Input samplesheet (S3/Azure/GCS path or local upload)
-    - Output directory
-    - CellProfiler pipelines
-    - QC parameters
+   - Input samplesheet (S3/Azure/GCS path or local upload)
+   - Output directory
+   - CellProfiler pipelines
+   - QC parameters
 4. Click **Launch**
 
 ### Via Tower CLI

@@ -59,17 +59,17 @@ workflow NF_POOLED_CELLPAINTING {
 Located in `subworkflows/local/cellpainting/main.nf`:
 
 1. **ILLUMCALC**: Calculate illumination corrections
-    - Groups by: `[batch, plate]`
-    - Outputs: `.npy` illumination functions
+   - Groups by: `[batch, plate]`
+   - Outputs: `.npy` illumination functions
 2. **QC_MONTAGEILLUM**: Generate illumination QC montages
 3. **ILLUMAPPLY**: Apply illumination corrections
-    - Groups by: `[batch, plate, well]`
-    - Parallelized per well
+   - Groups by: `[batch, plate, well]`
+   - Parallelized per well
 4. **SEGCHECK**: Segmentation quality check
-    - Subsampled by `range_skip` parameter
+   - Subsampled by `range_skip` parameter
 5. **QC_MONTAGE_SEGCHECK**: Segmentation QC visualizations
 6. **FIJI_STITCHCROP**: Stitch and crop images (conditional)
-    - Enabled when `qc_painting_passed == true`
+   - Enabled when `qc_painting_passed == true`
 7. **QC_MONTAGE_STITCHCROP**: Stitching QC visualizations
 
 ### Barcoding Subworkflow
@@ -77,19 +77,19 @@ Located in `subworkflows/local/cellpainting/main.nf`:
 Located in `subworkflows/local/barcoding/main.nf`:
 
 1. **ILLUMCALC**: Calculate cycle-specific illumination corrections
-    - Groups by: `[batch, plate, cycle]`
+   - Groups by: `[batch, plate, cycle]`
 2. **QC_MONTAGEILLUM**: Illumination QC montages
 3. **ILLUMAPPLY**: Apply illumination corrections
-    - Groups by: `[batch, plate, well, site]`
-    - Parallelized per site
+   - Groups by: `[batch, plate, well, site]`
+   - Parallelized per site
 4. **QC_BARCODEALIGN**: Barcode alignment QC
-    - Checks pixel shifts and correlation between cycles
-    - Validates against `barcoding_shift_threshold` and `barcoding_corr_threshold`
+   - Checks pixel shifts and correlation between cycles
+   - Validates against `barcoding_shift_threshold` and `barcoding_corr_threshold`
 5. **PREPROCESS**: Barcode calling and preprocessing
-    - Uses CellProfiler plugins (`callbarcodes`, `compensatecolors`)
+   - Uses CellProfiler plugins (`callbarcodes`, `compensatecolors`)
 6. **QC_PREPROCESS**: Preprocessing QC visualizations
 7. **FIJI_STITCHCROP**: Stitch and crop (conditional)
-    - Enabled when `qc_barcoding_passed == true`
+   - Enabled when `qc_barcoding_passed == true`
 
 ## Channel Architecture
 

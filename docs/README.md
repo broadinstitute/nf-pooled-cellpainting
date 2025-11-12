@@ -35,6 +35,7 @@ mkdocs gh-deploy
 ```
 
 This will:
+
 1. Build the documentation
 2. Push to `gh-pages` branch
 3. Documentation will be available at `https://<username>.github.io/<repo>/`
@@ -100,6 +101,7 @@ To add or modify documentation:
 Documentation is configured in `mkdocs.yml` at the repository root.
 
 Key features:
+
 - Material theme with dark/light mode toggle
 - Code syntax highlighting
 - Search functionality

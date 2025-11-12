@@ -25,37 +25,37 @@ The pipeline includes extensive quality control checkpoints, automated image sti
 
 <div class="grid cards" markdown>
 
--   :material-rocket-launch:{ .lg .middle } **Getting Started**
+- :material-rocket-launch:{ .lg .middle } **Getting Started**
 
-    ---
+  ***
 
-    Learn how to install and run your first analysis
+  Learn how to install and run your first analysis
 
-    [:octicons-arrow-right-24: Quick Start](getting-started/quickstart.md)
+  [:octicons-arrow-right-24: Quick Start](getting-started/quickstart.md)
 
--   :material-cog:{ .lg .middle } **Parameters**
+- :material-cog:{ .lg .middle } **Parameters**
 
-    ---
+  ***
 
-    Complete reference of all pipeline parameters
+  Complete reference of all pipeline parameters
 
-    [:octicons-arrow-right-24: Parameters](usage/parameters.md)
+  [:octicons-arrow-right-24: Parameters](usage/parameters.md)
 
--   :material-code-braces:{ .lg .middle } **Developer Guide**
+- :material-code-braces:{ .lg .middle } **Developer Guide**
 
-    ---
+  ***
 
-    Understand the pipeline architecture and implementation
+  Understand the pipeline architecture and implementation
 
-    [:octicons-arrow-right-24: Architecture](developer/architecture.md)
+  [:octicons-arrow-right-24: Architecture](developer/architecture.md)
 
--   :material-cloud:{ .lg .middle } **Seqera Platform**
+- :material-cloud:{ .lg .middle } **Seqera Platform**
 
-    ---
+  ***
 
-    Run the pipeline on cloud and HPC infrastructure
+  Run the pipeline on cloud and HPC infrastructure
 
-    [:octicons-arrow-right-24: Seqera Platform](usage/seqera-platform.md)
+  [:octicons-arrow-right-24: Seqera Platform](usage/seqera-platform.md)
 
 </div>
 

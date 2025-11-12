@@ -46,13 +46,13 @@ process CELLPROFILER_ILLUMCALC {
 
 ### Key Processes
 
-| Process | Purpose | Grouping | Key Outputs |
-|---------|---------|----------|-------------|
-| `ILLUMCALC` | Calculate illumination functions | Per plate (or plate+cycle) | `.npy` files |
-| `ILLUMAPPLY` | Apply corrections | Per well or site | Corrected TIFF images |
-| `SEGCHECK` | Segmentation QC | Per well (subsampled) | PNG previews, CSV stats |
-| `PREPROCESS` | Barcode calling | Per site | Preprocessed TIFF, CSV |
-| `COMBINEDANALYSIS` | Final segmentation | Per site | Masks, overlays, CSV |
+| Process            | Purpose                          | Grouping                   | Key Outputs             |
+| ------------------ | -------------------------------- | -------------------------- | ----------------------- |
+| `ILLUMCALC`        | Calculate illumination functions | Per plate (or plate+cycle) | `.npy` files            |
+| `ILLUMAPPLY`       | Apply corrections                | Per well or site           | Corrected TIFF images   |
+| `SEGCHECK`         | Segmentation QC                  | Per well (subsampled)      | PNG previews, CSV stats |
+| `PREPROCESS`       | Barcode calling                  | Per site                   | Preprocessed TIFF, CSV  |
+| `COMBINEDANALYSIS` | Final segmentation               | Per site                   | Masks, overlays, CSV    |
 
 ## Pipeline Files (.cppipe)
 
@@ -85,34 +85,34 @@ The pipeline automatically populates:
 The pipeline requires these `.cppipe` files:
 
 1. **painting_illumcalc.cppipe**: Calculate painting illumination
-    - Inputs: Multi-channel raw images
-    - Outputs: `.npy` illumination functions per channel
+   - Inputs: Multi-channel raw images
+   - Outputs: `.npy` illumination functions per channel
 
 2. **painting_illumapply.cppipe**: Apply painting illumination
-    - Inputs: Raw images + illumination functions
-    - Outputs: Corrected TIFF images
+   - Inputs: Raw images + illumination functions
+   - Outputs: Corrected TIFF images
 
 3. **painting_segcheck.cppipe**: Segmentation QC
-    - Inputs: Corrected images
-    - Outputs: Segmentation previews
+   - Inputs: Corrected images
+   - Outputs: Segmentation previews
 
 4. **barcoding_illumcalc.cppipe**: Calculate barcoding illumination
-    - Inputs: Multi-cycle raw images
-    - Outputs: Cycle-specific illumination functions
+   - Inputs: Multi-cycle raw images
+   - Outputs: Cycle-specific illumination functions
 
 5. **barcoding_illumapply.cppipe**: Apply barcoding illumination
-    - Inputs: Raw cycle images + illumination functions
-    - Outputs: Corrected cycle images
+   - Inputs: Raw cycle images + illumination functions
+   - Outputs: Corrected cycle images
 
 6. **barcoding_preprocess.cppipe**: Barcode calling
-    - Inputs: Corrected cycle images
-    - Outputs: Barcode-called images
-    - Requires: `callbarcodes` and `compensatecolors` plugins
+   - Inputs: Corrected cycle images
+   - Outputs: Barcode-called images
+   - Requires: `callbarcodes` and `compensatecolors` plugins
 
 7. **combinedanalysis.cppipe**: Final analysis
-    - Inputs: Painting corrected + barcoding preprocessed images
-    - Outputs: Segmentation masks, feature measurements
-    - Requires: `callbarcodes` plugin
+   - Inputs: Painting corrected + barcoding preprocessed images
+   - Outputs: Segmentation masks, feature measurements
+   - Requires: `callbarcodes` plugin
 
 ## Load Data CSV Generation
 

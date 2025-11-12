@@ -7,6 +7,7 @@ Common issues and solutions for the nf-pooled-cellpainting pipeline.
 ### Pipeline Fails to Start
 
 #### Symptom
+
 ```
 ERROR ~ Error executing process > 'CELLPAINTING:CELLPROFILER_ILLUMCALC'
 ```
@@ -16,11 +17,13 @@ ERROR ~ Error executing process > 'CELLPAINTING:CELLPROFILER_ILLUMCALC'
 **1. Missing required parameters**
 
 Check all required parameters are provided:
+
 ```bash
 nextflow run main.nf --help
 ```
 
 Ensure you have:
+
 - `--input`
 - `--barcodes`
 - `--outdir`
@@ -30,6 +33,7 @@ Ensure you have:
 **2. Invalid samplesheet**
 
 Validate CSV format:
+
 ```bash
 head samplesheet.csv
 # Should have headers: path,arm,batch,plate,well,channels,site,cycle,n_frames
@@ -38,6 +42,7 @@ head samplesheet.csv
 **3. Nextflow version**
 
 Update Nextflow:
+
 ```bash
 nextflow self-update
 nextflow -version  # Should be >= 23.04.0
@@ -46,6 +51,7 @@ nextflow -version  # Should be >= 23.04.0
 ### Processes Fail with "Cannot find file"
 
 #### Symptom
+
 ```
 ERROR ~ Error executing process > 'CELLPROFILER_ILLUMCALC'
 Caused by:
@@ -58,6 +64,7 @@ Caused by:
 **1. Check file paths in samplesheet**
 
 Ensure paths are:
+
 - Absolute paths (recommended)
 - Accessible from execution environment
 - Point to directories containing images
@@ -85,6 +92,7 @@ gsutil ls gs://bucket/path/
 ### Out of Memory Errors
 
 #### Symptom
+
 ```
 ERROR ~ Error executing process > 'CELLPROFILER_ILLUMCALC'
 java.lang.OutOfMemoryError: Java heap space
@@ -108,6 +116,7 @@ nextflow run main.nf ...
 **2. Increase process memory**
 
 Create `nextflow.config`:
+
 ```groovy
 process {
     withName: 'CELLPROFILER_.*' {
@@ -133,6 +142,7 @@ Split samplesheet into smaller subsets and run separately.
 ### Work Directory Full
 
 #### Symptom
+
 ```
 ERROR ~ Error executing process > 'CELLPROFILER_ILLUMAPPLY'
 No space left on device
@@ -168,6 +178,7 @@ du -sh work/
 ### CellProfiler Process Fails
 
 #### Symptom
+
 ```
 CellProfiler: Error while processing ...
 ```
@@ -177,6 +188,7 @@ CellProfiler: Error while processing ...
 **1. Check load_data.csv**
 
 Examine generated CSV:
+
 ```bash
 # Find work directory
 ls -lrt work/*/*/
@@ -186,6 +198,7 @@ cat work/a1/b2c3.../load_data.csv
 ```
 
 Verify:
+
 - Correct column names
 - Valid file paths
 - No missing values
@@ -193,6 +206,7 @@ Verify:
 **2. Test pipeline manually**
 
 Extract and run CellProfiler directly:
+
 ```bash
 cd work/<task-hash>/
 
@@ -206,6 +220,7 @@ cellprofiler \
 **3. Validate .cppipe file**
 
 Open in CellProfiler GUI:
+
 ```bash
 cellprofiler  # Opens GUI
 # Load pipeline and check for errors
@@ -214,6 +229,7 @@ cellprofiler  # Opens GUI
 ### Plugin Download Failures
 
 #### Symptom
+
 ```
 wget: unable to resolve host address
 ERROR: Plugin 'callbarcodes' not found
@@ -230,11 +246,13 @@ curl -I https://example.com/callbarcodes.py
 **2. Use local files**
 
 Download plugins locally:
+
 ```bash
 wget -O plugins/callbarcodes.py https://example.com/callbarcodes.py
 ```
 
 Update parameters:
+
 ```bash
 --callbarcodes_plugin file:$PWD/plugins/callbarcodes.py
 ```
@@ -254,11 +272,13 @@ Corrected images look wrong or unchanged.
 **1. Verify illumination functions**
 
 Check `.npy` files exist and are non-empty:
+
 ```bash
 ls -lh results/painting/illum/batch1/P001/*.npy
 ```
 
 Load and inspect:
+
 ```python
 import numpy as np
 import matplotlib.pyplot as plt
@@ -272,6 +292,7 @@ plt.show()
 **2. Check pipeline configuration**
 
 Ensure `illumapply` pipeline:
+
 - Loads illumination functions correctly
 - Applies correction formula (usually divide or subtract)
 - Saves corrected output
@@ -305,12 +326,14 @@ nextflow run main.nf \
 **Solutions**:
 
 1. **Adjust thresholds**:
+
 ```bash
 --barcoding_shift_threshold 100  # Increase from 50
 --barcoding_corr_threshold 0.8   # Decrease from 0.9
 ```
 
 2. **Inspect QC outputs**:
+
 ```bash
 open results/qc/barcode_align/batch1/P001/qc_report.html
 ```
@@ -322,6 +345,7 @@ open results/qc/barcode_align/batch1/P001/qc_report.html
 ### Docker Permission Denied
 
 #### Symptom
+
 ```
 ERROR ~ Error executing process > 'CELLPROFILER_ILLUMCALC'
 docker: Got permission denied while trying to connect to the Docker daemon socket
@@ -354,6 +378,7 @@ nextflow run main.nf -profile singularity ...
 ### Container Image Pull Failures
 
 #### Symptom
+
 ```
 ERROR ~ Failed to pull Docker image 'wave.seqera.io/cellprofiler/cellprofiler:4.2.8'
 ```
@@ -390,6 +415,7 @@ docker pull fiji/fiji:20220415
 **1. Insufficient parallelization**
 
 Increase concurrent tasks:
+
 ```groovy
 executor {
     queueSize = 20
@@ -399,6 +425,7 @@ executor {
 **2. Over-allocation**
 
 Too many parallel tasks can cause thrashing. Monitor and adjust:
+
 ```bash
 htop  # Watch CPU and memory
 ```
@@ -406,6 +433,7 @@ htop  # Watch CPU and memory
 **3. I/O bottleneck**
 
 Use local SSD for work directory:
+
 ```bash
 nextflow run main.nf -w /fast/local/disk/work ...
 ```
@@ -413,6 +441,7 @@ nextflow run main.nf -w /fast/local/disk/work ...
 **4. Network latency**
 
 For cloud storage, ensure compute is in same region:
+
 ```groovy
 aws {
     region = 'us-east-1'  # Match S3 bucket region
@@ -422,6 +451,7 @@ aws {
 ### Tasks Timeout
 
 #### Symptom
+
 ```
 ERROR ~ Error executing process > 'CELLPROFILER_ILLUMCALC'
 Execution cancelled -- Execution time limit exceeded
@@ -430,6 +460,7 @@ Execution cancelled -- Execution time limit exceeded
 #### Solution
 
 Increase time limit:
+
 ```groovy
 process {
     withName: 'CELLPROFILER_ILLUMCALC' {
@@ -451,6 +482,7 @@ Expected files not in `results/`.
 **1. Check publishDir configuration**
 
 Verify publish settings in process:
+
 ```groovy
 publishDir "${params.outdir}/painting/corrected", mode: 'copy'
 ```
@@ -458,6 +490,7 @@ publishDir "${params.outdir}/painting/corrected", mode: 'copy'
 **2. Check process completion**
 
 Ensure process succeeded:
+
 ```bash
 grep -r "Completed" .nextflow.log | grep ILLUMCALC
 ```
@@ -465,6 +498,7 @@ grep -r "Completed" .nextflow.log | grep ILLUMCALC
 **3. Check work directory**
 
 Files may be in work directory:
+
 ```bash
 find work/ -name "*.tif" | head
 ```
@@ -478,6 +512,7 @@ Files not organized as expected.
 #### Solution
 
 Verify metadata is correctly parsed:
+
 ```groovy
 // Check samplesheet parsing
 cat .nextflow.log | grep "Metadata:"
@@ -490,6 +525,7 @@ Ensure grouping keys match expectations in subworkflows.
 ### Authentication Failures
 
 #### Symptom
+
 ```
 ERROR ~ Unable to authenticate to Seqera Platform
 ```
@@ -515,6 +551,7 @@ Jobs not launching in cloud/HPC.
 **1. Verify compute environment**
 
 Check Seqera Platform dashboard:
+
 - Compute environment status
 - Credentials validity
 - Resource limits
@@ -560,6 +597,7 @@ print(df.isnull().sum())
 **2. Verify filename patterns**
 
 Ensure filenames match expected pattern:
+
 ```
 {plate}_{well}_{site}_{frame}_{channel}.tif
 ```

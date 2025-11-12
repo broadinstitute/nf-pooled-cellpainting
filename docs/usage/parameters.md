@@ -6,72 +6,72 @@ Complete reference for all pipeline parameters.
 
 ### Input/Output
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `--input` | `path` | Samplesheet CSV with columns: `path`, `arm`, `batch`, `plate`, `well`, `channels`, `site`, `cycle`, `n_frames` |
-| `--barcodes` | `path` | CSV file with barcode definitions (`barcode_id`, `sequence`) |
-| `--outdir` | `path` | Output directory for results |
+| Parameter    | Type   | Description                                                                                                    |
+| ------------ | ------ | -------------------------------------------------------------------------------------------------------------- |
+| `--input`    | `path` | Samplesheet CSV with columns: `path`, `arm`, `batch`, `plate`, `well`, `channels`, `site`, `cycle`, `n_frames` |
+| `--barcodes` | `path` | CSV file with barcode definitions (`barcode_id`, `sequence`)                                                   |
+| `--outdir`   | `path` | Output directory for results                                                                                   |
 
 ### CellProfiler Pipelines
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `--painting_illumcalc_cppipe` | `path` | Illumination calculation pipeline for Cell Painting |
-| `--painting_illumapply_cppipe` | `path` | Illumination correction pipeline for Cell Painting |
-| `--painting_segcheck_cppipe` | `path` | Segmentation QC pipeline |
-| `--barcoding_illumcalc_cppipe` | `path` | Illumination calculation pipeline for barcoding |
-| `--barcoding_illumapply_cppipe` | `path` | Illumination correction pipeline for barcoding |
+| Parameter                       | Type   | Description                                           |
+| ------------------------------- | ------ | ----------------------------------------------------- |
+| `--painting_illumcalc_cppipe`   | `path` | Illumination calculation pipeline for Cell Painting   |
+| `--painting_illumapply_cppipe`  | `path` | Illumination correction pipeline for Cell Painting    |
+| `--painting_segcheck_cppipe`    | `path` | Segmentation QC pipeline                              |
+| `--barcoding_illumcalc_cppipe`  | `path` | Illumination calculation pipeline for barcoding       |
+| `--barcoding_illumapply_cppipe` | `path` | Illumination correction pipeline for barcoding        |
 | `--barcoding_preprocess_cppipe` | `path` | Barcoding preprocessing pipeline with barcode calling |
-| `--combinedanalysis_cppipe` | `path` | Combined analysis pipeline |
+| `--combinedanalysis_cppipe`     | `path` | Combined analysis pipeline                            |
 
 ### CellProfiler Plugins
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `--callbarcodes_plugin` | `string` | URL or path to `callbarcodes.py` plugin |
+| Parameter                   | Type     | Description                                 |
+| --------------------------- | -------- | ------------------------------------------- |
+| `--callbarcodes_plugin`     | `string` | URL or path to `callbarcodes.py` plugin     |
 | `--compensatecolors_plugin` | `string` | URL or path to `compensatecolors.py` plugin |
 
 ## Cell Painting Parameters
 
 ### Image Properties
 
-| Parameter | Type | Default | Description |
-|-----------|------|---------|-------------|
-| `--cp_img_overlap_pct` | `int` | `10` | Image overlap percentage for stitching |
-| `--cp_img_frame_type` | `string` | `"round"` | Frame type: `round`, `square`, or custom |
-| `--cp_acquisition_order` | `string` | `"snake"` | Acquisition order: `snake`, `raster` |
+| Parameter                | Type     | Default   | Description                              |
+| ------------------------ | -------- | --------- | ---------------------------------------- |
+| `--cp_img_overlap_pct`   | `int`    | `10`      | Image overlap percentage for stitching   |
+| `--cp_img_frame_type`    | `string` | `"round"` | Frame type: `round`, `square`, or custom |
+| `--cp_acquisition_order` | `string` | `"snake"` | Acquisition order: `snake`, `raster`     |
 
 ### Quality Control
 
-| Parameter | Type | Default | Description |
-|-----------|------|---------|-------------|
-| `--range_skip` | `int` | `16` | Sampling frequency for segmentation check (1 in N sites) |
-| `--qc_painting_passed` | `boolean` | `false` | Enable progression to stitching after QC review |
+| Parameter              | Type      | Default | Description                                              |
+| ---------------------- | --------- | ------- | -------------------------------------------------------- |
+| `--range_skip`         | `int`     | `16`    | Sampling frequency for segmentation check (1 in N sites) |
+| `--qc_painting_passed` | `boolean` | `false` | Enable progression to stitching after QC review          |
 
 ## Barcoding Parameters
 
 ### Image Properties
 
-| Parameter | Type | Default | Description |
-|-----------|------|---------|-------------|
-| `--sbs_img_overlap_pct` | `int` | `10` | Image overlap percentage for stitching |
-| `--sbs_img_frame_type` | `string` | `"round"` | Frame type: `round`, `square`, or custom |
-| `--sbs_acquisition_order` | `string` | `"snake"` | Acquisition order: `snake`, `raster` |
+| Parameter                 | Type     | Default   | Description                              |
+| ------------------------- | -------- | --------- | ---------------------------------------- |
+| `--sbs_img_overlap_pct`   | `int`    | `10`      | Image overlap percentage for stitching   |
+| `--sbs_img_frame_type`    | `string` | `"round"` | Frame type: `round`, `square`, or custom |
+| `--sbs_acquisition_order` | `string` | `"snake"` | Acquisition order: `snake`, `raster`     |
 
 ### Acquisition Geometry
 
-| Parameter | Type | Default | Description |
-|-----------|------|---------|-------------|
-| `--acquisition_geometry_rows` | `int` | `2` | Number of rows in acquisition geometry grid |
-| `--acquisition_geometry_columns` | `int` | `2` | Number of columns in acquisition geometry grid |
+| Parameter                        | Type  | Default | Description                                    |
+| -------------------------------- | ----- | ------- | ---------------------------------------------- |
+| `--acquisition_geometry_rows`    | `int` | `2`     | Number of rows in acquisition geometry grid    |
+| `--acquisition_geometry_columns` | `int` | `2`     | Number of columns in acquisition geometry grid |
 
 ### Quality Control
 
-| Parameter | Type | Default | Description |
-|-----------|------|---------|-------------|
-| `--barcoding_shift_threshold` | `float` | `50.0` | Maximum allowed pixel shift between cycles (pixels) |
-| `--barcoding_corr_threshold` | `float` | `0.9` | Minimum correlation coefficient between cycles |
-| `--qc_barcoding_passed` | `boolean` | `false` | Enable progression to stitching after QC review |
+| Parameter                     | Type      | Default | Description                                         |
+| ----------------------------- | --------- | ------- | --------------------------------------------------- |
+| `--barcoding_shift_threshold` | `float`   | `50.0`  | Maximum allowed pixel shift between cycles (pixels) |
+| `--barcoding_corr_threshold`  | `float`   | `0.9`   | Minimum correlation coefficient between cycles      |
+| `--qc_barcoding_passed`       | `boolean` | `false` | Enable progression to stitching after QC review     |
 
 ## Execution Parameters
 
