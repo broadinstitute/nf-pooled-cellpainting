@@ -43,8 +43,8 @@ lint:
     - assets/sendmail_template.txt
     - assets/email_template.txt
     - tests/default.nf.test
-    - docs/output.md: false
-    - docs/usage.md: false
+    - docs/output.md
+    - docs/usage.md
   readme:
     - nextflow_badge
     - nfcore_template_badge
