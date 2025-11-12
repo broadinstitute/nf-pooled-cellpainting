@@ -84,3 +84,13 @@ SaveImages:[module_num:{module_num}|svn_version:'Unknown'|variable_revision_numb
     Base image folder:Elsewhere...|
     How to save the series:T (Time)
 # CHANNEL_BLOCK_END
+
+CreateBatchFiles:[module_num:{final_module_num}|svn_version:'Unknown'|variable_revision_number:8|show_window:True|notes:[]|batch_state:array([], dtype=uint8)|enabled:False|wants_pause:False]
+    Store batch files in default output folder?:Yes
+    Output folder path:/output
+    Are the cluster computers running Windows?:No
+    Hidden- in batch mode:No
+    Hidden- in distributed mode:No
+    Hidden- default input folder at time of save:/data
+    Hidden- revision number:0
+    Hidden- from old matlab:No

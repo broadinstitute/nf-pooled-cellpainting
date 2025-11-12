@@ -8,7 +8,7 @@ process CELLPROFILER_ILLUMCALC {
         'community.wave.seqera.io/library/cellprofiler:4.2.8--aff0a99749304a7f' }"
 
     input:
-    tuple val(meta), val(channels), val(cycle), path(images, stageAs: "images/*")
+    tuple val(meta), val(channels), val(cycle), path(images, stageAs: "images/*"), val(image_metas)
     path illumination_cppipe
     val has_cycles
 
@@ -25,8 +25,11 @@ process CELLPROFILER_ILLUMCALC {
     def cycle_json = cycle ? "\"cycle\": ${cycle}," : ""
     def batch_json = meta.batch ? "\"batch\": \"${meta.batch}\"," : ""
     def arm_json = meta.arm ? "\"arm\": \"${meta.arm}\"," : ""
-    // NOTE: Don't include well/site for ILLUMCALC - it processes multiple wells/sites
-    // and needs to discover them from filenames
+    // Build image_metadata array with well+site+filename for each image
+    def image_metadata_json = image_metas.collect { m ->
+        def fname = m.filename ?: 'MISSING'
+        "        {\"well\": \"${m.well}\", \"site\": ${m.site}, \"filename\": \"${fname}\"}"
+    }.join(',\n')
     """
     # Create metadata JSON file
     cat > metadata.json << 'EOF'
@@ -36,7 +39,10 @@ process CELLPROFILER_ILLUMCALC {
     ${batch_json}
     ${arm_json}
     "channels": "${channels}",
-    "id": "${meta.id}"
+    "id": "${meta.id}",
+    "image_metadata": [
+${image_metadata_json}
+    ]
 }
 EOF
 
@@ -46,7 +52,8 @@ EOF
         --images-dir ./images \\
         --output load_data.csv \\
         --metadata-json metadata.json \\
-        --channels "${channels}"
+        --channels "${channels}" \\
+        ${has_cycles ? '--has-cycles' : ''}
 
     # Check if illumination_cppipe ends with .template
     if [[ "${illumination_cppipe}" == *.template ]]; then
@@ -102,9 +109,9 @@ EOF
         --image-directory ./images/
 
     cat <<-END_VERSIONS > versions.yml
-    "${task.process}":
-        cellprofiler: \$(cellprofiler --version)
-    END_VERSIONS
+	"${task.process}":
+	    cellprofiler: \$(cellprofiler --version)
+	END_VERSIONS
     """
 
     stub:
@@ -113,8 +120,8 @@ EOF
     touch load_data.csv
 
     cat <<-END_VERSIONS > versions.yml
-    "${task.process}":
-        cellprofiler: \$(cellprofiler --version)
-    END_VERSIONS
+	"${task.process}":
+	    cellprofiler: \$(cellprofiler --version)
+	END_VERSIONS
     """
 }

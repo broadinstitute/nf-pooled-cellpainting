@@ -56,9 +56,9 @@ process CELLPROFILER_COMBINEDANALYSIS {
         --plugins-directory=./plugins/
 
     cat <<-END_VERSIONS > versions.yml
-    "${task.process}":
-        cellprofiler: \$(cellprofiler --version)
-    END_VERSIONS
+	"${task.process}":
+	    cellprofiler: \$(cellprofiler --version)
+	END_VERSIONS
     """
 
     stub:
@@ -100,8 +100,8 @@ process CELLPROFILER_COMBINEDANALYSIS {
     touch load_data.csv
 
     cat <<-END_VERSIONS > versions.yml
-    "${task.process}":
-        cellprofiler: \$(cellprofiler --version)
-    END_VERSIONS
+	"${task.process}":
+	    cellprofiler: \$(cellprofiler --version)
+	END_VERSIONS
     """
 }

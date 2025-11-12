@@ -306,17 +306,42 @@ def collect_and_group_files(images_dir: str, metadata: Dict) -> Dict[Tuple, Dict
     return grouped
 
 
-def generate_csv_rows(grouped: Dict, range_skip: int = 1) -> List[Dict]:
+def generate_csv_rows(grouped: Dict, metadata: Dict, range_skip: int = 1) -> List[Dict]:
     """
     Generate CSV rows from grouped combined analysis files.
 
     Each row contains:
-    - Metadata_Plate, Metadata_Well, Metadata_Site, Metadata_Well_Value
+    - Metadata_Plate (always - from JSON)
+    - Metadata_Well (only if 'well' in JSON)
+    - Metadata_Site (only if 'site' in JSON)
+    - Metadata_Well_Value (only if 'well' in JSON)
     - FileName_Cycle##_Channel (for barcoding images)
     - FileName_CorrChannel (for cell painting images)
+
+    Args:
+        grouped: Dict mapping (plate, well, site) -> file data
+        metadata: Metadata dict from JSON (determines which columns to create)
+        range_skip: Subsampling interval for sites
     """
     if not grouped:
         raise ValueError("No grouped files to generate CSV rows from")
+
+    # Check which metadata fields are present in JSON
+    has_well = 'well' in metadata and metadata['well'] is not None
+    has_site = 'site' in metadata and metadata['site'] is not None
+
+    print(f"✓ Metadata columns to create:", file=sys.stderr)
+    print(f"  - Metadata_Plate: Always (from JSON)", file=sys.stderr)
+    if has_well:
+        print(f"  - Metadata_Well: Yes (from JSON)", file=sys.stderr)
+        print(f"  - Metadata_Well_Value: Yes (from JSON)", file=sys.stderr)
+    else:
+        print(f"  - Metadata_Well: No (not in JSON)", file=sys.stderr)
+        print(f"  - Metadata_Well_Value: No (not in JSON)", file=sys.stderr)
+    if has_site:
+        print(f"  - Metadata_Site: Yes (from JSON)", file=sys.stderr)
+    else:
+        print(f"  - Metadata_Site: No (not in JSON)", file=sys.stderr)
 
     # Apply site subsampling if needed
     all_sites = sorted(set(site for _, _, site in grouped.keys()))
@@ -335,13 +360,19 @@ def generate_csv_rows(grouped: Dict, range_skip: int = 1) -> List[Dict]:
             continue
 
         try:
-            # Build metadata columns
+            # Build metadata columns based on what's in JSON
+            # Metadata_Plate is always created
             row = {
-                'Metadata_Plate': plate,
-                'Metadata_Well': well,
-                'Metadata_Site': site,
-                'Metadata_Well_Value': well
+                'Metadata_Plate': plate
             }
+
+            # Conditionally add well and site columns
+            if has_well:
+                row['Metadata_Well'] = well
+                row['Metadata_Well_Value'] = well
+
+            if has_site:
+                row['Metadata_Site'] = site
 
             # Add barcoding files (FileName_Cycle##_Channel)
             for cycle_channel_key, filename in sorted(file_data['barcoding'].items()):
@@ -381,19 +412,21 @@ def write_csv(rows: List[Dict], output_file: str):
     if not rows:
         raise ValueError("No rows to write - cannot create empty CSV")
 
-    # Metadata columns always come first
-    metadata_cols = ['Metadata_Plate', 'Metadata_Site', 'Metadata_Well', 'Metadata_Well_Value']
-
-    # Get all column names
+    # Get all column names from rows
     all_cols = set()
     for row in rows:
         all_cols.update(row.keys())
 
-    # Order: metadata columns first, then sorted FileName columns
+    # Define metadata column order (only include columns that exist)
+    metadata_col_order = ['Metadata_Plate', 'Metadata_Site', 'Metadata_Well', 'Metadata_Well_Value']
+    metadata_cols = [c for c in metadata_col_order if c in all_cols]
+
+    # Order: metadata columns first (in defined order), then sorted FileName columns
     file_cols = sorted([c for c in all_cols if c not in metadata_cols])
     fieldnames = metadata_cols + file_cols
 
     print(f"✓ Writing CSV with {len(fieldnames)} columns", file=sys.stderr)
+    print(f"  Metadata columns: {', '.join(metadata_cols)}", file=sys.stderr)
 
     try:
         with open(output_file, 'w', newline='') as f:
@@ -463,7 +496,7 @@ def main():
 
         # Generate rows
         print(f"\nStep 2/3: Generating CSV rows...", file=sys.stderr)
-        rows = generate_csv_rows(grouped, args.range_skip)
+        rows = generate_csv_rows(grouped, metadata, args.range_skip)
 
         # Write CSV
         print(f"\nStep 3/3: Writing CSV file...", file=sys.stderr)

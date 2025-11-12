@@ -21,16 +21,21 @@ process CELLPROFILER_ILLUMAPPLY {
     task.ext.when == null || task.ext.when
 
     script:
+    // Build optional JSON fields
+    def cycle_json = meta.cycle ? "\"cycle\": ${meta.cycle}," : ""
+    def batch_json = meta.batch ? "\"batch\": \"${meta.batch}\"," : ""
+    def arm_json = meta.arm ? "\"arm\": \"${meta.arm}\"," : ""
+    // NOTE: Don't include site for ILLUMAPPLY - it processes multiple sites per well
+    // and needs to discover them from filenames
     """
     cat << EOF > metadata.json
 {
     "plate": "${meta.plate}",
     "well": "${meta.well}",
-    "site": ${meta.site},
-    "cycle": ${meta.cycle ?: 'null'},
+    ${cycle_json}
+    ${batch_json}
+    ${arm_json}
     "channels": "${channels}",
-    "batch": "${meta.batch ?: ''}",
-    "arm": "${meta.arm ?: ''}",
     "id": "${meta.id}"
 }
 EOF
@@ -50,9 +55,9 @@ EOF
         --image-directory ./images/
 
     cat <<-END_VERSIONS > versions.yml
-    "${task.process}":
-        cellprofiler: \$(cellprofiler --version)
-    END_VERSIONS
+	"${task.process}":
+	    cellprofiler: \$(cellprofiler --version)
+	END_VERSIONS
     """
 
     stub:
@@ -66,8 +71,8 @@ EOF
     touch PaintingIllumApplication_Nuclei.csv
 
     cat <<-END_VERSIONS > versions.yml
-    "${task.process}":
-        cellprofiler: \$(cellprofiler --version)
-    END_VERSIONS
+	"${task.process}":
+	    cellprofiler: \$(cellprofiler --version)
+	END_VERSIONS
     """
 }

@@ -35,21 +35,29 @@ workflow BARCODING {
                 cycle: meta.cycle,
                 id: "${meta.batch}_${meta.plate}_${meta.cycle}"
             ]
-            [group_key, image, meta.channels, meta]
+            [group_key, image, meta]
         }
         .groupTuple()
-        .map { meta, images, channels_list, meta_list ->
-            // Get unique images and collect all channels
-            def unique_images = images.unique()
-            def all_channels = channels_list.unique().sort().join(',')
-            // Preserve an example of the full metadata (take first one and merge with group_key)
-            def example_meta = meta_list[0]
-            def full_meta = meta + [
-                well: example_meta.well,
-                site: example_meta.site,
-                arm: example_meta.arm
-            ]
-            [full_meta, all_channels, meta.cycle, unique_images]
+        .map { meta, images, meta_list ->
+            // Zip images with metadata to keep them synchronized
+            def paired = [images, meta_list].transpose().unique()
+            def unique_images = paired.collect { it[0] }
+            def unique_metas = paired.collect { it[1] }
+
+            def all_channels = meta_list[0].channels
+            // Enrich metadata with filenames to enable matching
+            def metas_with_filenames = []
+            unique_images.eachWithIndex { img, idx ->
+                def m = unique_metas[idx]
+                def basename = img.name
+                // Create new map with filename added
+                def enriched = [:]
+                enriched.putAll(m)
+                enriched.filename = basename
+                metas_with_filenames << enriched
+            }
+            // Pass the group metadata and the full list of individual image metadata with filenames
+            [meta, all_channels, meta.cycle, unique_images, metas_with_filenames]
         }
         .set { ch_illumcalc_input }
 
