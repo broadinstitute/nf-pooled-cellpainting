@@ -13,7 +13,7 @@ nextflow_process {
             process {
                 """
                 // NOTE: This test requires illumination-corrected SBS images from multiple cycles
-                // Input[0]: Meta map + corrected images from barcoding (SBS cycles)
+                // Input[0]: Meta map + corrected images from barcoding (SBS cycles) + image_metas
                 // Input[1]: CellProfiler preprocess pipeline
                 // Input[2]: Barcodes CSV file
                 // Input[3]: CellProfiler plugins directory
@@ -35,6 +35,21 @@ nextflow_process {
                         file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/images/Batch1/images_corrected/barcoding/Plate1/Plate1-A1-0/Plate_Plate1_Well_A1_Site_0_Cycle03_G.tiff"),
                         file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/images/Batch1/images_corrected/barcoding/Plate1/Plate1-A1-0/Plate_Plate1_Well_A1_Site_0_Cycle03_T.tiff")
 
+                    ],
+                    [
+                        [well:'A1', site:0, filename:'Plate_Plate1_Well_A1_Site_0_Cycle01_A.tiff', cycle:1, channel:'A'],
+                        [well:'A1', site:0, filename:'Plate_Plate1_Well_A1_Site_0_Cycle01_C.tiff', cycle:1, channel:'C'],
+                        [well:'A1', site:0, filename:'Plate_Plate1_Well_A1_Site_0_Cycle01_DNA.tiff', cycle:1, channel:'DNA'],
+                        [well:'A1', site:0, filename:'Plate_Plate1_Well_A1_Site_0_Cycle01_G.tiff', cycle:1, channel:'G'],
+                        [well:'A1', site:0, filename:'Plate_Plate1_Well_A1_Site_0_Cycle01_T.tiff', cycle:1, channel:'T'],
+                        [well:'A1', site:0, filename:'Plate_Plate1_Well_A1_Site_0_Cycle02_A.tiff', cycle:2, channel:'A'],
+                        [well:'A1', site:0, filename:'Plate_Plate1_Well_A1_Site_0_Cycle02_C.tiff', cycle:2, channel:'C'],
+                        [well:'A1', site:0, filename:'Plate_Plate1_Well_A1_Site_0_Cycle02_G.tiff', cycle:2, channel:'G'],
+                        [well:'A1', site:0, filename:'Plate_Plate1_Well_A1_Site_0_Cycle02_T.tiff', cycle:2, channel:'T'],
+                        [well:'A1', site:0, filename:'Plate_Plate1_Well_A1_Site_0_Cycle03_A.tiff', cycle:3, channel:'A'],
+                        [well:'A1', site:0, filename:'Plate_Plate1_Well_A1_Site_0_Cycle03_C.tiff', cycle:3, channel:'C'],
+                        [well:'A1', site:0, filename:'Plate_Plate1_Well_A1_Site_0_Cycle03_G.tiff', cycle:3, channel:'G'],
+                        [well:'A1', site:0, filename:'Plate_Plate1_Well_A1_Site_0_Cycle03_T.tiff', cycle:3, channel:'T']
                     ]
                 ]
                 input[1] = file("${projectDir}/assets/cellprofiler/barcoding_preprocess.cppipe", checkIfExists: true)
@@ -95,6 +110,21 @@ nextflow_process {
                         file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/images/Batch1/images_corrected/barcoding/Plate1/Plate1-A1-0/Plate_Plate1_Well_A1_Site_0_Cycle03_G.tiff"),
                         file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/images/Batch1/images_corrected/barcoding/Plate1/Plate1-A1-0/Plate_Plate1_Well_A1_Site_0_Cycle03_T.tiff")
 
+                    ],
+                    [
+                        [well:'A1', site:0, filename:'Plate_Plate1_Well_A1_Site_0_Cycle01_A.tiff', cycle:1, channel:'A'],
+                        [well:'A1', site:0, filename:'Plate_Plate1_Well_A1_Site_0_Cycle01_C.tiff', cycle:1, channel:'C'],
+                        [well:'A1', site:0, filename:'Plate_Plate1_Well_A1_Site_0_Cycle01_DNA.tiff', cycle:1, channel:'DNA'],
+                        [well:'A1', site:0, filename:'Plate_Plate1_Well_A1_Site_0_Cycle01_G.tiff', cycle:1, channel:'G'],
+                        [well:'A1', site:0, filename:'Plate_Plate1_Well_A1_Site_0_Cycle01_T.tiff', cycle:1, channel:'T'],
+                        [well:'A1', site:0, filename:'Plate_Plate1_Well_A1_Site_0_Cycle02_A.tiff', cycle:2, channel:'A'],
+                        [well:'A1', site:0, filename:'Plate_Plate1_Well_A1_Site_0_Cycle02_C.tiff', cycle:2, channel:'C'],
+                        [well:'A1', site:0, filename:'Plate_Plate1_Well_A1_Site_0_Cycle02_G.tiff', cycle:2, channel:'G'],
+                        [well:'A1', site:0, filename:'Plate_Plate1_Well_A1_Site_0_Cycle02_T.tiff', cycle:2, channel:'T'],
+                        [well:'A1', site:0, filename:'Plate_Plate1_Well_A1_Site_0_Cycle03_A.tiff', cycle:3, channel:'A'],
+                        [well:'A1', site:0, filename:'Plate_Plate1_Well_A1_Site_0_Cycle03_C.tiff', cycle:3, channel:'C'],
+                        [well:'A1', site:0, filename:'Plate_Plate1_Well_A1_Site_0_Cycle03_G.tiff', cycle:3, channel:'G'],
+                        [well:'A1', site:0, filename:'Plate_Plate1_Well_A1_Site_0_Cycle03_T.tiff', cycle:3, channel:'T']
                     ]
                 ]
                 input[1] = file("${projectDir}/assets/cellprofiler/barcoding_preprocess.cppipe", checkIfExists: true)

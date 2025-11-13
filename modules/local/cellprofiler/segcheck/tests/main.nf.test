@@ -18,6 +18,11 @@ nextflow_process {
                         file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/images/Batch1/images_corrected/painting/Plate1/Plate1-A1-0/Plate_Plate1_Well_A1_Site_0_CorrCHN2.tiff"),
                         file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/images/Batch1/images_corrected/painting/Plate1/Plate1-A1-0/Plate_Plate1_Well_A1_Site_0_CorrDNA.tiff"),
                         file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/images/Batch1/images_corrected/painting/Plate1/Plate1-A1-0/Plate_Plate1_Well_A1_Site_0_CorrPhalloidin.tiff"),
+                    ],
+                    [
+                        [well:'A1', site:0, filename:'Plate_Plate1_Well_A1_Site_0_CorrCHN2.tiff', channel:'CHN2'],
+                        [well:'A1', site:0, filename:'Plate_Plate1_Well_A1_Site_0_CorrDNA.tiff', channel:'DNA'],
+                        [well:'A1', site:0, filename:'Plate_Plate1_Well_A1_Site_0_CorrPhalloidin.tiff', channel:'Phalloidin']
                     ]
                 ]
                 input[1] = file("\${projectDir}/assets/cellprofiler/painting_segcheck.cppipe", checkIfExists: true)
@@ -48,6 +53,11 @@ nextflow_process {
                         file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/images/Batch1/images_corrected/painting/Plate1/Plate1-A1-0/Plate_Plate1_Well_A1_Site_0_CorrCHN2.tiff"),
                         file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/images/Batch1/images_corrected/painting/Plate1/Plate1-A1-0/Plate_Plate1_Well_A1_Site_0_CorrDNA.tiff"),
                         file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/images/Batch1/images_corrected/painting/Plate1/Plate1-A1-0/Plate_Plate1_Well_A1_Site_0_CorrPhalloidin.tiff"),
+                    ],
+                    [
+                        [well:'A1', site:0, filename:'Plate_Plate1_Well_A1_Site_0_CorrCHN2.tiff', channel:'CHN2'],
+                        [well:'A1', site:0, filename:'Plate_Plate1_Well_A1_Site_0_CorrDNA.tiff', channel:'DNA'],
+                        [well:'A1', site:0, filename:'Plate_Plate1_Well_A1_Site_0_CorrPhalloidin.tiff', channel:'Phalloidin']
                     ]
                 ]
                 input[1] = file("\${projectDir}/assets/cellprofiler/painting_segcheck.cppipe", checkIfExists: true)
