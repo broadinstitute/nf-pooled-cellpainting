@@ -1,6 +1,6 @@
 process CELLPROFILER_PREPROCESS {
     tag "$meta.id"
-    label 'process_single'
+    label 'cellprofiler_basic'
 
     conda "${moduleDir}/environment.yml"
     container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
@@ -8,7 +8,7 @@ process CELLPROFILER_PREPROCESS {
         'community.wave.seqera.io/library/cellprofiler:4.2.8--aff0a99749304a7f' }"
 
     input:
-    tuple val(meta), path(aligned_images, stageAs: "images/*")
+    tuple val(meta), path(aligned_images, stageAs: "images/*"), val(image_metas)
     path preprocess_cppipe
     path barcodes, stageAs: "images/Barcodes.csv"
     path (plugins, stageAs: "plugins/*")
@@ -25,9 +25,35 @@ process CELLPROFILER_PREPROCESS {
     task.ext.when == null || task.ext.when
 
     script:
+    // Build optional JSON fields
+    def batch_json = meta.batch ? "\"batch\": \"${meta.batch}\"," : ""
+    def arm_json = meta.arm ? "\"arm\": \"${meta.arm}\"," : ""
+    def channels_json = meta.channels ? "\"channels\": \"${meta.channels}\"," : ""
+    // Build image_metadata array with well+site+filename+cycle+channel for each image
+    def image_metadata_json = image_metas.collect { m ->
+        def fname = m.filename ?: 'MISSING'
+        def cycle = m.cycle ?: 'UNKNOWN'
+        def channel = m.channel ?: 'UNKNOWN'
+        "        {\"well\": \"${m.well}\", \"site\": ${m.site}, \"filename\": \"${fname}\", \"cycle\": ${cycle}, \"channel\": \"${channel}\"}"
+    }.join(',\n')
     """
+    # Create metadata JSON file (force overwrite with >| to handle noclobber)
+    cat >| metadata.json << 'EOF'
+{
+    "plate": "${meta.plate}",
+    ${batch_json}
+    ${arm_json}
+    ${channels_json}
+    "id": "${meta.id}",
+    "image_metadata": [
+${image_metadata_json}
+    ]
+}
+EOF
 
+    # Generate load_data.csv
     generate_load_data_csv.py \\
+        --metadata-json metadata.json \\
         --pipeline-type preprocess \\
         --images-dir ./images \\
         --output load_data.csv
@@ -41,9 +67,9 @@ process CELLPROFILER_PREPROCESS {
         --plugins-directory=./plugins/
 
     cat <<-END_VERSIONS > versions.yml
-    "${task.process}":
-        cellprofiler: \$(cellprofiler --version)
-    END_VERSIONS
+	"${task.process}":
+	    cellprofiler: \$(cellprofiler --version)
+	END_VERSIONS
     """
 
     stub:
@@ -60,8 +86,8 @@ process CELLPROFILER_PREPROCESS {
     touch overlay/test.tiff
 
     cat <<-END_VERSIONS > versions.yml
-    "${task.process}":
-        cellprofiler: \$(cellprofiler --version)
-    END_VERSIONS
+	"${task.process}":
+	    cellprofiler: \$(cellprofiler --version)
+	END_VERSIONS
     """
 }

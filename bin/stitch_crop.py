@@ -150,6 +150,7 @@ stitchorder = os.getenv("STITCHORDER", "Grid: snake by rows")  # Grid stitching 
 xoffset_tiles = os.getenv("XOFFSET_TILES", "0")  # X offset for tile cropping
 yoffset_tiles = os.getenv("YOFFSET_TILES", "0")  # Y offset for tile cropping
 compress = os.getenv("COMPRESS", "True")  # Whether to compress output TIFF files
+first_site_index = os.getenv("FIRST_SITE_INDEX", "0")  # Starting site number in filenames (e.g., 0 or 1)
 
 # Channel information
 channame = "DNA"  # Target channel name for processing (always DNA for this workflow)
@@ -171,6 +172,7 @@ logger.info("Quarter if round: {}".format(quarter_if_round))
 logger.info("Tiles per side: {}".format(tileperside))
 logger.info("Scaling factor: {}".format(scalingstring))
 logger.info("Stitch order: {}".format(stitchorder))
+logger.info("First site index: {}".format(first_site_index))
 logger.info("Compress output: {}".format(compress))
 
 plugin = LociExporter()
@@ -446,7 +448,9 @@ if os.path.isdir(input_dir):
                 + columns
                 + " tile_overlap="
                 + overlap_pct
-                + " first_file_index_i=0 directory="
+                + " first_file_index_i="
+                + first_site_index
+                + " directory="
                 + input_dir
                 + " file_names=",
                 # Second part with stitching parameters
