@@ -44,6 +44,11 @@
                     "description": "Path to barcodes.csv file for SBS data.",
                     "fa_icon": "fas fa-qrcode"
                 },
+                "range_skip": {
+                    "type": "integer",
+                    "default": 2,
+                    "description": "Step number for subsampling images for segcheck."
+                },
                 "multiqc_title": {
                     "type": "string",
                     "description": "MultiQC report title. Printed as page header, used for filename if not otherwise specified.",
