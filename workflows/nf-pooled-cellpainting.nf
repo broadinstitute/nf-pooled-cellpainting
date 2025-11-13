@@ -82,7 +82,7 @@ workflow POOLED_CELLPAINTING {
         // Both subworkflows now output: [ meta (with site), [ images ] ]
         // Group by (batch, plate, well, site) only - NOT arm, since that differs between painting and barcoding
         CELLPAINTING.out.cropped_images
-            .concat(BARCODING.out.cropped_images)
+            .mix(BARCODING.out.cropped_images)
             .map { meta, images ->
                 // Create grouping key with ONLY batch, plate, well, site (no arm!)
                 def group_key = [
