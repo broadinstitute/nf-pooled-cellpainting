@@ -31,12 +31,9 @@ workflow POOLED_CELLPAINTING {
     ch_versions = Channel.empty()
     ch_multiqc_files = Channel.empty()
 
-    // Generate barcodes channel from barcodes.csv file
-    // ch_barcodes = Channel.fromPath(barcodes, checkIfExists: true)
-
     ch_samplesheet = ch_samplesheet
         .flatMap { meta, image ->
-            // Split channels by comma and create a separate entry for each channel
+            // Split imaging channels by comma and create a separate entry for each channel
             meta.original_channels = meta.channels
             meta.remove('original_channels')
             return [[meta, image]]
@@ -55,7 +52,7 @@ workflow POOLED_CELLPAINTING {
         [meta + [arm: 'barcoding'], image]
     }
 
-    // Process cell painting (CP) data
+    // Process painting arm of pipeline
     CELLPAINTING (
         ch_samplesheet_painting,
         params.painting_illumcalc_cppipe,
@@ -65,9 +62,7 @@ workflow POOLED_CELLPAINTING {
     )
     ch_versions = ch_versions.mix(CELLPAINTING.out.versions)
 
-    // Process barcoding (sequencing by synthesis (SBS)) data
-
-    // Run barcoding subworkflow
+    // Process barcoding arm of pipeline
     BARCODING(
         ch_samplesheet_barcoding,
         params.barcoding_illumcalc_cppipe,
@@ -77,59 +72,63 @@ workflow POOLED_CELLPAINTING {
     )
     ch_versions = ch_versions.mix(BARCODING.out.versions)
 
-    //// Combined analysis of CP and SBS data ////
-    // Only run if both painting and barcoding QC have passed
+    //// Combined analysis of painting and barcoding data ////
+    // Only run if both painting and barcoding QC have been marked as pass
 
     if (params.qc_painting_passed && params.qc_barcoding_passed) {
         // Combine cropped images from both arms
         // Use concat to ensure both channels complete before grouping
-        // This prevents COMBINEDANALYSIS from starting prematurely with only one arm's data
+        // Combine cell painting and barcoding cropped images for combined analysis
+        // Both subworkflows now output: [ meta (with site), [ images ] ]
+        // Group by (batch, plate, well, site) only - NOT arm, since that differs between painting and barcoding
         CELLPAINTING.out.cropped_images
             .concat(BARCODING.out.cropped_images)
-            .flatMap { meta, images ->
-                images.collect { image ->
-                    // Updated regex to handle new naming: Site_1 (with underscore)
-                    def site_match = image.baseName =~ /Site_(\d+)/
-                    def site = site_match ? site_match[0][1].toInteger() : "unknown"
-                    def new_meta = meta.subMap(['batch', 'plate', 'well']) + [id: "${meta.batch}_${meta.plate}_${meta.well}_${site}", site: site]
-                    [new_meta, image]
-                }
+            .map { meta, images ->
+                // Create grouping key with ONLY batch, plate, well, site (no arm!)
+                def group_key = [
+                    batch: meta.batch,
+                    plate: meta.plate,
+                    well: meta.well,
+                    site: meta.site,
+                    id: "${meta.batch}_${meta.plate}_${meta.well}_${meta.site}"
+                ]
+                [group_key, images]
             }
             .groupTuple()
-            .map { meta, images_list ->
-                // Build image metadata for each image in the combined set
-                def all_images = images_list.flatten()
+            .map { meta, images_lists ->
+                // Flatten images from both arms into single list
+                def all_images = images_lists.flatten()
+
+                // Build image metadata for each image - parse ONLY cycle/channel from filename
+                // Site and well come from metadata (no filename parsing for metadata!)
                 def image_metas = all_images.collect { img ->
-                    // Parse cycle and channel from filename
-                    // Barcoding: Plate_Plate1_Well_A1_Site_1_Cycle01_DNA.tiff
-                    // Cell painting: Plate_Plate1_Well_A1_Site_1_CorrDNA.tiff
-                    def barcode_match = (img.name =~ /.*_Cycle(\d+)_(.+?)\.tiff?$/)
-                    def cp_match = (img.name =~ /.*_Corr(.+?)\.tiff?$/)
+                    // Parse cycle and channel from filename (FIJI_STITCHCROP stable format)
+                    // Barcoding: Plate_Plate1_Well_A1_Site_3_Cycle01_DNA.tiff
+                    // Cell painting: Plate_Plate1_Well_A1_Site_3_CorrDNA.tiff
+                    def barcode_match = (img.name =~ /Cycle(\d+)_([A-Z]+|DNA|DAPI)\.tiff?$/)
+                    def cp_match = (img.name =~ /Corr([A-Za-z0-9]+)\.tiff?$/)
 
                     if (barcode_match) {
                         // Barcoding image
-                        def cycle = barcode_match[0][1] as Integer
-                        def channel = barcode_match[0][2]
                         [
                             well: meta.well,
                             site: meta.site,
                             filename: img.name,
-                            cycle: cycle,
-                            channel: channel,
+                            cycle: barcode_match[0][1] as Integer,
+                            channel: barcode_match[0][2],
                             type: 'barcoding'
                         ]
                     } else if (cp_match) {
                         // Cell painting image
-                        def channel = cp_match[0][1]
                         [
                             well: meta.well,
                             site: meta.site,
                             filename: img.name,
-                            channel: channel,
+                            channel: cp_match[0][1],
                             type: 'cellpainting'
                         ]
                     } else {
-                        // Unknown - include filename for debugging
+                        log.warn "Unknown image type in combined analysis: ${img.name}"
                         [
                             well: meta.well,
                             site: meta.site,
@@ -138,6 +137,7 @@ workflow POOLED_CELLPAINTING {
                         ]
                     }
                 }
+
                 [meta, all_images, image_metas]
             }
             .set { ch_cropped_images }

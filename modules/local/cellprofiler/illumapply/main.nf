@@ -1,6 +1,6 @@
 process CELLPROFILER_ILLUMAPPLY {
     tag "${meta.id}"
-    label 'process_medium'
+    label 'cellprofiler_basic'
 
     conda "${moduleDir}/environment.yml"
     container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?

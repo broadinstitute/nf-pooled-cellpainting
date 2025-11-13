@@ -1,6 +1,6 @@
 process FIJI_STITCHCROP {
     tag "${meta.id}"
-    label 'process_medium'
+    label 'fiji'
 
     conda "${moduleDir}/environment.yml"
     container 'docker.io/fiji/fiji:20220415'

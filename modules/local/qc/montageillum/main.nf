@@ -1,6 +1,6 @@
 process QC_MONTAGEILLUM {
     tag "${meta.plate}"
-    label 'process_single'
+    label 'qc'
 
     conda "${moduleDir}/environment.yml"
     container "community.wave.seqera.io/library/numpy_python_pip_pillow:74310e9b76ff61b6"

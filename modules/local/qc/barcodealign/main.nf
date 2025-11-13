@@ -1,6 +1,6 @@
 process QC_BARCODEALIGN {
     tag "$meta.id"
-    label 'process_single'
+    label 'qc'
 
     conda "${moduleDir}/environment.yml"
     container 'community.wave.seqera.io/library/ipykernel_jupytext_nbconvert_pandas_pruned:c397cee54f4ab064'

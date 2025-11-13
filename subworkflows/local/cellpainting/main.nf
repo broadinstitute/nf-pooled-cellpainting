@@ -300,7 +300,36 @@ workflow CELLPAINTING {
             params.painting_yoffset_tiles,
             params.compress
         )
+
+        // Split cropped images into individual tuples with site in metadata
+        // FIJI_STITCHCROP outputs multiple files (one per site) but meta doesn't have site
+        // Extract site from filename and create one tuple per site with all channels for that site
         ch_cropped_images = FIJI_STITCHCROP.out.cropped_images
+            .flatMap { meta, images ->
+                // Group images by site
+                def images_by_site = images.groupBy { img ->
+                    def site_match = (img.name =~ /Site_(\d+)/)
+                    site_match ? site_match[0][1] as Integer : null
+                }
+
+                // Create one tuple per site with all its channel images
+                images_by_site.collect { site, site_images ->
+                    if (site == null) {
+                        log.error "Could not parse site from painting cropped images"
+                        return null
+                    }
+
+                    // Create new meta with site
+                    def new_meta = meta.subMap(['batch', 'plate', 'well', 'channels', 'arm']) + [
+                        id: "${meta.batch}_${meta.plate}_${meta.well}_${site}",
+                        site: site
+                    ]
+
+                    [new_meta, site_images]
+                }
+            }
+            .filter { item -> item != null }
+
         ch_versions = ch_versions.mix(FIJI_STITCHCROP.out.versions)
 
         // QC montage for stitchcrop results

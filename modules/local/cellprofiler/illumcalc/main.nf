@@ -1,6 +1,6 @@
 process CELLPROFILER_ILLUMCALC {
     tag "${meta.id}"
-    label 'process_medium'
+    label 'cellprofiler_basic'
 
     conda "${moduleDir}/environment.yml"
     container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
@@ -26,9 +26,9 @@ process CELLPROFILER_ILLUMCALC {
     def batch_json = meta.batch ? "\"batch\": \"${meta.batch}\"," : ""
     def arm_json = meta.arm ? "\"arm\": \"${meta.arm}\"," : ""
     // Build image_metadata array with well+site+filename for each image
-    def image_metadata_json = image_metas.collect { m ->
-        def fname = m.filename ?: 'MISSING'
-        "        {\"well\": \"${m.well}\", \"site\": ${m.site}, \"filename\": \"${fname}\"}"
+    def image_metadata_json = image_metas.collect { image ->
+        def fname = image.filename ?: 'MISSING'
+        "        {\"well\": \"${image.well}\", \"site\": ${image.site}, \"filename\": \"${fname}\"}"
     }.join(',\n')
     """
     # Create metadata JSON file (force overwrite with >| to handle noclobber)
