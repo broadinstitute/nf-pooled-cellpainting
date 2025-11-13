@@ -42,6 +42,8 @@ process FIJI_STITCHCROP {
     // Use a minimum of 2GB to ensure basic functionality
     def heap_size = task.memory ? Math.max(2, (task.memory.toGiga() * 0.75) as int) : 2
     def threads = task.cpus ?: 1
+    // Get the starting site index from metadata, default to 0 for backwards compatibility
+    def first_site_index = meta.first_site_index ?: 0
 
     """
     # Set environment variables for Fiji python script
@@ -67,6 +69,7 @@ process FIJI_STITCHCROP {
     export XOFFSET_TILES="${xoffset_tiles}"
     export YOFFSET_TILES="${yoffset_tiles}"
     export COMPRESS="${compress}"
+    export FIRST_SITE_INDEX="${first_site_index}"
 
     # Run Fiji in headless mode
     /opt/fiji/Fiji.app/ImageJ-linux64 \\

@@ -96,7 +96,50 @@ workflow POOLED_CELLPAINTING {
                 }
             }
             .groupTuple()
-            .map { meta, images -> [meta, images.flatten()] }
+            .map { meta, images_list ->
+                // Build image metadata for each image in the combined set
+                def all_images = images_list.flatten()
+                def image_metas = all_images.collect { img ->
+                    // Parse cycle and channel from filename
+                    // Barcoding: Plate_Plate1_Well_A1_Site_1_Cycle01_DNA.tiff
+                    // Cell painting: Plate_Plate1_Well_A1_Site_1_CorrDNA.tiff
+                    def barcode_match = (img.name =~ /.*_Cycle(\d+)_(.+?)\.tiff?$/)
+                    def cp_match = (img.name =~ /.*_Corr(.+?)\.tiff?$/)
+
+                    if (barcode_match) {
+                        // Barcoding image
+                        def cycle = barcode_match[0][1] as Integer
+                        def channel = barcode_match[0][2]
+                        [
+                            well: meta.well,
+                            site: meta.site,
+                            filename: img.name,
+                            cycle: cycle,
+                            channel: channel,
+                            type: 'barcoding'
+                        ]
+                    } else if (cp_match) {
+                        // Cell painting image
+                        def channel = cp_match[0][1]
+                        [
+                            well: meta.well,
+                            site: meta.site,
+                            filename: img.name,
+                            channel: channel,
+                            type: 'cellpainting'
+                        ]
+                    } else {
+                        // Unknown - include filename for debugging
+                        [
+                            well: meta.well,
+                            site: meta.site,
+                            filename: img.name,
+                            type: 'unknown'
+                        ]
+                    }
+                }
+                [meta, all_images, image_metas]
+            }
             .set { ch_cropped_images }
 
         CELLPROFILER_COMBINEDANALYSIS (

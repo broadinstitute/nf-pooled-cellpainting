@@ -37,8 +37,8 @@ process CELLPROFILER_PREPROCESS {
         "        {\"well\": \"${m.well}\", \"site\": ${m.site}, \"filename\": \"${fname}\", \"cycle\": ${cycle}, \"channel\": \"${channel}\"}"
     }.join(',\n')
     """
-    # Create metadata JSON file
-    cat > metadata.json << 'EOF'
+    # Create metadata JSON file (force overwrite with >| to handle noclobber)
+    cat >| metadata.json << 'EOF'
 {
     "plate": "${meta.plate}",
     ${batch_json}

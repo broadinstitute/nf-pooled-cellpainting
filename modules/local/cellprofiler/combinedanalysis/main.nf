@@ -8,7 +8,7 @@ process CELLPROFILER_COMBINEDANALYSIS {
         'community.wave.seqera.io/library/cellprofiler:4.2.8--aff0a99749304a7f' }"
 
     input:
-    tuple val(meta), path(cropped_images, stageAs: "images/*")
+    tuple val(meta), path(cropped_images, stageAs: "images/*"), val(image_metas)
     path combinedanalysis_cppipe
     path barcodes, stageAs: "images/Barcodes.csv"
     path plugins, stageAs: "plugins/*"
@@ -24,6 +24,17 @@ process CELLPROFILER_COMBINEDANALYSIS {
     task.ext.when == null || task.ext.when
 
     script:
+    // Build optional JSON fields
+    def batch_json = meta.batch ? "\"batch\": \"${meta.batch}\"," : ""
+    def arm_json = meta.arm ? "\"arm\": \"${meta.arm}\"," : ""
+    // Build image_metadata array with well+site+filename+cycle/channel for each image
+    def image_metadata_json = image_metas.collect { m ->
+        def fname = m.filename ?: 'MISSING'
+        def type = m.type ?: 'UNKNOWN'
+        def cycle = m.cycle ? ", \"cycle\": ${m.cycle}" : ""
+        def channel = m.channel ? ", \"channel\": \"${m.channel}\"" : ""
+        "        {\"well\": \"${m.well}\", \"site\": ${m.site}, \"filename\": \"${fname}\", \"type\": \"${type}\"${cycle}${channel}}"
+    }.join(',\n')
     """
     # Set writable cache directories for CellProfiler and dependencies
     export MPLCONFIGDIR=\${PWD}/.matplotlib
@@ -31,20 +42,23 @@ process CELLPROFILER_COMBINEDANALYSIS {
     export XDG_CACHE_HOME=\${PWD}/.cache
     mkdir -p \${MPLCONFIGDIR} \${XDG_CACHE_HOME}
 
-    # Write metadata to JSON file
-    cat <<EOF > metadata.json
-    {
-        "plate": "${meta.plate}",
-        "well": "${meta.well}",
-        "site": ${meta.site},
-        "batch": "${meta.batch}",
-        "arm": "${meta.arm}",
-        "id": "${meta.id}"
-    }
-    EOF
+    # Create metadata JSON file (force overwrite with >| to handle noclobber)
+    cat >| metadata.json << 'EOF'
+{
+    "plate": "${meta.plate}",
+    ${batch_json}
+    ${arm_json}
+    "id": "${meta.id}",
+    "image_metadata": [
+${image_metadata_json}
+    ]
+}
+EOF
 
-    generate_combined_load_data.py \\
+    # Generate load_data.csv using the unified script with 'combined' pipeline type
+    generate_load_data_csv.py \\
         --metadata-json metadata.json \\
+        --pipeline-type combined \\
         --images-dir ./images \\
         --output load_data.csv
 

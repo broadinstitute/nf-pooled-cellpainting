@@ -88,7 +88,7 @@ PIPELINE_CONFIGS = {
     },
     'combined': {
         'description': 'Combined analysis - uses both cropped cell painting and barcoding images',
-        'file_pattern': r'(Plate\d+-[A-Z]\d+_Corr.*_Site_\d+\.tiff?|Plate\d+-[A-Z]\d+_Cycle\d+_[ACGTDAPI]+_Site_\d+\.tiff?)$',
+        'file_pattern': r'(Plate_.*_Well_.*_Site_.*_Corr.*\.tiff?|Plate_.*_Well_.*_Site_.*_Cycle\d{2}_\w+\.tiff?|Plate\d+-[A-Z]\d+_Corr.*_Site_\d+\.tiff?|Plate\d+-[A-Z]\d+_Cycle\d+_\w+_Site_\d+\.tiff?)$',
         'metadata_cols': ['Metadata_Plate', 'Metadata_Site', 'Metadata_Well', 'Metadata_Well_Value'],
         'file_cols_template': ['FileName_Cycle{cycle}_{channel}', 'FileName_Corr{channel}'],
         'include_illum_files': False,
@@ -197,32 +197,59 @@ def parse_combined_image(filename: str) -> Optional[Dict]:
     """
     Parse combined analysis image filenames to extract cycle and channel information.
 
-    Patterns:
-    - Cell painting corrected: Plate{plate}-{well}_Corr{channel}_Site_{site}.tiff
-    - Barcoding cropped: Plate{plate}-{well}_Cycle{cycle}_{channel}_Site_{site}.tiff
-      where channel is one of A, C, G, T, DNA
+    Patterns (new format from standardized pipeline):
+    - Barcoding cropped with cycles: Plate_PlateID_Well_WellID_Site_#_Cycle##_Channel.tiff
+      where cycle is 2-digit zero-padded (01, 02, ..., 10, 11, etc.)
+      and channel is one of A, C, G, T, DNA, DAPI
+    - Cell painting corrected: Plate_PlateID_Well_WellID_Site_#_CorrChannel.tiff
+
+    Also supports legacy patterns for backward compatibility:
+    - Barcoding: Plate{plate}-{well}_Cycle{cycle}_{channel}_Site_{site}.tiff
+    - Cell painting: Plate{plate}-{well}_Corr{channel}_Site_{site}.tiff
 
     Returns dict with: either (channel) or (cycle, channel), plus type
-    Note: plate, well, site must come from JSON metadata
+    Note: plate, well, site can come from JSON metadata or be parsed from filename
     """
-    # Try barcoding cropped pattern first (Plate{plate}-{well}_Cycle{cycle}_{channel}_Site_{site}.tiff)
-    barcode_pattern = r'Plate\d+-[A-Z]\d+_Cycle(\d+)_([ACGT]|DNA|DAPI)_Site_\d+\.tiff?'
-    barcode_match = re.match(barcode_pattern, filename)
+    # Try new barcoding pattern first (Plate_PlateID_Well_WellID_Site_#_Cycle##_Channel.tiff)
+    # Note: cycle is 2-digit zero-padded (\d{2}) to handle cycles > 9
+    barcode_new_pattern = r'Plate_[A-Za-z0-9]+_Well_[A-Z]\d+_Site_\d+_Cycle(\d{2})_([ACGT]|DNA|DAPI)\.tiff?'
+    barcode_new_match = re.match(barcode_new_pattern, filename)
 
-    if barcode_match:
+    if barcode_new_match:
         return {
-            'cycle': barcode_match.group(1),
-            'channel': 'DNA' if barcode_match.group(2) == 'DAPI' else barcode_match.group(2),  # Normalize DAPI to DNA
+            'cycle': barcode_new_match.group(1),
+            'channel': 'DNA' if barcode_new_match.group(2) == 'DAPI' else barcode_new_match.group(2),
             'type': 'barcoding'
         }
 
-    # Try cell painting corrected pattern (Plate{plate}-{well}_Corr{channel}_Site_{site}.tiff)
-    cp_pattern = r'Plate\d+-[A-Z]\d+_Corr(.+?)_Site_\d+\.tiff?'
-    cp_match = re.match(cp_pattern, filename)
+    # Try new cell painting pattern (Plate_PlateID_Well_WellID_Site_#_CorrChannel.tiff)
+    cp_new_pattern = r'Plate_[A-Za-z0-9]+_Well_[A-Z]\d+_Site_\d+_Corr(.+?)\.tiff?'
+    cp_new_match = re.match(cp_new_pattern, filename)
 
-    if cp_match:
+    if cp_new_match:
         return {
-            'channel': cp_match.group(1),
+            'channel': cp_new_match.group(1),
+            'type': 'cellpainting'
+        }
+
+    # Legacy pattern support: barcoding (Plate{plate}-{well}_Cycle{cycle}_{channel}_Site_{site}.tiff)
+    barcode_legacy_pattern = r'Plate\d+-[A-Z]\d+_Cycle(\d+)_([ACGT]|DNA|DAPI)_Site_\d+\.tiff?'
+    barcode_legacy_match = re.match(barcode_legacy_pattern, filename)
+
+    if barcode_legacy_match:
+        return {
+            'cycle': barcode_legacy_match.group(1),
+            'channel': 'DNA' if barcode_legacy_match.group(2) == 'DAPI' else barcode_legacy_match.group(2),
+            'type': 'barcoding'
+        }
+
+    # Legacy pattern support: cell painting (Plate{plate}-{well}_Corr{channel}_Site_{site}.tiff)
+    cp_legacy_pattern = r'Plate\d+-[A-Z]\d+_Corr(.+?)_Site_\d+\.tiff?'
+    cp_legacy_match = re.match(cp_legacy_pattern, filename)
+
+    if cp_legacy_match:
+        return {
+            'channel': cp_legacy_match.group(1),
             'type': 'cellpainting'
         }
 
@@ -403,6 +430,9 @@ def load_metadata_json(metadata_json_path: str) -> Dict:
             # Preserve filename if present
             if 'filename' in entry:
                 metadata_entry['filename'] = str(entry['filename'])
+            # Preserve type if present (for combined analysis: cellpainting, barcoding, etc.)
+            if 'type' in entry:
+                metadata_entry['type'] = str(entry['type'])
             # Preserve cycle if present (for multi-cycle images)
             if 'cycle' in entry:
                 metadata_entry['cycle'] = int(entry['cycle'])
@@ -639,6 +669,7 @@ def collect_and_group_files(
             expected_filename = entry.get('filename')
             entry_cycle = entry.get('cycle')  # Get cycle from entry if present
             entry_channel = entry.get('channel')  # Get channel from entry if present (for single-channel files)
+            entry_type = entry.get('type', '')  # Get type from entry if present (cellpainting, barcoding, etc.)
 
             if not expected_filename:
                 print(f"⚠ Warning: No filename in metadata entry for well={well}, site={site}", file=sys.stderr)
@@ -674,8 +705,14 @@ def collect_and_group_files(
                         'file': rel_path
                     }
             elif entry_channel:
-                # Single-channel file (like segcheck corrected images)
-                grouped[key]['images'][entry_channel] = rel_path
+                # Single-channel file - use appropriate prefix based on type
+                if entry_type == 'cellpainting':
+                    # Cell painting corrected images: prefix with "Corr"
+                    channel_key = f"Corr{entry_channel}"
+                else:
+                    # Other types (like segcheck): use channel as-is
+                    channel_key = entry_channel
+                grouped[key]['images'][channel_key] = rel_path
             elif metadata_cycles:
                 # Multi-cycle mode from JSON but no cycle in entry - store for post-processing
                 grouped[key]['images'][rel_path] = rel_path

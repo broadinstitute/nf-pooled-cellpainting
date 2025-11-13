@@ -40,8 +40,8 @@ process CELLPROFILER_ILLUMAPPLY {
         "        {\"well\": \"${m.well}\", \"site\": ${m.site}, \"filename\": \"${fname}\"${cycle_field}}"
     }.join(',\n')
     """
-    # Create metadata JSON file
-    cat > metadata.json << 'EOF'
+    # Create metadata JSON file (force overwrite with >| to handle noclobber)
+    cat >| metadata.json << 'EOF'
 {
     "plate": "${meta.plate}",
     ${cycle_json}

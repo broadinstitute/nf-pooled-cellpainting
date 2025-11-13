@@ -256,12 +256,15 @@ workflow CELLPAINTING {
                 arm: meta.arm,
                 id: "${meta.batch}_${meta.plate}_${meta.well}"
             ]
-            [well_key, images]
+            [well_key, meta.site, images]
         }
         .groupTuple()
-        .map { well_meta, images_list ->
+        .map { well_meta, site_list, images_list ->
             // Flatten all site images into one list for the well
-            [well_meta, images_list.flatten()]
+            // Calculate the starting site number from metadata
+            def min_site = site_list.min()
+            def enriched_meta = well_meta + [first_site_index: min_site]
+            [enriched_meta, images_list.flatten()]
         }
         .set { ch_corrected_images_by_well }
 
