@@ -8,7 +8,7 @@ process CELLPROFILER_ILLUMAPPLY {
         : 'community.wave.seqera.io/library/cellprofiler:4.2.8--aff0a99749304a7f'}"
 
     input:
-    tuple val(meta), val(channels), val(cycles), path(images, stageAs: "images/img*/*"), val(image_metas), path(npy_files, stageAs: "images/*")
+    tuple val(meta), val(channels), val(cycles), path(images, stageAs: "images/img?/*"), val(image_metas), path(npy_files, stageAs: "images/*")
     path illumination_apply_cppipe
     val has_cycles
 
