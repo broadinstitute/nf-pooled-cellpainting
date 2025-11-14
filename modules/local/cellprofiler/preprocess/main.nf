@@ -8,10 +8,10 @@ process CELLPROFILER_PREPROCESS {
         : 'community.wave.seqera.io/library/cellprofiler:4.2.8--aff0a99749304a7f'}"
 
     input:
-    tuple val(meta), path(aligned_images, stageAs: "images/*"), val(image_metas)
+    tuple val(meta), path(aligned_images, stageAs: "images/"), val(image_metas)
     path preprocess_cppipe
     path barcodes, stageAs: "images/Barcodes.csv"
-    path plugins, stageAs: "plugins/*"
+    path plugins, stageAs: "plugins/"
 
     output:
     tuple val(meta), path("*.tiff"), emit: preprocessed_images

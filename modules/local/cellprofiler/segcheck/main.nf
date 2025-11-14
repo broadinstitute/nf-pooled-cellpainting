@@ -8,7 +8,7 @@ process CELLPROFILER_SEGCHECK {
         : 'community.wave.seqera.io/library/cellprofiler:4.2.8--aff0a99749304a7f'}"
 
     input:
-    tuple val(meta), path(corr_images, stageAs: "images/*"), val(image_metas)
+    tuple val(meta), path(corr_images, stageAs: "images/"), val(image_metas)
     path segcheck_cppipe
     val range_skip
 

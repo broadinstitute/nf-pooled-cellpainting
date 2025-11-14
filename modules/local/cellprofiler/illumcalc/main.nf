@@ -10,7 +10,7 @@ process CELLPROFILER_ILLUMCALC {
         : 'community.wave.seqera.io/library/cellprofiler:4.2.8--aff0a99749304a7f'}"
 
     input:
-    tuple val(meta), val(channels), val(cycle), path(images, stageAs: "images/*"), val(image_metas)
+    tuple val(meta), val(channels), val(cycle), path(images, stageAs: "images/"), val(image_metas)
     path illumination_cppipe
     val has_cycles
 

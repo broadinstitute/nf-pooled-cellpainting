@@ -11,7 +11,7 @@ process FIJI_STITCHCROP {
     }
 
     input:
-    tuple val(meta), path(corrected_images, stageAs: 'images/*')
+    tuple val(meta), path(corrected_images, stageAs: 'images/')
     path stitch_script
     val round_or_square
     val quarter_if_round
