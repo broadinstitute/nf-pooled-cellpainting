@@ -1,5 +1,5 @@
 process QC_PREPROCESS {
-    tag "$meta.id"
+    tag "${meta.id}"
     label 'qc'
 
     conda "${moduleDir}/environment.yml"
@@ -14,8 +14,8 @@ process QC_PREPROCESS {
 
     output:
     tuple val(meta), path("*_qc_barcode_preprocess.ipynb"), emit: notebook
-    tuple val(meta), path("*.html") , emit: html_report
-        path "*.png", emit: png_reports
+    tuple val(meta), path("*.html"), emit: html_report
+    path "*.png", emit: png_reports
     path "versions.yml", emit: versions
 
     when:

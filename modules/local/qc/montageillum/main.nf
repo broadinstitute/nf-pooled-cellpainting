@@ -7,11 +7,11 @@ process QC_MONTAGEILLUM {
 
     input:
     tuple val(meta), path(input_files)
-    val(pattern)
+    val pattern
 
     output:
-    tuple val(meta), path("*.png")      , emit: montage
-    path "versions.yml"                 , emit: versions
+    tuple val(meta), path("*.png"), emit: montage
+    path "versions.yml", emit: versions
 
     when:
     task.ext.when == null || task.ext.when
@@ -21,7 +21,7 @@ process QC_MONTAGEILLUM {
     def output_name = "${meta.arm}.${meta.batch}_${meta.plate}.montage.png"
     """
     montage.py \\
-        $args \\
+        ${args} \\
         . \\
         ${output_name} \\
         --pattern "${pattern}"
@@ -35,7 +35,7 @@ process QC_MONTAGEILLUM {
     stub:
     def args = task.ext.args ?: ''
     """
-    echo $args
+    echo ${args}
 
     touch montage.png
 

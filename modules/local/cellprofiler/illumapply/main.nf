@@ -3,9 +3,9 @@ process CELLPROFILER_ILLUMAPPLY {
     label 'cellprofiler_basic'
 
     conda "${moduleDir}/environment.yml"
-    container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
-        'oras://community.wave.seqera.io/library/cellprofiler:4.2.8--7c1bd3a82764de92':
-        'community.wave.seqera.io/library/cellprofiler:4.2.8--aff0a99749304a7f' }"
+    container "${workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container
+        ? 'oras://community.wave.seqera.io/library/cellprofiler:4.2.8--7c1bd3a82764de92'
+        : 'community.wave.seqera.io/library/cellprofiler:4.2.8--aff0a99749304a7f'}"
 
     input:
     tuple val(meta), val(channels), val(cycles), path(images, stageAs: "images/img*/*"), val(image_metas), path(npy_files, stageAs: "images/*")
@@ -28,17 +28,20 @@ process CELLPROFILER_ILLUMAPPLY {
         // Convert list to JSON array format
         def cycles_str = cycles.collect { it.toString() }.join(', ')
         cycle_json = "\"cycles\": [${cycles_str}],"
-    } else if (cycles) {
+    }
+    else if (cycles) {
         cycle_json = "\"cycle\": ${cycles},"
     }
     def batch_json = meta.batch ? "\"batch\": \"${meta.batch}\"," : ""
     def arm_json = meta.arm ? "\"arm\": \"${meta.arm}\"," : ""
     // Build image_metadata array with well+site+filename for each image
-    def image_metadata_json = image_metas.collect { m ->
-        def fname = m.filename ?: 'MISSING'
-        def cycle_field = m.cycle ? ", \"cycle\": ${m.cycle}" : ""
-        "        {\"well\": \"${m.well}\", \"site\": ${m.site}, \"filename\": \"${fname}\"${cycle_field}}"
-    }.join(',\n')
+    def image_metadata_json = image_metas
+        .collect { m ->
+            def fname = m.filename ?: 'MISSING'
+            def cycle_field = m.cycle ? ", \"cycle\": ${m.cycle}" : ""
+            "        {\"well\": \"${m.well}\", \"site\": ${m.site}, \"filename\": \"${fname}\"${cycle_field}}"
+        }
+        .join(',\n')
     """
     # Create metadata JSON file (force overwrite with >| to handle noclobber)
     cat >| metadata.json << 'EOF'

@@ -3,9 +3,9 @@ process CELLPROFILER_ILLUMCALC {
     label 'cellprofiler_basic'
 
     conda "${moduleDir}/environment.yml"
-    container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
-        'oras://community.wave.seqera.io/library/cellprofiler:4.2.8--7c1bd3a82764de92':
-        'community.wave.seqera.io/library/cellprofiler:4.2.8--aff0a99749304a7f' }"
+    container "${workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container
+        ? 'oras://community.wave.seqera.io/library/cellprofiler:4.2.8--7c1bd3a82764de92'
+        : 'community.wave.seqera.io/library/cellprofiler:4.2.8--aff0a99749304a7f'}"
 
     input:
     tuple val(meta), val(channels), val(cycle), path(images, stageAs: "images/*"), val(image_metas)
@@ -26,10 +26,12 @@ process CELLPROFILER_ILLUMCALC {
     def batch_json = meta.batch ? "\"batch\": \"${meta.batch}\"," : ""
     def arm_json = meta.arm ? "\"arm\": \"${meta.arm}\"," : ""
     // Build image_metadata array with well+site+filename for each image
-    def image_metadata_json = image_metas.collect { image ->
-        def fname = image.filename ?: 'MISSING'
-        "        {\"well\": \"${image.well}\", \"site\": ${image.site}, \"filename\": \"${fname}\"}"
-    }.join(',\n')
+    def image_metadata_json = image_metas
+        .collect { image ->
+            def fname = image.filename ?: 'MISSING'
+            "        {\"well\": \"${image.well}\", \"site\": ${image.site}, \"filename\": \"${fname}\"}"
+        }
+        .join(',\n')
     """
     # Create metadata JSON file (force overwrite with >| to handle noclobber)
     cat >| metadata.json << 'EOF'

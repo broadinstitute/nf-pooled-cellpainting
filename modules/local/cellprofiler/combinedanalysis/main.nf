@@ -1,11 +1,11 @@
 process CELLPROFILER_COMBINEDANALYSIS {
-    tag "$meta.id"
+    tag "${meta.id}"
     label 'cellprofiler_medium'
 
     conda "${moduleDir}/environment.yml"
-    container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
-        'oras://community.wave.seqera.io/library/cellprofiler:4.2.8--7c1bd3a82764de92':
-        'community.wave.seqera.io/library/cellprofiler:4.2.8--aff0a99749304a7f' }"
+    container "${workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container
+        ? 'oras://community.wave.seqera.io/library/cellprofiler:4.2.8--7c1bd3a82764de92'
+        : 'community.wave.seqera.io/library/cellprofiler:4.2.8--aff0a99749304a7f'}"
 
     input:
     tuple val(meta), path(cropped_images, stageAs: "images/*"), val(image_metas)
@@ -14,24 +14,26 @@ process CELLPROFILER_COMBINEDANALYSIS {
     path plugins, stageAs: "plugins/*"
 
     output:
-    tuple val(meta), path("*.png")                     , emit: overlay_images
-    tuple val(meta), path("*.csv")                     , emit: csv_stats
-    tuple val(meta), path("segmentation_masks/*.tiff") , emit: segmentation_masks, optional: true
-    path "load_data.csv"                               , emit: load_data_csv
-    path "versions.yml"                                , emit: versions
+    tuple val(meta), path("*.png"), emit: overlay_images
+    tuple val(meta), path("*.csv"), emit: csv_stats
+    tuple val(meta), path("segmentation_masks/*.tiff"), emit: segmentation_masks, optional: true
+    path "load_data.csv", emit: load_data_csv
+    path "versions.yml", emit: versions
 
     script:
     // Build optional JSON fields
     def batch_json = meta.batch ? "\"batch\": \"${meta.batch}\"," : ""
     def arm_json = meta.arm ? "\"arm\": \"${meta.arm}\"," : ""
     // Build image_metadata array with well+site+filename+cycle/channel for each image
-    def image_metadata_json = image_metas.collect { m ->
-        def fname = m.filename ?: 'MISSING'
-        def type = m.type ?: 'UNKNOWN'
-        def cycle = m.cycle ? ", \"cycle\": ${m.cycle}" : ""
-        def channel = m.channel ? ", \"channel\": \"${m.channel}\"" : ""
-        "        {\"well\": \"${m.well}\", \"site\": ${m.site}, \"filename\": \"${fname}\", \"type\": \"${type}\"${cycle}${channel}}"
-    }.join(',\n')
+    def image_metadata_json = image_metas
+        .collect { m ->
+            def fname = m.filename ?: 'MISSING'
+            def type = m.type ?: 'UNKNOWN'
+            def cycle = m.cycle ? ", \"cycle\": ${m.cycle}" : ""
+            def channel = m.channel ? ", \"channel\": \"${m.channel}\"" : ""
+            "        {\"well\": \"${m.well}\", \"site\": ${m.site}, \"filename\": \"${fname}\", \"type\": \"${type}\"${cycle}${channel}}"
+        }
+        .join(',\n')
     """
     # Set writable cache directories for CellProfiler and dependencies
     export MPLCONFIGDIR=\${PWD}/.matplotlib

@@ -29,15 +29,15 @@ process FIJI_STITCHCROP {
     val should_run
 
     output:
-    tuple val(meta), path("stitched_images/*.tiff")                 , emit: stitched_images
-    tuple val(meta), path("stitched_images/TileConfiguration.txt")  , emit: tile_config
-    tuple val(meta), path("cropped_images/*.tiff")                  , emit: cropped_images
-    tuple val(meta), path("downsampled_images/*.tiff")              , emit: downsampled_images
-    path("versions.yml")                                            , emit: versions
+    tuple val(meta), path("stitched_images/*.tiff"), emit: stitched_images
+    tuple val(meta), path("stitched_images/TileConfiguration.txt"), emit: tile_config
+    tuple val(meta), path("cropped_images/*.tiff"), emit: cropped_images
+    tuple val(meta), path("downsampled_images/*.tiff"), emit: downsampled_images
+    path ("versions.yml"), emit: versions
 
     when:
     should_run
-    
+
     script:
     // Allocate 75% of available memory to JVM heap (leaving 25% for non-heap, native memory, and OS)
     // Use a minimum of 2GB to ensure basic functionality

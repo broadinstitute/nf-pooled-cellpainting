@@ -3,17 +3,16 @@
     IMPORT MODULES / SUBWORKFLOWS / FUNCTIONS
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
-include { CELLPROFILER_ILLUMCALC }                                                    from '../../../modules/local/cellprofiler/illumcalc'
-include { QC_MONTAGEILLUM as QC_MONTAGEILLUM_BARCODING }                                       from '../../../modules/local/qc/montageillum'
-include { QC_MONTAGEILLUM as QC_MONTAGE_STITCHCROP_BARCODING }                        from '../../../modules/local/qc/montageillum'
-include { CELLPROFILER_ILLUMAPPLY as CELLPROFILER_ILLUMAPPLY_BARCODING }              from '../../../modules/local/cellprofiler/illumapply'
-include { CELLPROFILER_PREPROCESS }                                                   from '../../../modules/local/cellprofiler/preprocess'
-include { QC_PREPROCESS }                                                             from '../../../modules/local/qc/preprocess'
-include { FIJI_STITCHCROP }                                                           from '../../../modules/local/fiji/stitchcrop'
-include { QC_BARCODEALIGN }                                                           from '../../../modules/local/qc/barcodealign'
+include { CELLPROFILER_ILLUMCALC                                       } from '../../../modules/local/cellprofiler/illumcalc'
+include { QC_MONTAGEILLUM as QC_MONTAGEILLUM_BARCODING                 } from '../../../modules/local/qc/montageillum'
+include { QC_MONTAGEILLUM as QC_MONTAGE_STITCHCROP_BARCODING           } from '../../../modules/local/qc/montageillum'
+include { CELLPROFILER_ILLUMAPPLY as CELLPROFILER_ILLUMAPPLY_BARCODING } from '../../../modules/local/cellprofiler/illumapply'
+include { CELLPROFILER_PREPROCESS                                      } from '../../../modules/local/cellprofiler/preprocess'
+include { QC_PREPROCESS                                                } from '../../../modules/local/qc/preprocess'
+include { FIJI_STITCHCROP                                              } from '../../../modules/local/fiji/stitchcrop'
+include { QC_BARCODEALIGN                                              } from '../../../modules/local/qc/barcodealign'
 
 workflow BARCODING {
-
     take:
     ch_samplesheet_sbs
     barcoding_illumcalc_cppipe
@@ -33,7 +32,7 @@ workflow BARCODING {
                 batch: meta.batch,
                 plate: meta.plate,
                 cycle: meta.cycle,
-                id: "${meta.batch}_${meta.plate}_${meta.cycle}"
+                id: "${meta.batch}_${meta.plate}_${meta.cycle}",
             ]
             [group_key, image, meta]
         }
@@ -61,10 +60,10 @@ workflow BARCODING {
         }
         .set { ch_illumcalc_input }
 
-    CELLPROFILER_ILLUMCALC (
+    CELLPROFILER_ILLUMCALC(
         ch_illumcalc_input,
         barcoding_illumcalc_cppipe,
-        true  // has_cycles = true for barcoding
+        true,
     )
     ch_versions = ch_versions.mix(CELLPROFILER_ILLUMCALC.out.versions)
     // Merge load_data CSVs across all samples
@@ -72,23 +71,23 @@ workflow BARCODING {
         name: "barcoding-illumcalc.load_data.csv",
         keepHeader: true,
         skip: 1,
-        storeDir: "${params.outdir}/workspace/load_data_csv/"
+        storeDir: "${params.outdir}/workspace/load_data_csv/",
     )
 
     //// QC illumination correction profiles ////
     CELLPROFILER_ILLUMCALC.out.illumination_corrections
-        .map{ meta, npy_files ->
+        .map { meta, npy_files ->
             [meta.subMap(['batch', 'plate']) + [arm: "barcoding"], npy_files]
         }
         .groupTuple()
-        .map{ meta, npy_files_list ->
+        .map { meta, npy_files_list ->
             [meta, npy_files_list.flatten()]
         }
         .set { ch_illumination_corrections_qc }
 
-    QC_MONTAGEILLUM_BARCODING (
+    QC_MONTAGEILLUM_BARCODING(
         ch_illumination_corrections_qc,
-        ".*Cycle.*\\.npy\$"  // Pattern for barcoding: files with Cycle in name
+        ".*Cycle.*\\.npy\$",
     )
     ch_versions = ch_versions.mix(QC_MONTAGEILLUM_BARCODING.out.versions)
 
@@ -102,7 +101,7 @@ workflow BARCODING {
                 well: meta.well,
                 site: meta.site,
                 arm: meta.arm,
-                id: "${meta.batch}_${meta.plate}_${meta.well}_Site${meta.site}"
+                id: "${meta.batch}_${meta.plate}_${meta.well}_Site${meta.site}",
             ]
             [site_key, image, meta]
         }
@@ -116,7 +115,7 @@ workflow BARCODING {
             // Get unique cycles and channels for this site
             // For barcoding, we expect multiple cycles
             def all_cycles = unique_metas.collect { it.cycle }.findAll { it != null }.unique().sort()
-            def unique_cycles = (all_cycles.size() > 1) ? all_cycles : null
+            def unique_cycles = all_cycles.size() > 1 ? all_cycles : null
             def all_channels = unique_metas[0].channels
 
             // Enrich metadata with filenames to enable matching
@@ -145,7 +144,7 @@ workflow BARCODING {
         .map { meta, npy_files ->
             def group_key = [
                 batch: meta.batch,
-                plate: meta.plate
+                plate: meta.plate,
             ]
             [group_key, npy_files]
         }
@@ -161,7 +160,7 @@ workflow BARCODING {
         .map { site_meta, channels, cycles, images, image_metas ->
             def plate_key = [
                 batch: site_meta.batch,
-                plate: site_meta.plate
+                plate: site_meta.plate,
             ]
             [plate_key, site_meta, channels, cycles, images, image_metas]
         }
@@ -171,10 +170,10 @@ workflow BARCODING {
         }
         .set { ch_illumapply_input }
 
-    CELLPROFILER_ILLUMAPPLY_BARCODING (
+    CELLPROFILER_ILLUMAPPLY_BARCODING(
         ch_illumapply_input,
         barcoding_illumapply_cppipe,
-        true  // has_cycles = true for barcoding
+        true,
     )
     ch_versions = ch_versions.mix(CELLPROFILER_ILLUMAPPLY_BARCODING.out.versions)
     // Merge load_data CSVs across all samples
@@ -182,7 +181,7 @@ workflow BARCODING {
         name: "barcoding-illumapply.load_data.csv",
         keepHeader: true,
         skip: 1,
-        storeDir: "${params.outdir}/workspace/load_data_csv/"
+        storeDir: "${params.outdir}/workspace/load_data_csv/",
     )
 
     // QC of barcode alignment
@@ -191,7 +190,7 @@ workflow BARCODING {
         .map { meta, _image ->
             def plate_key = [
                 batch: meta.batch,
-                plate: meta.plate
+                plate: meta.plate,
             ]
             [plate_key, meta.cycle]
         }
@@ -207,7 +206,7 @@ workflow BARCODING {
         .map { meta, _images, csv_files ->
             def plate_key = [
                 batch: meta.batch,
-                plate: meta.plate
+                plate: meta.plate,
             ]
             // Find the BarcodingApplication_Image.csv file
             def image_csv = csv_files.find { file -> file.name.contains('Image.csv') }
@@ -218,7 +217,7 @@ workflow BARCODING {
         .map { plate_key, wells, csv_files, num_cycles ->
             def qc_meta = plate_key + [
                 arm: "barcoding",
-                id: "${plate_key.batch}_${plate_key.plate}"
+                id: "${plate_key.batch}_${plate_key.plate}",
             ]
             // Remove duplicate wells since we now have site-level data
             def unique_wells = wells.unique()
@@ -226,13 +225,13 @@ workflow BARCODING {
         }
         .set { ch_qc_barcode_input }
 
-    QC_BARCODEALIGN (
+    QC_BARCODEALIGN(
         ch_qc_barcode_input,
         file("${projectDir}/bin/qc_barcode_align.py"),
         params.barcoding_shift_threshold,
         params.barcoding_corr_threshold,
         params.acquisition_geometry_rows,
-        params.acquisition_geometry_columns
+        params.acquisition_geometry_columns,
     )
     ch_versions = ch_versions.mix(QC_BARCODEALIGN.out.versions)
 
@@ -252,7 +251,7 @@ workflow BARCODING {
                     site: site_meta.site,
                     filename: img.name,
                     cycle: cycle,
-                    channel: channel
+                    channel: channel,
                 ]
             }
             [site_meta, images, image_metas]
@@ -260,11 +259,11 @@ workflow BARCODING {
         .set { ch_sbs_corr_images }
 
     //// Barcoding preprocessing ////
-    CELLPROFILER_PREPROCESS (
+    CELLPROFILER_PREPROCESS(
         ch_sbs_corr_images,
         barcoding_preprocess_cppipe,
         barcodes,
-        channel.fromPath([params.callbarcodes_plugin, params.compensatecolors_plugin]).collect()  // CellProfiler plugins
+        channel.fromPath([params.callbarcodes_plugin, params.compensatecolors_plugin]).collect(),
     )
     ch_versions = ch_versions.mix(CELLPROFILER_PREPROCESS.out.versions)
     // Merge load_data CSVs across all samples
@@ -272,7 +271,7 @@ workflow BARCODING {
         name: "barcoding-preprocess.load_data.csv",
         keepHeader: true,
         skip: 1,
-        storeDir: "${params.outdir}/workspace/load_data_csv/"
+        storeDir: "${params.outdir}/workspace/load_data_csv/",
     )
 
     //// QC: Barcode preprocessing ////
@@ -281,7 +280,7 @@ workflow BARCODING {
         .map { meta, csv_files ->
             def plate_key = [
                 batch: meta.batch,
-                plate: meta.plate
+                plate: meta.plate,
             ]
             // Find the BarcodePreprocess_Image.csv file
             def image_csv = csv_files.find { file -> file.name.contains('BarcodePreprocessing_Foci.csv') }
@@ -292,7 +291,7 @@ workflow BARCODING {
         .map { plate_key, wells, csvs, num_cycles ->
             def qc_meta = plate_key + [
                 arm: "barcoding",
-                id: "${plate_key.batch}_${plate_key.plate}"
+                id: "${plate_key.batch}_${plate_key.plate}",
             ]
             // Remove duplicate wells since we now have site-level data
             def unique_wells = wells.unique()
@@ -300,12 +299,12 @@ workflow BARCODING {
         }
         .set { ch_preprocess_qc_input }
 
-    QC_PREPROCESS (
+    QC_PREPROCESS(
         ch_preprocess_qc_input,
         file("${projectDir}/bin/qc_barcode_preprocess.py"),
         barcodes,
         params.acquisition_geometry_rows,
-        params.acquisition_geometry_columns
+        params.acquisition_geometry_columns,
     )
     ch_versions = ch_versions.mix(QC_PREPROCESS.out.versions)
 
@@ -321,7 +320,7 @@ workflow BARCODING {
                 well: meta.well,
                 channels: meta.channels,
                 arm: meta.arm,
-                id: "${meta.batch}_${meta.plate}_${meta.well}"
+                id: "${meta.batch}_${meta.plate}_${meta.well}",
             ]
             [well_key, meta.site, images]
         }
@@ -335,7 +334,7 @@ workflow BARCODING {
         }
         .set { ch_preprocess_by_well }
 
-    FIJI_STITCHCROP (
+    FIJI_STITCHCROP(
         ch_preprocess_by_well,
         file("${projectDir}/bin/stitch_crop.py"),
         params.barcoding_round_or_square,
@@ -351,7 +350,7 @@ workflow BARCODING {
         params.barcoding_xoffset_tiles,
         params.barcoding_yoffset_tiles,
         params.compress,
-        params.qc_barcoding_passed
+        params.qc_barcoding_passed,
     )
 
     // Split cropped images into individual tuples with site in metadata
@@ -368,14 +367,14 @@ workflow BARCODING {
             // Create one tuple per site with all its cycle/channel images
             images_by_site.collect { site, site_images ->
                 if (site == null) {
-                    log.error "Could not parse site from barcoding cropped images"
+                    log.error("Could not parse site from barcoding cropped images")
                     return null
                 }
 
                 // Create new meta with site
                 def new_meta = meta.subMap(['batch', 'plate', 'well', 'cycles', 'arm']) + [
                     id: "${meta.batch}_${meta.plate}_${meta.well}_${site}",
-                    site: site
+                    site: site,
                 ]
 
                 [new_meta, site_images]
@@ -388,22 +387,22 @@ workflow BARCODING {
 
     // QC montage for stitchcrop results
     FIJI_STITCHCROP.out.downsampled_images
-        .map{ meta, tiff_files ->
+        .map { meta, tiff_files ->
             [meta.subMap(['batch', 'plate']) + [arm: "barcoding"], tiff_files]
         }
         .groupTuple()
-        .map{ meta, tiff_files_list ->
+        .map { meta, tiff_files_list ->
             [meta, tiff_files_list.flatten()]
         }
         .set { ch_stitchcrop_qc }
 
-    QC_MONTAGE_STITCHCROP_BARCODING (
+    QC_MONTAGE_STITCHCROP_BARCODING(
         ch_stitchcrop_qc,
-        ".*\\.tiff\$"  // Pattern for stitchcrop: all TIFF files
+        ".*\\.tiff\$",
     )
     ch_versions = ch_versions.mix(QC_MONTAGE_STITCHCROP_BARCODING.out.versions)
 
     emit:
-    cropped_images  = ch_cropped_images // channel: [ val(meta), [ cropped_images ] ]
-    versions        = ch_versions       // channel: [ versions.yml ]
+    cropped_images = ch_cropped_images // channel: [ val(meta), [ cropped_images ] ]
+    versions       = ch_versions // channel: [ versions.yml ]
 }
