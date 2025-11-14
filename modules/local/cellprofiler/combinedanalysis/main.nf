@@ -21,19 +21,17 @@ process CELLPROFILER_COMBINEDANALYSIS {
     path "versions.yml", emit: versions
 
     script:
-    // Build optional JSON fields
-    def batch_json = meta.batch ? "\"batch\": \"${meta.batch}\"," : ""
-    def arm_json = meta.arm ? "\"arm\": \"${meta.arm}\"," : ""
-    // Build image_metadata array with well+site+filename+cycle/channel for each image
-    def image_metadata_json = image_metas
-        .collect { m ->
-            def fname = m.filename ?: 'MISSING'
-            def type = m.type ?: 'UNKNOWN'
-            def cycle = m.cycle ? ", \"cycle\": ${m.cycle}" : ""
-            def channel = m.channel ? ", \"channel\": \"${m.channel}\"" : ""
-            "        {\"well\": \"${m.well}\", \"site\": ${m.site}, \"filename\": \"${fname}\", \"type\": \"${type}\"${cycle}${channel}}"
-        }
-        .join(',\n')
+    // Create metadata structure with plate info and image_metadata array
+    def metadata_map = [
+        plate: meta.plate,
+        image_metadata: image_metas
+    ]
+    // Add optional fields if present
+    if (meta.batch) metadata_map.batch = meta.batch
+    if (meta.arm) metadata_map.arm = meta.arm
+
+    def metadata_json = groovy.json.JsonOutput.toJson(metadata_map)
+
     """
     # Set writable cache directories for CellProfiler and dependencies
     export MPLCONFIGDIR=\${PWD}/.matplotlib
@@ -41,17 +39,9 @@ process CELLPROFILER_COMBINEDANALYSIS {
     export XDG_CACHE_HOME=\${PWD}/.cache
     mkdir -p \${MPLCONFIGDIR} \${XDG_CACHE_HOME}
 
-    # Create metadata JSON file (force overwrite with >| to handle noclobber)
-    cat >| metadata.json << 'EOF'
-{
-    "plate": "${meta.plate}",
-    ${batch_json}
-    ${arm_json}
-    "id": "${meta.id}",
-    "image_metadata": [
-${image_metadata_json}
-    ]
-}
+    # Create metadata JSON file
+    cat > metadata.json << 'EOF'
+${metadata_json}
 EOF
 
     # Generate load_data.csv using the unified script with 'combined' pipeline type
