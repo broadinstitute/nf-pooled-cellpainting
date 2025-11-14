@@ -28,35 +28,20 @@ workflow BARCODING {
     // All channels for a given cycle are processed together
     ch_samplesheet_sbs
         .map { meta, image ->
-            def group_key = [
-                batch: meta.batch,
-                plate: meta.plate,
-                cycle: meta.cycle,
-                id: "${meta.batch}_${meta.plate}_${meta.cycle}",
-            ]
-            [group_key, image, meta]
+            def group_key = meta.subMap(['batch', 'plate', 'cycle'])
+            def group_id = "${meta.batch}_${meta.plate}_${meta.cycle}"
+
+            // Preserve full metadata for each image
+            def image_meta = meta.clone()
+            image_meta.filename = image.name
+
+            [group_key + [id: group_id], image_meta, image]
         }
         .groupTuple()
-        .map { meta, images, meta_list ->
-            // Zip images with metadata to keep them synchronized
-            def paired = [images, meta_list].transpose().unique()
-            def unique_images = paired.collect { it -> it[0] }
-            def unique_metas = paired.collect { it -> it[1] }
-
-            def all_channels = meta_list[0].channels
-            // Enrich metadata with filenames to enable matching
-            def metas_with_filenames = []
-            unique_images.eachWithIndex { img, idx ->
-                def m = unique_metas[idx]
-                def basename = img.name
-                // Create new map with filename added
-                def enriched = [:]
-                enriched.putAll(m)
-                enriched.filename = basename
-                metas_with_filenames << enriched
-            }
-            // Pass the group metadata and the full list of individual image metadata with filenames
-            [meta, all_channels, meta.cycle, unique_images, metas_with_filenames]
+        .map { meta, images_meta_list, images_list ->
+            def all_channels = images_meta_list[0].channels
+            // Return tuple: (shared meta, channels, cycle, images, per-image metadata)
+            [meta, all_channels, meta.cycle, images_list, images_meta_list]
         }
         .set { ch_illumcalc_input }
 
@@ -95,46 +80,25 @@ workflow BARCODING {
     // This preserves site information through the pipeline
     ch_samplesheet_sbs
         .map { meta, image ->
-            def site_key = [
-                batch: meta.batch,
-                plate: meta.plate,
-                well: meta.well,
-                site: meta.site,
-                arm: meta.arm,
-                id: "${meta.batch}_${meta.plate}_${meta.well}_Site${meta.site}",
-            ]
-            [site_key, image, meta]
+            def site_key = meta.subMap(['batch', 'plate', 'well', 'site', 'arm'])
+            def site_id = "${meta.batch}_${meta.plate}_${meta.well}_Site${meta.site}"
+
+            // Preserve full metadata for each image
+            def image_meta = meta.clone()
+            image_meta.filename = image.name
+
+            [site_key + [id: site_id], image_meta, image]
         }
         .groupTuple()
-        .map { site_meta, images, meta_list ->
-            // Zip images with metadata to keep them synchronized
-            def paired = [images, meta_list].transpose().unique()
-            def unique_images = paired.collect { it -> it[0] }
-            def unique_metas = paired.collect { it -> it[1] }
-
+        .map { site_meta, images_meta_list, images_list ->
             // Get unique cycles and channels for this site
             // For barcoding, we expect multiple cycles
-            def all_cycles = unique_metas.collect { it -> it.cycle }.findAll { it != null }.unique().sort()
+            def all_cycles = images_meta_list.collect { m -> m.cycle }.findAll { c -> c != null }.unique().sort()
             def unique_cycles = all_cycles.size() > 1 ? all_cycles : null
-            def all_channels = unique_metas[0].channels
+            def all_channels = images_meta_list[0].channels
 
-            // Enrich metadata with filenames to enable matching
-            def metas_with_filenames = []
-            unique_images.eachWithIndex { img, idx ->
-                def m = unique_metas[idx]
-                def basename = img.name
-                // Create new map with filename added
-                def enriched = [:]
-                enriched.putAll(m)
-                enriched.filename = basename
-                // Only include cycle if we have multiple cycles
-                if (unique_cycles == null && enriched.containsKey('cycle')) {
-                    enriched.remove('cycle')
-                }
-                metas_with_filenames << enriched
-            }
-
-            [site_meta, all_channels, unique_cycles, unique_images, metas_with_filenames]
+            // Return tuple: (shared meta, channels, cycles, images, per-image metadata)
+            [site_meta, all_channels, unique_cycles, images_list, images_meta_list]
         }
         .set { ch_images_by_site }
 
@@ -239,20 +203,19 @@ workflow BARCODING {
     // Build image metadata for PREPROCESS from corrected images
     CELLPROFILER_ILLUMAPPLY_BARCODING.out.corrected_images
         .map { site_meta, images, _csv ->
-            // Build image_metas for corrected images with cycle and channel extracted
+            // Build image_metas for corrected images with full metadata + filename + cycle + channel
             def image_metas = images.collect { img ->
                 // Extract cycle and channel from corrected image filename
                 // Pattern: Plate_X_Well_Y_Site_Z_Cycle01_DNA.tiff
                 def match = (img.name =~ /.*_Cycle(\d+)_(.+?)\.tiff?$/)
                 def cycle = match ? match[0][1] as Integer : null
                 def channel = match ? match[0][2] : 'UNKNOWN'
-                [
-                    well: site_meta.well,
-                    site: site_meta.site,
-                    filename: img.name,
-                    cycle: cycle,
-                    channel: channel,
-                ]
+                // Clone metadata and add filename + cycle + channel
+                def image_meta = site_meta.clone()
+                image_meta.filename = img.name
+                image_meta.cycle = cycle
+                image_meta.channel = channel
+                image_meta
             }
             [site_meta, images, image_metas]
         }

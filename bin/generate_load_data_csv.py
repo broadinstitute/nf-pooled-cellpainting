@@ -371,7 +371,14 @@ def load_metadata_json(metadata_json_path: str) -> Dict:
 
     Example JSON structures:
 
-        1. Multi-location (image_metadata array - most common):
+        1. Simplified array format (NEW - most common):
+        [
+            {"batch": "batch1", "plate": "Plate1", "well": "A1", "site": 0, "channels": ["DNA", "Phalloidin"], "arm": "painting", "filename": "WellA1_PointA1_0000_Channel..."},
+            {"batch": "batch1", "plate": "Plate1", "well": "A1", "site": 1, "channels": ["DNA", "Phalloidin"], "arm": "painting", "filename": "WellA1_PointA2_0000_Channel..."}
+        ]
+        Common fields (plate, channels, batch, arm, cycle) are extracted from first entry.
+
+        2. Multi-location (image_metadata array):
         {
             "plate": "Plate1",
             "channels": ["DNA", "Phalloidin", "CHN2"],
@@ -382,7 +389,7 @@ def load_metadata_json(metadata_json_path: str) -> Dict:
             ]
         }
 
-        2. Single-location (direct well/site):
+        3. Single-location (direct well/site):
         {
             "plate": "Plate1",
             "well": "A1",
@@ -401,6 +408,44 @@ def load_metadata_json(metadata_json_path: str) -> Dict:
         raise ValueError(f"Invalid JSON in metadata file {metadata_json_path}: {e}")
     except Exception as e:
         raise IOError(f"Error reading metadata file {metadata_json_path}: {e}")
+
+    # Handle simplified array format: if JSON is an array, extract common fields from first entry
+    if isinstance(metadata, list):
+        if not metadata:
+            raise ValueError("Metadata JSON array is empty")
+
+        # Extract common fields from first entry
+        first_entry = metadata[0]
+        normalized_metadata = {
+            'image_metadata': metadata  # The full array becomes image_metadata
+        }
+
+        # Extract common fields that should be consistent across all entries
+        if 'plate' in first_entry:
+            normalized_metadata['plate'] = first_entry['plate']
+        if 'channels' in first_entry:
+            normalized_metadata['channels'] = first_entry['channels']
+        if 'batch' in first_entry:
+            normalized_metadata['batch'] = first_entry['batch']
+        if 'arm' in first_entry:
+            normalized_metadata['arm'] = first_entry['arm']
+
+        # Detect cycles: if multiple unique cycles exist, create 'cycles' list
+        # Otherwise use single 'cycle' value
+        unique_cycles = sorted(set(
+            entry.get('cycle')
+            for entry in metadata
+            if entry.get('cycle') is not None
+        ))
+        if len(unique_cycles) > 1:
+            normalized_metadata['cycles'] = unique_cycles
+            print(f"✓ Detected {len(unique_cycles)} cycles: {unique_cycles}", file=sys.stderr)
+        elif len(unique_cycles) == 1:
+            normalized_metadata['cycle'] = unique_cycles[0]
+            print(f"✓ Detected single cycle: {unique_cycles[0]}", file=sys.stderr)
+
+        metadata = normalized_metadata
+        print(f"✓ Detected simplified array format with {len(metadata['image_metadata'])} entries", file=sys.stderr)
 
     # Validate required fields: plate is always required
     if 'plate' not in metadata:
@@ -902,6 +947,28 @@ def collect_and_group_files(
 
         print(f"✓ Matched {illum_matched} illumination file(s) to image groups", file=sys.stderr)
 
+    # Normalize single-cycle data: if images are in _files_by_cycle format with only one cycle,
+    # check if illum files are in non-cycle format and convert them to match
+    for key in grouped.keys():
+        if '_files_by_cycle' in grouped[key]['images']:
+            cycles_list = list(grouped[key]['images']['_files_by_cycle'].keys())
+            if len(cycles_list) == 1:
+                # Single cycle - check if illum files need conversion
+                cycle_num = cycles_list[0]
+                # Check if we have non-cycle illum files (direct channel mapping)
+                has_non_cycle_illum = any(
+                    k for k in grouped[key]['illum'].keys()
+                    if not k.startswith('_')
+                )
+                if has_non_cycle_illum and '_by_cycle' not in grouped[key]['illum']:
+                    # Convert non-cycle illum files to _by_cycle format
+                    direct_illum = {k: v for k, v in grouped[key]['illum'].items() if not k.startswith('_')}
+                    grouped[key]['illum']['_by_cycle'] = {cycle_num: direct_illum}
+                    # Remove direct entries
+                    for channel in direct_illum.keys():
+                        del grouped[key]['illum'][channel]
+                    print(f"✓ Normalized single-cycle illum files for {key}", file=sys.stderr)
+
     return grouped
 
 
@@ -1061,6 +1128,10 @@ def generate_csv_rows(
                 else:
                     raise ValueError("Channels must be specified in JSON metadata or CLI args")
 
+                # Check if we have multiple cycles - if only one, don't use cycle prefix
+                num_cycles = len(files_by_cycle)
+                use_cycle_prefix = num_cycles > 1
+
                 # Sort cycles to ensure consistent column order
                 for cycle_num in sorted(files_by_cycle.keys()):
                     cycle_info = files_by_cycle[cycle_num]
@@ -1070,12 +1141,19 @@ def generate_csv_rows(
                     # Add FileName and Frame for each channel in this cycle
                     # Frame number is just the index in the channels list
                     for frame_idx, channel in enumerate(channels_to_use):
-                        row[f'FileName_Cycle{cycle_str}_Orig{channel}'] = filename
-                        row[f'Frame_Cycle{cycle_str}_Orig{channel}'] = frame_idx
+                        if use_cycle_prefix:
+                            row[f'FileName_Cycle{cycle_str}_Orig{channel}'] = filename
+                            row[f'Frame_Cycle{cycle_str}_Orig{channel}'] = frame_idx
+                        else:
+                            row[f'FileName_Orig{channel}'] = filename
+                            row[f'Frame_Orig{channel}'] = frame_idx
 
                         # Add illumination file if available for this cycle
                         if cycle_num in illum_by_cycle and channel in illum_by_cycle[cycle_num]:
-                            row[f'FileName_Cycle{cycle_str}_Illum{channel}'] = illum_by_cycle[cycle_num][channel]
+                            if use_cycle_prefix:
+                                row[f'FileName_Cycle{cycle_str}_Illum{channel}'] = illum_by_cycle[cycle_num][channel]
+                            else:
+                                row[f'FileName_Illum{channel}'] = illum_by_cycle[cycle_num][channel]
 
                     # Validate we have all required illumination files for this cycle
                     if config['include_illum_files']:

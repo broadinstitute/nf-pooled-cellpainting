@@ -1,3 +1,5 @@
+include { toJson } from 'plugin/nf-boost'
+
 process CELLPROFILER_ILLUMCALC {
     tag "${meta.id}"
     label 'cellprofiler_basic'
@@ -21,31 +23,13 @@ process CELLPROFILER_ILLUMCALC {
     task.ext.when == null || task.ext.when
 
     script:
-    // Build optional JSON fields
-    def cycle_json = cycle ? "\"cycle\": ${cycle}," : ""
-    def batch_json = meta.batch ? "\"batch\": \"${meta.batch}\"," : ""
-    def arm_json = meta.arm ? "\"arm\": \"${meta.arm}\"," : ""
-    // Build image_metadata array with well+site+filename for each image
-    def image_metadata_json = image_metas
-        .collect { image ->
-            def fname = image.filename ?: 'MISSING'
-            "        {\"well\": \"${image.well}\", \"site\": ${image.site}, \"filename\": \"${fname}\"}"
-        }
-        .join(',\n')
+    // Serialize image metadata for load_data.csv generation
+    def metadata_json = toJson(image_metas)
+
     """
-    # Create metadata JSON file (force overwrite with >| to handle noclobber)
-    cat >| metadata.json << 'EOF'
-{
-    "plate": "${meta.plate}",
-    ${cycle_json}
-    ${batch_json}
-    ${arm_json}
-    "channels": "${channels}",
-    "id": "${meta.id}",
-    "image_metadata": [
-${image_metadata_json}
-    ]
-}
+    # Create metadata JSON file
+    cat > metadata.json << 'EOF'
+${metadata_json}
 EOF
 
     # Generate load_data.csv

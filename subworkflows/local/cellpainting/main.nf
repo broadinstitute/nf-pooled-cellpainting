@@ -25,37 +25,23 @@ workflow CELLPAINTING {
     //// Calculate illumination correction profiles ////
 
     // Group images by batch and plate for illumination calculation
-    // All channels are processed together
+    // Keep metadata for each image to generate load_data.csv
     ch_samplesheet_cp
         .map { meta, image ->
-            def group_key = [
-                batch: meta.batch,
-                plate: meta.plate,
-                id: "${meta.batch}_${meta.plate}",
-            ]
-            [group_key, image, meta]
+            def group_key = meta.subMap(['batch', 'plate'])
+            def group_id = "${meta.batch}_${meta.plate}"
+
+            // Preserve full metadata for each image
+            def image_meta = meta.clone()
+            image_meta.filename = image.name
+
+            [group_key + [id: group_id], image_meta, image]
         }
         .groupTuple()
-        .map { meta, images, meta_list ->
-            // Zip images with metadata to keep them synchronized
-            def paired = [images, meta_list].transpose().unique()
-            def unique_images = paired.collect { it -> it[0] }
-            def unique_metas = paired.collect { it -> it[1] }
-
-            def all_channels = meta_list[0].channels
-            // Enrich metadata with filenames to enable matching
-            def metas_with_filenames = []
-            unique_images.eachWithIndex { img, idx ->
-                def m = unique_metas[idx]
-                def basename = img.name
-                // Create new map with filename added
-                def enriched = [:]
-                enriched.putAll(m)
-                enriched.filename = basename
-                metas_with_filenames << enriched
-            }
-            // Pass the group metadata and the full list of individual image metadata with filenames
-            [meta, all_channels, null, unique_images, metas_with_filenames]
+        .map { meta, images_meta_list, images_list ->
+            def all_channels = images_meta_list[0].channels
+            // Return tuple: (shared meta, channels, cycles, images, per-image metadata)
+            [meta, all_channels, null, images_list, images_meta_list]
         }
         .set { ch_illumcalc_input }
 
@@ -96,46 +82,24 @@ workflow CELLPAINTING {
     // Each site should get all its images
     ch_samplesheet_cp
         .map { meta, image ->
-            def site_key = [
-                batch: meta.batch,
-                plate: meta.plate,
-                well: meta.well,
-                site: meta.site,
-                arm: meta.arm,
-                id: "${meta.batch}_${meta.plate}_${meta.well}_Site${meta.site}",
-            ]
-            [site_key, image, meta]
+            def site_key = meta.subMap(['batch', 'plate', 'well', 'site', 'arm'])
+            def site_id = "${meta.batch}_${meta.plate}_${meta.well}_Site${meta.site}"
+
+            // Preserve full metadata for each image
+            def image_meta = meta.clone()
+            image_meta.filename = image.name
+
+            [site_key + [id: site_id], image_meta, image]
         }
         .groupTuple()
-        .map { site_meta, images, meta_list ->
-            // Zip images with metadata to keep them synchronized
-            def paired = [images, meta_list].transpose().unique()
-            def unique_images = paired.collect { it -> it[0] }
-            def unique_metas = paired.collect { it -> it[1] }
-
-            def all_channels = meta_list[0].channels
+        .map { site_meta, images_meta_list, images_list ->
+            def all_channels = images_meta_list[0].channels
             // Check if images have MULTIPLE cycles (not just a single cycle value)
-            // Only treat as multi-cycle if there are 2+ distinct cycle values
-            def all_cycles = unique_metas.collect { it -> it.cycle }.findAll { it != null }.unique().sort()
+            def all_cycles = images_meta_list.collect { m -> m.cycle }.findAll { c -> c != null }.unique().sort()
             def unique_cycles = all_cycles.size() > 1 ? all_cycles : null
 
-            // Enrich metadata with filenames to enable matching
-            def metas_with_filenames = []
-            unique_images.eachWithIndex { img, idx ->
-                def m = unique_metas[idx]
-                def basename = img.name
-                // Create new map with filename added
-                def enriched = [:]
-                enriched.putAll(m)
-                enriched.filename = basename
-                // Only include cycle if we have multiple cycles
-                if (unique_cycles == null && enriched.containsKey('cycle')) {
-                    enriched.remove('cycle')
-                }
-                metas_with_filenames << enriched
-            }
-            // Pass the group metadata, channels, cycles (null or list), unique images, and metadata with filenames
-            [site_meta, all_channels, unique_cycles, unique_images, metas_with_filenames]
+            // Return tuple: (shared meta, channels, cycles, images, per-image metadata)
+            [site_meta, all_channels, unique_cycles, images_list, images_meta_list]
         }
         .set { ch_images_by_site }
 
@@ -192,16 +156,15 @@ workflow CELLPAINTING {
     // Build image metadata for corrected images
     CELLPROFILER_ILLUMAPPLY_PAINTING.out.corrected_images
         .map { meta, images, _csv ->
-            // Build image_metas for corrected images with filenames and channel extracted
+            // Build image_metas for corrected images with full metadata + filename + channel
             def image_metas = images.collect { img ->
                 // Extract channel from corrected image filename: Plate_X_Well_Y_Site_Z_CorrCHANNEL.tiff
                 def channel = img.name.replaceAll(/.*_Corr(.+?)\.tiff?$/, '$1')
-                [
-                    well: meta.well,
-                    site: meta.site,
-                    filename: img.name,
-                    channel: channel,
-                ]
+                // Clone metadata and add filename + channel
+                def image_meta = meta.clone()
+                image_meta.filename = img.name
+                image_meta.channel = channel
+                image_meta
             }
             [meta, images, image_metas]
         }
