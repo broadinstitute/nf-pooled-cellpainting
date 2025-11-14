@@ -146,7 +146,7 @@ workflow POOLED_CELLPAINTING {
             ch_cropped_images,
             params.combinedanalysis_cppipe,
             barcodes,
-            Channel.fromPath(params.callbarcodes_plugin).collect()  // CellProfiler callbarcodes plugin
+            Channel.fromPath(params.callbarcodes_plugin)
         )
         ch_versions = ch_versions.mix(CELLPROFILER_COMBINEDANALYSIS.out.versions)
         // Merge load_data CSVs across all samples

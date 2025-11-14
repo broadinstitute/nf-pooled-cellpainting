@@ -21,7 +21,6 @@ workflow CELLPAINTING {
 
     main:
     ch_versions = channel.empty()
-    ch_cropped_images = channel.empty()
 
     //// Calculate illumination correction profiles ////
 
@@ -304,7 +303,7 @@ workflow CELLPAINTING {
         // Split cropped images into individual tuples with site in metadata
         // FIJI_STITCHCROP outputs multiple files (one per site) but meta doesn't have site
         // Extract site from filename and create one tuple per site with all channels for that site
-        ch_cropped_images = FIJI_STITCHCROP.out.cropped_images
+        FIJI_STITCHCROP.out.cropped_images
             .flatMap { meta, images ->
                 // Group images by site
                 def images_by_site = images.groupBy { img ->
@@ -329,6 +328,7 @@ workflow CELLPAINTING {
                 }
             }
             .filter { item -> item != null }
+            .set { ch_cropped_images }
 
         ch_versions = ch_versions.mix(FIJI_STITCHCROP.out.versions)
 
@@ -349,6 +349,7 @@ workflow CELLPAINTING {
         )
         ch_versions = ch_versions.mix(QC_MONTAGE_STITCHCROP_PAINTING.out.versions)
     } else {
+        Channel.empty().set { ch_croppch_cropped_imagesed_painting }
         log.info "Stopping before FIJI_STITCHCROP for painting arm: QC not passed (params.qc_painting_passed = false). Perform QC for painting assay and set qc_painting_passed=true to proceed."
     }
 

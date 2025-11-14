@@ -357,7 +357,7 @@ workflow BARCODING {
         // Split cropped images into individual tuples with site in metadata
         // FIJI_STITCHCROP outputs multiple files (one per site) but meta doesn't have site
         // Extract site from filename and create one tuple per site with all its cycle/channel images
-        ch_cropped_images = FIJI_STITCHCROP.out.cropped_images
+        FIJI_STITCHCROP.out.cropped_images
             .flatMap { meta, images ->
                 // Group images by site
                 def images_by_site = images.groupBy { img ->
@@ -382,6 +382,7 @@ workflow BARCODING {
                 }
             }
             .filter { item -> item != null }
+            .set { ch_cropped_images }
 
         ch_versions = ch_versions.mix(FIJI_STITCHCROP.out.versions)
 
@@ -403,6 +404,7 @@ workflow BARCODING {
         ch_versions = ch_versions.mix(QC_MONTAGE_STITCHCROP_BARCODING.out.versions)
 
     } else {
+        Channel.empty().set { ch_cropped_images }
         log.info "Stopping before FIJI_STITCHCROP for barcoding arm: QC not passed (params.qc_barcoding_passed = false). Perform QC for barcoding assay and set qc_barcoding_passed=true to proceed."
     }
 
