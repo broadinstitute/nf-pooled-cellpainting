@@ -12,11 +12,11 @@ include { CELLPROFILER_SEGCHECK                                       } from '..
 include { FIJI_STITCHCROP                                             } from '../../../modules/local/fiji/stitchcrop'
 workflow CELLPAINTING {
     take:
-    ch_samplesheet_cp
-    painting_illumcalc_cppipe
-    painting_illumapply_cppipe
-    painting_segcheck_cppipe
-    range_skip
+    ch_samplesheet_cp // channel: [ val(meta), val(image) ]
+    painting_illumcalc_cppipe // file: CellProfiler pipeline for illumination calculation
+    painting_illumapply_cppipe // file: CellProfiler pipeline for illumination application
+    painting_segcheck_cppipe // file: CellProfiler pipeline for segmentation check
+    range_skip // val: range of QC segcheck images to skip
 
     main:
     ch_versions = channel.empty()
@@ -39,8 +39,8 @@ workflow CELLPAINTING {
         .map { meta, images, meta_list ->
             // Zip images with metadata to keep them synchronized
             def paired = [images, meta_list].transpose().unique()
-            def unique_images = paired.collect { it[0] }
-            def unique_metas = paired.collect { it[1] }
+            def unique_images = paired.collect { it -> it[0] }
+            def unique_metas = paired.collect { it -> it[1] }
 
             def all_channels = meta_list[0].channels
             // Enrich metadata with filenames to enable matching
@@ -110,13 +110,13 @@ workflow CELLPAINTING {
         .map { site_meta, images, meta_list ->
             // Zip images with metadata to keep them synchronized
             def paired = [images, meta_list].transpose().unique()
-            def unique_images = paired.collect { it[0] }
-            def unique_metas = paired.collect { it[1] }
+            def unique_images = paired.collect { it -> it[0] }
+            def unique_metas = paired.collect { it -> it[1] }
 
             def all_channels = meta_list[0].channels
             // Check if images have MULTIPLE cycles (not just a single cycle value)
             // Only treat as multi-cycle if there are 2+ distinct cycle values
-            def all_cycles = unique_metas.collect { it.cycle }.findAll { it != null }.unique().sort()
+            def all_cycles = unique_metas.collect { it -> it.cycle }.findAll { it != null }.unique().sort()
             def unique_cycles = all_cycles.size() > 1 ? all_cycles : null
 
             // Enrich metadata with filenames to enable matching
@@ -224,7 +224,7 @@ workflow CELLPAINTING {
 
     // Reshape CELLPROFILER_SEGCHECK output for QC montage
     CELLPROFILER_SEGCHECK.out.segcheck_res
-        .map { meta, ch_versionscsv_files, png_files ->
+        .map { meta, _ch_versionscsv_files, png_files ->
             [meta.subMap(['batch', 'plate']) + [arm: "painting"], png_files]
         }
         .groupTuple()
@@ -270,7 +270,7 @@ workflow CELLPAINTING {
         .set { ch_corrected_images_by_well }
 
     // Create synchronization barrier - wait for ALL QC_MONTAGE_SEGCHECK to complete
-    // This ensures all QC is done before checking params.qc_painting_passed
+    // This ensures all QC is done before attempting to run FIJI_STITCHCROP
     QC_MONTAGE_SEGCHECK.out.versions
         .collect()
         .set { ch_qc_complete }

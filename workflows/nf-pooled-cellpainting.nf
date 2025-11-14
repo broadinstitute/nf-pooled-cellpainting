@@ -3,11 +3,10 @@
     IMPORT MODULES / SUBWORKFLOWS / FUNCTIONS
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
-include { MULTIQC                       } from '../modules/nf-core/multiqc/main'
 include { CELLPAINTING                  } from '../subworkflows/local/cellpainting'
 include { BARCODING                     } from '../subworkflows/local/barcoding'
 include { CELLPROFILER_COMBINEDANALYSIS } from '../modules/local/cellprofiler/combinedanalysis/main'
-
+include { MULTIQC                       } from '../modules/nf-core/multiqc/main'
 
 include { paramsSummaryMap              } from 'plugin/nf-schema'
 include { paramsSummaryMultiqc          } from '../subworkflows/nf-core/utils_nfcore_pipeline'
@@ -27,8 +26,8 @@ workflow POOLED_CELLPAINTING {
 
     main:
 
-    ch_versions = Channel.empty()
-    ch_multiqc_files = Channel.empty()
+    ch_versions = channel.empty()
+    ch_multiqc_files = channel.empty()
 
     ch_samplesheet = ch_samplesheet
         .flatMap { meta, image ->
@@ -74,9 +73,6 @@ workflow POOLED_CELLPAINTING {
     // Only run if both painting and barcoding QC have been marked as pass
 
     // Combine cropped images from both arms
-    // Combine cell painting and barcoding cropped images for combined analysis
-    // Both subworkflows now output: [ meta (with site), [ images ] ]
-    // Group by (batch, plate, well, site) only - NOT arm, since that differs between painting and barcoding
     CELLPAINTING.out.cropped_images
         .mix(BARCODING.out.cropped_images)
         .map { meta, images ->
@@ -92,7 +88,7 @@ workflow POOLED_CELLPAINTING {
             [group_key, group_meta, images]
         }
         .groupTuple(by: 0, size: 2)
-        .map { group_key, meta_list, images_lists ->
+        .map { _group_key, meta_list, images_lists ->
             // Use first meta (they should all be identical since grouped by same key)
             def meta = meta_list[0]
             // Flatten images from both arms into single list
@@ -174,29 +170,29 @@ workflow POOLED_CELLPAINTING {
     //
     // MODULE: MultiQC
     //
-    ch_multiqc_config = Channel.fromPath(
+    ch_multiqc_config = channel.fromPath(
         "${projectDir}/assets/multiqc_config.yml",
         checkIfExists: true
     )
     ch_multiqc_custom_config = params.multiqc_config
-        ? Channel.fromPath(params.multiqc_config, checkIfExists: true)
-        : Channel.empty()
+        ? channel.fromPath(params.multiqc_config, checkIfExists: true)
+        : channel.empty()
     ch_multiqc_logo = params.multiqc_logo
-        ? Channel.fromPath(params.multiqc_logo, checkIfExists: true)
-        : Channel.empty()
+        ? channel.fromPath(params.multiqc_logo, checkIfExists: true)
+        : channel.empty()
 
     summary_params = paramsSummaryMap(
         workflow,
         parameters_schema: "nextflow_schema.json"
     )
-    ch_workflow_summary = Channel.value(paramsSummaryMultiqc(summary_params))
+    ch_workflow_summary = channel.value(paramsSummaryMultiqc(summary_params))
     ch_multiqc_files = ch_multiqc_files.mix(
         ch_workflow_summary.collectFile(name: 'workflow_summary_mqc.yaml')
     )
     ch_multiqc_custom_methods_description = params.multiqc_methods_description
         ? file(params.multiqc_methods_description, checkIfExists: true)
         : file("${projectDir}/assets/methods_description_template.yml", checkIfExists: true)
-    ch_methods_description = Channel.value(
+    ch_methods_description = channel.value(
         methodsDescriptionText(ch_multiqc_custom_methods_description)
     )
 

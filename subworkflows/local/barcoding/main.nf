@@ -40,8 +40,8 @@ workflow BARCODING {
         .map { meta, images, meta_list ->
             // Zip images with metadata to keep them synchronized
             def paired = [images, meta_list].transpose().unique()
-            def unique_images = paired.collect { it[0] }
-            def unique_metas = paired.collect { it[1] }
+            def unique_images = paired.collect { it -> it[0] }
+            def unique_metas = paired.collect { it -> it[1] }
 
             def all_channels = meta_list[0].channels
             // Enrich metadata with filenames to enable matching
@@ -109,12 +109,12 @@ workflow BARCODING {
         .map { site_meta, images, meta_list ->
             // Zip images with metadata to keep them synchronized
             def paired = [images, meta_list].transpose().unique()
-            def unique_images = paired.collect { it[0] }
-            def unique_metas = paired.collect { it[1] }
+            def unique_images = paired.collect { it -> it[0] }
+            def unique_metas = paired.collect { it -> it[1] }
 
             // Get unique cycles and channels for this site
             // For barcoding, we expect multiple cycles
-            def all_cycles = unique_metas.collect { it.cycle }.findAll { it != null }.unique().sort()
+            def all_cycles = unique_metas.collect { it -> it.cycle }.findAll { it != null }.unique().sort()
             def unique_cycles = all_cycles.size() > 1 ? all_cycles : null
             def all_channels = unique_metas[0].channels
 
