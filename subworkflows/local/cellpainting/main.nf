@@ -21,6 +21,7 @@ workflow CELLPAINTING {
 
     main:
     ch_versions = channel.empty()
+    ch_cropped_images = channel.empty()
 
     //// Calculate illumination correction profiles ////
 
@@ -273,85 +274,80 @@ workflow CELLPAINTING {
         .collect()  // Wait for all QC jobs across all plates/wells
         .set { ch_qc_complete }
 
-    // Conditionally proceed with stitching based on QC parameter
-    if (params.qc_painting_passed) {
-        // Combine corrected images with QC completion signal
-        // This makes each stitching job depend on QC completion, but allows parallel stitching
-        ch_corrected_images_by_well
-            .combine(ch_qc_complete)  // Add QC barrier - broadcasts to all items
-            .map { meta, images, _qc_signal -> [meta, images] }  // Drop signal, keep data
-            .set { ch_corrected_images_synced }
+    // Combine corrected images with QC completion signal
+    // This makes each stitching job depend on QC completion, but allows parallel stitching
+    ch_corrected_images_by_well
+        .combine(ch_qc_complete)  // Add QC barrier - broadcasts to all items
+        .map { meta, images, _qc_signal -> [meta, images] }  // Drop signal, keep data
+        .set { ch_corrected_images_synced }
 
-        FIJI_STITCHCROP (
-            ch_corrected_images_synced,
-            file("${projectDir}/bin/stitch_crop.py"),
-            params.painting_round_or_square,
-            params.painting_quarter_if_round,
-            params.painting_overlap_pct,
-            params.painting_scalingstring,
-            params.painting_imperwell,
-            params.painting_rows,
-            params.painting_columns,
-            params.painting_stitchorder,
-            params.tileperside,
-            params.final_tile_size,
-            params.painting_xoffset_tiles,
-            params.painting_yoffset_tiles,
-            params.compress
-        )
+    FIJI_STITCHCROP (
+        ch_corrected_images_synced,
+        file("${projectDir}/bin/stitch_crop.py"),
+        params.painting_round_or_square,
+        params.painting_quarter_if_round,
+        params.painting_overlap_pct,
+        params.painting_scalingstring,
+        params.painting_imperwell,
+        params.painting_rows,
+        params.painting_columns,
+        params.painting_stitchorder,
+        params.tileperside,
+        params.final_tile_size,
+        params.painting_xoffset_tiles,
+        params.painting_yoffset_tiles,
+        params.compress,
+        params.qc_painting_passed
+    )
 
-        // Split cropped images into individual tuples with site in metadata
-        // FIJI_STITCHCROP outputs multiple files (one per site) but meta doesn't have site
-        // Extract site from filename and create one tuple per site with all channels for that site
-        FIJI_STITCHCROP.out.cropped_images
-            .flatMap { meta, images ->
-                // Group images by site
-                def images_by_site = images.groupBy { img ->
-                    def site_match = (img.name =~ /Site_(\d+)/)
-                    site_match ? site_match[0][1] as Integer : null
+    // Split cropped images into individual tuples with site in metadata
+    // FIJI_STITCHCROP outputs multiple files (one per site) but meta doesn't have site
+    // Extract site from filename and create one tuple per site with all channels for that site
+    FIJI_STITCHCROP.out.cropped_images
+        .flatMap { meta, images ->
+            // Group images by site
+            def images_by_site = images.groupBy { img ->
+                def site_match = (img.name =~ /Site_(\d+)/)
+                site_match ? site_match[0][1] as Integer : null
+            }
+
+            // Create one tuple per site with all its channel images
+            images_by_site.collect { site, site_images ->
+                if (site == null) {
+                    log.error "Could not parse site from painting cropped images"
+                    return null
                 }
 
-                // Create one tuple per site with all its channel images
-                images_by_site.collect { site, site_images ->
-                    if (site == null) {
-                        log.error "Could not parse site from painting cropped images"
-                        return null
-                    }
+                // Create new meta with site
+                def new_meta = meta.subMap(['batch', 'plate', 'well', 'channels', 'arm']) + [
+                    id: "${meta.batch}_${meta.plate}_${meta.well}_${site}",
+                    site: site
+                ]
 
-                    // Create new meta with site
-                    def new_meta = meta.subMap(['batch', 'plate', 'well', 'channels', 'arm']) + [
-                        id: "${meta.batch}_${meta.plate}_${meta.well}_${site}",
-                        site: site
-                    ]
-
-                    [new_meta, site_images]
-                }
+                [new_meta, site_images]
             }
-            .filter { item -> item != null }
-            .set { ch_cropped_images }
+        }
+        .filter { item -> item != null }
+        .set { ch_cropped_images }
 
-        ch_versions = ch_versions.mix(FIJI_STITCHCROP.out.versions)
+    ch_versions = ch_versions.mix(FIJI_STITCHCROP.out.versions)
 
-        // QC montage for stitchcrop results
-        FIJI_STITCHCROP.out.downsampled_images
-            .map{ meta, tiff_files ->
-                [meta.subMap(['batch', 'plate']) + [arm: "painting"], tiff_files]
-            }
-            .groupTuple()
-            .map{ meta, tiff_files_list ->
-                [meta, tiff_files_list.flatten()]
-            }
-            .set { ch_stitchcrop_qc }
+    // QC montage for stitchcrop results
+    FIJI_STITCHCROP.out.downsampled_images
+        .map{ meta, tiff_files ->
+            [meta.subMap(['batch', 'plate']) + [arm: "painting"], tiff_files]
+        }
+        .groupTuple()
+        .map{ meta, tiff_files_list ->
+            [meta, tiff_files_list.flatten()]
+        }
+        .set { ch_stitchcrop_qc }
 
-        QC_MONTAGE_STITCHCROP_PAINTING (
-            ch_stitchcrop_qc,
-            ".*\\.tiff\$"  // Pattern for stitchcrop: all TIFF files
-        )
-        ch_versions = ch_versions.mix(QC_MONTAGE_STITCHCROP_PAINTING.out.versions)
-    } else {
-        Channel.empty().set { ch_croppch_cropped_imagesed_painting }
-        log.info "Stopping before FIJI_STITCHCROP for painting arm: QC not passed (params.qc_painting_passed = false). Perform QC for painting assay and set qc_painting_passed=true to proceed."
-    }
+    QC_MONTAGE_STITCHCROP_PAINTING (
+        ch_stitchcrop_qc,
+        ".*\\.tiff\$"  // Pattern for stitchcrop: all TIFF files
+    )
+    ch_versions = ch_versions.mix(QC_MONTAGE_STITCHCROP_PAINTING.out.versions)
 
     emit:
     cropped_images            = ch_cropped_images // channel: [ val(meta), [ cropped_images ] ]

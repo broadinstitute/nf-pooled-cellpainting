@@ -21,7 +21,7 @@ process MULTIQC {
     path "versions.yml"        , emit: versions
 
     when:
-    task.ext.when == null || task.ext.when
+    params.qc_painting_passed && params.qc_barcoding_passed
 
     script:
     def args = task.ext.args ?: ''

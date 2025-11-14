@@ -20,9 +20,6 @@ process CELLPROFILER_COMBINEDANALYSIS {
     path "load_data.csv"                               , emit: load_data_csv
     path "versions.yml"                                , emit: versions
 
-    when:
-    task.ext.when == null || task.ext.when
-
     script:
     // Build optional JSON fields
     def batch_json = meta.batch ? "\"batch\": \"${meta.batch}\"," : ""

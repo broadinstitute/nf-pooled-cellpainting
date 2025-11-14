@@ -309,104 +309,99 @@ workflow BARCODING {
     )
     ch_versions = ch_versions.mix(QC_PREPROCESS.out.versions)
 
-    if (params.qc_barcoding_passed) {
-        // STITCH & CROP IMAGES ////
-        // PREPROCESS outputs are per site, but STITCHCROP needs all sites together per well
-        // Re-group by well before stitching
-        CELLPROFILER_PREPROCESS.out.preprocessed_images
-            .map { meta, images ->
-                // Create well key (without site)
-                def well_key = [
-                    batch: meta.batch,
-                    plate: meta.plate,
-                    well: meta.well,
-                    channels: meta.channels,
-                    arm: meta.arm,
-                    id: "${meta.batch}_${meta.plate}_${meta.well}"
+    // STITCH & CROP IMAGES ////
+    // PREPROCESS outputs are per site, but STITCHCROP needs all sites together per well
+    // Re-group by well before stitching
+    CELLPROFILER_PREPROCESS.out.preprocessed_images
+        .map { meta, images ->
+            // Create well key (without site)
+            def well_key = [
+                batch: meta.batch,
+                plate: meta.plate,
+                well: meta.well,
+                channels: meta.channels,
+                arm: meta.arm,
+                id: "${meta.batch}_${meta.plate}_${meta.well}"
+            ]
+            [well_key, meta.site, images]
+        }
+        .groupTuple()
+        .map { well_meta, site_list, images_list ->
+            // Flatten all site images into one list for the well
+            // Calculate the starting site number from metadata
+            def min_site = site_list.min()
+            def enriched_meta = well_meta + [first_site_index: min_site]
+            [enriched_meta, images_list.flatten()]
+        }
+        .set { ch_preprocess_by_well }
+
+    FIJI_STITCHCROP (
+        ch_preprocess_by_well,
+        file("${projectDir}/bin/stitch_crop.py"),
+        params.barcoding_round_or_square,
+        params.barcoding_quarter_if_round,
+        params.barcoding_overlap_pct,
+        params.barcoding_scalingstring,
+        params.barcoding_imperwell,
+        params.barcoding_rows,
+        params.barcoding_columns,
+        params.barcoding_stitchorder,
+        params.tileperside,
+        params.final_tile_size,
+        params.barcoding_xoffset_tiles,
+        params.barcoding_yoffset_tiles,
+        params.compress,
+        params.qc_barcoding_passed
+    )
+
+    // Split cropped images into individual tuples with site in metadata
+    // FIJI_STITCHCROP outputs multiple files (one per site) but meta doesn't have site
+    // Extract site from filename and create one tuple per site with all its cycle/channel images
+    FIJI_STITCHCROP.out.cropped_images
+        .flatMap { meta, images ->
+            // Group images by site
+            def images_by_site = images.groupBy { img ->
+                def site_match = (img.name =~ /Site_(\d+)/)
+                site_match ? site_match[0][1] as Integer : null
+            }
+
+            // Create one tuple per site with all its cycle/channel images
+            images_by_site.collect { site, site_images ->
+                if (site == null) {
+                    log.error "Could not parse site from barcoding cropped images"
+                    return null
+                }
+
+                // Create new meta with site
+                def new_meta = meta.subMap(['batch', 'plate', 'well', 'cycles', 'arm']) + [
+                    id: "${meta.batch}_${meta.plate}_${meta.well}_${site}",
+                    site: site
                 ]
-                [well_key, meta.site, images]
+
+                [new_meta, site_images]
             }
-            .groupTuple()
-            .map { well_meta, site_list, images_list ->
-                // Flatten all site images into one list for the well
-                // Calculate the starting site number from metadata
-                def min_site = site_list.min()
-                def enriched_meta = well_meta + [first_site_index: min_site]
-                [enriched_meta, images_list.flatten()]
-            }
-            .set { ch_preprocess_by_well }
+        }
+        .filter { item -> item != null }
+        .set { ch_cropped_images }
 
-        FIJI_STITCHCROP (
-            ch_preprocess_by_well,
-            file("${projectDir}/bin/stitch_crop.py"),
-            params.barcoding_round_or_square,
-            params.barcoding_quarter_if_round,
-            params.barcoding_overlap_pct,
-            params.barcoding_scalingstring,
-            params.barcoding_imperwell,
-            params.barcoding_rows,
-            params.barcoding_columns,
-            params.barcoding_stitchorder,
-            params.tileperside,
-            params.final_tile_size,
-            params.barcoding_xoffset_tiles,
-            params.barcoding_yoffset_tiles,
-            params.compress
-        )
+    ch_versions = ch_versions.mix(FIJI_STITCHCROP.out.versions)
 
-        // Split cropped images into individual tuples with site in metadata
-        // FIJI_STITCHCROP outputs multiple files (one per site) but meta doesn't have site
-        // Extract site from filename and create one tuple per site with all its cycle/channel images
-        FIJI_STITCHCROP.out.cropped_images
-            .flatMap { meta, images ->
-                // Group images by site
-                def images_by_site = images.groupBy { img ->
-                    def site_match = (img.name =~ /Site_(\d+)/)
-                    site_match ? site_match[0][1] as Integer : null
-                }
+    // QC montage for stitchcrop results
+    FIJI_STITCHCROP.out.downsampled_images
+        .map{ meta, tiff_files ->
+            [meta.subMap(['batch', 'plate']) + [arm: "barcoding"], tiff_files]
+        }
+        .groupTuple()
+        .map{ meta, tiff_files_list ->
+            [meta, tiff_files_list.flatten()]
+        }
+        .set { ch_stitchcrop_qc }
 
-                // Create one tuple per site with all its cycle/channel images
-                images_by_site.collect { site, site_images ->
-                    if (site == null) {
-                        log.error "Could not parse site from barcoding cropped images"
-                        return null
-                    }
-
-                    // Create new meta with site
-                    def new_meta = meta.subMap(['batch', 'plate', 'well', 'cycles', 'arm']) + [
-                        id: "${meta.batch}_${meta.plate}_${meta.well}_${site}",
-                        site: site
-                    ]
-
-                    [new_meta, site_images]
-                }
-            }
-            .filter { item -> item != null }
-            .set { ch_cropped_images }
-
-        ch_versions = ch_versions.mix(FIJI_STITCHCROP.out.versions)
-
-        // QC montage for stitchcrop results
-        FIJI_STITCHCROP.out.downsampled_images
-            .map{ meta, tiff_files ->
-                [meta.subMap(['batch', 'plate']) + [arm: "barcoding"], tiff_files]
-            }
-            .groupTuple()
-            .map{ meta, tiff_files_list ->
-                [meta, tiff_files_list.flatten()]
-            }
-            .set { ch_stitchcrop_qc }
-
-        QC_MONTAGE_STITCHCROP_BARCODING (
-            ch_stitchcrop_qc,
-            ".*\\.tiff\$"  // Pattern for stitchcrop: all TIFF files
-        )
-        ch_versions = ch_versions.mix(QC_MONTAGE_STITCHCROP_BARCODING.out.versions)
-
-    } else {
-        Channel.empty().set { ch_cropped_images }
-        log.info "Stopping before FIJI_STITCHCROP for barcoding arm: QC not passed (params.qc_barcoding_passed = false). Perform QC for barcoding assay and set qc_barcoding_passed=true to proceed."
-    }
+    QC_MONTAGE_STITCHCROP_BARCODING (
+        ch_stitchcrop_qc,
+        ".*\\.tiff\$"  // Pattern for stitchcrop: all TIFF files
+    )
+    ch_versions = ch_versions.mix(QC_MONTAGE_STITCHCROP_BARCODING.out.versions)
 
     emit:
     cropped_images  = ch_cropped_images // channel: [ val(meta), [ cropped_images ] ]

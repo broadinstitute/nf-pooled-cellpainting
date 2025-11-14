@@ -75,90 +75,88 @@ workflow POOLED_CELLPAINTING {
     //// Combined analysis of painting and barcoding data ////
     // Only run if both painting and barcoding QC have been marked as pass
 
-    if (params.qc_painting_passed && params.qc_barcoding_passed) {
-        // Combine cropped images from both arms
-        // Use concat to ensure both channels complete before grouping
-        // Combine cell painting and barcoding cropped images for combined analysis
-        // Both subworkflows now output: [ meta (with site), [ images ] ]
-        // Group by (batch, plate, well, site) only - NOT arm, since that differs between painting and barcoding
-        CELLPAINTING.out.cropped_images
-            .mix(BARCODING.out.cropped_images)
-            .map { meta, images ->
-                // Create grouping key with ONLY batch, plate, well, site (no arm!)
-                def group_key = [
-                    batch: meta.batch,
-                    plate: meta.plate,
-                    well: meta.well,
-                    site: meta.site,
-                    id: "${meta.batch}_${meta.plate}_${meta.well}_${meta.site}"
-                ]
-                [group_key, images]
-            }
-            .groupTuple()
-            .map { meta, images_lists ->
-                // Flatten images from both arms into single list
-                def all_images = images_lists.flatten()
+    // Combine cropped images from both arms
+    // Combine cell painting and barcoding cropped images for combined analysis
+    // Both subworkflows now output: [ meta (with site), [ images ] ]
+    // Group by (batch, plate, well, site) only - NOT arm, since that differs between painting and barcoding
+    CELLPAINTING.out.cropped_images
+        .mix(BARCODING.out.cropped_images)
+        .map { meta, images ->
+            // Create SIMPLE STRING grouping key for proper groupTuple operation
+            def group_key = "${meta.batch}_${meta.plate}_${meta.well}_${meta.site}"
+            def group_meta = [
+                batch: meta.batch,
+                plate: meta.plate,
+                well: meta.well,
+                site: meta.site,
+                id: group_key
+            ]
+            [group_key, group_meta, images]
+        }
+        .groupTuple(by: 0, size: 2)  // Group by the string key (index 0), emit when 2 items received
+        .map { group_key, meta_list, images_lists ->
+            // Use first meta (they should all be identical since grouped by same key)
+            def meta = meta_list[0]
+            // Flatten images from both arms into single list
+            def all_images = images_lists.flatten()
 
-                // Build image metadata for each image - parse ONLY cycle/channel from filename
-                // Site and well come from metadata (no filename parsing for metadata!)
-                def image_metas = all_images.collect { img ->
-                    // Parse cycle and channel from filename (FIJI_STITCHCROP stable format)
-                    // Barcoding: Plate_Plate1_Well_A1_Site_3_Cycle01_DNA.tiff
-                    // Cell painting: Plate_Plate1_Well_A1_Site_3_CorrDNA.tiff
-                    def barcode_match = (img.name =~ /Cycle(\d+)_([A-Z]+|DNA|DAPI)\.tiff?$/)
-                    def cp_match = (img.name =~ /Corr([A-Za-z0-9]+)\.tiff?$/)
+            // Build image metadata for each image - parse ONLY cycle/channel from filename
+            // Site and well come from metadata (no filename parsing for metadata!)
+            def image_metas = all_images.collect { img ->
+                // Parse cycle and channel from filename (FIJI_STITCHCROP stable format)
+                // Barcoding: Plate_Plate1_Well_A1_Site_3_Cycle01_DNA.tiff
+                // Cell painting: Plate_Plate1_Well_A1_Site_3_CorrDNA.tiff
+                def barcode_match = (img.name =~ /Cycle(\d+)_([A-Z]+|DNA|DAPI)\.tiff?$/)
+                def cp_match = (img.name =~ /Corr([A-Za-z0-9]+)\.tiff?$/)
 
-                    if (barcode_match) {
-                        // Barcoding image
-                        [
-                            well: meta.well,
-                            site: meta.site,
-                            filename: img.name,
-                            cycle: barcode_match[0][1] as Integer,
-                            channel: barcode_match[0][2],
-                            type: 'barcoding'
-                        ]
-                    } else if (cp_match) {
-                        // Cell painting image
-                        [
-                            well: meta.well,
-                            site: meta.site,
-                            filename: img.name,
-                            channel: cp_match[0][1],
-                            type: 'cellpainting'
-                        ]
-                    } else {
-                        log.warn "Unknown image type in combined analysis: ${img.name}"
-                        [
-                            well: meta.well,
-                            site: meta.site,
-                            filename: img.name,
-                            type: 'unknown'
-                        ]
-                    }
+                if (barcode_match) {
+                    // Barcoding image
+                    [
+                        well: meta.well,
+                        site: meta.site,
+                        filename: img.name,
+                        cycle: barcode_match[0][1] as Integer,
+                        channel: barcode_match[0][2],
+                        type: 'barcoding'
+                    ]
+                } else if (cp_match) {
+                    // Cell painting image
+                    [
+                        well: meta.well,
+                        site: meta.site,
+                        filename: img.name,
+                        channel: cp_match[0][1],
+                        type: 'cellpainting'
+                    ]
+                } else {
+                    log.warn "Unknown image type in combined analysis: ${img.name}"
+                    [
+                        well: meta.well,
+                        site: meta.site,
+                        filename: img.name,
+                        type: 'unknown'
+                    ]
                 }
-
-                [meta, all_images, image_metas]
             }
-            .set { ch_cropped_images }
 
-        CELLPROFILER_COMBINEDANALYSIS (
-            ch_cropped_images,
-            params.combinedanalysis_cppipe,
-            barcodes,
-            Channel.fromPath(params.callbarcodes_plugin)
-        )
-        ch_versions = ch_versions.mix(CELLPROFILER_COMBINEDANALYSIS.out.versions)
-        // Merge load_data CSVs across all samples
-        CELLPROFILER_COMBINEDANALYSIS.out.load_data_csv.collectFile(
-            name: "combined_analysis.load_data.csv",
-            keepHeader: true,
-            skip: 1,
-            storeDir: "${params.outdir}/workspace/load_data_csv/"
-        )
-    } else {
-        log.info "Stopping before CELLPROFILER_COMBINEDANALYSIS: QC not passed for both arms (qc_painting_passed=${params.qc_painting_passed}, qc_barcoding_passed=${params.qc_barcoding_passed}). Set both to true to proceed."
-    }
+            [meta, all_images, image_metas]
+        }
+        .set { ch_cropped_images }
+
+    CELLPROFILER_COMBINEDANALYSIS (
+        ch_cropped_images,
+        params.combinedanalysis_cppipe,
+        barcodes,
+        file(params.callbarcodes_plugin)
+    )
+    ch_versions = ch_versions.mix(CELLPROFILER_COMBINEDANALYSIS.out.versions)
+    // Merge load_data CSVs across all samples
+    CELLPROFILER_COMBINEDANALYSIS.out.load_data_csv.collectFile(
+        name: "combined_analysis.load_data.csv",
+        keepHeader: true,
+        skip: 1,
+        storeDir: "${params.outdir}/workspace/load_data_csv/"
+    )
 
 
     //

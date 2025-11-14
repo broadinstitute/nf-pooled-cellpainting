@@ -26,6 +26,7 @@ process FIJI_STITCHCROP {
     val xoffset_tiles
     val yoffset_tiles
     val compress
+    val should_run
 
     output:
     tuple val(meta), path("stitched_images/*.tiff")                 , emit: stitched_images
@@ -35,8 +36,8 @@ process FIJI_STITCHCROP {
     path("versions.yml")                                            , emit: versions
 
     when:
-    task.ext.when == null || task.ext.when
-
+    should_run
+    
     script:
     // Allocate 75% of available memory to JVM heap (leaving 25% for non-heap, native memory, and OS)
     // Use a minimum of 2GB to ensure basic functionality
