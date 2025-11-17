@@ -5,16 +5,11 @@ on:
     branches:
       - dev
       - main
-  pull_request:
-    branches:
-      - dev
-      - main
 
 permissions:
   contents: read
   pages: write
   id-token: write
-  pull-requests: write
 
 # Allow only one concurrent deployment, skipping runs queued between the run in-progress and latest queued.
 concurrency:
@@ -56,31 +51,3 @@ jobs:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
-
-  # PR preview job
-  preview:
-    runs-on: ubuntu-latest
-    if: github.event_name == 'pull_request'
-    permissions:
-      contents: write
-      pull-requests: write
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: actions/setup-python@v5
-        with:
-          python-version: 3.x
-
-      - name: Install dependencies
-        run: pip install -r docs-requirements.txt
-
-      - name: Build documentation
-        run: mkdocs build --site-dir site
-
-      - name: Deploy PR preview
-        uses: rossjrw/pr-preview-action@v1
-        with:
-          source-dir: site
-          preview-branch: gh-pages
-          umbrella-dir: pr-preview
-          action: auto

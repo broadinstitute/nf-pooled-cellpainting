@@ -2,22 +2,14 @@
     "cellprofiler - illumcalc - painting": {
         "content": [
             [
-                [
-                    {
-                        "batch": "Batch1",
-                        "plate": "Plate1",
-                        "channels": "CHN2-AF488",
-                        "id": "Batch1_Plate1_CHN2-AF488"
-                    },
-                    "Plate1_IllumCHN2-AF488.npy:md5,dcf072c2e25cbeb8ca8c9d9044c2ff34"
-                ]
+                
             ]
         ],
         "meta": {
             "nf-test": "0.9.3",
             "nextflow": "25.10.0"
         },
-        "timestamp": "2025-11-07T19:52:26.551860416"
+        "timestamp": "2025-11-17T04:42:09.13464049"
     },
     "cellprofiler - illumcalc - stub": {
         "content": [
