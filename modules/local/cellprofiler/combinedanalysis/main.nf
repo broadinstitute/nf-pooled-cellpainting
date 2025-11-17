@@ -1,40 +1,41 @@
 process CELLPROFILER_COMBINEDANALYSIS {
-    tag "$meta.id"
+    tag "${meta.id}"
     label 'cellprofiler_medium'
 
     conda "${moduleDir}/environment.yml"
-    container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
-        'oras://community.wave.seqera.io/library/cellprofiler:4.2.8--7c1bd3a82764de92':
-        'community.wave.seqera.io/library/cellprofiler:4.2.8--aff0a99749304a7f' }"
+    container "${workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container
+        ? 'oras://community.wave.seqera.io/library/cellprofiler:4.2.8--7c1bd3a82764de92'
+        : 'community.wave.seqera.io/library/cellprofiler:4.2.8--aff0a99749304a7f'}"
 
     input:
-    tuple val(meta), path(cropped_images, stageAs: "images/*"), val(image_metas)
+    tuple val(meta), path(cropped_images, stageAs: "images/"), val(image_metas)
     path combinedanalysis_cppipe
     path barcodes, stageAs: "images/Barcodes.csv"
-    path plugins, stageAs: "plugins/*"
+    path plugins, stageAs: "plugins/"
 
     output:
-    tuple val(meta), path("*.png")                     , emit: overlay_images
-    tuple val(meta), path("*.csv")                     , emit: csv_stats
-    tuple val(meta), path("segmentation_masks/*.tiff") , emit: segmentation_masks, optional: true
-    path "load_data.csv"                               , emit: load_data_csv
-    path "versions.yml"                                , emit: versions
-
-    when:
-    task.ext.when == null || task.ext.when
+    tuple val(meta), path("*.png"), emit: overlay_images
+    tuple val(meta), path("*.csv"), emit: csv_stats
+    tuple val(meta), path("segmentation_masks/*.tiff"), emit: segmentation_masks, optional: true
+    path "load_data.csv", emit: load_data_csv
+    path "versions.yml", emit: versions
 
     script:
-    // Build optional JSON fields
-    def batch_json = meta.batch ? "\"batch\": \"${meta.batch}\"," : ""
-    def arm_json = meta.arm ? "\"arm\": \"${meta.arm}\"," : ""
-    // Build image_metadata array with well+site+filename+cycle/channel for each image
-    def image_metadata_json = image_metas.collect { m ->
-        def fname = m.filename ?: 'MISSING'
-        def type = m.type ?: 'UNKNOWN'
-        def cycle = m.cycle ? ", \"cycle\": ${m.cycle}" : ""
-        def channel = m.channel ? ", \"channel\": \"${m.channel}\"" : ""
-        "        {\"well\": \"${m.well}\", \"site\": ${m.site}, \"filename\": \"${fname}\", \"type\": \"${type}\"${cycle}${channel}}"
-    }.join(',\n')
+    // Create metadata structure with plate info and image_metadata array
+    def metadata_map = [
+        plate: meta.plate,
+        image_metadata: image_metas,
+    ]
+    // Add optional fields if present
+    if (meta.batch) {
+        metadata_map.batch = meta.batch
+    }
+    if (meta.arm) {
+        metadata_map.arm = meta.arm
+    }
+
+    def metadata_json = groovy.json.JsonOutput.toJson(metadata_map)
+
     """
     # Set writable cache directories for CellProfiler and dependencies
     export MPLCONFIGDIR=\${PWD}/.matplotlib
@@ -42,17 +43,9 @@ process CELLPROFILER_COMBINEDANALYSIS {
     export XDG_CACHE_HOME=\${PWD}/.cache
     mkdir -p \${MPLCONFIGDIR} \${XDG_CACHE_HOME}
 
-    # Create metadata JSON file (force overwrite with >| to handle noclobber)
-    cat >| metadata.json << 'EOF'
-{
-    "plate": "${meta.plate}",
-    ${batch_json}
-    ${arm_json}
-    "id": "${meta.id}",
-    "image_metadata": [
-${image_metadata_json}
-    ]
-}
+    # Create metadata JSON file
+    cat > metadata.json << 'EOF'
+${metadata_json}
 EOF
 
     # Generate load_data.csv using the unified script with 'combined' pipeline type

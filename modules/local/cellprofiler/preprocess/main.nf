@@ -1,54 +1,36 @@
 process CELLPROFILER_PREPROCESS {
-    tag "$meta.id"
+    tag "${meta.id}"
     label 'cellprofiler_basic'
 
     conda "${moduleDir}/environment.yml"
-    container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
-        'oras://community.wave.seqera.io/library/cellprofiler:4.2.8--7c1bd3a82764de92':
-        'community.wave.seqera.io/library/cellprofiler:4.2.8--aff0a99749304a7f' }"
+    container "${workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container
+        ? 'oras://community.wave.seqera.io/library/cellprofiler:4.2.8--7c1bd3a82764de92'
+        : 'community.wave.seqera.io/library/cellprofiler:4.2.8--aff0a99749304a7f'}"
 
     input:
-    tuple val(meta), path(aligned_images, stageAs: "images/*"), val(image_metas)
+    tuple val(meta), path(aligned_images, stageAs: "images/"), val(image_metas)
     path preprocess_cppipe
     path barcodes, stageAs: "images/Barcodes.csv"
-    path (plugins, stageAs: "plugins/*")
-
+    path plugins, stageAs: "plugins/"
 
     output:
-    tuple val(meta), path("*.tiff")                    , emit: preprocessed_images
-    path "overlay/*.tiff", optional: true              , emit: overlay
-    tuple val(meta), path("BarcodePreprocessing*.csv") , emit: preprocess_stats
-    path "load_data.csv"                               , emit: load_data_csv
-    path "versions.yml"                                , emit: versions
+    tuple val(meta), path("*.tiff"), emit: preprocessed_images
+    path "overlay/*.tiff", optional: true, emit: overlay
+    tuple val(meta), path("BarcodePreprocessing*.csv"), emit: preprocess_stats
+    path "load_data.csv", emit: load_data_csv
+    path "versions.yml", emit: versions
 
     when:
     task.ext.when == null || task.ext.when
 
     script:
-    // Build optional JSON fields
-    def batch_json = meta.batch ? "\"batch\": \"${meta.batch}\"," : ""
-    def arm_json = meta.arm ? "\"arm\": \"${meta.arm}\"," : ""
-    def channels_json = meta.channels ? "\"channels\": \"${meta.channels}\"," : ""
-    // Build image_metadata array with well+site+filename+cycle+channel for each image
-    def image_metadata_json = image_metas.collect { m ->
-        def fname = m.filename ?: 'MISSING'
-        def cycle = m.cycle ?: 'UNKNOWN'
-        def channel = m.channel ?: 'UNKNOWN'
-        "        {\"well\": \"${m.well}\", \"site\": ${m.site}, \"filename\": \"${fname}\", \"cycle\": ${cycle}, \"channel\": \"${channel}\"}"
-    }.join(',\n')
+    // Serialize image metadata directly - it already contains all fields (plate, well, site, channels, filename, etc.)
+    def metadata_json = groovy.json.JsonOutput.toJson(image_metas)
+
     """
-    # Create metadata JSON file (force overwrite with >| to handle noclobber)
-    cat >| metadata.json << 'EOF'
-{
-    "plate": "${meta.plate}",
-    ${batch_json}
-    ${arm_json}
-    ${channels_json}
-    "id": "${meta.id}",
-    "image_metadata": [
-${image_metadata_json}
-    ]
-}
+    # Create metadata JSON file
+    cat > metadata.json << 'EOF'
+${metadata_json}
 EOF
 
     # Generate load_data.csv

@@ -23,7 +23,6 @@ nextflow_process {
                         file('s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/images/Batch1/images_corrected/barcoding/Plate1/Plate1-A1-0/BarcodePreprocessing_Foci.csv', checkIfExists: true),
                         file('s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/images/Batch1/images_corrected/barcoding/Plate1/Plate1-A1-1/BarcodePreprocessing_Foci.csv', checkIfExists: true),
                         file('s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/images/Batch1/images_corrected/barcoding/Plate1/Plate1-A1-2/BarcodePreprocessing_Foci.csv', checkIfExists: true)
-                        //Currently using csv for sites instead of wells #TODO: UPDATE
                     ], // CSV files (one per well)
                     3 // num_cycles
                 ]

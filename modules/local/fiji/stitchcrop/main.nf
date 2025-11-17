@@ -3,15 +3,10 @@ process FIJI_STITCHCROP {
     label 'fiji'
 
     conda "${moduleDir}/environment.yml"
-    container 'docker.io/fiji/fiji:20220415'
-
-    containerOptions {
-        // Fiji docker image has an entrypoint that interferes with Nextflow's command execution
-        workflow.containerEngine == 'docker' ? '--entrypoint=""' : ''
-    }
+    container 'docker.io/wuennemannflorian/fiji_noentrypoint:44dbc2ddb34260e7883980dc6719dfb73babb2e158c11b106c94c0192dad5e95'
 
     input:
-    tuple val(meta), path(corrected_images, stageAs: 'images/*')
+    tuple val(meta), path(corrected_images, stageAs: 'images/')
     path stitch_script
     val round_or_square
     val quarter_if_round
@@ -26,16 +21,17 @@ process FIJI_STITCHCROP {
     val xoffset_tiles
     val yoffset_tiles
     val compress
+    val should_run
 
     output:
-    tuple val(meta), path("stitched_images/*.tiff")                 , emit: stitched_images
-    tuple val(meta), path("stitched_images/TileConfiguration.txt")  , emit: tile_config
-    tuple val(meta), path("cropped_images/*.tiff")                  , emit: cropped_images
-    tuple val(meta), path("downsampled_images/*.tiff")              , emit: downsampled_images
-    path("versions.yml")                                            , emit: versions
+    tuple val(meta), path("stitched_images/*.tiff"), emit: stitched_images
+    tuple val(meta), path("stitched_images/TileConfiguration.txt"), emit: tile_config
+    tuple val(meta), path("cropped_images/*.tiff"), emit: cropped_images
+    tuple val(meta), path("downsampled_images/*.tiff"), emit: downsampled_images
+    path ("versions.yml"), emit: versions
 
     when:
-    task.ext.when == null || task.ext.when
+    should_run
 
     script:
     // Allocate 75% of available memory to JVM heap (leaving 25% for non-heap, native memory, and OS)

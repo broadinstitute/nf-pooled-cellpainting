@@ -26,7 +26,6 @@ include { PIPELINE_COMPLETION     } from './subworkflows/local/utils_nfcore_nf-p
 // WORKFLOW: Run main analysis pipeline depending on type of input
 //
 workflow NF_POOLED_CELLPAINTING {
-
     take:
     samplesheet // channel: samplesheet read in from --input
 
@@ -35,10 +34,11 @@ workflow NF_POOLED_CELLPAINTING {
     //
     // WORKFLOW: Run pipeline
     //
-    POOLED_CELLPAINTING (
+    POOLED_CELLPAINTING(
         samplesheet,
-        params.barcodes
+        params.barcodes,
     )
+
     emit:
     multiqc_report = POOLED_CELLPAINTING.out.multiqc_report // channel: /path/to/multiqc_report.html
 }
@@ -49,38 +49,30 @@ workflow NF_POOLED_CELLPAINTING {
 */
 
 workflow {
-
-    main:
     //
     // SUBWORKFLOW: Run initialisation tasks
     //
-    PIPELINE_INITIALISATION (
+    PIPELINE_INITIALISATION(
         params.version,
         params.validate_params,
         params.monochrome_logs,
         args,
         params.outdir,
-        params.input
+        params.input,
     )
 
     //
     // WORKFLOW: Run main workflow
     //
-    NF_POOLED_CELLPAINTING (
+    NF_POOLED_CELLPAINTING(
         PIPELINE_INITIALISATION.out.samplesheet
     )
     //
     // SUBWORKFLOW: Run completion tasks
     //
-    PIPELINE_COMPLETION (
+    PIPELINE_COMPLETION(
         params.outdir,
         params.monochrome_logs,
-        NF_POOLED_CELLPAINTING.out.multiqc_report
+        NF_POOLED_CELLPAINTING.out.multiqc_report,
     )
 }
-
-/*
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    THE END
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-*/

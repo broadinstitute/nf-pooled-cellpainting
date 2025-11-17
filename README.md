@@ -1,69 +1,96 @@
-# seqera-services/nf-pooled-cellpainting
+# nf-pooled-cellpainting
+
+[![Nextflow](https://img.shields.io/badge/nextflow%20DSL2-%E2%89%A525.04.8-23aa62.svg)](https://www.nextflow.io/)
+[![run with docker](https://img.shields.io/badge/run%20with-docker-0db7ed?labelColor=000000&logo=docker)](https://www.docker.com/)
+[![run with singularity](https://img.shields.io/badge/run%20with-singularity-1d355c.svg?labelColor=000000)](https://sylabs.io/docs/)
 
 ## Introduction
 
-**nf-pooled-cellpainting** is a bioinformatics pipeline to process optical pooled screening (OPS) data.
+**nf-pooled-cellpainting** is a Nextflow pipeline for processing optical pooled screening (OPS) data, combining Cell Painting phenotypic analysis with sequencing-by-synthesis barcoding.
 
 > [!WARNING]
-> This pipeline is currently under active development by Seqera and the Broad Institute's imaging platform.
+> This pipeline is under active development by Seqera and the Broad Institute's Imaging Platform.
 
-<!-- TODO nf-core:
-   Add metro map of final flow
--->
+## Pipeline Overview
 
-## Usage
+The pipeline processes data through two parallel arms:
 
-> [!NOTE]
-> If you are new to Nextflow and nf-core, please refer to [this page](https://nf-co.re/docs/usage/installation) on how to set-up Nextflow. Make sure to [test your setup](https://nf-co.re/docs/usage/introduction#how-to-run-a-pipeline) with `-profile test` before running the workflow on actual data.
+- **Cell Painting**: Multi-channel fluorescence microscopy for phenotypic profiling
+- **Barcoding**: Sequencing-by-synthesis for cell identification by genetic barcoding
 
-<!-- TODO nf-core: Describe the minimum required steps to execute the pipeline, e.g. how to prepare samplesheets.
-     Explain what rows and columns represent. For instance (please edit as appropriate):
+Key steps include:
 
-First, prepare a samplesheet with your input data that looks as follows:
+1. Illumination correction (CellProfiler)
+2. Quality control checkpoints
+3. Image stitching and cropping (Fiji)
+4. Segmentation and feature extraction
+5. Barcode calling and assignment
+6. Final version and QC report with MultiQC
 
-`samplesheet.csv`:
-
-```csv
-sample,fastq_1,fastq_2
-CONTROL_REP1,AEG588A1_S1_L002_R1_001.fastq.gz,AEG588A1_S1_L002_R2_001.fastq.gz
-```
-
-Each row represents a fastq file (single-end) or a pair of fastq files (paired end).
-
--->
-
-Now, you can run the pipeline using:
-
-<!-- TODO nf-core: update the following command to include all required parameters for a minimal example -->
+## Quick Start
 
 ```bash
 nextflow run seqera-services/nf-pooled-cellpainting \
-   -profile <docker/singularity/.../institute> \
+   -profile docker \
    --input samplesheet.csv \
-   --outdir <OUTDIR>
+   --barcodes barcodes.csv \
+   --painting_illumcalc_cppipe painting_illumcalc.cppipe \
+   --painting_illumapply_cppipe painting_illumapply.cppipe \
+   --painting_segcheck_cppipe painting_segcheck.cppipe \
+   --barcoding_illumcalc_cppipe barcoding_illumcalc.cppipe \
+   --barcoding_illumapply_cppipe barcoding_illumapply.cppipe \
+   --barcoding_preprocess_cppipe barcoding_preprocess.cppipe \
+   --combinedanalysis_cppipe combinedanalysis.cppipe \
+   --outdir results
 ```
 
-> [!WARNING]
-> Please provide pipeline parameters via the CLI or Nextflow `-params-file` option. Custom config files including those provided by the `-c` Nextflow option can be used to provide any configuration _**except for parameters**_; see [docs](https://nf-co.re/docs/usage/getting_started/configuration#custom-configuration-files).
+Run the pipeline with small test data:
+
+```bash
+nextflow run seqera-services/nf-pooled-cellpainting -profile test,docker --outdir results
+```
+
+## Documentation
+
+For detailed documentation, see: **[Full Documentation](https://your-org.github.io/nf-pooled-cellpainting/)**
+
+- [Installation](https://your-org.github.io/nf-pooled-cellpainting/getting-started/installation/)
+- [Usage Guide](https://your-org.github.io/nf-pooled-cellpainting/usage/parameters/)
+- [Pipeline Architecture](https://your-org.github.io/nf-pooled-cellpainting/developer/architecture/)
+- [Troubleshooting](https://your-org.github.io/nf-pooled-cellpainting/reference/troubleshooting/)
+
+## Pipeline Parameters
+
+Key parameters:
+
+| Parameter                   | Description                                 | Required |
+| --------------------------- | ------------------------------------------- | -------- |
+| `--input`                   | Samplesheet CSV with image paths            | Yes      |
+| `--barcodes`                | Barcode reference CSV                       | Yes      |
+| `--painting_*_cppipe`       | CellProfiler pipelines for painting arm     | Yes      |
+| `--barcoding_*_cppipe`      | CellProfiler pipelines for barcoding arm    | Yes      |
+| `--combinedanalysis_cppipe` | Combined analysis pipeline                  | Yes      |
+| `--outdir`                  | Output directory                            | Yes      |
+| `--qc_painting_passed`      | Enable painting stitching (default: false)  | No       |
+| `--qc_barcoding_passed`     | Enable barcoding stitching (default: false) | No       |
+
+See [Parameters Documentation](https://your-org.github.io/nf-pooled-cellpainting/usage/parameters/) for complete list.
 
 ## Credits
 
-nf-pooled-cellpainting was originally written by [Florian Wuennemann](https://github.com/FloWuenne), [Erin Weissbart](https://github.com/ErinWeisbart), [Shantanu Singh](https://github.com/shntnu) and [Ken Brewer](https://github.com/kenibrewer).
-
-<!-- We thank the following people for their extensive assistance in the development of this pipeline: -->
-
-<!-- TODO nf-core: If applicable, make list of people who have also contributed -->
+nf-pooled-cellpainting was originally written by [Florian Wuennemann](https://github.com/FloWuenne) (Seqera), [Ken Brewer](https://github.com/kenibrewer) (Seqera), [Erin Weissbart](https://github.com/ErinWeisbart) (Broad Institute), [Shantanu Singh](https://github.com/shntnu) (Broad Institute).
 
 ## Contributions and Support
 
 If you would like to contribute to this pipeline, please see the [contributing guidelines](.github/CONTRIBUTING.md).
 
+## License
+
+This pipeline is licensed under the [BSD 3-Clause License](LICENSE).
+
+Portions of this software are derived from the nf-core project template and infrastructure, which are licensed under the [MIT License](LICENSE-MIT). This includes the pipeline template structure, configuration patterns, and utility functions.
+
 ## Citations
-
-<!-- TODO nf-core: Add citation for pipeline after first release. Uncomment lines below and update Zenodo doi and badge at the top of this file. -->
-<!-- If you use seqera-services/nf-pooled-cellpainting for your analysis, please cite it using the following doi: [10.5281/zenodo.XXXXXX](https://doi.org/10.5281/zenodo.XXXXXX) -->
-
-<!-- TODO nf-core: Add bibliography of tools and data used in your pipeline -->
 
 An extensive list of references for the tools used by the pipeline can be found in the [`CITATIONS.md`](CITATIONS.md) file.
 

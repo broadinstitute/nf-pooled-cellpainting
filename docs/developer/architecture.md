@@ -7,18 +7,32 @@ Technical overview of the pipeline architecture and implementation.
 ```
 nf-pooled-cellpainting/
 ├── main.nf                          # Entry point
+├── nextflow.config                  # Main configuration
 ├── workflows/
-│   └── nf-pooled-cellpainting.nf   # Main workflow
+│   └── nf-pooled-cellpainting.nf   # Main workflow logic
 ├── subworkflows/
 │   └── local/
-│       ├── cellpainting/           # Cell painting arm
-│       └── barcoding/              # Barcoding arm
+│       ├── cellpainting/           # Cell painting processing arm
+│       ├── barcoding/              # Barcoding processing arm
+│       └── utils*/                 # Utility subworkflows
 ├── modules/
-│   └── local/
-│       ├── cellprofiler/           # CellProfiler processes
-│       └── fiji/                   # Fiji processes
-├── bin/                            # Python scripts
-└── conf/                           # Configuration files
+│   ├── local/
+│   │   ├── cellprofiler/          # CellProfiler processes
+│   │   │   ├── illumcalc/         # Illumination calculation
+│   │   │   ├── illumapply/        # Illumination application
+│   │   │   ├── preprocess/        # Barcode preprocessing
+│   │   │   ├── segcheck/          # Segmentation QC
+│   │   │   └── combinedanalysis/  # Combined analysis
+│   │   ├── fiji/                  # Fiji image processing
+│   │   │   └── stitchcrop/        # Image stitching & cropping
+│   │   └── qc/                    # QC processes
+│   └── nf-core/                   # nf-core modules (MultiQC)
+├── bin/                            # Python scripts & tools
+├── conf/                           # Configuration files
+├── assets/                         # CellProfiler pipelines & resources
+├── lib/                            # Groovy library functions
+├── docs/                           # Documentation source
+└── tests/                          # nf-test test cases
 ```
 
 ## Workflow Design
@@ -60,15 +74,16 @@ Located in `subworkflows/local/cellpainting/main.nf`:
 
 1. **ILLUMCALC**: Calculate illumination corrections
    - Groups by: `[batch, plate]`
-   - Outputs: `.npy` illumination functions
+   - Outputs: `.npy` illumination functions per plate
 2. **QC_MONTAGEILLUM**: Generate illumination QC montages
 3. **ILLUMAPPLY**: Apply illumination corrections
-   - Groups by: `[batch, plate, well]`
-   - Parallelized per well
+   - Groups by: `[batch, plate, well, site]`
+   - Parallelized per site
 4. **SEGCHECK**: Segmentation quality check
    - Subsampled by `range_skip` parameter
 5. **QC_MONTAGE_SEGCHECK**: Segmentation QC visualizations
 6. **FIJI_STITCHCROP**: Stitch and crop images (conditional)
+   - Groups by: `[batch, plate, well]`
    - Enabled when `qc_painting_passed == true`
 7. **QC_MONTAGE_STITCHCROP**: Stitching QC visualizations
 
@@ -140,11 +155,13 @@ ch_input
 
 ### Parallelization
 
-Recent refactor (commit `1cb48ac`) optimized parallelization:
+The pipeline implements fine-grained parallelization:
 
-- **Before**: Sequential processing within plates
-- **After**: Independent wells/sites process in parallel
-- **Result**: Significant speedup for large experiments
+- **Illumination calculation**: Grouped by plate (or plate+cycle for barcoding)
+- **Illumination correction**: Parallelized per site
+- **Stitching**: Parallelized per well
+- **Combined analysis**: Parallelized per site
+- **Result**: Optimal resource utilization and throughput
 
 ## Process Design
 
@@ -238,11 +255,14 @@ Supported pipeline types:
 Output files follow consistent naming:
 
 ```
-# Painting
-{plate}_{well}_{site}_Corr{channel}.tif
+# Painting corrected images
+Plate_{plate}_Well_{well}_Site_{site}_Corr{channel}.tiff
 
-# Barcoding
-{plate}_{well}_{site}_Cycle{cycle}_{channel}.tif
+# Barcoding corrected images
+Plate_{plate}_Well_{well}_Site_{site}_Cycle{cycle}_{channel}.tiff
+
+# Stitched/cropped images
+Plate_{plate}_Well_{well}_Site_{site}_*.tiff
 
 # Illumination functions
 {plate}_Illum{channel}.npy
