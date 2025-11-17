@@ -3,12 +3,7 @@ process FIJI_STITCHCROP {
     label 'fiji'
 
     conda "${moduleDir}/environment.yml"
-    container 'docker.io/fiji/fiji:20220415'
-
-    containerOptions {
-        // Fiji docker image has an entrypoint that interferes with Nextflow's command execution
-        workflow.containerEngine == 'docker' ? '--entrypoint=""' : ''
-    }
+    container 'docker.io/wuennemannflorian/fiji_noentrypoint:44dbc2ddb34260e7883980dc6719dfb73babb2e158c11b106c94c0192dad5e95'
 
     input:
     tuple val(meta), path(corrected_images, stageAs: 'images/')
