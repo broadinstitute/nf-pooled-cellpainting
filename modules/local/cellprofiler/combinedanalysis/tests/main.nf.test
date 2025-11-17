@@ -46,25 +46,25 @@ nextflow_process {
                     ],
                     [
                         // Painting images
-                        [well:'A1', site:1, filename:'Plate_Plate1_Well_A1_Site_1_CorrCHN2.tiff', type:'cellpainting', channel:'CHN2'],
-                        [well:'A1', site:1, filename:'Plate_Plate1_Well_A1_Site_1_CorrDNA.tiff', type:'cellpainting', channel:'DNA'],
-                        [well:'A1', site:1, filename:'Plate_Plate1_Well_A1_Site_1_CorrPhalloidin.tiff', type:'cellpainting', channel:'Phalloidin'],
+                        [plate:'Plate1', batch:'Batch1', well:'A1', site:1, filename:'Plate_Plate1_Well_A1_Site_1_CorrCHN2.tiff', type:'cellpainting', channel:'CHN2'],
+                        [plate:'Plate1', batch:'Batch1', well:'A1', site:1, filename:'Plate_Plate1_Well_A1_Site_1_CorrDNA.tiff', type:'cellpainting', channel:'DNA'],
+                        [plate:'Plate1', batch:'Batch1', well:'A1', site:1, filename:'Plate_Plate1_Well_A1_Site_1_CorrPhalloidin.tiff', type:'cellpainting', channel:'Phalloidin'],
                         // Barcoding images - Cycle 1
-                        [well:'A1', site:1, filename:'Plate_Plate1_Well_A1_Site_1_Cycle01_A.tiff', type:'barcoding', cycle:1, channel:'A'],
-                        [well:'A1', site:1, filename:'Plate_Plate1_Well_A1_Site_1_Cycle01_C.tiff', type:'barcoding', cycle:1, channel:'C'],
-                        [well:'A1', site:1, filename:'Plate_Plate1_Well_A1_Site_1_Cycle01_DNA.tiff', type:'barcoding', cycle:1, channel:'DNA'],
-                        [well:'A1', site:1, filename:'Plate_Plate1_Well_A1_Site_1_Cycle01_G.tiff', type:'barcoding', cycle:1, channel:'G'],
-                        [well:'A1', site:1, filename:'Plate_Plate1_Well_A1_Site_1_Cycle01_T.tiff', type:'barcoding', cycle:1, channel:'T'],
+                        [plate:'Plate1', batch:'Batch1', well:'A1', site:1, filename:'Plate_Plate1_Well_A1_Site_1_Cycle01_A.tiff', type:'barcoding', cycle:1, channel:'A'],
+                        [plate:'Plate1', batch:'Batch1', well:'A1', site:1, filename:'Plate_Plate1_Well_A1_Site_1_Cycle01_C.tiff', type:'barcoding', cycle:1, channel:'C'],
+                        [plate:'Plate1', batch:'Batch1', well:'A1', site:1, filename:'Plate_Plate1_Well_A1_Site_1_Cycle01_DNA.tiff', type:'barcoding', cycle:1, channel:'DNA'],
+                        [plate:'Plate1', batch:'Batch1', well:'A1', site:1, filename:'Plate_Plate1_Well_A1_Site_1_Cycle01_G.tiff', type:'barcoding', cycle:1, channel:'G'],
+                        [plate:'Plate1', batch:'Batch1', well:'A1', site:1, filename:'Plate_Plate1_Well_A1_Site_1_Cycle01_T.tiff', type:'barcoding', cycle:1, channel:'T'],
                         // Barcoding images - Cycle 2
-                        [well:'A1', site:1, filename:'Plate_Plate1_Well_A1_Site_1_Cycle02_A.tiff', type:'barcoding', cycle:2, channel:'A'],
-                        [well:'A1', site:1, filename:'Plate_Plate1_Well_A1_Site_1_Cycle02_C.tiff', type:'barcoding', cycle:2, channel:'C'],
-                        [well:'A1', site:1, filename:'Plate_Plate1_Well_A1_Site_1_Cycle02_G.tiff', type:'barcoding', cycle:2, channel:'G'],
-                        [well:'A1', site:1, filename:'Plate_Plate1_Well_A1_Site_1_Cycle02_T.tiff', type:'barcoding', cycle:2, channel:'T'],
+                        [plate:'Plate1', batch:'Batch1', well:'A1', site:1, filename:'Plate_Plate1_Well_A1_Site_1_Cycle02_A.tiff', type:'barcoding', cycle:2, channel:'A'],
+                        [plate:'Plate1', batch:'Batch1', well:'A1', site:1, filename:'Plate_Plate1_Well_A1_Site_1_Cycle02_C.tiff', type:'barcoding', cycle:2, channel:'C'],
+                        [plate:'Plate1', batch:'Batch1', well:'A1', site:1, filename:'Plate_Plate1_Well_A1_Site_1_Cycle02_G.tiff', type:'barcoding', cycle:2, channel:'G'],
+                        [plate:'Plate1', batch:'Batch1', well:'A1', site:1, filename:'Plate_Plate1_Well_A1_Site_1_Cycle02_T.tiff', type:'barcoding', cycle:2, channel:'T'],
                         // Barcoding images - Cycle 3
-                        [well:'A1', site:1, filename:'Plate_Plate1_Well_A1_Site_1_Cycle03_A.tiff', type:'barcoding', cycle:3, channel:'A'],
-                        [well:'A1', site:1, filename:'Plate_Plate1_Well_A1_Site_1_Cycle03_C.tiff', type:'barcoding', cycle:3, channel:'C'],
-                        [well:'A1', site:1, filename:'Plate_Plate1_Well_A1_Site_1_Cycle03_G.tiff', type:'barcoding', cycle:3, channel:'G'],
-                        [well:'A1', site:1, filename:'Plate_Plate1_Well_A1_Site_1_Cycle03_T.tiff', type:'barcoding', cycle:3, channel:'T']
+                        [plate:'Plate1', batch:'Batch1', well:'A1', site:1, filename:'Plate_Plate1_Well_A1_Site_1_Cycle03_A.tiff', type:'barcoding', cycle:3, channel:'A'],
+                        [plate:'Plate1', batch:'Batch1', well:'A1', site:1, filename:'Plate_Plate1_Well_A1_Site_1_Cycle03_C.tiff', type:'barcoding', cycle:3, channel:'C'],
+                        [plate:'Plate1', batch:'Batch1', well:'A1', site:1, filename:'Plate_Plate1_Well_A1_Site_1_Cycle03_G.tiff', type:'barcoding', cycle:3, channel:'G'],
+                        [plate:'Plate1', batch:'Batch1', well:'A1', site:1, filename:'Plate_Plate1_Well_A1_Site_1_Cycle03_T.tiff', type:'barcoding', cycle:3, channel:'T']
                     ]
                 ]
                 input[1] = file("\${projectDir}/assets/cellprofiler/combined_analysis.cppipe", checkIfExists: true)
@@ -146,25 +146,25 @@ nextflow_process {
                     ],
                     [
                         // Painting images
-                        [well:'A1', site:1, filename:'Plate_Plate1_Well_A1_Site_1_CorrCHN2.tiff', type:'cellpainting', channel:'CHN2'],
-                        [well:'A1', site:1, filename:'Plate_Plate1_Well_A1_Site_1_CorrDNA.tiff', type:'cellpainting', channel:'DNA'],
-                        [well:'A1', site:1, filename:'Plate_Plate1_Well_A1_Site_1_CorrPhalloidin.tiff', type:'cellpainting', channel:'Phalloidin'],
+                        [plate:'Plate1', batch:'Batch1', well:'A1', site:1, filename:'Plate_Plate1_Well_A1_Site_1_CorrCHN2.tiff', type:'cellpainting', channel:'CHN2'],
+                        [plate:'Plate1', batch:'Batch1', well:'A1', site:1, filename:'Plate_Plate1_Well_A1_Site_1_CorrDNA.tiff', type:'cellpainting', channel:'DNA'],
+                        [plate:'Plate1', batch:'Batch1', well:'A1', site:1, filename:'Plate_Plate1_Well_A1_Site_1_CorrPhalloidin.tiff', type:'cellpainting', channel:'Phalloidin'],
                         // Barcoding images - Cycle 1
-                        [well:'A1', site:1, filename:'Plate_Plate1_Well_A1_Site_1_Cycle01_A.tiff', type:'barcoding', cycle:1, channel:'A'],
-                        [well:'A1', site:1, filename:'Plate_Plate1_Well_A1_Site_1_Cycle01_C.tiff', type:'barcoding', cycle:1, channel:'C'],
-                        [well:'A1', site:1, filename:'Plate_Plate1_Well_A1_Site_1_Cycle01_DNA.tiff', type:'barcoding', cycle:1, channel:'DNA'],
-                        [well:'A1', site:1, filename:'Plate_Plate1_Well_A1_Site_1_Cycle01_G.tiff', type:'barcoding', cycle:1, channel:'G'],
-                        [well:'A1', site:1, filename:'Plate_Plate1_Well_A1_Site_1_Cycle01_T.tiff', type:'barcoding', cycle:1, channel:'T'],
+                        [plate:'Plate1', batch:'Batch1', well:'A1', site:1, filename:'Plate_Plate1_Well_A1_Site_1_Cycle01_A.tiff', type:'barcoding', cycle:1, channel:'A'],
+                        [plate:'Plate1', batch:'Batch1', well:'A1', site:1, filename:'Plate_Plate1_Well_A1_Site_1_Cycle01_C.tiff', type:'barcoding', cycle:1, channel:'C'],
+                        [plate:'Plate1', batch:'Batch1', well:'A1', site:1, filename:'Plate_Plate1_Well_A1_Site_1_Cycle01_DNA.tiff', type:'barcoding', cycle:1, channel:'DNA'],
+                        [plate:'Plate1', batch:'Batch1', well:'A1', site:1, filename:'Plate_Plate1_Well_A1_Site_1_Cycle01_G.tiff', type:'barcoding', cycle:1, channel:'G'],
+                        [plate:'Plate1', batch:'Batch1', well:'A1', site:1, filename:'Plate_Plate1_Well_A1_Site_1_Cycle01_T.tiff', type:'barcoding', cycle:1, channel:'T'],
                         // Barcoding images - Cycle 2
-                        [well:'A1', site:1, filename:'Plate_Plate1_Well_A1_Site_1_Cycle02_A.tiff', type:'barcoding', cycle:2, channel:'A'],
-                        [well:'A1', site:1, filename:'Plate_Plate1_Well_A1_Site_1_Cycle02_C.tiff', type:'barcoding', cycle:2, channel:'C'],
-                        [well:'A1', site:1, filename:'Plate_Plate1_Well_A1_Site_1_Cycle02_G.tiff', type:'barcoding', cycle:2, channel:'G'],
-                        [well:'A1', site:1, filename:'Plate_Plate1_Well_A1_Site_1_Cycle02_T.tiff', type:'barcoding', cycle:2, channel:'T'],
+                        [plate:'Plate1', batch:'Batch1', well:'A1', site:1, filename:'Plate_Plate1_Well_A1_Site_1_Cycle02_A.tiff', type:'barcoding', cycle:2, channel:'A'],
+                        [plate:'Plate1', batch:'Batch1', well:'A1', site:1, filename:'Plate_Plate1_Well_A1_Site_1_Cycle02_C.tiff', type:'barcoding', cycle:2, channel:'C'],
+                        [plate:'Plate1', batch:'Batch1', well:'A1', site:1, filename:'Plate_Plate1_Well_A1_Site_1_Cycle02_G.tiff', type:'barcoding', cycle:2, channel:'G'],
+                        [plate:'Plate1', batch:'Batch1', well:'A1', site:1, filename:'Plate_Plate1_Well_A1_Site_1_Cycle02_T.tiff', type:'barcoding', cycle:2, channel:'T'],
                         // Barcoding images - Cycle 3
-                        [well:'A1', site:1, filename:'Plate_Plate1_Well_A1_Site_1_Cycle03_A.tiff', type:'barcoding', cycle:3, channel:'A'],
-                        [well:'A1', site:1, filename:'Plate_Plate1_Well_A1_Site_1_Cycle03_C.tiff', type:'barcoding', cycle:3, channel:'C'],
-                        [well:'A1', site:1, filename:'Plate_Plate1_Well_A1_Site_1_Cycle03_G.tiff', type:'barcoding', cycle:3, channel:'G'],
-                        [well:'A1', site:1, filename:'Plate_Plate1_Well_A1_Site_1_Cycle03_T.tiff', type:'barcoding', cycle:3, channel:'T']
+                        [plate:'Plate1', batch:'Batch1', well:'A1', site:1, filename:'Plate_Plate1_Well_A1_Site_1_Cycle03_A.tiff', type:'barcoding', cycle:3, channel:'A'],
+                        [plate:'Plate1', batch:'Batch1', well:'A1', site:1, filename:'Plate_Plate1_Well_A1_Site_1_Cycle03_C.tiff', type:'barcoding', cycle:3, channel:'C'],
+                        [plate:'Plate1', batch:'Batch1', well:'A1', site:1, filename:'Plate_Plate1_Well_A1_Site_1_Cycle03_G.tiff', type:'barcoding', cycle:3, channel:'G'],
+                        [plate:'Plate1', batch:'Batch1', well:'A1', site:1, filename:'Plate_Plate1_Well_A1_Site_1_Cycle03_T.tiff', type:'barcoding', cycle:3, channel:'T']
                     ]
                 ]
                 input[1] = file("\${projectDir}/assets/cellprofiler/combined_analysis.cppipe", checkIfExists: true)
