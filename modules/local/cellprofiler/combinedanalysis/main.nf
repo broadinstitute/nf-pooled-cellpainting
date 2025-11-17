@@ -24,11 +24,15 @@ process CELLPROFILER_COMBINEDANALYSIS {
     // Create metadata structure with plate info and image_metadata array
     def metadata_map = [
         plate: meta.plate,
-        image_metadata: image_metas
+        image_metadata: image_metas,
     ]
     // Add optional fields if present
-    if (meta.batch) metadata_map.batch = meta.batch
-    if (meta.arm) metadata_map.arm = meta.arm
+    if (meta.batch) {
+        metadata_map.batch = meta.batch
+    }
+    if (meta.arm) {
+        metadata_map.arm = meta.arm
+    }
 
     def metadata_json = groovy.json.JsonOutput.toJson(metadata_map)
 

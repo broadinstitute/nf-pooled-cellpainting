@@ -247,7 +247,7 @@ workflow CELLPAINTING {
 
     FIJI_STITCHCROP(
         ch_corrected_images_synced,
-        file("${projectDir}/bin/stitch_crop.py"),
+        params.fiji_stitchcrop_script,
         params.painting_round_or_square,
         params.painting_quarter_if_round,
         params.painting_overlap_pct,

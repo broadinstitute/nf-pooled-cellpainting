@@ -299,7 +299,7 @@ workflow BARCODING {
 
     FIJI_STITCHCROP(
         ch_preprocess_by_well,
-        file("${projectDir}/bin/stitch_crop.py"),
+        params.fiji_stitchcrop_script,
         params.barcoding_round_or_square,
         params.barcoding_quarter_if_round,
         params.barcoding_overlap_pct,
