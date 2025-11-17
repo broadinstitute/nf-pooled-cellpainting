@@ -84,6 +84,12 @@ nf-pooled-cellpainting was originally written by [Florian Wuennemann](https://gi
 
 If you would like to contribute to this pipeline, please see the [contributing guidelines](.github/CONTRIBUTING.md).
 
+## License
+
+This pipeline is licensed under the [BSD 3-Clause License](LICENSE).
+
+Portions of this software are derived from the nf-core project template and infrastructure, which are licensed under the [MIT License](LICENSE-MIT). This includes the pipeline template structure, configuration patterns, and utility functions.
+
 ## Citations
 
 An extensive list of references for the tools used by the pipeline can be found in the [`CITATIONS.md`](CITATIONS.md) file.
