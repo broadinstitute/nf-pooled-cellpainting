@@ -5,7 +5,7 @@ repo_url: https://github.com/seqera-services/nf-pooled-cellpainting
 repo_name: nf-pooled-cellpainting
 
 theme:
-  name: readthedocs
+  name: material
 
 markdown_extensions:
   - admonition
