@@ -62,14 +62,15 @@ EOF
     touch BarcodePreprocessing_AllFoci.csv
     touch BarcodePreprocessing_BarcodeFoci.csv
     touch BarcodePreprocessing_Foci.csv
-    touch Plate_Plate1_Well_A1_Site0_Cycle01_A.tiff
+    touch ${meta.id}_Cycle01_A.tiff
+    touch ${meta.id}_Cycle01_C.tiff
     touch load_data.csv
     mkdir -p overlay
     touch overlay/test.tiff
 
     cat <<-END_VERSIONS > versions.yml
 	"${task.process}":
-	    cellprofiler: \$(cellprofiler --version)
+	    cellprofiler: 4.2.8
 	END_VERSIONS
     """
 }

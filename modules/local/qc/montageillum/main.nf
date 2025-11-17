@@ -17,11 +17,9 @@ process QC_MONTAGEILLUM {
     task.ext.when == null || task.ext.when
 
     script:
-    def args = task.ext.args ?: ''
     def output_name = "${meta.arm}.${meta.batch}_${meta.plate}.montage.png"
     """
     montage.py \\
-        ${args} \\
         . \\
         ${output_name} \\
         --pattern "${pattern}"
@@ -33,10 +31,7 @@ process QC_MONTAGEILLUM {
     """
 
     stub:
-    def args = task.ext.args ?: ''
     """
-    echo ${args}
-
     touch montage.png
 
     cat <<-END_VERSIONS > versions.yml

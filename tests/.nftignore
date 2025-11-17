@@ -7,3 +7,53 @@ multiqc/multiqc_data/multiqc_software_versions.txt
 multiqc/multiqc_plots/{svg,pdf,png}/*.{svg,pdf,png}
 multiqc/multiqc_report.html
 pipeline_info/*.{html,json,txt,yml}
+
+# QC reports - unstable rendering/metadata (matplotlib version differences, timestamps, etc.)
+# QC_BARCODEALIGN outputs
+workspace/qc_reports/6_alignment/*/*.html
+workspace/qc_reports/6_alignment/*/*.ipynb
+workspace/qc_reports/6_alignment/*/alignment_correlations_all.png
+workspace/qc_reports/6_alignment/*/alignment_correlations_cycle01.png
+workspace/qc_reports/6_alignment/*/alignment_shifts_no_limits.png
+workspace/qc_reports/6_alignment/*/alignment_shifts_xlim.png
+
+# QC_PREPROCESS outputs
+workspace/qc_reports/7_preprocessing/*/*.html
+workspace/qc_reports/7_preprocessing/*/*.ipynb
+workspace/qc_reports/7_preprocessing/*/barcode_score_distribution.png
+workspace/qc_reports/7_preprocessing/*/barcode_score_distribution_per_well.png
+workspace/qc_reports/7_preprocessing/*/observed_nucleotide_frequency.png
+workspace/qc_reports/7_preprocessing/*/spatial_quality_scatter.png
+
+# CellProfiler CSV files - unstable (timestamps, run-specific metadata)
+# CELLPROFILER_PREPROCESS outputs
+images/*/images_corrected/barcoding/*/*/BarcodePreprocessing_Experiment.csv
+images/*/images_corrected/barcoding/*/*/BarcodePreprocessing_Image.csv
+images/*/images_corrected/barcoding/*/*/BarcodePreprocessing_Foci.csv
+images/*/images_corrected/barcoding/*/*/BarcodePreprocessing_BarcodeFoci.csv
+
+# CELLPROFILER_ILLUMAPPLY_PAINTING outputs
+images/*/images_corrected/painting/*/*/PaintingIllumApplication_Experiment.csv
+images/*/images_corrected/painting/*/*/PaintingIllumApplication_Image.csv
+
+# CELLPROFILER_ILLUMAPPLY_BARCODING outputs
+images/*/images_aligned/barcoding/*/*/BarcodingApplication_Experiment.csv
+images/*/images_aligned/barcoding/*/*/BarcodingApplication_Image.csv
+
+# CELLPROFILER_SEGCHECK outputs
+images/*/images_segmentation/painting/*/*/SegmentationCheck_Experiment*.csv
+images/*/images_segmentation/painting/*/*/SegmentationCheck_Image*.csv
+
+# CELLPROFILER_COMBINEDANALYSIS outputs
+workspace/analysis/*/*/Experiment.csv
+workspace/analysis/*/*/Image.csv
+workspace/analysis/*/*/BarcodeFoci.csv
+workspace/analysis/*/*/Cells.csv
+workspace/analysis/*/*/Cytoplasm.csv
+workspace/analysis/*/*/Foci.csv
+workspace/analysis/*/*/Nuclei.csv
+
+# FIJI_STITCHCROP image outputs - unstable checksums due to floating point operations
+images/*/images_corrected_stitched/*/*/*/*.tiff
+images/*/images_corrected_cropped/*/*/*/*.tiff
+images/*/images_corrected_stitched_10X/*/*/*/*.tiff
