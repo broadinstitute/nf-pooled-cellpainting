@@ -199,8 +199,8 @@ workflow BARCODING {
     )
     ch_versions = ch_versions.mix(QC_BARCODEALIGN.out.versions)
 
-    // ILLUMAPPLY already runs per site, so corrected_images has site metadata
-    // Build image metadata for PREPROCESS from corrected images
+    // ILLUMAPPLY already runs per site, so corrected_images (aligned_images in case of barcoding) has site metadata
+    // Build image metadata for PREPROCESS from aligned images
     CELLPROFILER_ILLUMAPPLY_BARCODING.out.corrected_images
         .map { site_meta, images, _csv ->
             // Build image_metas for corrected images with full metadata + filename + cycle + channel
