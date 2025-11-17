@@ -1,0 +1,2314 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="A Nextflow pipeline for optical pooled screening combining Cell Painting and barcoding">
+      
+      
+        <meta name="author" content="Seqera & Broad Institute">
+      
+      
+      
+        <link rel="prev" href="../../developer/python-scripts/">
+      
+      
+        <link rel="next" href="../troubleshooting/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.0">
+    
+    
+      
+        <title>Outputs - nf-pooled-cellpainting</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.618322db.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    <body dir="ltr">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#output-reference" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+      <div data-md-color-scheme="default" data-md-component="outdated" hidden>
+        
+      </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="nf-pooled-cellpainting" class="md-header__button md-logo" aria-label="nf-pooled-cellpainting" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            nf-pooled-cellpainting
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Outputs
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/seqera-services/nf-pooled-cellpainting" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    nf-pooled-cellpainting
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="nf-pooled-cellpainting" class="md-nav__button md-logo" aria-label="nf-pooled-cellpainting" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    nf-pooled-cellpainting
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/seqera-services/nf-pooled-cellpainting" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    nf-pooled-cellpainting
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Getting Started
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Getting Started
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting-started/overview/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting-started/installation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Installation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting-started/quickstart/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Quick Start
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Usage
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Usage
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../usage/parameters/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Parameters
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../usage/running-locally/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Running Locally
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../usage/seqera-platform/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Running on Seqera Platform
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Developer Guide
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Developer Guide
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../developer/architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../developer/cellprofiler/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CellProfiler Integration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../developer/python-scripts/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Python Scripts
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../developer/testing.md" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Testing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reference
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Reference
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Outputs
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Outputs
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#output-directory-structure" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Output Directory Structure
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cell-painting-outputs" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Cell Painting Outputs
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Cell Painting Outputs">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#illumination-functions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Illumination Functions
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#corrected-images" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Corrected Images
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#stitched-and-cropped-images" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Stitched and Cropped Images
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#barcoding-outputs" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Barcoding Outputs
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Barcoding Outputs">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#illumination-functions_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Illumination Functions
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#corrected-images_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Corrected Images
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#preprocessed-images" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Preprocessed Images
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#stitched-and-cropped-images_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Stitched and Cropped Images
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#combined-analysis-outputs" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Combined Analysis Outputs
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Combined Analysis Outputs">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#segmentation-masks" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Segmentation Masks
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#overlay-images" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overlay Images
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#feature-measurements" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Feature Measurements
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Feature Measurements">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#imagecsv" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Image.csv
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#nucleicsv-cellscsv" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Nuclei.csv / Cells.csv
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#experimentcsv" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Experiment.csv
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#quality-control-outputs" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Quality Control Outputs
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Quality Control Outputs">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#illumination-montages" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Illumination Montages
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#segmentation-check-montages" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Segmentation Check Montages
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#preprocessing-montages" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Preprocessing Montages
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#stitchcrop-montages" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Stitch/Crop Montages
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#barcode-alignment-qc" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Barcode Alignment QC
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Barcode Alignment QC">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#shift_summarycsv" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        shift_summary.csv
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#load-data-csv-archive" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Load Data CSV Archive
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#pipeline-information" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Pipeline Information
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#output-file-formats" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Output File Formats
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Output File Formats">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#tiff-images" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        TIFF Images
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#numpy-arrays-npy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        NumPy Arrays (.npy)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#csv-files" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        CSV Files
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#png-images" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        PNG Images
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#storage-requirements" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Storage Requirements
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#accessing-outputs" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Accessing Outputs
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Accessing Outputs">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#from-nextflow" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        From Nextflow
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#from-python" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        From Python
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#from-r" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        From R
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#next-steps" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Next Steps
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../troubleshooting/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Troubleshooting
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#output-directory-structure" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Output Directory Structure
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cell-painting-outputs" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Cell Painting Outputs
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Cell Painting Outputs">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#illumination-functions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Illumination Functions
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#corrected-images" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Corrected Images
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#stitched-and-cropped-images" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Stitched and Cropped Images
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#barcoding-outputs" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Barcoding Outputs
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Barcoding Outputs">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#illumination-functions_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Illumination Functions
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#corrected-images_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Corrected Images
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#preprocessed-images" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Preprocessed Images
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#stitched-and-cropped-images_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Stitched and Cropped Images
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#combined-analysis-outputs" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Combined Analysis Outputs
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Combined Analysis Outputs">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#segmentation-masks" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Segmentation Masks
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#overlay-images" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overlay Images
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#feature-measurements" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Feature Measurements
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Feature Measurements">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#imagecsv" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Image.csv
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#nucleicsv-cellscsv" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Nuclei.csv / Cells.csv
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#experimentcsv" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Experiment.csv
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#quality-control-outputs" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Quality Control Outputs
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Quality Control Outputs">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#illumination-montages" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Illumination Montages
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#segmentation-check-montages" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Segmentation Check Montages
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#preprocessing-montages" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Preprocessing Montages
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#stitchcrop-montages" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Stitch/Crop Montages
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#barcode-alignment-qc" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Barcode Alignment QC
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Barcode Alignment QC">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#shift_summarycsv" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        shift_summary.csv
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#load-data-csv-archive" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Load Data CSV Archive
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#pipeline-information" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Pipeline Information
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#output-file-formats" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Output File Formats
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Output File Formats">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#tiff-images" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        TIFF Images
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#numpy-arrays-npy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        NumPy Arrays (.npy)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#csv-files" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        CSV Files
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#png-images" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        PNG Images
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#storage-requirements" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Storage Requirements
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#accessing-outputs" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Accessing Outputs
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Accessing Outputs">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#from-nextflow" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        From Nextflow
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#from-python" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        From Python
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#from-r" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        From R
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#next-steps" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Next Steps
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="output-reference">Output Reference<a class="headerlink" href="#output-reference" title="Permanent link">&para;</a></h1>
+<p>Complete reference for pipeline outputs and their organization.</p>
+<h2 id="output-directory-structure">Output Directory Structure<a class="headerlink" href="#output-directory-structure" title="Permanent link">&para;</a></h2>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>results/
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>├── painting/
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>│   ├── illum/
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>│   ├── corrected/
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>│   └── stitched_cropped/
+</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>├── barcoding/
+</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>│   ├── illum/
+</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>│   ├── corrected/
+</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>│   ├── preprocessed/
+</span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>│   └── stitched_cropped/
+</span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>├── combined/
+</span><span id="__span-0-12"><a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>│   └── analysis/
+</span><span id="__span-0-13"><a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>├── qc/
+</span><span id="__span-0-14"><a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>│   ├── montage_illum/
+</span><span id="__span-0-15"><a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a>│   ├── montage_segcheck/
+</span><span id="__span-0-16"><a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a>│   ├── montage_preprocess/
+</span><span id="__span-0-17"><a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a>│   ├── montage_stitchcrop/
+</span><span id="__span-0-18"><a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a>│   └── barcode_align/
+</span><span id="__span-0-19"><a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a>├── csvs/
+</span><span id="__span-0-20"><a id="__codelineno-0-20" name="__codelineno-0-20" href="#__codelineno-0-20"></a>│   └── load_data/
+</span><span id="__span-0-21"><a id="__codelineno-0-21" name="__codelineno-0-21" href="#__codelineno-0-21"></a>└── pipeline_info/
+</span><span id="__span-0-22"><a id="__codelineno-0-22" name="__codelineno-0-22" href="#__codelineno-0-22"></a>    ├── execution_report.html
+</span><span id="__span-0-23"><a id="__codelineno-0-23" name="__codelineno-0-23" href="#__codelineno-0-23"></a>    ├── execution_timeline.html
+</span><span id="__span-0-24"><a id="__codelineno-0-24" name="__codelineno-0-24" href="#__codelineno-0-24"></a>    └── execution_trace.txt
+</span></code></pre></div>
+<h2 id="cell-painting-outputs">Cell Painting Outputs<a class="headerlink" href="#cell-painting-outputs" title="Permanent link">&para;</a></h2>
+<h3 id="illumination-functions">Illumination Functions<a class="headerlink" href="#illumination-functions" title="Permanent link">&para;</a></h3>
+<p><strong>Location</strong>: <code>results/painting/illum/</code></p>
+<p><strong>Files</strong>:</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>{batch}/
+</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>  {plate}/
+</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>    {plate}_Illum{channel}.npy
+</span></code></pre></div>
+<p><strong>Description</strong>: NumPy arrays containing illumination correction functions for each channel. Used to correct uneven illumination across the field of view.</p>
+<p><strong>Example</strong>:</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>results/painting/illum/batch1/P001/
+</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>  P001_IllumDAPI.npy
+</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>  P001_IllumGFP.npy
+</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>  P001_IllumRFP.npy
+</span></code></pre></div>
+<h3 id="corrected-images">Corrected Images<a class="headerlink" href="#corrected-images" title="Permanent link">&para;</a></h3>
+<p><strong>Location</strong>: <code>results/painting/corrected/</code></p>
+<p><strong>Files</strong>:</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>{batch}/
+</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>  {plate}/
+</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>    {well}/
+</span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a>      {plate}_{well}_{site}_Corr{channel}.tif
+</span></code></pre></div>
+<p><strong>Description</strong>: Multi-frame TIFF images with illumination correction applied. One file per channel per site.</p>
+<p><strong>Example</strong>:</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>results/painting/corrected/batch1/P001/A01/
+</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>  P001_A01_1_CorrDAPI.tif
+</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>  P001_A01_1_CorrGFP.tif
+</span><span id="__span-4-4"><a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a>  P001_A01_1_CorrRFP.tif
+</span></code></pre></div>
+<h3 id="stitched-and-cropped-images">Stitched and Cropped Images<a class="headerlink" href="#stitched-and-cropped-images" title="Permanent link">&para;</a></h3>
+<p><strong>Location</strong>: <code>results/painting/stitched_cropped/</code></p>
+<p><strong>Files</strong>:</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>{batch}/
+</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>  {plate}/
+</span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>    {well}/
+</span><span id="__span-5-4"><a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a>      {site}/
+</span><span id="__span-5-5"><a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a>        {plate}_{well}_{site}_Stitched{channel}.tif
+</span></code></pre></div>
+<p><strong>Description</strong>: Stitched full-resolution images for each site, cropped to remove overlap regions. Generated only if <code>qc_painting_passed == true</code>.</p>
+<h2 id="barcoding-outputs">Barcoding Outputs<a class="headerlink" href="#barcoding-outputs" title="Permanent link">&para;</a></h2>
+<h3 id="illumination-functions_1">Illumination Functions<a class="headerlink" href="#illumination-functions_1" title="Permanent link">&para;</a></h3>
+<p><strong>Location</strong>: <code>results/barcoding/illum/</code></p>
+<p><strong>Files</strong>:</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>{batch}/
+</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>  {plate}/
+</span><span id="__span-6-3"><a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a>    {cycle}/
+</span><span id="__span-6-4"><a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a>      {plate}_Cycle{cycle}_Illum{channel}.npy
+</span></code></pre></div>
+<p><strong>Description</strong>: Cycle-specific illumination correction functions.</p>
+<p><strong>Example</strong>:</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>results/barcoding/illum/batch1/P001/1/
+</span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>  P001_Cycle1_IllumCy3.npy
+</span><span id="__span-7-3"><a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a>  P001_Cycle1_IllumCy5.npy
+</span></code></pre></div>
+<h3 id="corrected-images_1">Corrected Images<a class="headerlink" href="#corrected-images_1" title="Permanent link">&para;</a></h3>
+<p><strong>Location</strong>: <code>results/barcoding/corrected/</code></p>
+<p><strong>Files</strong>:</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>{batch}/
+</span><span id="__span-8-2"><a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a>  {plate}/
+</span><span id="__span-8-3"><a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a>    {well}/
+</span><span id="__span-8-4"><a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a>      {site}/
+</span><span id="__span-8-5"><a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a>        {cycle}/
+</span><span id="__span-8-6"><a id="__codelineno-8-6" name="__codelineno-8-6" href="#__codelineno-8-6"></a>          {plate}_{well}_{site}_{frame}_Cycle{cycle}_{channel}.tif
+</span></code></pre></div>
+<p><strong>Description</strong>: Illumination-corrected barcoding images, organized by cycle.</p>
+<h3 id="preprocessed-images">Preprocessed Images<a class="headerlink" href="#preprocessed-images" title="Permanent link">&para;</a></h3>
+<p><strong>Location</strong>: <code>results/barcoding/preprocessed/</code></p>
+<p><strong>Files</strong>:</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>{batch}/
+</span><span id="__span-9-2"><a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a>  {plate}/
+</span><span id="__span-9-3"><a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a>    {well}/
+</span><span id="__span-9-4"><a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a>      {site}/
+</span><span id="__span-9-5"><a id="__codelineno-9-5" name="__codelineno-9-5" href="#__codelineno-9-5"></a>        {plate}_{well}_{site}_{frame}_Cycle{cycle}_{channel}.tif
+</span></code></pre></div>
+<p><strong>Description</strong>: Barcode-called and color-compensated images. Ready for stitching and combined analysis.</p>
+<h3 id="stitched-and-cropped-images_1">Stitched and Cropped Images<a class="headerlink" href="#stitched-and-cropped-images_1" title="Permanent link">&para;</a></h3>
+<p><strong>Location</strong>: <code>results/barcoding/stitched_cropped/</code></p>
+<p><strong>Files</strong>: Similar structure to painting, with cycle information preserved.</p>
+<p><strong>Description</strong>: Stitched preprocessed images. Generated only if <code>qc_barcoding_passed == true</code>.</p>
+<h2 id="combined-analysis-outputs">Combined Analysis Outputs<a class="headerlink" href="#combined-analysis-outputs" title="Permanent link">&para;</a></h2>
+<h3 id="segmentation-masks">Segmentation Masks<a class="headerlink" href="#segmentation-masks" title="Permanent link">&para;</a></h3>
+<p><strong>Location</strong>: <code>results/combined/analysis/{batch}/{plate}/{well}/{site}/</code></p>
+<p><strong>Files</strong>:</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>{plate}_{well}_{site}_Nuclei.tif
+</span><span id="__span-10-2"><a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a>{plate}_{well}_{site}_Cells.tif
+</span><span id="__span-10-3"><a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a>{plate}_{well}_{site}_Cytoplasm.tif
+</span></code></pre></div>
+<p><strong>Description</strong>: Binary masks for segmented objects:</p>
+<ul>
+<li><strong>Nuclei</strong>: Nuclear segmentation</li>
+<li><strong>Cells</strong>: Whole cell segmentation</li>
+<li><strong>Cytoplasm</strong>: Cytoplasm only (Cells - Nuclei)</li>
+</ul>
+<h3 id="overlay-images">Overlay Images<a class="headerlink" href="#overlay-images" title="Permanent link">&para;</a></h3>
+<p><strong>Files</strong>:</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-11-1"><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a>{plate}_{well}_{site}_Overlay.tif
+</span></code></pre></div>
+<p><strong>Description</strong>: RGB composite images showing segmentation overlays on original images.</p>
+<h3 id="feature-measurements">Feature Measurements<a class="headerlink" href="#feature-measurements" title="Permanent link">&para;</a></h3>
+<p><strong>Files</strong>:</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-12-1"><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a>Image.csv
+</span><span id="__span-12-2"><a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a>Nuclei.csv
+</span><span id="__span-12-3"><a id="__codelineno-12-3" name="__codelineno-12-3" href="#__codelineno-12-3"></a>Cells.csv
+</span><span id="__span-12-4"><a id="__codelineno-12-4" name="__codelineno-12-4" href="#__codelineno-12-4"></a>Cytoplasm.csv
+</span><span id="__span-12-5"><a id="__codelineno-12-5" name="__codelineno-12-5" href="#__codelineno-12-5"></a>Experiment.csv
+</span></code></pre></div>
+<p><strong>Description</strong>: CSV files containing extracted features and measurements.</p>
+<h4 id="imagecsv">Image.csv<a class="headerlink" href="#imagecsv" title="Permanent link">&para;</a></h4>
+<p>Per-image measurements:</p>
+<table>
+<thead>
+<tr>
+<th>Column</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>ImageNumber</code></td>
+<td>Unique image identifier</td>
+</tr>
+<tr>
+<td><code>Metadata_Plate</code></td>
+<td>Plate identifier</td>
+</tr>
+<tr>
+<td><code>Metadata_Well</code></td>
+<td>Well position</td>
+</tr>
+<tr>
+<td><code>Metadata_Site</code></td>
+<td>Site number</td>
+</tr>
+<tr>
+<td><code>Count_Nuclei</code></td>
+<td>Number of nuclei detected</td>
+</tr>
+<tr>
+<td><code>Count_Cells</code></td>
+<td>Number of cells detected</td>
+</tr>
+</tbody>
+</table>
+<h4 id="nucleicsv-cellscsv">Nuclei.csv / Cells.csv<a class="headerlink" href="#nucleicsv-cellscsv" title="Permanent link">&para;</a></h4>
+<p>Per-object measurements:</p>
+<table>
+<thead>
+<tr>
+<th>Column</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>ObjectNumber</code></td>
+<td>Unique object ID within image</td>
+</tr>
+<tr>
+<td><code>ImageNumber</code></td>
+<td>Reference to Image.csv</td>
+</tr>
+<tr>
+<td><code>Metadata_Barcode</code></td>
+<td>Assigned barcode sequence</td>
+</tr>
+<tr>
+<td><code>Location_Center_X</code></td>
+<td>X coordinate of object center</td>
+</tr>
+<tr>
+<td><code>Location_Center_Y</code></td>
+<td>Y coordinate of object center</td>
+</tr>
+<tr>
+<td><code>AreaShape_Area</code></td>
+<td>Object area in pixels</td>
+</tr>
+<tr>
+<td><code>Intensity_MeanIntensity_*</code></td>
+<td>Mean intensity per channel</td>
+</tr>
+<tr>
+<td><code>Texture_*</code></td>
+<td>Texture features</td>
+</tr>
+<tr>
+<td><code>Granularity_*</code></td>
+<td>Granularity features</td>
+</tr>
+</tbody>
+</table>
+<h4 id="experimentcsv">Experiment.csv<a class="headerlink" href="#experimentcsv" title="Permanent link">&para;</a></h4>
+<p>Pipeline metadata and run parameters.</p>
+<h2 id="quality-control-outputs">Quality Control Outputs<a class="headerlink" href="#quality-control-outputs" title="Permanent link">&para;</a></h2>
+<h3 id="illumination-montages">Illumination Montages<a class="headerlink" href="#illumination-montages" title="Permanent link">&para;</a></h3>
+<p><strong>Location</strong>: <code>results/qc/montage_illum/</code></p>
+<p><strong>Files</strong>:</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-13-1"><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a>{arm}/{batch}/{plate}/
+</span><span id="__span-13-2"><a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a>  {plate}_IllumMontage_{channel}.png
+</span></code></pre></div>
+<p><strong>Description</strong>: Visual summary of illumination correction functions. Shows original vs. corrected illumination patterns.</p>
+<h3 id="segmentation-check-montages">Segmentation Check Montages<a class="headerlink" href="#segmentation-check-montages" title="Permanent link">&para;</a></h3>
+<p><strong>Location</strong>: <code>results/qc/montage_segcheck/</code></p>
+<p><strong>Files</strong>:</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-14-1"><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a>{batch}/{plate}/{well}/
+</span><span id="__span-14-2"><a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a>  {plate}_{well}_SegCheckMontage.png
+</span></code></pre></div>
+<p><strong>Description</strong>: Visual QC for segmentation quality. Shows sample sites with segmentation overlays.</p>
+<h3 id="preprocessing-montages">Preprocessing Montages<a class="headerlink" href="#preprocessing-montages" title="Permanent link">&para;</a></h3>
+<p><strong>Location</strong>: <code>results/qc/montage_preprocess/</code></p>
+<p><strong>Files</strong>:</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-15-1"><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a>{batch}/{plate}/{well}/{site}/
+</span><span id="__span-15-2"><a id="__codelineno-15-2" name="__codelineno-15-2" href="#__codelineno-15-2"></a>  {plate}_{well}_{site}_PreprocessMontage.png
+</span></code></pre></div>
+<p><strong>Description</strong>: Visual QC for barcoding preprocessing. Shows barcode calling results across cycles.</p>
+<h3 id="stitchcrop-montages">Stitch/Crop Montages<a class="headerlink" href="#stitchcrop-montages" title="Permanent link">&para;</a></h3>
+<p><strong>Location</strong>: <code>results/qc/montage_stitchcrop/</code></p>
+<p><strong>Files</strong>: Montages showing stitching quality and overlap regions.</p>
+<h3 id="barcode-alignment-qc">Barcode Alignment QC<a class="headerlink" href="#barcode-alignment-qc" title="Permanent link">&para;</a></h3>
+<p><strong>Location</strong>: <code>results/qc/barcode_align/</code></p>
+<p><strong>Files</strong>:</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-16-1"><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a>{batch}/{plate}/
+</span><span id="__span-16-2"><a id="__codelineno-16-2" name="__codelineno-16-2" href="#__codelineno-16-2"></a>  shift_summary.csv
+</span><span id="__span-16-3"><a id="__codelineno-16-3" name="__codelineno-16-3" href="#__codelineno-16-3"></a>  correlation_matrix.csv
+</span><span id="__span-16-4"><a id="__codelineno-16-4" name="__codelineno-16-4" href="#__codelineno-16-4"></a>  shift_spatial_plot.png
+</span><span id="__span-16-5"><a id="__codelineno-16-5" name="__codelineno-16-5" href="#__codelineno-16-5"></a>  correlation_heatmap.png
+</span><span id="__span-16-6"><a id="__codelineno-16-6" name="__codelineno-16-6" href="#__codelineno-16-6"></a>  qc_report.html
+</span></code></pre></div>
+<p><strong>Description</strong>:</p>
+<ul>
+<li><strong>shift_summary.csv</strong>: Per-site pixel shift statistics</li>
+<li><strong>correlation_matrix.csv</strong>: Cycle-to-cycle correlation coefficients</li>
+<li><strong>Plots</strong>: Visual summaries of alignment quality</li>
+<li><strong>qc_report.html</strong>: Interactive QC dashboard</li>
+</ul>
+<h4 id="shift_summarycsv">shift_summary.csv<a class="headerlink" href="#shift_summarycsv" title="Permanent link">&para;</a></h4>
+<table>
+<thead>
+<tr>
+<th>Column</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Plate</code></td>
+<td>Plate identifier</td>
+</tr>
+<tr>
+<td><code>Well</code></td>
+<td>Well position</td>
+</tr>
+<tr>
+<td><code>Site</code></td>
+<td>Site number</td>
+</tr>
+<tr>
+<td><code>Mean_Shift_X</code></td>
+<td>Mean X-axis pixel shift</td>
+</tr>
+<tr>
+<td><code>Mean_Shift_Y</code></td>
+<td>Mean Y-axis pixel shift</td>
+</tr>
+<tr>
+<td><code>Max_Shift</code></td>
+<td>Maximum shift magnitude</td>
+</tr>
+<tr>
+<td><code>Pass</code></td>
+<td>Boolean QC pass/fail</td>
+</tr>
+</tbody>
+</table>
+<h2 id="load-data-csv-archive">Load Data CSV Archive<a class="headerlink" href="#load-data-csv-archive" title="Permanent link">&para;</a></h2>
+<p><strong>Location</strong>: <code>results/csvs/load_data/</code></p>
+<p><strong>Files</strong>: All generated <code>load_data.csv</code> files used by CellProfiler processes.</p>
+<p><strong>Description</strong>: Archived for reproducibility and debugging. Organized by process and metadata.</p>
+<h2 id="pipeline-information">Pipeline Information<a class="headerlink" href="#pipeline-information" title="Permanent link">&para;</a></h2>
+<p><strong>Location</strong>: <code>results/pipeline_info/</code></p>
+<p><strong>Files</strong>:</p>
+<ul>
+<li><code>execution_report.html</code>: Resource usage and task statistics</li>
+<li><code>execution_timeline.html</code>: Timeline visualization</li>
+<li><code>execution_trace.txt</code>: Detailed execution log</li>
+</ul>
+<p><strong>Usage</strong>:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-17-1"><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a>nextflow<span class="w"> </span>run<span class="w"> </span>main.nf<span class="w"> </span>-with-report<span class="w"> </span>results/pipeline_info/execution_report.html
+</span></code></pre></div>
+<h2 id="output-file-formats">Output File Formats<a class="headerlink" href="#output-file-formats" title="Permanent link">&para;</a></h2>
+<h3 id="tiff-images">TIFF Images<a class="headerlink" href="#tiff-images" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Format</strong>: Multi-page TIFF (one page per frame)</li>
+<li><strong>Bit depth</strong>: 16-bit unsigned integer</li>
+<li><strong>Compression</strong>: LZW (optional)</li>
+<li><strong>Metadata</strong>: ImageJ-compatible TIFF tags</li>
+</ul>
+<h3 id="numpy-arrays-npy">NumPy Arrays (.npy)<a class="headerlink" href="#numpy-arrays-npy" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Format</strong>: NumPy binary format</li>
+<li><strong>Shape</strong>: <code>(height, width)</code> or <code>(height, width, channels)</code></li>
+<li><strong>Dtype</strong>: <code>float32</code> or <code>float64</code></li>
+</ul>
+<h3 id="csv-files">CSV Files<a class="headerlink" href="#csv-files" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Format</strong>: Comma-separated values</li>
+<li><strong>Encoding</strong>: UTF-8</li>
+<li><strong>Header</strong>: First row contains column names</li>
+<li><strong>Separator</strong>: Comma (<code>,</code>)</li>
+</ul>
+<h3 id="png-images">PNG Images<a class="headerlink" href="#png-images" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Format</strong>: PNG</li>
+<li><strong>Bit depth</strong>: 8-bit RGB</li>
+<li><strong>Compression</strong>: PNG default</li>
+</ul>
+<h2 id="storage-requirements">Storage Requirements<a class="headerlink" href="#storage-requirements" title="Permanent link">&para;</a></h2>
+<p>Approximate storage needs (example experiment):</p>
+<table>
+<thead>
+<tr>
+<th>Component</th>
+<th>Per Plate</th>
+<th>Per Experiment (96 wells)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Raw images</td>
+<td>50 GB</td>
+<td>5 TB</td>
+</tr>
+<tr>
+<td>Illumination functions</td>
+<td>100 MB</td>
+<td>10 GB</td>
+</tr>
+<tr>
+<td>Corrected images</td>
+<td>50 GB</td>
+<td>5 TB</td>
+</tr>
+<tr>
+<td>Stitched images</td>
+<td>20 GB</td>
+<td>2 TB</td>
+</tr>
+<tr>
+<td>Segmentation masks</td>
+<td>5 GB</td>
+<td>500 GB</td>
+</tr>
+<tr>
+<td>Feature CSVs</td>
+<td>500 MB</td>
+<td>50 GB</td>
+</tr>
+<tr>
+<td>QC outputs</td>
+<td>1 GB</td>
+<td>100 GB</td>
+</tr>
+<tr>
+<td><strong>Total</strong></td>
+<td><strong>~127 GB</strong></td>
+<td><strong>~12.7 TB</strong></td>
+</tr>
+</tbody>
+</table>
+<p>!!! note "Storage Optimization" - Enable compression for TIFF files - Archive intermediate outputs after QC - Use cloud tiered storage for older results</p>
+<h2 id="accessing-outputs">Accessing Outputs<a class="headerlink" href="#accessing-outputs" title="Permanent link">&para;</a></h2>
+<h3 id="from-nextflow">From Nextflow<a class="headerlink" href="#from-nextflow" title="Permanent link">&para;</a></h3>
+<p>Outputs are published to <code>params.outdir</code>:</p>
+<div class="language-groovy highlight"><pre><span></span><code><span id="__span-18-1"><a id="__codelineno-18-1" name="__codelineno-18-1" href="#__codelineno-18-1"></a><span class="n">publishDir</span><span class="w"> </span><span class="s2">&quot;${params.outdir}/painting/corrected&quot;</span><span class="o">,</span><span class="w"> </span><span class="nl">mode:</span><span class="w"> </span><span class="s1">&#39;copy&#39;</span>
+</span></code></pre></div>
+<h3 id="from-python">From Python<a class="headerlink" href="#from-python" title="Permanent link">&para;</a></h3>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-19-1"><a id="__codelineno-19-1" name="__codelineno-19-1" href="#__codelineno-19-1"></a><span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
+</span><span id="__span-19-2"><a id="__codelineno-19-2" name="__codelineno-19-2" href="#__codelineno-19-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">PIL</span><span class="w"> </span><span class="kn">import</span> <span class="n">Image</span>
+</span><span id="__span-19-3"><a id="__codelineno-19-3" name="__codelineno-19-3" href="#__codelineno-19-3"></a><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+</span><span id="__span-19-4"><a id="__codelineno-19-4" name="__codelineno-19-4" href="#__codelineno-19-4"></a>
+</span><span id="__span-19-5"><a id="__codelineno-19-5" name="__codelineno-19-5" href="#__codelineno-19-5"></a><span class="c1"># Read feature data</span>
+</span><span id="__span-19-6"><a id="__codelineno-19-6" name="__codelineno-19-6" href="#__codelineno-19-6"></a><span class="n">cells</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="s1">&#39;results/combined/analysis/batch1/P001/A01/1/Cells.csv&#39;</span><span class="p">)</span>
+</span><span id="__span-19-7"><a id="__codelineno-19-7" name="__codelineno-19-7" href="#__codelineno-19-7"></a>
+</span><span id="__span-19-8"><a id="__codelineno-19-8" name="__codelineno-19-8" href="#__codelineno-19-8"></a><span class="c1"># Load segmentation mask</span>
+</span><span id="__span-19-9"><a id="__codelineno-19-9" name="__codelineno-19-9" href="#__codelineno-19-9"></a><span class="n">nuclei</span> <span class="o">=</span> <span class="n">Image</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="s1">&#39;results/combined/analysis/batch1/P001/A01/1/P001_A01_1_Nuclei.tif&#39;</span><span class="p">)</span>
+</span><span id="__span-19-10"><a id="__codelineno-19-10" name="__codelineno-19-10" href="#__codelineno-19-10"></a>
+</span><span id="__span-19-11"><a id="__codelineno-19-11" name="__codelineno-19-11" href="#__codelineno-19-11"></a><span class="c1"># Load illumination function</span>
+</span><span id="__span-19-12"><a id="__codelineno-19-12" name="__codelineno-19-12" href="#__codelineno-19-12"></a><span class="n">illum</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s1">&#39;results/painting/illum/batch1/P001/P001_IllumDAPI.npy&#39;</span><span class="p">)</span>
+</span></code></pre></div>
+<h3 id="from-r">From R<a class="headerlink" href="#from-r" title="Permanent link">&para;</a></h3>
+<div class="language-r highlight"><pre><span></span><code><span id="__span-20-1"><a id="__codelineno-20-1" name="__codelineno-20-1" href="#__codelineno-20-1"></a><span class="nf">library</span><span class="p">(</span><span class="n">readr</span><span class="p">)</span>
+</span><span id="__span-20-2"><a id="__codelineno-20-2" name="__codelineno-20-2" href="#__codelineno-20-2"></a><span class="nf">library</span><span class="p">(</span><span class="n">tiff</span><span class="p">)</span>
+</span><span id="__span-20-3"><a id="__codelineno-20-3" name="__codelineno-20-3" href="#__codelineno-20-3"></a>
+</span><span id="__span-20-4"><a id="__codelineno-20-4" name="__codelineno-20-4" href="#__codelineno-20-4"></a><span class="c1"># Read feature data</span>
+</span><span id="__span-20-5"><a id="__codelineno-20-5" name="__codelineno-20-5" href="#__codelineno-20-5"></a><span class="n">cells</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">read_csv</span><span class="p">(</span><span class="s">&#39;results/combined/analysis/batch1/P001/A01/1/Cells.csv&#39;</span><span class="p">)</span>
+</span><span id="__span-20-6"><a id="__codelineno-20-6" name="__codelineno-20-6" href="#__codelineno-20-6"></a>
+</span><span id="__span-20-7"><a id="__codelineno-20-7" name="__codelineno-20-7" href="#__codelineno-20-7"></a><span class="c1"># Load image</span>
+</span><span id="__span-20-8"><a id="__codelineno-20-8" name="__codelineno-20-8" href="#__codelineno-20-8"></a><span class="n">nuclei</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">readTIFF</span><span class="p">(</span><span class="s">&#39;results/combined/analysis/batch1/P001/A01/1/P001_A01_1_Nuclei.tif&#39;</span><span class="p">)</span>
+</span></code></pre></div>
+<h2 id="next-steps">Next Steps<a class="headerlink" href="#next-steps" title="Permanent link">&para;</a></h2>
+<ul>
+<li><a href="../../usage/parameters/">Parameters</a> - Configure output behavior</li>
+<li><a href="../../developer/architecture/">Architecture</a> - Understand output generation</li>
+<li><a href="../troubleshooting/">Troubleshooting</a> - Resolve output issues</li>
+</ul>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+        
+<div class="md-social">
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://github.com/your-org" target="_blank" rel="noopener" title="github.com" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": [], "search": "../../assets/javascripts/workers/search.7a47a382.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike"}}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.e71a0d61.min.js"></script>
+      
+    
+  </body>
+</html>
