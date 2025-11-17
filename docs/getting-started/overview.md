@@ -63,9 +63,9 @@ These gates allow manual review before committing to expensive downstream proces
 Processing is parallelized at optimal granularity:
 
 - **Illumination calculation**: Per plate (or plate+cycle for barcoding)
-- **Illumination correction**: Per well (painting) or site (barcoding)
-- **Stitching**: Per well+site
-- **Combined analysis**: Per batch+plate+well+site
+- **Illumination correction**: Per site for both arms
+- **Stitching**: Per well
+- **Combined analysis**: Per site
 
 ### Data Organization
 
