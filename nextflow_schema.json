@@ -10,7 +10,7 @@
             "type": "object",
             "fa_icon": "fas fa-terminal",
             "description": "Define where the pipeline should find input data and save output data.",
-            "required": ["input", "outdir", "barcodes"],
+            "required": ["input", "outdir", "barcodes", "fiji_stitchcrop_script"],
             "properties": {
                 "input": {
                     "type": "string",
@@ -43,6 +43,11 @@
                     "type": "string",
                     "description": "Path to barcodes.csv file for SBS data.",
                     "fa_icon": "fas fa-qrcode"
+                },
+                "fiji_stitchcrop_script": {
+                    "type": "string",
+                    "default": "/home/florian/nf-pooled-cellpainting/bin/stitch_crop.master.py",
+                    "description": "Path to script to use for FIJI Stitchcrop."
                 },
                 "range_skip": {
                     "type": "integer",
