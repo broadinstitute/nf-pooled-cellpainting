@@ -12,8 +12,9 @@ pipeline_info/*.{html,json,txt,yml}
 images/Batch1/images_segmentation/painting/**/SegmentationCheck_*.csv
 images/Batch1/images_segmentation/painting/**/load_data_*.csv
 workspace/load_data_csv/*.csv
-images/Batch1/images_corrected/painting/Plate1/**/*.tif
-images/Batch1/images_aligned/barcoding/Plate1/**/*.tif
+images/Batch1/images_corrected/painting/Plate1/**/*.tiff
+images/Batch1/images_aligned/barcoding/Plate1/**/*.tiff
+images/Batch1/images_corrected/barcoding/Plate1/**/*.tiff
 
 # QC reports - unstable rendering/metadata (matplotlib version differences, timestamps, etc.)
 # QC_BARCODEALIGN outputs
