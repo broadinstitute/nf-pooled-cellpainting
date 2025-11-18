@@ -199,9 +199,10 @@ nextflow_process {
             assertAll(
                 { assert process.success },
                 // Check that tiff outputs exist and have expected names (but don't snapshot their checksums)
-                { assert file(process.out.stitched_images.get(0).get(1)).name == 'Plate1-A1_Stitched_DNA.tiff' },
-                { assert file(process.out.cropped_images.get(0).get(1)).name == 'Plate1-A1_DNA_Site_1.tiff' },
-                { assert file(process.out.downsampled_images.get(0).get(1)).name == 'Plate1-A1_Stitched_DNA.tiff' },
+                { assert file(process.out.stitched_images.get(0).get(1)).name == 'Plate_Plate1_Well_A1_Site_1_Stitched_CorrDNA.tiff' },
+                { assert process.out.cropped_images.get(0).get(1).size() == 2 },
+                { assert process.out.cropped_images.get(0).get(1).every { file(it).name.endsWith('.tiff') } },
+                { assert file(process.out.downsampled_images.get(0).get(1)).name == 'Plate_Plate1_Well_A1_Site_1_Stitched_CorrDNA.tiff' },
                 // Only snapshot stable outputs (tile config and versions)
                 { assert snapshot(
                     process.out.tile_config,

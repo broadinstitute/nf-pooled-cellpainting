@@ -8,6 +8,11 @@ multiqc/multiqc_plots/{svg,pdf,png}/*.{svg,pdf,png}
 multiqc/multiqc_report.html
 pipeline_info/*.{html,json,txt,yml}
 
+## Output files to exclude from cellpainting
+images/Batch1/images_segmentation/painting/**/SegmentationCheck_*.csv
+images/Batch1/images_segmentation/painting/**/load_data_*.csv
+workspace/load_data_csv/*.csv
+
 # QC reports - unstable rendering/metadata (matplotlib version differences, timestamps, etc.)
 # QC_BARCODEALIGN outputs
 workspace/qc_reports/6_alignment/*/*.html
