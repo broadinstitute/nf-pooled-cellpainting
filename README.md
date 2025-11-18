@@ -2,14 +2,10 @@
 
 [![Nextflow](https://img.shields.io/badge/nextflow%20DSL2-%E2%89%A525.04.8-23aa62.svg)](https://www.nextflow.io/)
 [![run with docker](https://img.shields.io/badge/run%20with-docker-0db7ed?labelColor=000000&logo=docker)](https://www.docker.com/)
-[![run with singularity](https://img.shields.io/badge/run%20with-singularity-1d355c.svg?labelColor=000000)](https://sylabs.io/docs/)
 
 ## Introduction
 
 **nf-pooled-cellpainting** is a Nextflow pipeline for processing optical pooled screening (OPS) data, combining Cell Painting phenotypic analysis with sequencing-by-synthesis barcoding.
-
-> [!WARNING]
-> This pipeline is under active development by Seqera and the Broad Institute's Imaging Platform.
 
 ## Pipeline Overview
 
@@ -29,6 +25,18 @@ Key steps include:
 
 ## Quick Start
 
+### Using test data
+
+You can run the pipeline with a very small test dataset to test that the pipeline is executing correctly:
+
+```bash
+nextflow run seqera-services/nf-pooled-cellpainting -profile test,docker --outdir results
+```
+
+### Using your own data
+
+If you want to use your own optical pooled screening data, you need to supply your a samplesheet, a barcode.csv file, your own generated cellprofiler pipeline files (cppipe files) for all of the pipeline steps and an output directory where to write the results.
+
 ```bash
 nextflow run seqera-services/nf-pooled-cellpainting \
    -profile docker \
@@ -44,37 +52,31 @@ nextflow run seqera-services/nf-pooled-cellpainting \
    --outdir results
 ```
 
-Run the pipeline with small test data:
-
-```bash
-nextflow run seqera-services/nf-pooled-cellpainting -profile test,docker --outdir results
-```
-
-## Documentation
+<!-- ## Documentation
 
 For detailed documentation, see: **[Full Documentation](https://your-org.github.io/nf-pooled-cellpainting/)**
 
 - [Installation](https://your-org.github.io/nf-pooled-cellpainting/getting-started/installation/)
 - [Usage Guide](https://your-org.github.io/nf-pooled-cellpainting/usage/parameters/)
 - [Pipeline Architecture](https://your-org.github.io/nf-pooled-cellpainting/developer/architecture/)
-- [Troubleshooting](https://your-org.github.io/nf-pooled-cellpainting/reference/troubleshooting/)
+- [Troubleshooting](https://your-org.github.io/nf-pooled-cellpainting/reference/troubleshooting/) -->
 
 ## Pipeline Parameters
 
 Key parameters:
 
-| Parameter                   | Description                                 | Required |
-| --------------------------- | ------------------------------------------- | -------- |
-| `--input`                   | Samplesheet CSV with image paths            | Yes      |
-| `--barcodes`                | Barcode reference CSV                       | Yes      |
-| `--painting_*_cppipe`       | CellProfiler pipelines for painting arm     | Yes      |
-| `--barcoding_*_cppipe`      | CellProfiler pipelines for barcoding arm    | Yes      |
-| `--combinedanalysis_cppipe` | Combined analysis pipeline                  | Yes      |
-| `--outdir`                  | Output directory                            | Yes      |
-| `--qc_painting_passed`      | Enable painting stitching (default: false)  | No       |
-| `--qc_barcoding_passed`     | Enable barcoding stitching (default: false) | No       |
+| Parameter                   | Description                                   | Required |
+| --------------------------- | --------------------------------------------- | -------- |
+| `--input`                   | Samplesheet CSV with image paths and metadata | Yes      |
+| `--outdir`                  | Output directory                              | Yes      |
+| `--barcodes`                | Barcode reference CSV                         | Yes      |
+| `--painting_*_cppipe`       | CellProfiler pipelines for painting arm       | Yes      |
+| `--barcoding_*_cppipe`      | CellProfiler pipelines for barcoding arm      | Yes      |
+| `--combinedanalysis_cppipe` | Combined analysis pipeline                    | Yes      |
+| `--qc_painting_passed`      | QC passed for painting arm (default: false)   | No       |
+| `--qc_barcoding_passed`     | QC passed for barcoding arm (default: false)  | No       |
 
-See [Parameters Documentation](https://your-org.github.io/nf-pooled-cellpainting/usage/parameters/) for complete list.
+<!-- See [Parameters Documentation](https://your-org.github.io/nf-pooled-cellpainting/usage/parameters/) for complete list. -->
 
 ## Credits
 
@@ -88,7 +90,7 @@ If you would like to contribute to this pipeline, please see the [contributing g
 
 This pipeline is licensed under the [BSD 3-Clause License](LICENSE).
 
-Portions of this software are derived from the nf-core project template and infrastructure, which are licensed under the [MIT License](LICENSE-MIT). This includes the pipeline template structure, configuration patterns, and utility functions.
+Portions of this software are derived from the nf-core project template and nf-core tools, which are licensed under the [MIT License](LICENSE-MIT). This includes the pipeline template structure, module patterns, configuration patterns, and utility functions.
 
 ## Citations
 
