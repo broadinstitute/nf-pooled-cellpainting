@@ -101,8 +101,9 @@ EOF
     """
 
     stub:
+    def cycle_prefix = meta.cycle ? "${meta.cycle}_" : ""
     """
-    touch ${meta.plate}_Illum${channels}.npy
+    touch ${meta.plate}_${cycle_prefix}Illum${channels}.npy
     touch load_data.csv
 
     cat <<-END_VERSIONS > versions.yml

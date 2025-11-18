@@ -81,19 +81,34 @@ process FIJI_STITCHCROP {
     """
 
     stub:
+    def is_barcoding = meta.arm == 'barcoding'
+    def prefix = "Plate_${meta.plate}_Well_${meta.well}_Site_1"
     """
     mkdir -p stitched_images
     mkdir -p cropped_images
     mkdir -p downsampled_images
 
-    touch stitched_images/Plate1-A1_Stitched_DNA.tiff
-    touch stitched_images/TileConfiguration.txt
-    touch cropped_images/Plate1-A1_DNA_Site_1.tiff
-    touch downsampled_images/Plate1-A1_Stitched_DNA.tiff
+    # Create files based on arm type
+    if [ "${is_barcoding}" == "true" ]; then
+        # Barcoding arm - use Cycle format
+        touch stitched_images/${prefix}_Stitched_Cycle01_DNA.tiff
+        touch stitched_images/TileConfiguration.txt
+        touch cropped_images/${prefix}_Cycle01_DNA.tiff
+        touch cropped_images/${prefix}_Cycle01_A.tiff
+        touch cropped_images/${prefix}_Cycle02_A.tiff
+        touch downsampled_images/${prefix}_Stitched_Cycle01_DNA.tiff
+    else
+        # Cell painting arm - use Corr format
+        touch stitched_images/${prefix}_Stitched_CorrDNA.tiff
+        touch stitched_images/TileConfiguration.txt
+        touch cropped_images/${prefix}_CorrDNA.tiff
+        touch cropped_images/${prefix}_CorrER.tiff
+        touch downsampled_images/${prefix}_Stitched_CorrDNA.tiff
+    fi
 
     cat <<-END_VERSIONS > versions.yml
-    "${task.process}":
-        fiji: \$(/opt/fiji/Fiji.app/ImageJ-linux64 -h 2>&1 | grep "ImageJ launcher" | awk '{print \$3}' || echo "unknown")
-    END_VERSIONS
+	"${task.process}":
+	    fiji: 2.14.0
+	END_VERSIONS
     """
 }

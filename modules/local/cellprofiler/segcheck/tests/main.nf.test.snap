@@ -20,7 +20,7 @@
                             "SegmentationCheck_PreCells.csv:md5,d41d8cd98f00b204e9800998ecf8427e",
                             "load_data.csv:md5,d41d8cd98f00b204e9800998ecf8427e"
                         ],
-                        "image1.png:md5,d41d8cd98f00b204e9800998ecf8427e"
+                        "Batch1_Plate1_painting_A1_image1.png:md5,d41d8cd98f00b204e9800998ecf8427e"
                     ]
                 ],
                 "1": [
@@ -50,7 +50,7 @@
                             "SegmentationCheck_PreCells.csv:md5,d41d8cd98f00b204e9800998ecf8427e",
                             "load_data.csv:md5,d41d8cd98f00b204e9800998ecf8427e"
                         ],
-                        "image1.png:md5,d41d8cd98f00b204e9800998ecf8427e"
+                        "Batch1_Plate1_painting_A1_image1.png:md5,d41d8cd98f00b204e9800998ecf8427e"
                     ]
                 ],
                 "versions": [
@@ -62,7 +62,7 @@
             "nf-test": "0.9.3",
             "nextflow": "25.10.0"
         },
-        "timestamp": "2025-11-09T01:57:03.277297278"
+        "timestamp": "2025-11-18T01:39:47.730237489"
     },
     "cellprofiler - segcheck - painting": {
         "content": [
