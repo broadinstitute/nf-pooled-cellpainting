@@ -126,17 +126,33 @@ def merge_csvs(csvfolder, filename, column_list=None, filter_string=None):
 csvfolder = input_dir
 cache_file = Path(output_dir) / "cached_alignment_data.parquet"
 
-# Build column lists
-# Note: Pipeline 6 uses "DNA" channel name (not "DAPI")
+# Detect channel naming convention (DNA vs DAPI) by checking first available CSV
+channel_name = "DAPI"  # default
+folderlist = os.listdir(csvfolder)
+for folder in folderlist:
+    test_file = os.path.join(csvfolder, folder, "BarcodingApplication_Image.csv")
+    if os.path.isfile(test_file):
+        # Read just the header to check column names
+        test_df = pd.read_csv(test_file, nrows=0)
+        if "Align_Xshift_Cycle02_DNA" in test_df.columns:
+            channel_name = "DNA"
+            print("Detected channel naming convention: DNA")
+            break
+        elif "Align_Xshift_Cycle02_DAPI" in test_df.columns:
+            channel_name = "DAPI"
+            print("Detected channel naming convention: DAPI")
+            break
+
+# Build column lists using detected channel name
 shift_list = []
 corr_list = []
 for cycle in range(1, numcycles + 1):
     if cycle != 1:
-        shift_list.append(f"Align_Xshift_Cycle{cycle:02d}_DNA")
-        shift_list.append(f"Align_Yshift_Cycle{cycle:02d}_DNA")
+        shift_list.append(f"Align_Xshift_Cycle{cycle:02d}_{channel_name}")
+        shift_list.append(f"Align_Yshift_Cycle{cycle:02d}_{channel_name}")
     for cycle2 in range(cycle + 1, numcycles + 1):
         corr_list.append(
-            f"Correlation_Correlation_Cycle{cycle:02d}_DNA_Cycle{cycle2:02d}_DNA"
+            f"Correlation_Correlation_Cycle{cycle:02d}_{channel_name}_Cycle{cycle2:02d}_{channel_name}"
         )
 id_list = ["Metadata_Well", "Metadata_Plate", "Metadata_Site"]
 column_list = id_list + shift_list + corr_list
