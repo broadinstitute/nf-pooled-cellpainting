@@ -49,7 +49,7 @@ SaveImages:[module_num:3|svn_version:'Unknown'|variable_revision_number:16|show_
     Select the image to save:CorrDNA
     Select method for constructing file names:Single name
     Select image name for file prefix:DNA
-    Enter single file name:Plate_\g<Plate>_Well_\g<Well_Value>_Site_\g<Site>_CorrDNA
+    Enter single file name:Plate_\g<Plate>_Well_\g<Well>_Site_\g<Site>_CorrDNA
     Number of digits:4
     Append a suffix to the image file name?:Yes
     Text to append to the image name:_Site_\g<Site>_CorrDNA
@@ -69,7 +69,7 @@ SaveImages:[module_num:4|svn_version:'Unknown'|variable_revision_number:16|show_
     Select the image to save:CorrER
     Select method for constructing file names:Single name
     Select image name for file prefix:DNA
-    Enter single file name:Plate_\g<Plate>_Well_\g<Well_Value>_Site_\g<Site>_CorrER
+    Enter single file name:Plate_\g<Plate>_Well_\g<Well>_Site_\g<Site>_CorrER
     Number of digits:4
     Append a suffix to the image file name?:Yes
     Text to append to the image name:_Site_\g<Site>_CorrDNA
@@ -89,7 +89,7 @@ SaveImages:[module_num:5|svn_version:'Unknown'|variable_revision_number:16|show_
     Select the image to save:CorrMito
     Select method for constructing file names:Single name
     Select image name for file prefix:DNA
-    Enter single file name:Plate_\g<Plate>_Well_\g<Well_Value>_Site_\g<Site>_CorrMito
+    Enter single file name:Plate_\g<Plate>_Well_\g<Well>_Site_\g<Site>_CorrMito
     Number of digits:4
     Append a suffix to the image file name?:Yes
     Text to append to the image name:_Site_\g<Site>_CorrDNA
@@ -109,7 +109,7 @@ SaveImages:[module_num:6|svn_version:'Unknown'|variable_revision_number:16|show_
     Select the image to save:CorrFlag_long
     Select method for constructing file names:Single name
     Select image name for file prefix:DNA
-    Enter single file name:Plate_\g<Plate>_Well_\g<Well_Value>_Site_\g<Site>_CorrFlag_long
+    Enter single file name:Plate_\g<Plate>_Well_\g<Well>_Site_\g<Site>_CorrFlag_long
     Number of digits:4
     Append a suffix to the image file name?:Yes
     Text to append to the image name:_Site_\g<Site>_CorrDNA
@@ -129,7 +129,7 @@ SaveImages:[module_num:7|svn_version:'Unknown'|variable_revision_number:16|show_
     Select the image to save:CorrFlag
     Select method for constructing file names:Single name
     Select image name for file prefix:DNA
-    Enter single file name:Plate_\g<Plate>_Well_\g<Well_Value>_Site_\g<Site>_CorrFlag
+    Enter single file name:Plate_\g<Plate>_Well_\g<Well>_Site_\g<Site>_CorrFlag
     Number of digits:4
     Append a suffix to the image file name?:Yes
     Text to append to the image name:_Site_\g<Site>_CorrDNA
@@ -149,7 +149,7 @@ SaveImages:[module_num:8|svn_version:'Unknown'|variable_revision_number:16|show_
     Select the image to save:CorrWGA
     Select method for constructing file names:Single name
     Select image name for file prefix:DNA
-    Enter single file name:Plate_\g<Plate>_Well_\g<Well_Value>_Site_\g<Site>_CorrWGA
+    Enter single file name:Plate_\g<Plate>_Well_\g<Well>_Site_\g<Site>_CorrWGA
     Number of digits:4
     Append a suffix to the image file name?:Yes
     Text to append to the image name:_Site_\g<Site>_CorrDNA
