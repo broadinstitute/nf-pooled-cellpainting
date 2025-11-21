@@ -18,17 +18,20 @@ tools:
       identifier: biotools:CellProfiler
 
 input:
-  - meta:
-      type: map
-      description: |
-        Groovy Map containing sample information
-        e.g. `[ id:'sample1' ]`
-  - corr_images:
-      type: file
-      description: Corrected microscopy images for segmentation quality checking
-      pattern: "*.{tif,tiff,png}"
-      ontologies:
-        - edam: http://edamontology.org/format_3547
+  - - meta:
+        type: map
+        description: |
+          Groovy Map containing sample information
+          e.g. `[ id:'sample1' ]`
+    - corr_images:
+        type: file
+        description: Corrected microscopy images for segmentation quality checking
+        pattern: "*.{tif,tiff,png}"
+        ontologies:
+          - edam: http://edamontology.org/format_3547
+    - image_metas:
+        type: list
+        description: "List of image metadata maps containing plate, well, site, channels, filename information"
   - segcheck_cppipe:
       type: file
       description: CellProfiler pipeline file (.cppipe) for segmentation checking
@@ -40,31 +43,38 @@ input:
       description: Number of images to skip when generating load data CSV for processing subset
 
 output:
-  segcheck_res:
-    - meta:
-        type: map
-        description: |
-          Groovy Map containing sample information
-          e.g. `[ id:'sample1' ]`
-    - "*.csv":
-        type: file
-        description: CellProfiler segmentation check measurements in CSV format
-        pattern: "*.csv"
-        ontologies:
-          - edam: http://edamontology.org/format_3752
-    - "*.png":
-        type: file
-        description: Quality control images showing segmentation results
-        pattern: "*.png"
-        ontologies:
-          - edam: http://edamontology.org/format_3603
-  versions:
-    - versions.yml:
-        type: file
-        description: File containing software versions
-        pattern: "versions.yml"
-        ontologies:
-          - edam: http://edamontology.org/format_3750
+  - segcheck_res:
+      - meta:
+          type: map
+          description: |
+            Groovy Map containing sample information
+            e.g. `[ id:'sample1' ]`
+      - "*.csv":
+          type: file
+          description: CellProfiler segmentation check measurements in CSV format
+          pattern: "*.csv"
+          ontologies:
+            - edam: http://edamontology.org/format_3752
+      - "*.png":
+          type: file
+          description: Quality control images showing segmentation results
+          pattern: "*.png"
+          ontologies:
+            - edam: http://edamontology.org/format_3603
+  - load_data_csv:
+      - "load_data.csv":
+          type: file
+          description: "Generated load_data.csv file used by CellProfiler to load and organize input images"
+          pattern: "load_data.csv"
+          ontologies:
+            - edam: "http://edamontology.org/format_3752" # CSV
+  - versions:
+      - versions.yml:
+          type: file
+          description: File containing software versions
+          pattern: "versions.yml"
+          ontologies:
+            - edam: http://edamontology.org/format_3750
 
 authors:
   - "@FloWuenne"

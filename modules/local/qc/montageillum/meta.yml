@@ -23,15 +23,18 @@ input:
         description: |
           Groovy Map containing sample information
           e.g. `[ plate:'Plate1', arm:'CP', batch:'Batch1' ]`
-    - npy_files:
+    - input_files:
         type: file
-        description: "Illumination correction files in numpy format"
+        description: "Input files for montage generation (typically illumination correction .npy files)"
         pattern: "*.npy"
         ontologies:
           - edam: "http://edamontology.org/data_0006" # Data
+  - pattern:
+      type: string
+      description: "File pattern to match for creating the montage"
 
 output:
-  - illum_montage:
+  - montage:
       - meta:
           type: map
           description: |
@@ -45,7 +48,7 @@ output:
             - edam: "http://edamontology.org/data_2968" # Image
             - edam: "http://edamontology.org/format_3603" # PNG
   - versions:
-      - "versions.yml":
+      - versions.yml:
           type: file
           description: "File containing software versions"
           pattern: "versions.yml"

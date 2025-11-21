@@ -23,30 +23,44 @@ input:
     - channels:
         type: string
         description: "Comma-separated list of channel names"
+    - cycle:
+        type: string
+        description: "Cycle identifier or name"
     - images:
         type: file
         description: "Microscopy images for illumination correction calculation"
         pattern: "*.{tiff,tif,png,jpg}"
-    - load_data_csv:
-        type: file
-        description: "CellProfiler LoadData CSV file"
-        pattern: "*.csv"
-  - - illumination_cppipe:
-        type: file
-        description: "CellProfiler pipeline file for illumination correction calculation"
-        pattern: "*.{cppipe,template}"
+    - image_metas:
+        type: list
+        description: "List of image metadata maps containing plate, well, site, channels, filename information"
+  - illumination_cppipe:
+      type: file
+      description: "CellProfiler pipeline file for illumination correction calculation"
+      pattern: "*.{cppipe,template}"
+  - has_cycles:
+      type: boolean
+      description: "Whether the experiment includes multiple cycles"
 output:
-  - - meta:
-        type: map
-        description: "Groovy Map containing sample information (e.g. batch, plate, arm, well)"
-    - "*.npy":
-        type: file
-        description: "Illumination correction files in numpy format"
-        pattern: "*.npy"
-  - - versions:
-        type: file
-        description: "File containing software versions"
-        pattern: "versions.yml"
+  - illumination_corrections:
+      - meta:
+          type: map
+          description: "Groovy Map containing sample information (e.g. batch, plate, arm, well)"
+      - "*.npy":
+          type: file
+          description: "Illumination correction files in numpy format"
+          pattern: "*.npy"
+  - load_data_csv:
+      - "load_data.csv":
+          type: file
+          description: "Generated load_data.csv file used by CellProfiler to load and organize input images"
+          pattern: "load_data.csv"
+          ontologies:
+            - edam: "http://edamontology.org/format_3752" # CSV
+  - versions:
+      - versions.yml:
+          type: file
+          description: "File containing software versions"
+          pattern: "versions.yml"
 authors:
   - "@FloWuenne"
 maintainers:
