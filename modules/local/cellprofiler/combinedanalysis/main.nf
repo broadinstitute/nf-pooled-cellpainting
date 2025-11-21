@@ -24,21 +24,9 @@ process CELLPROFILER_COMBINEDANALYSIS {
     task.ext.when == null || task.ext.when
 
     script:
-    // Create metadata structure with plate info and image_metadata array
-    def metadata_map = [
-        plate: meta.plate,
-        image_metadata: image_metas,
-    ]
-    // Add optional fields if present
-    if (meta.batch) {
-        metadata_map.batch = meta.batch
-    }
-    if (meta.arm) {
-        metadata_map.arm = meta.arm
-    }
-
-    def metadata_json_content = groovy.json.JsonOutput.toJson(metadata_map)
+    // Serialize metadata directly - structure prepared in workflow (no transformation here!)
     // Base64 encode to reduce log verbosity
+    def metadata_json_content = groovy.json.JsonOutput.toJson(image_metas)
     def metadata_base64 = metadata_json_content.bytes.encodeBase64().toString()
 
     """
