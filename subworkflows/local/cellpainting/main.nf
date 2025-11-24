@@ -3,13 +3,14 @@
     IMPORT MODULES / SUBWORKFLOWS / FUNCTIONS
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
-include { CELLPROFILER_ILLUMCALC                                      } from '../../../modules/local/cellprofiler/illumcalc'
-include { QC_MONTAGEILLUM as QC_MONTAGEILLUM_PAINTING                 } from '../../../modules/local/qc/montageillum'
-include { QC_MONTAGEILLUM as QC_MONTAGE_SEGCHECK                      } from '../../../modules/local/qc/montageillum'
-include { QC_MONTAGEILLUM as QC_MONTAGE_STITCHCROP_PAINTING           } from '../../../modules/local/qc/montageillum'
+include { CELLPROFILER_ILLUMCALC } from '../../../modules/local/cellprofiler/illumcalc'
+include { QC_MONTAGEILLUM as QC_MONTAGEILLUM_PAINTING } from '../../../modules/local/qc/montageillum'
+include { QC_MONTAGEILLUM as QC_MONTAGE_SEGCHECK } from '../../../modules/local/qc/montageillum'
+include { QC_MONTAGEILLUM as QC_MONTAGE_STITCHCROP_PAINTING } from '../../../modules/local/qc/montageillum'
 include { CELLPROFILER_ILLUMAPPLY as CELLPROFILER_ILLUMAPPLY_PAINTING } from '../../../modules/local/cellprofiler/illumapply'
-include { CELLPROFILER_SEGCHECK                                       } from '../../../modules/local/cellprofiler/segcheck'
-include { FIJI_STITCHCROP                                             } from '../../../modules/local/fiji/stitchcrop'
+include { CELLPROFILER_SEGCHECK } from '../../../modules/local/cellprofiler/segcheck'
+include { FIJI_STITCHCROP } from '../../../modules/local/fiji/stitchcrop'
+
 workflow CELLPAINTING {
     take:
     ch_samplesheet_cp // channel: [ val(meta), val(image) ]
@@ -153,9 +154,18 @@ workflow CELLPAINTING {
     )
 
     // Reshape CELLPROFILER_ILLUMAPPLY_PAINTING output for SEGCHECK
-    // Build image metadata for corrected images
+    // Group by well (not site) so range_skip can select every nth image from the well
     CELLPROFILER_ILLUMAPPLY_PAINTING.out.corrected_images
         .map { meta, images, _csv ->
+            // Create well key (without site)
+            def well_key = [
+                batch: meta.batch,
+                plate: meta.plate,
+                well: meta.well,
+                channels: meta.channels,
+                arm: meta.arm,
+                id: "${meta.batch}_${meta.plate}_${meta.well}",
+            ]
             // Build image_metas for corrected images with full metadata + filename + channel
             def image_metas = images.collect { img ->
                 // Extract channel from corrected image filename: Plate_X_Well_Y_Site_Z_CorrCHANNEL.tiff
@@ -166,7 +176,12 @@ workflow CELLPAINTING {
                 image_meta.channel = channel
                 image_meta
             }
-            [meta, images, image_metas]
+            [well_key, meta.site, images, image_metas]
+        }
+        .groupTuple()
+        .map { well_meta, _site_list, images_list, image_metas_list ->
+            // Flatten all site images and metadata into one list for the well
+            [well_meta, images_list.flatten(), image_metas_list.flatten()]
         }
         .set { ch_sub_corr_images }
 
@@ -315,5 +330,5 @@ workflow CELLPAINTING {
 
     emit:
     cropped_images = ch_cropped_images // channel: [ val(meta), [ cropped_images ] ]
-    versions       = ch_versions // channel: [ versions.yml ]
+    versions = ch_versions // channel: [ versions.yml ]
 }

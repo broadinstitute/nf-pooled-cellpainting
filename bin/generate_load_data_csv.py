@@ -1094,14 +1094,30 @@ def generate_csv_rows(
     else:
         print(f"✓ Metadata columns from JSON fields: {', '.join(metadata_columns)}", file=sys.stderr)
 
-    # Apply subsampling if needed
-    all_sites = sorted(set(site for _, _, site in grouped.keys()))
-    selected_sites = [site for i, site in enumerate(all_sites) if i % range_skip == 0]
+    # Apply subsampling per well if needed
+    # Group keys by (plate, well) and collect all sites for each well
+    wells_to_sites = {}
+    for (plate, well, site) in grouped.keys():
+        well_key = (plate, well)
+        if well_key not in wells_to_sites:
+            wells_to_sites[well_key] = []
+        wells_to_sites[well_key].append(site)
 
-    if not selected_sites:
-        raise ValueError(f"No sites selected with range_skip={range_skip}")
+    # For each well, select every nth site (or all sites if fewer than range_skip)
+    selected_keys = set()
+    for well_key, sites in wells_to_sites.items():
+        sorted_sites = sorted(sites)
+        # If well has fewer sites than range_skip, use all sites
+        if len(sorted_sites) < range_skip:
+            selected_sites = sorted_sites
+        else:
+            selected_sites = [site for i, site in enumerate(sorted_sites) if i % range_skip == 0]
 
-    print(f"✓ Selected {len(selected_sites)} site(s) from {len(all_sites)} total sites", file=sys.stderr)
+        for site in selected_sites:
+            selected_keys.add((well_key[0], well_key[1], site))
+
+    total_sites = len(grouped.keys())
+    print(f"✓ Selected {len(selected_keys)} image(s) from {total_sites} total images across {len(wells_to_sites)} well(s)", file=sys.stderr)
 
     rows = []  # List of CSV row dicts
     row_errors = []  # Track rows that failed to generate
@@ -1110,8 +1126,8 @@ def generate_csv_rows(
     # Generate one CSV row per (plate, well, site)
     # ==================================================================================
     for (plate, well, site), file_data in sorted(grouped.items()):
-        # Skip sites not selected by subsampling
-        if site not in selected_sites:
+        # Skip images not selected by subsampling
+        if (plate, well, site) not in selected_keys:
             continue
 
         try:
