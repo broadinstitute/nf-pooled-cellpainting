@@ -3,14 +3,14 @@
     IMPORT MODULES / SUBWORKFLOWS / FUNCTIONS
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
-include { CELLPROFILER_ILLUMCALC                                       } from '../../../modules/local/cellprofiler/illumcalc'
-include { QC_MONTAGEILLUM as QC_MONTAGEILLUM_BARCODING                 } from '../../../modules/local/qc/montageillum'
-include { QC_MONTAGEILLUM as QC_MONTAGE_STITCHCROP_BARCODING           } from '../../../modules/local/qc/montageillum'
+include { CELLPROFILER_ILLUMCALC } from '../../../modules/local/cellprofiler/illumcalc'
+include { QC_MONTAGEILLUM as QC_MONTAGEILLUM_BARCODING } from '../../../modules/local/qc/montageillum'
+include { QC_MONTAGEILLUM as QC_MONTAGE_STITCHCROP_BARCODING } from '../../../modules/local/qc/montageillum'
 include { CELLPROFILER_ILLUMAPPLY as CELLPROFILER_ILLUMAPPLY_BARCODING } from '../../../modules/local/cellprofiler/illumapply'
-include { CELLPROFILER_PREPROCESS                                      } from '../../../modules/local/cellprofiler/preprocess'
-include { QC_PREPROCESS                                                } from '../../../modules/local/qc/preprocess'
-include { FIJI_STITCHCROP                                              } from '../../../modules/local/fiji/stitchcrop'
-include { QC_BARCODEALIGN                                              } from '../../../modules/local/qc/barcodealign'
+include { CELLPROFILER_PREPROCESS } from '../../../modules/local/cellprofiler/preprocess'
+include { QC_PREPROCESS } from '../../../modules/local/qc/preprocess'
+include { FIJI_STITCHCROP } from '../../../modules/local/fiji/stitchcrop'
+include { QC_BARCODEALIGN } from '../../../modules/local/qc/barcodealign'
 
 workflow BARCODING {
     take:
@@ -76,29 +76,45 @@ workflow BARCODING {
     )
     ch_versions = ch_versions.mix(QC_MONTAGEILLUM_BARCODING.out.versions)
 
-    // Group images by site for ILLUMAPPLY (not well)
-    // This preserves site information through the pipeline
+    // Group images for ILLUMAPPLY based on parameter setting
+    // Two modes:
+    //   - "site": Group by site (current behavior) - each site processed separately
+    //   - "well": Group by well (new behavior) - all sites in a well processed together
+    // Site information is always preserved in image metadata for downstream preprocessing
     ch_samplesheet_sbs
         .map { meta, image ->
-            def site_key = meta.subMap(['batch', 'plate', 'well', 'site', 'arm'])
-            def site_id = "${meta.batch}_${meta.plate}_${meta.well}_Site${meta.site}"
+            // Determine grouping key based on parameter
+            def group_key
+            def group_id
 
-            // Preserve full metadata for each image
+            if (params.barcoding_illumapply_grouping == "site") {
+                // Site-level grouping (current behavior)
+                group_key = meta.subMap(['batch', 'plate', 'well', 'site', 'arm'])
+                group_id = "${meta.batch}_${meta.plate}_${meta.well}_Site${meta.site}"
+            }
+            else {
+                // Well-level grouping (new behavior)
+                // Site is NOT in the grouping key, but preserved in image metadata
+                group_key = meta.subMap(['batch', 'plate', 'well', 'arm'])
+                group_id = "${meta.batch}_${meta.plate}_${meta.well}"
+            }
+
+            // Preserve full metadata for each image (including site)
             def image_meta = meta.clone()
             image_meta.filename = image.name
 
-            [site_key + [id: site_id], image_meta, image]
+            [group_key + [id: group_id], image_meta, image]
         }
         .groupTuple()
-        .map { site_meta, images_meta_list, images_list ->
-            // Get unique cycles and channels for this site
+        .map { group_meta, images_meta_list, images_list ->
+            // Get unique cycles and channels for this group
             // For barcoding, we expect multiple cycles
             def all_cycles = images_meta_list.collect { m -> m.cycle }.findAll { c -> c != null }.unique().sort()
             def unique_cycles = all_cycles.size() > 1 ? all_cycles : null
             def all_channels = images_meta_list[0].channels
 
             // Return tuple: (shared meta, channels, cycles, images, per-image metadata)
-            [site_meta, all_channels, unique_cycles, images_list, images_meta_list]
+            [group_meta, all_channels, unique_cycles, images_list, images_meta_list]
         }
         .set { ch_images_by_site }
 
@@ -199,25 +215,44 @@ workflow BARCODING {
     )
     ch_versions = ch_versions.mix(QC_BARCODEALIGN.out.versions)
 
-    // ILLUMAPPLY already runs per site, so corrected_images (aligned_images in case of barcoding) has site metadata
-    // Build image metadata for PREPROCESS from aligned images
+    // ILLUMAPPLY outputs may be per site or per well depending on grouping mode
+    // PREPROCESS always needs site-level grouping, so we need to regroup if illumapply was grouped by well
+    // Extract site information from filenames and regroup by site
     CELLPROFILER_ILLUMAPPLY_BARCODING.out.corrected_images
-        .map { site_meta, images, _csv ->
-            // Build image_metas for corrected images with full metadata + filename + cycle + channel
-            def image_metas = images.collect { img ->
-                // Extract cycle and channel from corrected image filename
-                // Pattern: Plate_X_Well_Y_Site_Z_Cycle01_DNA.tiff
-                def match = (img.name =~ /.*_Cycle(\d+)_(.+?)\.tiff?$/)
-                def cycle = match ? match[0][1] as Integer : null
-                def channel = match ? match[0][2] : 'UNKNOWN'
-                // Clone metadata and add filename + cycle + channel
-                def image_meta = site_meta.clone()
-                image_meta.filename = img.name
-                image_meta.cycle = cycle
-                image_meta.channel = channel
-                image_meta
+        .flatMap { group_meta, images, _csv ->
+            // Group images by site based on filename
+            def images_by_site = images.groupBy { img ->
+                // Extract site from filename: Plate_X_Well_Y_Site_Z_Cycle01_DNA.tiff
+                def site_match = (img.name =~ /.*_Site_?(\d+)_Cycle/)
+                site_match ? site_match[0][1] as Integer : group_meta.site
             }
-            [site_meta, images, image_metas]
+
+            // Create one tuple per site with all its images
+            images_by_site.collect { site, site_images ->
+                // Create site-specific metadata
+                def site_meta = group_meta.clone()
+                site_meta.site = site
+                site_meta.id = "${group_meta.batch}_${group_meta.plate}_${group_meta.well}_Site${site}"
+
+                // Build image_metas for this site's images
+                def image_metas = site_images.collect { img ->
+                    // Extract cycle and channel from corrected image filename
+                    // Pattern: Plate_X_Well_Y_Site_Z_Cycle01_DNA.tiff
+                    def cycle_channel_match = (img.name =~ /.*_Cycle(\d+)_(.+?)\.tiff?$/)
+                    def cycle = cycle_channel_match ? cycle_channel_match[0][1] as Integer : null
+                    def channel = cycle_channel_match ? cycle_channel_match[0][2] : 'UNKNOWN'
+
+                    // Clone metadata and add filename + cycle + channel + site
+                    def image_meta = site_meta.clone()
+                    image_meta.filename = img.name
+                    image_meta.cycle = cycle
+                    image_meta.channel = channel
+                    image_meta.site = site
+                    image_meta
+                }
+
+                [site_meta, site_images, image_metas]
+            }
         }
         .set { ch_sbs_corr_images }
 
@@ -367,5 +402,5 @@ workflow BARCODING {
 
     emit:
     cropped_images = ch_cropped_images // channel: [ val(meta), [ cropped_images ] ]
-    versions       = ch_versions // channel: [ versions.yml ]
+    versions = ch_versions // channel: [ versions.yml ]
 }
