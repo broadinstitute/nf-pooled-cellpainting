@@ -27,30 +27,13 @@ process QC_PREPROCESS {
     def rows_param = rows ? "-p rows ${rows}" : ""
     def columns_param = columns ? "-p columns ${columns}" : ""
     """
-    # Organize CSV files by well in subdirectories
-    mkdir -p analysis_input
-
-    # Create arrays from the inputs
-    wells=(${wells_list})
-
-    # The CSV files are staged in numbered directories (input_1, input_2, etc.)
-    # Organize them by well name
-    i=1
-    for well in "\${wells[@]}"; do
-        if [ -f "input_\${i}/BarcodePreprocessing_Foci.csv" ]; then
-            mkdir -p "analysis_input/\$well"
-            cp "input_\${i}/BarcodePreprocessing_Foci.csv" "analysis_input/\$well/BarcodePreprocessing_Foci.csv"
-        fi
-        ((i++))
-    done
-
     # Convert Python script to notebook
     jupytext --to ipynb ${qc_preprocess_script} -o qc_barcode_preprocess_template.ipynb
 
     # Run papermill to execute notebook with parameters
     papermill qc_barcode_preprocess_template.ipynb \\
         ${prefix}_qc_barcode_preprocess.ipynb \\
-        -p input_dir './analysis_input' \\
+        -p input_dir '.' \\
         -p output_dir '.' \\
         -p use_cache false \\
         -p numcycles ${num_cycles} \\

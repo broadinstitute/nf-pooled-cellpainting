@@ -215,7 +215,11 @@ def merge_csvs(csvfolder, filename, column_list=None):
 
     df_dict = {}
     count = 0
-    folderlist = os.listdir(csvfolder)
+    all_items = os.listdir(csvfolder)
+    # Filter for input_* folders if they exist
+    input_folders = [f for f in all_items if f.startswith('input_') and os.path.isdir(os.path.join(csvfolder, f))]
+    folderlist = input_folders if input_folders else all_items
+
     print(count, datetime.datetime.ctime(datetime.datetime.now()))
     for eachfolder in folderlist:
         if os.path.isfile(os.path.join(csvfolder, eachfolder, filename)):
