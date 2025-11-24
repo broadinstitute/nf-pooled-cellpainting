@@ -45,8 +45,8 @@ process CELLPROFILER_COMBINEDANALYSIS {
 
     # Create metadata JSON file
     cat > metadata.json << 'EOF'
-${metadata_json}
-EOF
+    ${metadata_json}
+    EOF
 
     # Generate load_data.csv using the unified script with 'combined' pipeline type
     generate_load_data_csv.py \\
@@ -66,7 +66,7 @@ EOF
 	"${task.process}":
 	    cellprofiler: \$(cellprofiler --version)
 	END_VERSIONS
-    """
+    """.stripIndent()
 
     stub:
     """
@@ -110,5 +110,5 @@ EOF
 	"${task.process}":
 	    cellprofiler: \$(cellprofiler --version)
 	END_VERSIONS
-    """
+    """.stripIndent()
 }
