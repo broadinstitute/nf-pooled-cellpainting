@@ -26,16 +26,15 @@ workflow BARCODING {
 
     // Group images by batch, plate, and cycle for illumination calculation
     // All channels for a given cycle are processed together
-    ch_samplesheet_sbs
+    ch_illumcalc_input = ch_samplesheet_sbs
         .map { meta, image ->
-            def group_key = meta.subMap(['batch', 'plate', 'cycle'])
             def group_id = "${meta.batch}_${meta.plate}_${meta.cycle}"
+            def group_key = meta.subMap(['batch', 'plate', 'cycle']) + [id: group_id]
 
             // Preserve full metadata for each image
-            def image_meta = meta.clone()
-            image_meta.filename = image.name
+            def image_meta = meta + [filename: image.name]
 
-            [group_key + [id: group_id], image_meta, image]
+            [group_key, image_meta, image]
         }
         .groupTuple()
         .map { meta, images_meta_list, images_list ->
@@ -43,7 +42,6 @@ workflow BARCODING {
             // Return tuple: (shared meta, channels, cycle, images, per-image metadata)
             [meta, all_channels, meta.cycle, images_list, images_meta_list]
         }
-        .set { ch_illumcalc_input }
 
     CELLPROFILER_ILLUMCALC(
         ch_illumcalc_input,
@@ -60,7 +58,7 @@ workflow BARCODING {
     )
 
     //// QC illumination correction profiles ////
-    CELLPROFILER_ILLUMCALC.out.illumination_corrections
+    ch_illumination_corrections_qc = CELLPROFILER_ILLUMCALC.out.illumination_corrections
         .map { meta, npy_files ->
             [meta.subMap(['batch', 'plate']) + [arm: "barcoding"], npy_files]
         }
@@ -68,7 +66,6 @@ workflow BARCODING {
         .map { meta, npy_files_list ->
             [meta, npy_files_list.flatten()]
         }
-        .set { ch_illumination_corrections_qc }
 
     QC_MONTAGEILLUM_BARCODING(
         ch_illumination_corrections_qc,
@@ -78,16 +75,15 @@ workflow BARCODING {
 
     // Group images by site for ILLUMAPPLY (not well)
     // This preserves site information through the pipeline
-    ch_samplesheet_sbs
+    ch_images_by_site = ch_samplesheet_sbs
         .map { meta, image ->
-            def site_key = meta.subMap(['batch', 'plate', 'well', 'site', 'arm'])
             def site_id = "${meta.batch}_${meta.plate}_${meta.well}_Site${meta.site}"
+            def site_key = meta.subMap(['batch', 'plate', 'well', 'site', 'arm']) + [id: site_id]
 
             // Preserve full metadata for each image
-            def image_meta = meta.clone()
-            image_meta.filename = image.name
+            def image_meta = meta + [filename: image.name]
 
-            [site_key + [id: site_id], image_meta, image]
+            [site_key, image_meta, image]
         }
         .groupTuple()
         .map { site_meta, images_meta_list, images_list ->
@@ -100,11 +96,10 @@ workflow BARCODING {
             // Return tuple: (shared meta, channels, cycles, images, per-image metadata)
             [site_meta, all_channels, unique_cycles, images_list, images_meta_list]
         }
-        .set { ch_images_by_site }
 
     // Group npy files by batch and plate
     // All wells in a plate share the same illumination correction files
-    CELLPROFILER_ILLUMCALC.out.illumination_corrections
+    ch_npy_by_plate = CELLPROFILER_ILLUMCALC.out.illumination_corrections
         .map { meta, npy_files ->
             def group_key = [
                 batch: meta.batch,
@@ -116,11 +111,10 @@ workflow BARCODING {
         .map { meta, npy_files_list ->
             [meta, npy_files_list.flatten()]
         }
-        .set { ch_npy_by_plate }
 
     // Combine images with npy files
     // Each site gets all the npy files for its plate
-    ch_images_by_site
+    ch_illumapply_input = ch_images_by_site
         .map { site_meta, channels, cycles, images, image_metas ->
             def plate_key = [
                 batch: site_meta.batch,
@@ -132,7 +126,6 @@ workflow BARCODING {
         .map { _plate_key, site_meta, channels, cycles, images, image_metas, npy_files ->
             [site_meta, channels, cycles, images, image_metas, npy_files]
         }
-        .set { ch_illumapply_input }
 
     CELLPROFILER_ILLUMAPPLY_BARCODING(
         ch_illumapply_input,
@@ -150,7 +143,7 @@ workflow BARCODING {
 
     // QC of barcode alignment
     // First, collect cycle information from the samplesheet to infer num_cycles
-    ch_samplesheet_sbs
+    ch_plate_cycles = ch_samplesheet_sbs
         .map { meta, _image ->
             def plate_key = [
                 batch: meta.batch,
@@ -163,10 +156,9 @@ workflow BARCODING {
             def num_cycles = cycles.unique().max()
             [plate_key, num_cycles]
         }
-        .set { ch_plate_cycles }
 
     // Group CSV files by plate for QC analysis, keeping well-CSV correspondence
-    CELLPROFILER_ILLUMAPPLY_BARCODING.out.corrected_images
+    ch_qc_barcode_input = CELLPROFILER_ILLUMAPPLY_BARCODING.out.corrected_images
         .map { meta, _images, csv_files ->
             def plate_key = [
                 batch: meta.batch,
@@ -187,7 +179,6 @@ workflow BARCODING {
             def unique_wells = wells.unique()
             [qc_meta, unique_wells, csv_files, num_cycles]
         }
-        .set { ch_qc_barcode_input }
 
     QC_BARCODEALIGN(
         ch_qc_barcode_input,
@@ -201,7 +192,7 @@ workflow BARCODING {
 
     // ILLUMAPPLY already runs per site, so corrected_images (aligned_images in case of barcoding) has site metadata
     // Build image metadata for PREPROCESS from aligned images
-    CELLPROFILER_ILLUMAPPLY_BARCODING.out.corrected_images
+    ch_sbs_corr_images = CELLPROFILER_ILLUMAPPLY_BARCODING.out.corrected_images
         .map { site_meta, images, _csv ->
             // Build image_metas for corrected images with full metadata + filename + cycle + channel
             def image_metas = images.collect { img ->
@@ -210,16 +201,16 @@ workflow BARCODING {
                 def match = (img.name =~ /.*_Cycle(\d+)_(.+?)\.tiff?$/)
                 def cycle = match ? match[0][1] as Integer : null
                 def channel = match ? match[0][2] : 'UNKNOWN'
-                // Clone metadata and add filename + cycle + channel
-                def image_meta = site_meta.clone()
-                image_meta.filename = img.name
-                image_meta.cycle = cycle
-                image_meta.channel = channel
-                image_meta
+
+                // metadata and add filename + cycle + channel
+                site_meta + [
+                    filename: img.name,
+                    cycle: cycle,
+                    channel: channel
+                ]
             }
             [site_meta, images, image_metas]
         }
-        .set { ch_sbs_corr_images }
 
     //// Barcoding preprocessing ////
     CELLPROFILER_PREPROCESS(
@@ -239,7 +230,7 @@ workflow BARCODING {
 
     //// QC: Barcode preprocessing ////
     // Group preprocessing stats by plate and collect wells
-    CELLPROFILER_PREPROCESS.out.preprocess_stats
+    ch_preprocess_qc_input = CELLPROFILER_PREPROCESS.out.preprocess_stats
         .map { meta, csv_files ->
             def plate_key = [
                 batch: meta.batch,
@@ -260,7 +251,6 @@ workflow BARCODING {
             def unique_wells = wells.unique()
             [qc_meta, unique_wells, csvs, num_cycles]
         }
-        .set { ch_preprocess_qc_input }
 
     QC_PREPROCESS(
         ch_preprocess_qc_input,
@@ -274,7 +264,7 @@ workflow BARCODING {
     // STITCH & CROP IMAGES ////
     // PREPROCESS outputs are per site, but STITCHCROP needs all sites together per well
     // Re-group by well before stitching
-    CELLPROFILER_PREPROCESS.out.preprocessed_images
+    ch_preprocess_by_well = CELLPROFILER_PREPROCESS.out.preprocessed_images
         .map { meta, images ->
             // Create well key (without site)
             def well_key = [
@@ -295,7 +285,6 @@ workflow BARCODING {
             def enriched_meta = well_meta + [first_site_index: min_site]
             [enriched_meta, images_list.flatten()]
         }
-        .set { ch_preprocess_by_well }
 
     FIJI_STITCHCROP(
         ch_preprocess_by_well,
@@ -319,7 +308,7 @@ workflow BARCODING {
     // Split cropped images into individual tuples with site in metadata
     // FIJI_STITCHCROP outputs multiple files (one per site) but meta doesn't have site
     // Extract site from filename and create one tuple per site with all its cycle/channel images
-    FIJI_STITCHCROP.out.cropped_images
+    ch_cropped_images = FIJI_STITCHCROP.out.cropped_images
         .flatMap { meta, images ->
             // Group images by site
             def images_by_site = images.groupBy { img ->
@@ -344,12 +333,11 @@ workflow BARCODING {
             }
         }
         .filter { item -> item != null }
-        .set { ch_cropped_images }
 
     ch_versions = ch_versions.mix(FIJI_STITCHCROP.out.versions)
 
     // QC montage for stitchcrop results
-    FIJI_STITCHCROP.out.downsampled_images
+    ch_stitchcrop_qc = FIJI_STITCHCROP.out.downsampled_images
         .map { meta, tiff_files ->
             [meta.subMap(['batch', 'plate']) + [arm: "barcoding"], tiff_files]
         }
@@ -357,7 +345,6 @@ workflow BARCODING {
         .map { meta, tiff_files_list ->
             [meta, tiff_files_list.flatten()]
         }
-        .set { ch_stitchcrop_qc }
 
     QC_MONTAGE_STITCHCROP_BARCODING(
         ch_stitchcrop_qc,
