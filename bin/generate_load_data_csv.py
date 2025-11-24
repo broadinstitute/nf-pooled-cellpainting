@@ -674,7 +674,31 @@ def collect_and_group_files(
 
         plate = metadata_json['plate']  # Plate comes from JSON
 
-        # Build a lookup map: filename -> full file path
+        # Build cycle-to-subfolder mapping for multi-cycle data
+        # When files are staged with stageAs: "images/img?/*", Nextflow stages them in order:
+        # - First unique file → img1/
+        # - Second unique file → img2/
+        # - Third unique file → img3/
+        # The order in metadata.json should match this staging order.
+        # We create a mapping: {cycle_num: subfolder_index} based on the order of unique cycles.
+        cycle_to_subfolder = {}
+        if metadata_cycles:
+            # Extract unique cycles in the order they appear in metadata.json
+            unique_cycles_ordered = []
+            seen_cycles = set()
+            for entry in metadata_json['image_metadata']:
+                entry_cycle = entry.get('cycle')
+                if entry_cycle is not None and entry_cycle not in seen_cycles:
+                    unique_cycles_ordered.append(entry_cycle)
+                    seen_cycles.add(entry_cycle)
+
+            # Create mapping: cycle_num → img subfolder index (1-based)
+            for idx, cycle_num in enumerate(unique_cycles_ordered):
+                cycle_to_subfolder[cycle_num] = idx + 1
+
+            print(f"✓ Created cycle-to-subfolder mapping: {cycle_to_subfolder}", file=sys.stderr)
+
+        # Build a lookup map: filename → full file path
         # This allows fast matching of JSON filenames to actual files on disk
         file_map = {}
         for img_path in image_files:
@@ -720,9 +744,20 @@ def collect_and_group_files(
                     grouped[key]['images']['_files_by_cycle'] = {}
                 # Only store if not already present (same file may be referenced multiple times)
                 if cycle_num not in grouped[key]['images']['_files_by_cycle']:
-                    grouped[key]['images']['_files_by_cycle'][cycle_num] = {
-                        'file': rel_path
-                    }
+                    # Use cycle-to-subfolder mapping if available to construct correct path
+                    if cycle_to_subfolder and cycle_num in cycle_to_subfolder:
+                        # Construct path using the mapped subfolder: imgN/filename
+                        subfolder_idx = cycle_to_subfolder[cycle_num]
+                        filename = os.path.basename(img_path)
+                        cycle_aware_path = f"img{subfolder_idx}/{filename}"
+                        grouped[key]['images']['_files_by_cycle'][cycle_num] = {
+                            'file': cycle_aware_path
+                        }
+                    else:
+                        # Fallback to original behavior if no mapping
+                        grouped[key]['images']['_files_by_cycle'][cycle_num] = {
+                            'file': rel_path
+                        }
             elif entry_channel:
                 # Single-channel file - use appropriate prefix based on type
                 if entry_type == 'cellpainting':
