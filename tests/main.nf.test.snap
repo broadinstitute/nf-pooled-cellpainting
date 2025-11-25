@@ -774,7 +774,7 @@
             "nf-test": "0.9.3",
             "nextflow": "25.10.0"
         },
-        "timestamp": "2025-11-25T14:46:00.60387955"
+        "timestamp": "2025-11-25T16:31:12.111471877"
     },
     "nf-pooled-cellpainting - full pipeline - test profile - stub": {
         "content": [
@@ -1062,6 +1062,6 @@
             "nf-test": "0.9.3",
             "nextflow": "25.10.0"
         },
-        "timestamp": "2025-11-25T14:40:29.925144251"
+        "timestamp": "2025-11-25T16:31:46.640927353"
     }
 }
