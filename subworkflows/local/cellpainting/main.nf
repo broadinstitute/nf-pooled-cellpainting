@@ -3,13 +3,13 @@
     IMPORT MODULES / SUBWORKFLOWS / FUNCTIONS
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
-include { CELLPROFILER_ILLUMCALC                                      } from '../../../modules/local/cellprofiler/illumcalc'
-include { QC_MONTAGEILLUM as QC_MONTAGEILLUM_PAINTING                 } from '../../../modules/local/qc/montageillum'
-include { QC_MONTAGEILLUM as QC_MONTAGE_SEGCHECK                      } from '../../../modules/local/qc/montageillum'
-include { QC_MONTAGEILLUM as QC_MONTAGE_STITCHCROP_PAINTING           } from '../../../modules/local/qc/montageillum'
+include { CELLPROFILER_ILLUMCALC } from '../../../modules/local/cellprofiler/illumcalc'
+include { QC_MONTAGEILLUM as QC_MONTAGEILLUM_PAINTING } from '../../../modules/local/qc/montageillum'
+include { QC_MONTAGEILLUM as QC_MONTAGE_SEGCHECK } from '../../../modules/local/qc/montageillum'
+include { QC_MONTAGEILLUM as QC_MONTAGE_STITCHCROP_PAINTING } from '../../../modules/local/qc/montageillum'
 include { CELLPROFILER_ILLUMAPPLY as CELLPROFILER_ILLUMAPPLY_PAINTING } from '../../../modules/local/cellprofiler/illumapply'
-include { CELLPROFILER_SEGCHECK                                       } from '../../../modules/local/cellprofiler/segcheck'
-include { FIJI_STITCHCROP                                             } from '../../../modules/local/fiji/stitchcrop'
+include { CELLPROFILER_SEGCHECK } from '../../../modules/local/cellprofiler/segcheck'
+include { FIJI_STITCHCROP } from '../../../modules/local/fiji/stitchcrop'
 
 workflow CELLPAINTING {
     take:
@@ -27,16 +27,15 @@ workflow CELLPAINTING {
 
     // Group images by batch and plate for illumination calculation
     // Keep metadata for each image to generate load_data.csv
-    ch_samplesheet_cp
+    ch_illumcalc_input = ch_samplesheet_cp
         .map { meta, image ->
-            def group_key = meta.subMap(['batch', 'plate'])
+
             def group_id = "${meta.batch}_${meta.plate}"
+            def group_key = meta.subMap(['batch', 'plate']) + [id: group_id]
 
             // Preserve full metadata for each image
-            def image_meta = meta.clone()
-            image_meta.filename = image.name
-
-            [group_key + [id: group_id], image_meta, image]
+            def image_meta = meta + [filename: image.name]
+            [group_key, image_meta, image]
         }
         .groupTuple()
         .map { meta, images_meta_list, images_list ->
@@ -44,7 +43,6 @@ workflow CELLPAINTING {
             // Return tuple: (shared meta, channels, cycles, images, per-image metadata)
             [meta, all_channels, null, images_list, images_meta_list]
         }
-        .set { ch_illumcalc_input }
 
     // Calculate illumination correction profiles
     CELLPROFILER_ILLUMCALC(
@@ -63,15 +61,15 @@ workflow CELLPAINTING {
     ch_versions = ch_versions.mix(CELLPROFILER_ILLUMCALC.out.versions)
 
     //// QC illumination correction profiles ////
-    CELLPROFILER_ILLUMCALC.out.illumination_corrections
+    ch_illumination_corrections_qc = CELLPROFILER_ILLUMCALC.out.illumination_corrections
         .map { meta, npy_files ->
-            [meta.subMap(['batch', 'plate']) + [arm: "painting"], npy_files]
+            def npy_meta = meta.subMap(['batch', 'plate']) + [arm: "painting"]
+            [npy_meta, npy_files]
         }
         .groupTuple()
         .map { meta, npy_files_list ->
             [meta, npy_files_list.flatten()]
         }
-        .set { ch_illumination_corrections_qc }
 
     QC_MONTAGEILLUM_PAINTING(
         ch_illumination_corrections_qc,
@@ -81,16 +79,15 @@ workflow CELLPAINTING {
 
     // Group images by site for ILLUMAPPLY
     // Each site should get all its images
-    ch_samplesheet_cp
+    ch_images_by_site = ch_samplesheet_cp
         .map { meta, image ->
-            def site_key = meta.subMap(['batch', 'plate', 'well', 'site', 'arm'])
             def site_id = "${meta.batch}_${meta.plate}_${meta.well}_Site${meta.site}"
+            def site_key = meta.subMap(['batch', 'plate', 'well', 'site', 'arm']) + [id: site_id]
 
             // Preserve full metadata for each image
-            def image_meta = meta.clone()
-            image_meta.filename = image.name
+            def image_meta = meta + [filename: image.name]
 
-            [site_key + [id: site_id], image_meta, image]
+            [site_key, image_meta, image]
         }
         .groupTuple()
         .map { site_meta, images_meta_list, images_list ->
@@ -102,11 +99,10 @@ workflow CELLPAINTING {
             // Return tuple: (shared meta, channels, cycles, images, per-image metadata)
             [site_meta, all_channels, unique_cycles, images_list, images_meta_list]
         }
-        .set { ch_images_by_site }
 
     // Group npy files by batch and plate
     // All wells in a plate share the same illumination correction files
-    CELLPROFILER_ILLUMCALC.out.illumination_corrections
+    ch_npy_by_plate = CELLPROFILER_ILLUMCALC.out.illumination_corrections
         .map { meta, npy_files ->
             def group_key = [
                 batch: meta.batch,
@@ -118,11 +114,10 @@ workflow CELLPAINTING {
         .map { meta, npy_files_list ->
             [meta, npy_files_list.flatten()]
         }
-        .set { ch_npy_by_plate }
 
     // Combine images with npy files
     // Each site gets all the npy files for its plate
-    ch_images_by_site
+    ch_illumapply_input = ch_images_by_site
         .map { site_meta, channels, cycles, images, image_metas ->
             def plate_key = [
                 batch: site_meta.batch,
@@ -136,7 +131,6 @@ workflow CELLPAINTING {
         .map { _plate_key, enriched_meta, channels, cycles, images, image_metas, npy_files ->
             [enriched_meta, channels, cycles, images, image_metas, npy_files]
         }
-        .set { ch_illumapply_input }
 
     // Apply illumination correction to images
     CELLPROFILER_ILLUMAPPLY_PAINTING(
@@ -155,7 +149,7 @@ workflow CELLPAINTING {
 
     // Reshape CELLPROFILER_ILLUMAPPLY_PAINTING output for SEGCHECK
     // Group by well (not site) so range_skip can select every nth image from the well
-    CELLPROFILER_ILLUMAPPLY_PAINTING.out.corrected_images
+    ch_sub_corr_images = CELLPROFILER_ILLUMAPPLY_PAINTING.out.corrected_images
         .map { meta, images, _csv ->
             // Create well key (without site)
             def well_key = [
@@ -171,10 +165,7 @@ workflow CELLPAINTING {
                 // Extract channel from corrected image filename: Plate_X_Well_Y_Site_Z_CorrCHANNEL.tiff
                 def channel = img.name.replaceAll(/.*_Corr(.+?)\.tiff?$/, '$1')
                 // Clone metadata and add filename + channel
-                def image_meta = meta.clone()
-                image_meta.filename = img.name
-                image_meta.channel = channel
-                image_meta
+                meta + [filename: img.name, channel: channel]
             }
             [well_key, meta.site, images, image_metas]
         }
@@ -183,7 +174,6 @@ workflow CELLPAINTING {
             // Flatten all site images and metadata into one list for the well
             [well_meta, images_list.flatten(), image_metas_list.flatten()]
         }
-        .set { ch_sub_corr_images }
 
     //// Segmentation quality check ////
     CELLPROFILER_SEGCHECK(
@@ -201,7 +191,7 @@ workflow CELLPAINTING {
     )
 
     // Reshape CELLPROFILER_SEGCHECK output for QC montage
-    CELLPROFILER_SEGCHECK.out.segcheck_res
+    ch_segcheck_qc = CELLPROFILER_SEGCHECK.out.segcheck_res
         .map { meta, _ch_versionscsv_files, png_files ->
             [meta.subMap(['batch', 'plate']) + [arm: "painting"], png_files]
         }
@@ -209,7 +199,6 @@ workflow CELLPAINTING {
         .map { meta, png_files_list ->
             [meta, png_files_list.flatten()]
         }
-        .set { ch_segcheck_qc }
 
     QC_MONTAGE_SEGCHECK(
         ch_segcheck_qc,
@@ -224,7 +213,7 @@ workflow CELLPAINTING {
 
     // ILLUMAPPLY outputs are per site, but STITCHCROP needs all sites together per well
     // Re-group by well before stitching
-    CELLPROFILER_ILLUMAPPLY_PAINTING.out.corrected_images
+    ch_corrected_images_by_well = CELLPROFILER_ILLUMAPPLY_PAINTING.out.corrected_images
         .map { meta, images, _csv ->
             // Create well key (without site)
             def well_key = [
@@ -245,13 +234,10 @@ workflow CELLPAINTING {
             def enriched_meta = well_meta + [first_site_index: min_site]
             [enriched_meta, images_list.flatten()]
         }
-        .set { ch_corrected_images_by_well }
 
     // Create synchronization barrier - wait for ALL QC_MONTAGE_SEGCHECK to complete
     // This ensures all QC is done before attempting to run FIJI_STITCHCROP
-    QC_MONTAGE_SEGCHECK.out.versions
-        .collect()
-        .set { ch_qc_complete }
+    ch_qc_complete = QC_MONTAGE_SEGCHECK.out.versions.collect()
 
     // Combine corrected images with QC completion signal
     // This makes each stitching job depend on QC completion, but allows parallel stitching
@@ -282,7 +268,7 @@ workflow CELLPAINTING {
     // Split cropped images into individual tuples with site in metadata
     // FIJI_STITCHCROP outputs multiple files (one per site) but meta doesn't have site
     // Extract site from filename and create one tuple per site with all channels for that site
-    FIJI_STITCHCROP.out.cropped_images
+    ch_cropped_images = FIJI_STITCHCROP.out.cropped_images
         .flatMap { meta, images ->
             // Group images by site
             def images_by_site = images.groupBy { img ->
@@ -307,12 +293,11 @@ workflow CELLPAINTING {
             }
         }
         .filter { item -> item != null }
-        .set { ch_cropped_images }
 
     ch_versions = ch_versions.mix(FIJI_STITCHCROP.out.versions)
 
     // QC montage for stitchcrop results
-    FIJI_STITCHCROP.out.downsampled_images
+    ch_stitchcrop_qc = FIJI_STITCHCROP.out.downsampled_images
         .map { meta, tiff_files ->
             [meta.subMap(['batch', 'plate']) + [arm: "painting"], tiff_files]
         }
@@ -320,7 +305,6 @@ workflow CELLPAINTING {
         .map { meta, tiff_files_list ->
             [meta, tiff_files_list.flatten()]
         }
-        .set { ch_stitchcrop_qc }
 
     QC_MONTAGE_STITCHCROP_PAINTING(
         ch_stitchcrop_qc,
@@ -330,5 +314,5 @@ workflow CELLPAINTING {
 
     emit:
     cropped_images = ch_cropped_images // channel: [ val(meta), [ cropped_images ] ]
-    versions       = ch_versions // channel: [ versions.yml ]
+    versions = ch_versions // channel: [ versions.yml ]
 }
