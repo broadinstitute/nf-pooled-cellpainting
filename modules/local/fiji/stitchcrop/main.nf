@@ -48,8 +48,8 @@ process FIJI_STITCHCROP {
     # Configure Java memory directly via JVM heap options
     # -Xms: initial heap size, -Xmx: maximum heap size
     # Also set ImageJ-specific options and thread count
-    export _JAVA_OPTIONS="-Xmx${heap_size}g -Duser.home=\$TMPDIR/fiji_prefs -Dij.dir=/opt/fiji/Fiji.app -Dscijava.thread.max=${threads}"
-    mkdir -p \$TMPDIR/fiji_prefs
+    export _JAVA_OPTIONS="-Xmx${heap_size}g -Duser.home=/tmp/fiji_prefs -Dij.dir=/opt/fiji/Fiji.app -Dscijava.thread.max=${threads}"
+    mkdir -p /tmp/fiji_prefs
 
     # Stitching parameters passed from subworkflow
     export ROUND_OR_SQUARE="${round_or_square}"
