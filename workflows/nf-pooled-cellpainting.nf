@@ -29,13 +29,12 @@ workflow POOLED_CELLPAINTING {
     ch_versions = channel.empty()
     ch_multiqc_files = channel.empty()
 
-    ch_samplesheet_flat = ch_samplesheet
-        .flatMap { meta, image ->
-            // Split imaging channels by comma and create a separate entry for each channel
-            meta.original_channels = meta.channels
-            meta.remove('original_channels')
-            return [[meta, image]]
-        }
+    ch_samplesheet_flat = ch_samplesheet.flatMap { meta, image ->
+        // Split imaging channels by comma and create a separate entry for each channel
+        meta.original_channels = meta.channels
+        meta.remove('original_channels')
+        return [[meta, image]]
+    }
 
     // Add meta.arm back into each channel
     ch_samplesheet_painting = ch_samplesheet_flat

@@ -3,14 +3,14 @@
     IMPORT MODULES / SUBWORKFLOWS / FUNCTIONS
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
-include { CELLPROFILER_ILLUMCALC } from '../../../modules/local/cellprofiler/illumcalc'
-include { QC_MONTAGEILLUM as QC_MONTAGEILLUM_BARCODING } from '../../../modules/local/qc/montageillum'
-include { QC_MONTAGEILLUM as QC_MONTAGE_STITCHCROP_BARCODING } from '../../../modules/local/qc/montageillum'
+include { CELLPROFILER_ILLUMCALC                                       } from '../../../modules/local/cellprofiler/illumcalc'
+include { QC_MONTAGEILLUM as QC_MONTAGEILLUM_BARCODING                 } from '../../../modules/local/qc/montageillum'
+include { QC_MONTAGEILLUM as QC_MONTAGE_STITCHCROP_BARCODING           } from '../../../modules/local/qc/montageillum'
 include { CELLPROFILER_ILLUMAPPLY as CELLPROFILER_ILLUMAPPLY_BARCODING } from '../../../modules/local/cellprofiler/illumapply'
-include { CELLPROFILER_PREPROCESS } from '../../../modules/local/cellprofiler/preprocess'
-include { QC_PREPROCESS } from '../../../modules/local/qc/preprocess'
-include { FIJI_STITCHCROP } from '../../../modules/local/fiji/stitchcrop'
-include { QC_BARCODEALIGN } from '../../../modules/local/qc/barcodealign'
+include { CELLPROFILER_PREPROCESS                                      } from '../../../modules/local/cellprofiler/preprocess'
+include { QC_PREPROCESS                                                } from '../../../modules/local/qc/preprocess'
+include { FIJI_STITCHCROP                                              } from '../../../modules/local/fiji/stitchcrop'
+include { QC_BARCODEALIGN                                              } from '../../../modules/local/qc/barcodealign'
 
 workflow BARCODING {
     take:
@@ -411,5 +411,5 @@ workflow BARCODING {
 
     emit:
     cropped_images = ch_cropped_images // channel: [ val(meta), [ cropped_images ] ]
-    versions = ch_versions // channel: [ versions.yml ]
+    versions       = ch_versions // channel: [ versions.yml ]
 }

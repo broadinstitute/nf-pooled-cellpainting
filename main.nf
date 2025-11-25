@@ -13,9 +13,9 @@
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
 
-include { POOLED_CELLPAINTING } from './workflows/nf-pooled-cellpainting'
+include { POOLED_CELLPAINTING     } from './workflows/nf-pooled-cellpainting'
 include { PIPELINE_INITIALISATION } from './subworkflows/local/utils_nfcore_nf-pooled-cellpainting_pipeline'
-include { PIPELINE_COMPLETION } from './subworkflows/local/utils_nfcore_nf-pooled-cellpainting_pipeline'
+include { PIPELINE_COMPLETION     } from './subworkflows/local/utils_nfcore_nf-pooled-cellpainting_pipeline'
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     RUN MAIN WORKFLOW
