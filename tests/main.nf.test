@@ -102,10 +102,6 @@ nextflow_pipeline {
                 barcoding_preprocess_cppipe = "${projectDir}/assets/cellprofiler/barcoding_preprocess.cppipe"
                 combinedanalysis_cppipe     = "${projectDir}/assets/cellprofiler/combined_analysis.cppipe"
 
-                // Cellprofiler plugins
-                callbarcodes_plugin         = "${projectDir}/assets/cellprofiler_plugins/callbarcodes.py"
-                compensatecolors_plugin     = "${projectDir}/assets/cellprofiler_plugins/compensatecolors.py"
-
                 // Stitching/Cropping parameters - Painting-specific
                 painting_round_or_square    = "square"
                 painting_quarter_if_round   = true
