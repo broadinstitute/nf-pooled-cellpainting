@@ -18,6 +18,22 @@ workflow CELLPAINTING {
     painting_illumapply_cppipe // file: CellProfiler pipeline for illumination application
     painting_segcheck_cppipe // file: CellProfiler pipeline for segmentation check
     range_skip // val: range of QC segcheck images to skip
+    outdir
+    fiji_stitchcrop_script
+    painting_round_or_square
+    painting_quarter_if_round
+    painting_overlap_pct
+    painting_scalingstring
+    painting_imperwell
+    painting_rows
+    painting_columns
+    painting_stitchorder
+    tileperside
+    final_tile_size
+    painting_xoffset_tiles
+    painting_yoffset_tiles
+    compress
+    qc_painting_passed
 
     main:
     ch_versions = channel.empty()
@@ -55,7 +71,7 @@ workflow CELLPAINTING {
         name: "painting-illumcalc.load_data.csv",
         keepHeader: true,
         skip: 1,
-        storeDir: "${params.outdir}/workspace/load_data_csv/",
+        storeDir: "${outdir}/workspace/load_data_csv/",
     )
 
     ch_versions = ch_versions.mix(CELLPROFILER_ILLUMCALC.out.versions)
@@ -144,7 +160,7 @@ workflow CELLPAINTING {
         name: "painting-illumapply.load_data.csv",
         keepHeader: true,
         skip: 1,
-        storeDir: "${params.outdir}/workspace/load_data_csv/",
+        storeDir: "${outdir}/workspace/load_data_csv/",
     )
 
     // Reshape CELLPROFILER_ILLUMAPPLY_PAINTING output for SEGCHECK
@@ -187,7 +203,7 @@ workflow CELLPAINTING {
         name: "painting-segcheck.load_data.csv",
         keepHeader: true,
         skip: 1,
-        storeDir: "${params.outdir}/workspace/load_data_csv/",
+        storeDir: "${outdir}/workspace/load_data_csv/",
     )
 
     // Reshape CELLPROFILER_SEGCHECK output for QC montage
@@ -207,7 +223,7 @@ workflow CELLPAINTING {
     ch_versions = ch_versions.mix(QC_MONTAGE_SEGCHECK.out.versions)
 
     // STITCH & CROP IMAGES ////
-    // Conditional execution: only run if params.qc_painting_passed is true
+    // Conditional execution: only run if qc_painting_passed is true
     // This allows the painting arm to stop at stitching/cropping if QC fails,
     // while allowing the barcoding arm to proceed independently
 
@@ -248,21 +264,21 @@ workflow CELLPAINTING {
 
     FIJI_STITCHCROP(
         ch_corrected_images_synced,
-        params.fiji_stitchcrop_script,
-        params.painting_round_or_square,
-        params.painting_quarter_if_round,
-        params.painting_overlap_pct,
-        params.painting_scalingstring,
-        params.painting_imperwell,
-        params.painting_rows,
-        params.painting_columns,
-        params.painting_stitchorder,
-        params.tileperside,
-        params.final_tile_size,
-        params.painting_xoffset_tiles,
-        params.painting_yoffset_tiles,
-        params.compress,
-        params.qc_painting_passed,
+        fiji_stitchcrop_script,
+        painting_round_or_square,
+        painting_quarter_if_round,
+        painting_overlap_pct,
+        painting_scalingstring,
+        painting_imperwell,
+        painting_rows,
+        painting_columns,
+        painting_stitchorder,
+        tileperside,
+        final_tile_size,
+        painting_xoffset_tiles,
+        painting_yoffset_tiles,
+        compress,
+        qc_painting_passed,
     )
 
     // Split cropped images into individual tuples with site in metadata

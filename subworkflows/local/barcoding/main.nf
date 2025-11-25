@@ -19,6 +19,29 @@ workflow BARCODING {
     barcoding_illumapply_cppipe
     barcoding_preprocess_cppipe
     barcodes
+    outdir
+    barcoding_illumapply_grouping
+    barcoding_shift_threshold
+    barcoding_corr_threshold
+    acquisition_geometry_rows
+    acquisition_geometry_columns
+    callbarcodes_plugin
+    compensatecolors_plugin
+    fiji_stitchcrop_script
+    barcoding_round_or_square
+    barcoding_quarter_if_round
+    barcoding_overlap_pct
+    barcoding_scalingstring
+    barcoding_imperwell
+    barcoding_rows
+    barcoding_columns
+    barcoding_stitchorder
+    tileperside
+    final_tile_size
+    barcoding_xoffset_tiles
+    barcoding_yoffset_tiles
+    compress
+    qc_barcoding_passed
 
     main:
     ch_versions = channel.empty()
@@ -54,7 +77,7 @@ workflow BARCODING {
         name: "barcoding-illumcalc.load_data.csv",
         keepHeader: true,
         skip: 1,
-        storeDir: "${params.outdir}/workspace/load_data_csv/",
+        storeDir: "${outdir}/workspace/load_data_csv/",
     )
 
     //// QC illumination correction profiles ////
@@ -84,7 +107,7 @@ workflow BARCODING {
             def group_key
             def group_id
 
-            if (params.barcoding_illumapply_grouping == "site") {
+            if (barcoding_illumapply_grouping == "site") {
                 // Site-level grouping (current behavior)
                 group_key = meta.subMap(['batch', 'plate', 'well', 'site', 'arm'])
                 group_id = "${meta.batch}_${meta.plate}_${meta.well}_Site${meta.site}"
@@ -155,7 +178,7 @@ workflow BARCODING {
         name: "barcoding-illumapply.load_data.csv",
         keepHeader: true,
         skip: 1,
-        storeDir: "${params.outdir}/workspace/load_data_csv/",
+        storeDir: "${outdir}/workspace/load_data_csv/",
     )
 
     // QC of barcode alignment
@@ -200,10 +223,10 @@ workflow BARCODING {
     QC_BARCODEALIGN(
         ch_qc_barcode_input,
         file("${projectDir}/bin/qc_barcode_align.py"),
-        params.barcoding_shift_threshold,
-        params.barcoding_corr_threshold,
-        params.acquisition_geometry_rows,
-        params.acquisition_geometry_columns,
+        barcoding_shift_threshold,
+        barcoding_corr_threshold,
+        acquisition_geometry_rows,
+        acquisition_geometry_columns,
     )
     ch_versions = ch_versions.mix(QC_BARCODEALIGN.out.versions)
 
@@ -251,7 +274,7 @@ workflow BARCODING {
         ch_sbs_corr_images,
         barcoding_preprocess_cppipe,
         barcodes,
-        channel.fromPath([params.callbarcodes_plugin, params.compensatecolors_plugin]).collect(),
+        channel.fromPath([callbarcodes_plugin, compensatecolors_plugin]).collect(),
     )
     ch_versions = ch_versions.mix(CELLPROFILER_PREPROCESS.out.versions)
     // Merge load_data CSVs across all samples
@@ -259,7 +282,7 @@ workflow BARCODING {
         name: "barcoding-preprocess.load_data.csv",
         keepHeader: true,
         skip: 1,
-        storeDir: "${params.outdir}/workspace/load_data_csv/",
+        storeDir: "${outdir}/workspace/load_data_csv/",
     )
 
     //// QC: Barcode preprocessing ////
@@ -290,8 +313,8 @@ workflow BARCODING {
         ch_preprocess_qc_input,
         file("${projectDir}/bin/qc_barcode_preprocess.py"),
         barcodes,
-        params.acquisition_geometry_rows,
-        params.acquisition_geometry_columns,
+        acquisition_geometry_rows,
+        acquisition_geometry_columns,
     )
     ch_versions = ch_versions.mix(QC_PREPROCESS.out.versions)
 
@@ -322,21 +345,21 @@ workflow BARCODING {
 
     FIJI_STITCHCROP(
         ch_preprocess_by_well,
-        params.fiji_stitchcrop_script,
-        params.barcoding_round_or_square,
-        params.barcoding_quarter_if_round,
-        params.barcoding_overlap_pct,
-        params.barcoding_scalingstring,
-        params.barcoding_imperwell,
-        params.barcoding_rows,
-        params.barcoding_columns,
-        params.barcoding_stitchorder,
-        params.tileperside,
-        params.final_tile_size,
-        params.barcoding_xoffset_tiles,
-        params.barcoding_yoffset_tiles,
-        params.compress,
-        params.qc_barcoding_passed,
+        fiji_stitchcrop_script,
+        barcoding_round_or_square,
+        barcoding_quarter_if_round,
+        barcoding_overlap_pct,
+        barcoding_scalingstring,
+        barcoding_imperwell,
+        barcoding_rows,
+        barcoding_columns,
+        barcoding_stitchorder,
+        tileperside,
+        final_tile_size,
+        barcoding_xoffset_tiles,
+        barcoding_yoffset_tiles,
+        compress,
+        qc_barcoding_passed,
     )
 
     // Split cropped images into individual tuples with site in metadata
