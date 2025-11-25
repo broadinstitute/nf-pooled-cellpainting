@@ -1,196 +1,100 @@
-# Parameters Reference
+# Parameters
 
-Complete reference for all pipeline parameters.
+This page describes the parameters available in the pipeline.
 
-## Required Parameters
+## Input/output options
 
-### Input/Output
+Define where the pipeline should find input data and save output data.
 
-| Parameter    | Type   | Description                                                                                                    |
-| ------------ | ------ | -------------------------------------------------------------------------------------------------------------- |
-| `--input`    | `path` | Samplesheet CSV with columns: `path`, `arm`, `batch`, `plate`, `well`, `channels`, `site`, `cycle`, `n_frames` |
-| `--barcodes` | `path` | CSV file with barcode definitions (`barcode_id`, `sequence`)                                                   |
-| `--outdir`   | `path` | Output directory for results                                                                                   |
+| Parameter                  | Description                                                                                                                                                                                                                                                                                                                                                                      | Type    | Default                                                          | Required |
+| -------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------- | ---------------------------------------------------------------- | -------- |
+| `--input`                  | Path to comma-separated file containing information about the samples in the experiment.<br><details><summary>Help</summary>You will need to create a design file with information about the samples in your experiment before running the pipeline. Use this parameter to specify its location. It has to be a comma-separated file with 3 columns, and a header row.</details> | string  |                                                                  | ✅       |
+| `--outdir`                 | The output directory where the results will be saved. You have to use absolute paths to storage on Cloud infrastructure.                                                                                                                                                                                                                                                         | string  |                                                                  | ✅       |
+| `--qc_painting_passed`     | Flag to check whether quality control for the painting arm has been performed                                                                                                                                                                                                                                                                                                    | boolean |                                                                  |          |
+| `--qc_barcoding_passed`    | Flag to check whether quality control for the barcoding arm has been performed                                                                                                                                                                                                                                                                                                   | boolean |                                                                  |          |
+| `--barcodes`               | Path to barcodes.csv file for SBS data.                                                                                                                                                                                                                                                                                                                                          | string  |                                                                  | ✅       |
+| `--fiji_stitchcrop_script` | Path to script to use for FIJI Stitchcrop.                                                                                                                                                                                                                                                                                                                                       | string  | `/home/florian/nf-pooled-cellpainting/bin/stitch_crop.master.py` | ✅       |
+| `--range_skip`             | Step number for subsampling images for segcheck.                                                                                                                                                                                                                                                                                                                                 | integer | `2`                                                              |          |
+| `--multiqc_title`          | MultiQC report title. Printed as page header, used for filename if not otherwise specified.                                                                                                                                                                                                                                                                                      | string  |                                                                  |          |
 
-### CellProfiler Pipelines
+## Cellprofiler Pipelines
 
-| Parameter                       | Type   | Description                                           |
-| ------------------------------- | ------ | ----------------------------------------------------- |
-| `--painting_illumcalc_cppipe`   | `path` | Illumination calculation pipeline for Cell Painting   |
-| `--painting_illumapply_cppipe`  | `path` | Illumination correction pipeline for Cell Painting    |
-| `--painting_segcheck_cppipe`    | `path` | Segmentation QC pipeline                              |
-| `--barcoding_illumcalc_cppipe`  | `path` | Illumination calculation pipeline for barcoding       |
-| `--barcoding_illumapply_cppipe` | `path` | Illumination correction pipeline for barcoding        |
-| `--barcoding_preprocess_cppipe` | `path` | Barcoding preprocessing pipeline with barcode calling |
-| `--combinedanalysis_cppipe`     | `path` | Combined analysis pipeline                            |
+Paths to custom cellprofiler pipeline files (cppipe)
 
-### CellProfiler Plugins
+| Parameter                       | Description                                                                | Type   | Default | Required |
+| ------------------------------- | -------------------------------------------------------------------------- | ------ | ------- | -------- |
+| `--painting_illumcalc_cppipe`   | Cellprofiler pipeline for painting illumination calculation.               | string |         | ✅       |
+| `--painting_illumapply_cppipe`  | Cellprofiler pipeline for applying illumination profiles for painting arm. | string |         | ✅       |
+| `--painting_segcheck_cppipe`    | Cellprofiler pipeline for running segmentation QC check.                   | string |         | ✅       |
+| `--barcoding_illumcalc_cppipe`  | Cellprofiler pipeline for barcoding arm illumination calculation.          | string |         | ✅       |
+| `--barcoding_illumapply_cppipe` | Cellprofiler pipeline for illumination profiles for barcoding arm.         | string |         | ✅       |
+| `--barcoding_preprocess_cppipe` | Cellprofiler pipeline for barcoding preprocessing.                         | string |         | ✅       |
+| `--combinedanalysis_cppipe`     | Cellprofiler pipeline for combined analysis.                               | string |         | ✅       |
 
-| Parameter                   | Type     | Description                                 |
-| --------------------------- | -------- | ------------------------------------------- |
-| `--callbarcodes_plugin`     | `string` | URL or path to `callbarcodes.py` plugin     |
-| `--compensatecolors_plugin` | `string` | URL or path to `compensatecolors.py` plugin |
+## Painting arm parameters
 
-## Cell Painting Parameters
+Configuration options for the paintingarm of the pipeline.
 
-### Image Properties
+| Parameter                     | Description                                                  | Type    | Default               | Required |
+| ----------------------------- | ------------------------------------------------------------ | ------- | --------------------- | -------- |
+| `--painting_round_or_square`  | Well shape for processing                                    | string  | `round`               |          |
+| `--painting_quarter_if_round` | Whether to divide round wells into quarters for processing   | boolean | `True`                |          |
+| `--painting_overlap_pct`      | Image overlap percentage                                     | integer | `10`                  |          |
+| `--painting_scalingstring`    |                                                              | integer | `1`                   |          |
+| `--painting_imperwell`        | Number of images per well                                    | string  | `unused`              |          |
+| `--painting_rows`             | Rows for image grid layout                                   | integer | `2`                   |          |
+| `--painting_columns`          | Columns for image grid layout                                | integer | `2`                   |          |
+| `--painting_stitchorder`      | Tile arrangement method                                      | string  | `Grid: snake by rows` |          |
+| `--painting_xoffset_tiles`    | Optional offsets for troubleshooting stitching misalignments | integer | `0`                   |          |
+| `--painting_yoffset_tiles`    | Optional offsets for troubleshooting stitching misalignments | integer | `0`                   |          |
 
-| Parameter                | Type     | Default   | Description                              |
-| ------------------------ | -------- | --------- | ---------------------------------------- |
-| `--cp_img_overlap_pct`   | `int`    | `10`      | Image overlap percentage for stitching   |
-| `--cp_img_frame_type`    | `string` | `"round"` | Frame type: `round`, `square`, or custom |
-| `--cp_acquisition_order` | `string` | `"snake"` | Acquisition order: `snake`, `raster`     |
+## Barcoding (Sequencing-by-synthesis) options
 
-### Quality Control
+Configuration options for the barcoding (SBS) arm of the pipeline.
 
-| Parameter              | Type      | Default | Description                                              |
-| ---------------------- | --------- | ------- | -------------------------------------------------------- |
-| `--range_skip`         | `int`     | `16`    | Sampling frequency for segmentation check (1 in N sites) |
-| `--qc_painting_passed` | `boolean` | `false` | Enable progression to stitching after QC review          |
+| Parameter                        | Description                                                                       | Type    | Default               | Required |
+| -------------------------------- | --------------------------------------------------------------------------------- | ------- | --------------------- | -------- |
+| `--barcoding_round_or_square`    | Well shape for processing                                                         | string  | `round`               |          |
+| `--barcoding_quarter_if_round`   | Whether to divide round wells into quarters for processing                        | boolean | `True`                |          |
+| `--barcoding_overlap_pct`        | Image overlap percentage                                                          | integer | `10`                  |          |
+| `--barcoding_scalingstring`      | Number of images per well                                                         | number  | `1.99`                |          |
+| `--barcoding_imperwell`          | Number of images per well                                                         | string  | `unused`              |          |
+| `--barcoding_rows`               | Rows for image grid layout                                                        | integer | `2`                   |          |
+| `--barcoding_columns`            | Columns for image grid layout                                                     | integer | `2`                   |          |
+| `--barcoding_stitchorder`        | Tile arrangement method                                                           | string  | `Grid: snake by rows` |          |
+| `--barcoding_xoffset_tiles`      | Optional offsets for troubleshooting stitching misalignments                      | integer | `0`                   |          |
+| `--barcoding_yoffset_tiles`      | Optional offsets for troubleshooting stitching misalignments                      | integer | `0`                   |          |
+| `--barcoding_shift_threshold`    | Shift threshold for barcoding align QC step.                                      | integer | `50`                  |          |
+| `--barcoding_corr_threshold`     | Correlation threshold for barcoding align QC step.                                | number  | `0.9`                 |          |
+| `--acquisition_geometry_rows`    | Number of rows in acquisition geometry for QC spatial plots (square patterns).    | integer | `2`                   |          |
+| `--acquisition_geometry_columns` | Number of columns in acquisition geometry for QC spatial plots (square patterns). | integer | `2`                   |          |
 
-## Barcoding Parameters
+## General pipeline parameters for both arms
 
-### Image Properties
+| Parameter           | Description                               | Type    | Default | Required |
+| ------------------- | ----------------------------------------- | ------- | ------- | -------- |
+| `--tileperside`     | Number of tiles to create along each axis | integer | `10`    |          |
+| `--final_tile_size` | Pixel dimensions for output tiles         | integer | `5500`  |          |
+| `--compress`        | Whether to compress output files          | boolean | `True`  |          |
 
-| Parameter                 | Type     | Default   | Description                              |
-| ------------------------- | -------- | --------- | ---------------------------------------- |
-| `--sbs_img_overlap_pct`   | `int`    | `10`      | Image overlap percentage for stitching   |
-| `--sbs_img_frame_type`    | `string` | `"round"` | Frame type: `round`, `square`, or custom |
-| `--sbs_acquisition_order` | `string` | `"snake"` | Acquisition order: `snake`, `raster`     |
+## Institutional config options
 
-### Acquisition Geometry
+Parameters used to describe centralised config profiles. These should not be edited.
 
-| Parameter                        | Type  | Default | Description                                    |
-| -------------------------------- | ----- | ------- | ---------------------------------------------- |
-| `--acquisition_geometry_rows`    | `int` | `2`     | Number of rows in acquisition geometry grid    |
-| `--acquisition_geometry_columns` | `int` | `2`     | Number of columns in acquisition geometry grid |
+| Parameter | Description | Type | Default | Required |
+| --------- | ----------- | ---- | ------- | -------- |
 
-### Quality Control
+## Cellprofiler plugins
 
-| Parameter                     | Type      | Default | Description                                         |
-| ----------------------------- | --------- | ------- | --------------------------------------------------- |
-| `--barcoding_shift_threshold` | `float`   | `50.0`  | Maximum allowed pixel shift between cycles (pixels) |
-| `--barcoding_corr_threshold`  | `float`   | `0.9`   | Minimum correlation coefficient between cycles      |
-| `--qc_barcoding_passed`       | `boolean` | `false` | Enable progression to stitching after QC review     |
+| Parameter                   | Description                                  | Type   | Default                                                                                                                    | Required |
+| --------------------------- | -------------------------------------------- | ------ | -------------------------------------------------------------------------------------------------------------------------- | -------- |
+| `--callbarcodes_plugin`     | Cellprofiler plugin for calling barcodes.    | string | `https://raw.githubusercontent.com/CellProfiler/CellProfiler-plugins/refs/heads/master/active_plugins/callbarcodes.py`     |          |
+| `--compensatecolors_plugin` | Cellprofiler plugin for compensating colors. | string | `https://raw.githubusercontent.com/CellProfiler/CellProfiler-plugins/refs/heads/master/active_plugins/compensatecolors.py` |          |
 
-## Execution Parameters
+## Generic options
 
-### Container Configuration
+Less common options for the pipeline, typically set in a config file.
 
-Use `-profile` to specify container engine:
-
-```bash
--profile docker          # Docker
--profile singularity     # Singularity/Apptainer
--profile podman          # Podman
-```
-
-### Resource Configuration
-
-Override default resources in a custom config:
-
-```groovy
-process {
-    withName: 'CELLPROFILER_.*' {
-        cpus = 4
-        memory = 16.GB
-        time = 4.h
-    }
-}
-```
-
-### Execution Backends
-
-Configure executor in `nextflow.config`:
-
-```groovy
-executor {
-    name = 'slurm'  // or 'sge', 'pbs', 'awsbatch', etc.
-    queueSize = 100
-}
-```
-
-## Parameter Files
-
-Store parameters in a file for reproducibility:
-
-```yaml
-# params.yml
-input: "samplesheet.csv"
-barcodes: "barcodes.csv"
-outdir: "results"
-
-cp_img_overlap_pct: 15
-range_skip: 8
-
-qc_painting_passed: true
-qc_barcoding_passed: true
-
-painting_illumcalc_cppipe: "pipelines/painting_illumcalc.cppipe"
-# ... additional parameters
-```
-
-Run with:
-
-```bash
-nextflow run main.nf -params-file params.yml
-```
-
-## Advanced Configuration
-
-### Skip Specific Processes
-
-Modify workflow in `workflows/nf-pooled-cellpainting.nf` to conditionally skip processes.
-
-### Custom Channel Grouping
-
-The pipeline automatically groups images by metadata. To customize, modify channel logic in subworkflows.
-
-### Plugin Configuration
-
-Plugins are downloaded once and cached. To update:
-
-```bash
-rm -rf work/
-nextflow run main.nf ... -resume
-```
-
-## Examples
-
-### High-throughput Run
-
-```bash
-nextflow run main.nf \
-  --input large_samplesheet.csv \
-  --range_skip 32 \
-  --cp_img_overlap_pct 5 \
-  --sbs_img_overlap_pct 5 \
-  -profile docker \
-  -resume
-```
-
-### Quick QC Check
-
-```bash
-nextflow run main.nf \
-  --input subset_samplesheet.csv \
-  --range_skip 4 \
-  -profile docker
-```
-
-### Production Run with QC Gates
-
-```bash
-nextflow run main.nf \
-  --input samplesheet.csv \
-  --qc_painting_passed true \
-  --qc_barcoding_passed true \
-  -profile singularity \
-  -resume
-```
-
-## See Also
-
-- [Quick Start](../getting-started/quickstart.md) - Basic usage examples
-- [Architecture](../developer/architecture.md) - Understanding parameter effects
-- [Troubleshooting](../reference/troubleshooting.md) - Common parameter issues
+| Parameter                       | Description                                                               | Type   | Default | Required |
+| ------------------------------- | ------------------------------------------------------------------------- | ------ | ------- | -------- |
+| `--multiqc_methods_description` | Custom MultiQC yaml file containing HTML including a methods description. | string |         |          |

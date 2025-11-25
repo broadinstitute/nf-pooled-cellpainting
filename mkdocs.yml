@@ -86,9 +86,9 @@ nav:
       - Installation: getting-started/installation.md
       - Quick Start: getting-started/quickstart.md
   - "💻 Usage":
+      - Using Your Own Dataset: usage/custom-data.md
       - Parameters: usage/parameters.md
-      - Running Locally: usage/running-locally.md
-      - Running on Seqera Platform: usage/seqera-platform.md
+      - FAQ: usage/faq.md
   - "🛠️ Developer Guide":
       - Architecture: developer/architecture.md
       - CellProfiler Integration: developer/cellprofiler.md

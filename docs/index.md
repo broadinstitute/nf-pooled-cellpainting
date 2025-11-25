@@ -84,35 +84,6 @@ flowchart TD
 - **CellProfiler plugin support** for barcode calling and color compensation
 - **Easily portable across** cloud and HPC executions
 
-### Repository overview
-
-!!! quote "Repository Structure"
-`     nf-pooled-cellpainting/
-    ├── main.nf                    # Entry point
-    ├── nextflow.config            # Main configuration
-    ├── workflows/                 # Main workflow logic
-    │   └── nf-pooled-cellpainting.nf
-    ├── subworkflows/local/        # Pipeline subworkflows
-    │   ├── cellpainting/          # Cell painting processing arm
-    │   ├── barcoding/             # Barcoding processing arm
-    │   └── utils*/                # Utility subworkflows
-    ├── modules/local/             # Local process modules
-    │   ├── cellprofiler/          # CellProfiler processes
-    │   │   ├── illumcalc/         # Illumination calculation
-    │   │   ├── illumapply/        # Illumination application
-    │   │   ├── preprocess/        # Barcode preprocessing
-    │   │   ├── segcheck/          # Segmentation QC
-    │   │   └── combinedanalysis/  # Combined analysis
-    │   ├── fiji/                  # Fiji image processing
-    │   │   └── stitchcrop/        # Image stitching & cropping
-    │   └── qc/                    # QC modules
-    ├── bin/                       # Python scripts & tools
-    ├── conf/                      # Configuration files
-    ├── assets/                    # CellProfiler pipelines & resources
-    ├── docs/                      # Documentation source
-    └── tests/                     # nf-test test cases
-    `
-
 ## Quick Links
 
 - [Getting Started](getting-started/quickstart.md) - Install and run your first analysis

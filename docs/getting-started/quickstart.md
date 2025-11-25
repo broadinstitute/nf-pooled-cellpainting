@@ -1,154 +1,100 @@
 # Quick Start
 
-This guide walks through running the pipeline with example data.
+This guide assumes you have [installed Nextflow and Docker](installation.md) or have the required setup on Seqera Platform. Here we will walk you through running the pipeline using a minimal test dataset to verify your setup and demonstrate the workflow.
 
-## Basic Execution
+## 1. Run the Test Profile (Phase 1)
 
-### Minimal Command
+The pipeline comes with a built-in `test` profile that automatically downloads a small dataset and configures all necessary parameters.
 
-```bash
-nextflow run main.nf \
-  --input samplesheet.csv \
-  --barcodes barcodes.csv \
-  --outdir results \
-  --painting_illumcalc_cppipe pipelines/painting_illumcalc.cppipe \
-  --painting_illumapply_cppipe pipelines/painting_illumapply.cppipe \
-  --painting_segcheck_cppipe pipelines/painting_segcheck.cppipe \
-  --barcoding_illumcalc_cppipe pipelines/barcoding_illumcalc.cppipe \
-  --barcoding_illumapply_cppipe pipelines/barcoding_illumapply.cppipe \
-  --barcoding_preprocess_cppipe pipelines/barcoding_preprocess.cppipe \
-  --combinedanalysis_cppipe pipelines/combinedanalysis.cppipe \
-  --callbarcodes_plugin 'https://example.com/callbarcodes.py' \
-  --compensatecolors_plugin 'https://example.com/compensatecolors.py' \
-  -profile docker
-```
-
-### With Resume
-
-Nextflow caches completed tasks. Resume after interruption:
+Run the following command (or submit a launch via [Seqera Platform](https://cloud.seqera.io/))
 
 ```bash
-nextflow run main.nf --input samplesheet.csv ... -resume
+nextflow run seqera-services/nf-pooled-cellpainting \
+    -profile test,docker \
+    --outdir results
 ```
 
-## Typical Workflow
+Once you launch the pipeline, it will:
 
-### 1. Initial QC Run
+1.  Download the test dataset (images, samplesheet, barcodes).
+2.  Run **Illumination Calculation** and **Application**.
+3.  Run **Segmentation** (Cell Painting) and **Barcode Calling** (Barcoding).
+4.  Generate **QC Montages**.
+5.  **STOP** before stitching.
 
-Run without QC gates enabled (default):
+This behavior follows the **"Stop-and-Check"** philosophy described in the [Overview](overview.md). By default, the pipeline pauses to allow you to inspect the quality of the images and segmentation before proceeding to the computationally expensive stitching step
+
+## 2. Inspect QC Outputs
+
+Navigate to the `results/workspace/qc_reports` directory (or check the Reports tab on Seqera Platform) to check the generated quality control images:
+
+```
+results/workspace/qc_reports/
+├── 1_illumination_painting/
+├── 3_segmentation/
+├── 5_illumination_barcoding/
+├── 6_alignment/
+└── 7_preprocessing/
+```
+
+In a real run, you would examine these images to ensure:
+
+- Illumination correction profiles look correct
+- Segmentation outlines accurately identify nuclei and cells.
+- Barcoding cycles are properly aligned.
+
+## 3. Complete the Run (Phase 2)
+
+Once you are satisfied with the QC results (for this test data, we assume they are good), you can "open the gates" (by switching the QC flags to `true`) and finish the analysis.
+
+Resume the pipeline with the QC flags set to `true`:
 
 ```bash
-nextflow run main.nf \
-  --input samplesheet.csv \
-  --barcodes barcodes.csv \
-  --outdir results \
-  [... pipeline paths ...] \
-  -profile docker
+nextflow run seqera-services/nf-pooled-cellpainting \
+    -profile test,docker \
+    --outdir results \
+    --qc_painting_passed true \
+    --qc_barcoding_passed true \
+    -resume
 ```
 
-This executes through illumination correction and QC checks but **stops before stitching**.
+!!! important "The `-resume` flag"
+The `-resume` flag is critical here. It tells Nextflow to use the cached results from the previous run and only execute the _new_ steps (stitching, cropping, and combined analysis). Without it, the pipeline would start from scratch. If you are running on Seqera Platform, make sure you click on resume to use the cached results. Don't use relaunch, as this will restart the run from scratch.
 
-### 2. Review QC Outputs
+### What happens now?
 
-Check the QC montages and statistics in the `results/` directory:
+The pipeline continues from where it left off:
 
-- `qc/montage_illum/`: Illumination correction previews
-- `qc/montage_segcheck/`: Segmentation quality checks
-- `qc/barcode_align/`: Barcode alignment metrics
+1.  **Stitches** the images into full well montages.
+2.  **Crops** the stitched images (if configured).
+3.  Performs **Combined Analysis** to map barcodes to cells.
+4.  Generates the final csv result files.
 
-### 3. Enable QC Gates
+## 4. Explore the Final Outputs
 
-After manual review, enable progression:
-
-```bash
-nextflow run main.nf \
-  --input samplesheet.csv \
-  --barcodes barcodes.csv \
-  --outdir results \
-  [... pipeline paths ...] \
-  --qc_painting_passed true \
-  --qc_barcoding_passed true \
-  -profile docker \
-  -resume
-```
-
-This continues from where it stopped and runs:
-
-- Image stitching and cropping
-- Combined analysis
-- Final outputs
-
-## Example Samplesheet
-
-Create `samplesheet.csv`:
-
-```csv
-path,arm,batch,plate,well,channels,site,cycle,n_frames
-/data/painting/,painting,batch1,P001,A01,DAPI-GFP-RFP-Cy5-Cy3,1,,4
-/data/painting/,painting,batch1,P001,A01,DAPI-GFP-RFP-Cy5-Cy3,2,,4
-/data/barcoding/,barcoding,batch1,P001,A01,Cy3-Cy5,1,1,4
-/data/barcoding/,barcoding,batch1,P001,A01,Cy3-Cy5,1,2,4
-/data/barcoding/,barcoding,batch1,P001,A01,Cy3-Cy5,1,3,4
-```
-
-!!! note - `painting` rows have empty `cycle` column - `barcoding` rows must have `cycle` values - `path` should point to directory containing TIFF images
-
-## Understanding Outputs
-
-After successful execution, find outputs in `results/`:
+After the run completes, your `results/` directory will contain the full analysis:
 
 ```
 results/
-├── painting/
-│   ├── illum/              # Illumination functions (.npy)
-│   ├── corrected/          # Corrected TIFF images
-│   └── stitched_cropped/   # Stitched images
+├── images/
+│   ├── corrected/          # Illumination corrected images
+│   └── stitched_cropped/   # Final stitched images
 ├── barcoding/
-│   ├── illum/
-│   ├── corrected/
-│   ├── preprocessed/       # Barcode-called images
-│   └── stitched_cropped/
+│   ├── preprocessed/       # Images with called barcodes
+│   └── stitched_cropped/   # Final stitched images
 ├── combined/
-│   └── analysis/           # Final segmentation and measurements
-├── qc/
-│   ├── montage_illum/
-│   ├── montage_segcheck/
-│   ├── montage_preprocess/
-│   ├── montage_stitchcrop/
-│   └── barcode_align/
-└── csvs/
-    └── load_data/          # All generated load_data.csv files
+│   └── analysis/           # FINAL OUTPUTS
+│       ├── cell.csv        # Single-cell morphology & barcode data
+│       └── image.csv       # Image-level metadata
+└── pipeline_info/          # Execution reports and logs
 ```
 
-## Common Issues
-
-### Container Not Found
-
-Ensure Docker/Singularity is running:
-
-```bash
-docker ps  # For Docker
-singularity --version  # For Singularity
-```
-
-### Out of Memory
-
-Increase JVM memory:
-
-```bash
-export NXF_OPTS='-Xms1g -Xmx4g'
-```
-
-### Plugin Download Failures
-
-Check plugin URLs are accessible:
-
-```bash
-curl -I https://example.com/callbarcodes.py
-```
+The most important files are in `results/combined/analysis/`. These CSV files contain the linked phenotype (Cell Painting) and genotype (Barcoding) data for every cell.
 
 ## Next Steps
 
-- [Parameters Guide](../usage/parameters.md) - Fine-tune pipeline behavior
-- [Running on Seqera Platform](../usage/seqera-platform.md) - Scale to cloud/HPC
-- [Architecture](../developer/architecture.md) - Understand pipeline internals
+Now that you've successfully run the test profile, you're ready to process your own data.
+
+- **[Use your own dataset](../usage/custom-data.md)**:
+- **[Parameters Guide](../usage/parameters.md)**: Learn how to configure the pipeline for your specific dataset.
+- **[FAQ](../usage/faq.md)**: Common issues and solutions.

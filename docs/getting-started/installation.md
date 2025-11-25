@@ -1,155 +1,64 @@
 # Installation
 
-## Prerequisites
+This page describes two mode to execute the `nf-pooled-cellpainting` pipeline: locally using the Nextflow CLI (with Docker) or on the cloud using the Seqera Platform.
 
-### Required
+## Mode 1: Nextflow CLI (Local/Server)
 
-- **Nextflow** `>= 23.04.0`
-- **Java** `>= 11`
-- **Container engine**: One of:
-  - Docker
-  - Singularity/Apptainer
-  - Podman
-  - Shifter
-  - Charliecloud
+This mode is best for development, testing, or running on a single server.
 
-### Optional
+### Prerequisites
 
-- **Seqera Platform account** for cloud/HPC execution
-- **Git** for version control
+1.  **Java**: Version 11 or later.
+2.  **Nextflow**: Version `23.04.0` or later.
+3.  **Docker**: Engine must be installed and running.
 
-## Install Nextflow
+### Setup
 
-=== "Conda"
-
-    ```bash
-    conda install -c bioconda nextflow
-    ```
-
-=== "Manual"
+1.  **Install Nextflow**:
 
     ```bash
     curl -s https://get.nextflow.io | bash
-    mv nextflow ~/bin/
+    mv nextflow /usr/local/bin/
     ```
 
-=== "Verify"
+2.  **Test the installation**:
+    Run the pipeline help command to verify everything is working and Docker is accessible:
 
     ```bash
-    nextflow -version
+    nextflow run seqera-services/nf-pooled-cellpainting -profile docker --help -r dev
     ```
 
-## Install Container Engine
+3.  Head to the [Quick Start Guide](quickstart.md) to run your first test analysis.
 
-=== "Docker"
+---
 
-    Follow the [official Docker installation guide](https://docs.docker.com/get-docker/).
+## Mode 2: Seqera Platform (AWS Batch)
 
-=== "Singularity"
+This mode is recommended for production runs at scale.
 
-    ```bash
-    # On HPC systems, Singularity is often pre-installed
-    singularity --version
-    ```
+### Prerequisites
 
-=== "Apptainer"
+1.  **Seqera Platform Account**: Access to a workspace.
+2.  **AWS Batch Compute Environment**: You must have an AWS Batch Compute Environment (CE) configured in your workspace. This CE provides the scalable compute resources needed for the pipeline.
 
-    ```bash
-    # Apptainer is the community fork of Singularity
-    apptainer --version
-    ```
+### Setup
 
-## Get the Pipeline
+1.  **Add pipeline to Launchpad**:
+    - Navigate to the **Launchpad** in your workspace.
+    - Click **Add Pipeline**.
+    - Enter the repository URL: `https://github.com/seqera-services/nf-pooled-cellpainting`.
+    - Select your AWS Batch Compute Environment.
 
-=== "From GitHub"
+2.  **Launch**:
+    You can now launch runs directly from the UI, configuring parameters via the web interface or providing json or yaml syntax for configuration.
 
-    ```bash
-    git clone https://github.com/your-org/nf-pooled-cellpainting.git
-    cd nf-pooled-cellpainting
-    ```
-
-=== "Run Directly"
-
-    Nextflow can pull from GitHub automatically:
-
-    ```bash
-    nextflow run your-org/nf-pooled-cellpainting --input samplesheet.csv --outdir results
-    ```
+---
 
 ## Prepare Input Files
 
-### 1. Samplesheet
-
-Create a CSV with the following columns:
-
-```csv
-path,arm,batch,plate,well,channels,site,cycle,n_frames
-```
-
-Example:
-
-```csv
-/data/images/,painting,batch1,plate1,A01,DAPI-GFP-RFP,1,,4
-/data/images/,barcoding,batch1,plate1,A01,Cy3-Cy5,1,1,4
-```
-
-### 2. Barcodes File
-
-Create a CSV with barcode definitions:
-
-```csv
-barcode_id,sequence
-```
-
-### 3. CellProfiler Pipelines
-
-Prepare `.cppipe` files for each stage:
-
-- Painting illumination calculation
-- Painting illumination correction
-- Segmentation check
-- Barcoding illumination calculation
-- Barcoding illumination correction
-- Barcoding preprocessing
-- Combined analysis
-
-### 4. CellProfiler Plugins
-
-Download required plugins:
-
-- `callbarcodes.py`: Barcode calling logic
-- `compensatecolors.py`: Color compensation
-
-Store as URL-accessible files or local paths.
-
-## Configuration
-
-Create a `nextflow.config` or use command-line parameters:
-
-```groovy
-params {
-    input = 'samplesheet.csv'
-    barcodes = 'barcodes.csv'
-    outdir = 'results'
-
-    // CellProfiler pipelines
-    painting_illumcalc_cppipe = 'pipelines/painting_illumcalc.cppipe'
-    painting_illumapply_cppipe = 'pipelines/painting_illumapply.cppipe'
-    // ... additional pipeline paths
-}
-```
-
-## Test the Installation
-
-Run a minimal test:
-
-```bash
-nextflow run main.nf --help
-```
-
-You should see the pipeline help message with all available parameters.
+For detailed instructions on how to prepare your samplesheet, barcodes file, and CellProfiler pipelines, please refer to the [Using Your Own Dataset](../usage/custom-data.md) guide.
 
 ## Next Steps
 
-- [Quick Start Guide](quickstart.md) - Run your first analysis
-- [Parameters Reference](../usage/parameters.md) - Configure the pipeline
+- [Quick Start Guide](quickstart.md) - Run your first analysis.
+- [Parameters Reference](../usage/parameters.md) - See all available configuration options.
