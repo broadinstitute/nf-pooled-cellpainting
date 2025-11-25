@@ -6,11 +6,44 @@ repo_name: nf-pooled-cellpainting
 
 theme:
   name: material
+  favicon: images/microscope_favicon.png
+  features:
+    - navigation.tabs
+    - navigation.tabs.sticky
+    - navigation.sections
+    - navigation.top
+    - search.suggest
+    - search.highlight
+    - content.tabs.link
+    - content.code.annotation
+    - content.code.copy
+  palette:
+    - scheme: default
+      primary: teal
+      accent: purple
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - scheme: slate
+      primary: teal
+      accent: lime
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+  font:
+    text: Roboto
+    code: Roboto Mono
+  icon:
+    logo: fontawesome/solid/microscope
 
 markdown_extensions:
   - admonition
   - pymdownx.details
-  - pymdownx.superfences
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
   - pymdownx.highlight:
       anchor_linenums: true
       line_spans: __span
@@ -43,21 +76,24 @@ extra:
   version:
     provider: mike
 
+extra_css:
+  - stylesheets/extra.css
+
 nav:
-  - Home: index.md
-  - Getting Started:
+  - "🏠 Home": index.md
+  - "🚀 Getting Started":
       - Overview: getting-started/overview.md
       - Installation: getting-started/installation.md
       - Quick Start: getting-started/quickstart.md
-  - Usage:
+  - "💻 Usage":
       - Parameters: usage/parameters.md
       - Running Locally: usage/running-locally.md
       - Running on Seqera Platform: usage/seqera-platform.md
-  - Developer Guide:
+  - "🛠️ Developer Guide":
       - Architecture: developer/architecture.md
       - CellProfiler Integration: developer/cellprofiler.md
       - Python Scripts: developer/python-scripts.md
       - Testing: developer/testing.md
-  - Reference:
+  - "📚 Reference":
       - Outputs: reference/outputs.md
       - Troubleshooting: reference/troubleshooting.md

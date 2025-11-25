@@ -1,29 +1,20 @@
 # Overview
 
-## What is nf-pooled-cellpainting?
-
-nf-pooled-cellpainting is a Nextflow pipeline designed for **optical pooled screening (OPS)**, a high-throughput technique that combines:
-
-1. **Cell Painting**: Multi-channel fluorescence microscopy for phenotypic profiling
-2. **Barcoding**: Sequencing-by-synthesis (SBS) for genetic identification
-
-This approach enables screening of thousands of genetic perturbations while maintaining single-cell resolution.
-
 ## Pipeline Workflow
 
 The pipeline consists of two parallel processing arms that converge for combined analysis:
 
 ### Cell Painting Arm
 
-```mermaid
 graph LR
-    A[Raw Images] --> B[Illumination Calculation]
-    B --> C[Illumination Correction]
-    C --> D[Segmentation QC]
-    D --> E{QC Pass?}
-    E -->|Yes| F[Stitch & Crop]
-    E -->|No| G[Manual Review]
-```
+A[Raw Images] --> B[Illumination Calculation]
+B --> C[Illumination Correction]
+C --> D[Segmentation QC]
+D --> E{QC Pass?}
+E -->|Yes| F[Stitch & Crop]
+E -->|No| G[Manual Review]
+
+````
 
 ### Barcoding Arm
 
@@ -36,7 +27,7 @@ graph LR
     E --> F{QC Pass?}
     F -->|Yes| G[Stitch & Crop]
     F -->|No| H[Manual Review]
-```
+````
 
 ### Combined Analysis
 
