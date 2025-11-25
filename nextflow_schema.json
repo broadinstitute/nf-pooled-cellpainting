@@ -46,13 +46,18 @@
                 },
                 "fiji_stitchcrop_script": {
                     "type": "string",
-                    "default": "/home/florian/nf-pooled-cellpainting/bin/stitch_crop.master.py",
+                    "default": "/home/florian/nf-pooled-cellpainting/bin/stitch_crop.env_master.py",
                     "description": "Path to script to use for FIJI Stitchcrop."
                 },
                 "range_skip": {
                     "type": "integer",
                     "default": 2,
                     "description": "Step number for subsampling images for segcheck."
+                },
+                "cycle_metadata_name": {
+                    "type": "string",
+                    "default": "Cycle",
+                    "description": "What should the cycle metadata column be named? (Must align with cppipe cycle name!)"
                 },
                 "multiqc_title": {
                     "type": "string",
@@ -129,37 +134,38 @@
                 },
                 "painting_scalingstring": {
                     "type": "integer",
-                    "default": 1
+                    "default": 1,
+                    "description": "Scaling for images."
                 },
                 "painting_imperwell": {
                     "type": "string",
                     "default": "unused",
-                    "description": "Number of images per well"
+                    "description": "Number of images per well."
                 },
                 "painting_rows": {
                     "type": "integer",
                     "default": 2,
-                    "description": "Rows for image grid layout"
+                    "description": "Rows for image grid layout."
                 },
                 "painting_columns": {
                     "type": "integer",
                     "default": 2,
-                    "description": "Columns for image grid layout"
+                    "description": "Columns for image grid layout."
                 },
                 "painting_stitchorder": {
                     "type": "string",
                     "default": "Grid: snake by rows",
-                    "description": "Tile arrangement method"
+                    "description": "Tile arrangement method."
                 },
                 "painting_xoffset_tiles": {
                     "type": "integer",
                     "default": 0,
-                    "description": "Optional offsets for troubleshooting stitching misalignments"
+                    "description": "Optional offsets for troubleshooting stitching misalignments."
                 },
                 "painting_yoffset_tiles": {
                     "type": "integer",
                     "default": 0,
-                    "description": "Optional offsets for troubleshooting stitching misalignments"
+                    "description": "Optional offsets for troubleshooting stitching misalignments."
                 }
             },
             "fa_icon": "fas fa-paint-brush"
@@ -170,45 +176,51 @@
             "description": "Configuration options for the barcoding (SBS) arm of the pipeline.",
             "default": "",
             "properties": {
+                "barcoding_illumapply_grouping": {
+                    "type": "string",
+                    "default": "well",
+                    "description": "What level to parallelize illumapply for barcoding arm.",
+                    "enum": ["well", "site"]
+                },
                 "barcoding_round_or_square": {
                     "type": "string",
                     "default": "round",
-                    "description": "Well shape for processing"
+                    "description": "Well shape for processing."
                 },
                 "barcoding_quarter_if_round": {
                     "type": "boolean",
                     "default": true,
-                    "description": "Whether to divide round wells into quarters for processing"
+                    "description": "Whether to divide round wells into quarters for processing."
                 },
                 "barcoding_overlap_pct": {
                     "type": "integer",
                     "default": 10,
-                    "description": "Image overlap percentage"
+                    "description": "Image overlap percentage."
                 },
                 "barcoding_scalingstring": {
                     "type": "number",
                     "default": 1.99,
-                    "description": "Number of images per well"
+                    "description": "Scaling for images."
                 },
                 "barcoding_imperwell": {
                     "type": "string",
                     "default": "unused",
-                    "description": "Number of images per well"
+                    "description": "Number of images per well."
                 },
                 "barcoding_rows": {
                     "type": "integer",
                     "default": 2,
-                    "description": "Rows for image grid layout"
+                    "description": "Rows for image grid layout."
                 },
                 "barcoding_columns": {
                     "type": "integer",
                     "default": 2,
-                    "description": "Columns for image grid layout"
+                    "description": "Columns for image grid layout."
                 },
                 "barcoding_stitchorder": {
                     "type": "string",
                     "default": "Grid: snake by rows",
-                    "description": "Tile arrangement method"
+                    "description": "Tile arrangement method."
                 },
                 "barcoding_xoffset_tiles": {
                     "type": "integer",
@@ -252,17 +264,17 @@
                 "tileperside": {
                     "type": "integer",
                     "default": 10,
-                    "description": "Number of tiles to create along each axis"
+                    "description": "Number of tiles to create along each axis."
                 },
                 "final_tile_size": {
                     "type": "integer",
                     "default": 5500,
-                    "description": "Pixel dimensions for output tiles"
+                    "description": "Pixel dimensions for output tiles."
                 },
                 "compress": {
                     "type": "boolean",
                     "default": true,
-                    "description": "Whether to compress output files"
+                    "description": "Whether to compress output files."
                 }
             },
             "fa_icon": "fas fa-cog"
