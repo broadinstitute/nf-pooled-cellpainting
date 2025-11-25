@@ -106,6 +106,12 @@ if os.path.isdir(subdir):
         presuflist.sort()
         print welllist, presuflist
 
+        # Fallback: if no channel matched channame, use the first available prefix/suffix
+        if permprefix is None and len(presuflist) > 0:
+                permprefix = presuflist[0][0]
+                permsuffix = presuflist[0][1]
+                print("Warning: CHANNAME '"+channame+"' not found in any file. Using first available channel: "+permsuffix)
+
         if round_or_square == 'square':
                 stitchedsize=int(rows)*int(size)
                 tileperside=int(tileperside)
