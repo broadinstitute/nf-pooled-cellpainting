@@ -29,6 +29,9 @@ input:
         type: file
         description: Cropped images for combined analysis including both cell painting corrected images (CorrDNA, CorrPhalloidin, CorrCHN2) and barcoding cropped images (Cycle##_A, Cycle##_C, Cycle##_G, Cycle##_T, Cycle##_DNA)
         pattern: "*.{tif,tiff}"
+    - image_metas:
+        type: list
+        description: "List of image metadata maps containing plate, well, site, channels, filename information"
   - combinedanalysis_cppipe:
       type: file
       description: CellProfiler pipeline file for combined analysis containing the analysis workflow

@@ -22,13 +22,13 @@ process CELLPROFILER_SEGCHECK {
 
     script:
     // Serialize image metadata directly - it already contains all fields (plate, well, site, channels, filename, etc.)
-    def metadata_json = groovy.json.JsonOutput.toJson(image_metas)
+    // Base64 encode to reduce log verbosity
+    def metadata_json_content = groovy.json.JsonOutput.toJson(image_metas)
+    def metadata_base64 = metadata_json_content.bytes.encodeBase64().toString()
 
     """
-    # Create metadata JSON file
-    cat > metadata.json << 'EOF'
-${metadata_json}
-EOF
+    # Create metadata JSON file from base64 (reduces log verbosity)
+    echo '${metadata_base64}' | base64 -d > metadata.json
 
     # Generate load_data.csv
     generate_load_data_csv.py \\
@@ -36,11 +36,16 @@ EOF
         --images-dir ./images \\
         --output load_data.csv \\
         --metadata-json metadata.json \\
-        --range-skip ${range_skip}
+        --range-skip ${range_skip} \\
+        --cycle-metadata-name "${params.cycle_metadata_name}"
+
+    # Patch Base image location to use Default Input Folder (staged images)
+    cp -L ${segcheck_cppipe} segcheck_patched.cppipe
+    sed -i 's/Base image location:None|/Base image location:Default Input Folder|/g' segcheck_patched.cppipe
 
     cellprofiler -c -r \\
         ${task.ext.args ?: ''} \\
-        -p ${segcheck_cppipe} \\
+        -p segcheck_patched.cppipe \\
         -o . \\
         --data-file=load_data.csv \\
         --image-directory ./images/

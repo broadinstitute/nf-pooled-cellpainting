@@ -24,13 +24,13 @@ process CELLPROFILER_ILLUMCALC {
 
     script:
     // Serialize image metadata for load_data.csv generation
-    def metadata_json = toJson(image_metas)
+    // Base64 encode to reduce log verbosity
+    def metadata_json_content = toJson(image_metas)
+    def metadata_base64 = metadata_json_content.bytes.encodeBase64().toString()
 
     """
-    # Create metadata JSON file
-    cat > metadata.json << 'EOF'
-${metadata_json}
-EOF
+    # Create metadata JSON file from base64 (reduces log verbosity)
+    echo '${metadata_base64}' | base64 -d > metadata.json
 
     # Generate load_data.csv
     generate_load_data_csv.py \\
@@ -39,6 +39,7 @@ EOF
         --output load_data.csv \\
         --metadata-json metadata.json \\
         --channels "${channels}" \\
+        --cycle-metadata-name "${params.cycle_metadata_name}" \\
         ${has_cycles ? '--has-cycles' : ''}
 
     # Check if illumination_cppipe ends with .template
@@ -87,6 +88,9 @@ EOF
         # Not a template file - use as-is
         cp ${illumination_cppipe} illumination.cppipe
     fi
+
+    # Patch Base image location to use Default Input Folder (staged images)
+    sed -i 's/Base image location:None|/Base image location:Default Input Folder|/g' illumination.cppipe
 
     cellprofiler -c -r \\
         -p illumination.cppipe \\

@@ -19,17 +19,20 @@ tools:
       identifier: biotools:CellProfiler
 
 input:
-  - meta:
-      type: map
-      description: |
-        Groovy Map containing sample information
-        e.g. `[ id:'sample1', batch:'batch1', plate:'plate1', well:'A01', arm:'barcoding' ]`
-  - corr_images:
-      type: file
-      description: Illumination-corrected images from SBS cycles for preprocessing
-      pattern: "*.{tif,tiff,png}"
-      ontologies:
-        - edam: http://edamontology.org/format_3547
+  - - meta:
+        type: map
+        description: |
+          Groovy Map containing sample information
+          e.g. `[ id:'sample1', batch:'batch1', plate:'plate1', well:'A01', arm:'barcoding' ]`
+    - aligned_images:
+        type: file
+        description: Illumination-corrected and aligned images from SBS cycles for preprocessing
+        pattern: "*.{tif,tiff,png}"
+        ontologies:
+          - edam: http://edamontology.org/format_3547
+    - image_metas:
+        type: list
+        description: "List of image metadata maps containing plate, well, site, channels, filename information"
   - preprocess_cppipe:
       type: file
       description: CellProfiler pipeline file (.cppipe) defining the preprocessing workflow for SBS images
@@ -47,56 +50,51 @@ input:
       description: Directory containing CellProfiler plugins required for preprocessing
 
 output:
-  - meta:
-      type: map
-      description: |
-        Groovy Map containing sample information
-        e.g. `[ id:'sample1', batch:'batch1', plate:'plate1', well:'A01', arm:'barcoding' ]`
   - preprocessed_images:
-      type: file
-      description: Preprocessed TIFF images after SBS averaging and processing
-      pattern: "*.tiff"
-      ontologies:
-        - edam: http://edamontology.org/format_3591
-  - meta2:
-      type: map
-      description: |
-        Groovy Map containing sample information
-        e.g. `[ id:'sample1', batch:'batch1', plate:'plate1', well:'A01', arm:'barcoding' ]`
+      - meta:
+          type: map
+          description: |
+            Groovy Map containing sample information
+            e.g. `[ id:'sample1', batch:'batch1', plate:'plate1', well:'A01', arm:'barcoding' ]`
+      - "*.tiff":
+          type: file
+          description: Preprocessed TIFF images after SBS averaging and processing
+          pattern: "*.tiff"
+          ontologies:
+            - edam: http://edamontology.org/format_3591
   - overlay:
-      type: file
-      description: Overlay images showing segmentation and preprocessing results for quality control
-      pattern: "overlay/*.tiff"
-      ontologies:
-        - edam: http://edamontology.org/format_3591
-  - meta3:
-      type: map
-      description: |
-        Groovy Map containing sample information
-        e.g. `[ id:'sample1', batch:'batch1', plate:'plate1', well:'A01', arm:'barcoding' ]`
+      - "overlay/*.tiff":
+          type: file
+          description: Overlay images showing segmentation and preprocessing results for quality control
+          pattern: "overlay/*.tiff"
+          ontologies:
+            - edam: http://edamontology.org/format_3591
   - preprocess_stats:
-      type: file
-      description: CSV files containing preprocessing measurements and statistics (Cells, Nuclei, Image, Experiment, AllFoci, Foci)
-      pattern: "BarcodePreprocess*.csv"
-      ontologies:
-        - edam: http://edamontology.org/format_3752
-  - meta4:
-      type: map
-      description: |
-        Groovy Map containing sample information
-        e.g. `[ id:'sample1', batch:'batch1', plate:'plate1', well:'A01', arm:'barcoding' ]`
+      - meta:
+          type: map
+          description: |
+            Groovy Map containing sample information
+            e.g. `[ id:'sample1', batch:'batch1', plate:'plate1', well:'A01', arm:'barcoding' ]`
+      - "BarcodePreprocessing*.csv":
+          type: file
+          description: CSV files containing preprocessing measurements and statistics (Cells, Nuclei, Image, Experiment, AllFoci, Foci)
+          pattern: "BarcodePreprocess*.csv"
+          ontologies:
+            - edam: http://edamontology.org/format_3752
   - load_data_csv:
-      type: file
-      description: CellProfiler LoadData CSV file used for batch processing
-      pattern: "load_data.csv"
-      ontologies:
-        - edam: http://edamontology.org/format_3752
+      - "load_data.csv":
+          type: file
+          description: CellProfiler LoadData CSV file used for batch processing
+          pattern: "load_data.csv"
+          ontologies:
+            - edam: http://edamontology.org/format_3752
   - versions:
-      type: file
-      description: File containing software versions
-      pattern: "versions.yml"
-      ontologies:
-        - edam: http://edamontology.org/format_3750
+      - versions.yml:
+          type: file
+          description: File containing software versions
+          pattern: "versions.yml"
+          ontologies:
+            - edam: http://edamontology.org/format_3750
 
 authors:
   - "@FloWuenne"

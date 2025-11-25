@@ -18,37 +18,43 @@ tools:
       identifier: biotools:CellProfiler
 
 input:
-  - - group_meta:
+  - - meta:
         type: map
         description: "Groovy Map containing sample information (e.g. batch, plate, arm, well)"
+    - channels:
+        type: string
+        description: "Comma-separated list of channel names"
+    - cycles:
+        type: string
+        description: "Comma-separated list of cycle names or identifiers"
     - images:
         type: file
         description: "Input microscopy images to be corrected"
         pattern: "*.{tif,tiff,ome.tiff}"
         ontologies:
           - edam: "http://edamontology.org/data_2968" # Image
+    - image_metas:
+        type: list
+        description: "List of image metadata maps containing plate, well, site, channels, filename information"
     - npy_files:
         type: file
         description: "Illumination correction files in numpy format"
         pattern: "*.npy"
         ontologies:
           - edam: "http://edamontology.org/data_0006" # Data
-    - load_data_csv:
-        type: file
-        description: "CSV file containing image metadata for CellProfiler LoadData module"
-        pattern: "*.csv"
-        ontologies:
-          - edam: "http://edamontology.org/format_3752" # CSV
   - illumination_apply_cppipe:
       type: file
       description: "CellProfiler pipeline file for applying illumination correction"
       pattern: "*.cppipe"
       ontologies:
         - edam: "http://edamontology.org/data_0006" # Data
+  - has_cycles:
+      type: boolean
+      description: "Whether the experiment includes multiple cycles"
 
 output:
   - corrected_images:
-      - group_meta:
+      - meta:
           type: map
           description: "Groovy Map containing sample information (e.g. batch, plate, arm, well)"
       - "*.tiff":
@@ -62,6 +68,13 @@ output:
           type: file
           description: "CSV files with metadata for corrected images"
           pattern: "*.csv"
+          ontologies:
+            - edam: "http://edamontology.org/format_3752" # CSV
+  - load_data_csv:
+      - "load_data.csv":
+          type: file
+          description: "Generated load_data.csv file used by CellProfiler to load and organize input images"
+          pattern: "load_data.csv"
           ontologies:
             - edam: "http://edamontology.org/format_3752" # CSV
   - versions:

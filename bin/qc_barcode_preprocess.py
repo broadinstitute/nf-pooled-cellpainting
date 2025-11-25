@@ -90,8 +90,14 @@ if "gene_symbol" in bc_df.columns:
 elif "Gene" not in bc_df.columns:
     raise ValueError("Barcode library must contain 'Gene' or 'gene_symbol' column")
 
+# Normalize barcode column name to 'Barcode'
+if "sgRNA" in bc_df.columns:
+    bc_df = bc_df.rename(columns={"sgRNA": "Barcode"})
+elif "Barcode" not in bc_df.columns:
+    raise ValueError("Barcode library must contain 'Barcode' or 'sgRNA' column")
+
 gene_col = "Gene"
-barcode_col = "sgRNA"
+barcode_col = "Barcode"
 
 # %%
 # Describe barcodes
@@ -99,19 +105,19 @@ print(len(bc_df), "total barcodes")
 rep5 = sum(
     [
         any(repeat in read for repeat in ["AAAAA", "CCCCC", "GGGGG", "TTTTT"])
-        for read in bc_df["sgRNA"]
+        for read in bc_df[barcode_col]
     ]
 )
 rep6 = sum(
     [
         any(repeat in read for repeat in ["AAAAAA", "CCCCCC", "GGGGGG", "TTTTTT"])
-        for read in bc_df["sgRNA"]
+        for read in bc_df[barcode_col]
     ]
 )
 rep7 = sum(
     [
         any(repeat in read for repeat in ["AAAAAAA", "CCCCCCC", "GGGGGGG", "TTTTTTT"])
-        for read in bc_df["sgRNA"]
+        for read in bc_df[barcode_col]
     ]
 )
 print("For full read")
@@ -122,13 +128,13 @@ print(rep7, "barcodes with 7 repeats", rep7 / len(bc_df), "% 7 repeats")
 rep5 = sum(
     [
         any(repeat in read[:10] for repeat in ["AAAAA", "CCCCC", "GGGGG", "TTTTT"])
-        for read in bc_df["sgRNA"]
+        for read in bc_df[barcode_col]
     ]
 )
 rep6 = sum(
     [
         any(repeat in read[:10] for repeat in ["AAAAAA", "CCCCCC", "GGGGGG", "TTTTTT"])
-        for read in bc_df["sgRNA"]
+        for read in bc_df[barcode_col]
     ]
 )
 rep7 = sum(
@@ -137,7 +143,7 @@ rep7 = sum(
             repeat in read[:10]
             for repeat in ["AAAAAAA", "CCCCCCC", "GGGGGGG", "TTTTTTT"]
         )
-        for read in bc_df["sgRNA"]
+        for read in bc_df[barcode_col]
     ]
 )
 print("For 10 nt read")
@@ -148,7 +154,7 @@ print(rep7, "barcodes with 7 repeats", rep7 / len(bc_df), "% 7 repeats")
 # %%
 dflist = []
 for cycle in range(1, numcycles + 1):
-    bc_df["PerCycle"] = bc_df["sgRNA"].str.slice(cycle - 1, cycle)
+    bc_df["PerCycle"] = bc_df[barcode_col].str.slice(cycle - 1, cycle)
     BarcodeCat = bc_df["PerCycle"].str.cat()
     dflist.append(
         {
@@ -209,7 +215,11 @@ def merge_csvs(csvfolder, filename, column_list=None):
 
     df_dict = {}
     count = 0
-    folderlist = os.listdir(csvfolder)
+    all_items = os.listdir(csvfolder)
+    # Filter for input_* folders if they exist
+    input_folders = [f for f in all_items if f.startswith('input_') and os.path.isdir(os.path.join(csvfolder, f))]
+    folderlist = input_folders if input_folders else all_items
+
     print(count, datetime.datetime.ctime(datetime.datetime.now()))
     for eachfolder in folderlist:
         if os.path.isfile(os.path.join(csvfolder, eachfolder, filename)):
@@ -381,45 +391,50 @@ if pos_df is not None:
         :, ["Metadata_Well", "Metadata_Site", "Barcode_MatchedTo_Score"]
     ]
     df_foci_perf = df_foci_slice[df_foci_slice["Barcode_MatchedTo_Score"] == 1]
-    df_foci_perf = (
-        df_foci_perf.groupby(["Metadata_Well", "Metadata_Site"])
-        .count()
-        .reset_index()
-        .rename(columns={"Barcode_MatchedTo_Score": "Num_Perf"})
-    )
-    df_foci_slice = (
-        df_foci_slice.groupby(["Metadata_Well", "Metadata_Site"])
-        .count()
-        .reset_index()
-        .rename(columns={"Barcode_MatchedTo_Score": "Num_Total"})
-    )
-    df_foci_pp = df_foci_perf.merge(
-        df_foci_slice, on=["Metadata_Well", "Metadata_Site"]
-    )
-    df_foci_pp["PerPerf"] = (df_foci_pp["Num_Perf"] / df_foci_pp["Num_Total"]) * 100
-    df_foci_pp["PerPerf"] = df_foci_pp["PerPerf"].astype("int")
 
-    # Add the location to the foci dfs
-    df_foci_pp = df_foci_pp.merge(pos_df, on="Metadata_Site").reset_index()
+    # Only create spatial plot if there are perfect barcodes
+    if len(df_foci_perf) > 0:
+        df_foci_perf = (
+            df_foci_perf.groupby(["Metadata_Well", "Metadata_Site"])
+            .count()
+            .reset_index()
+            .rename(columns={"Barcode_MatchedTo_Score": "Num_Perf"})
+        )
+        df_foci_slice = (
+            df_foci_slice.groupby(["Metadata_Well", "Metadata_Site"])
+            .count()
+            .reset_index()
+            .rename(columns={"Barcode_MatchedTo_Score": "Num_Total"})
+        )
+        df_foci_pp = df_foci_perf.merge(
+            df_foci_slice, on=["Metadata_Well", "Metadata_Site"]
+        )
+        df_foci_pp["PerPerf"] = (df_foci_pp["Num_Perf"] / df_foci_pp["Num_Total"]) * 100
+        df_foci_pp["PerPerf"] = df_foci_pp["PerPerf"].astype("int")
 
-    g = sns.relplot(
-        data=df_foci_pp,
-        x="x_loc",
-        y="y_loc",
-        hue="PerPerf",
-        col="Metadata_Well",
-        col_wrap=3,
-        palette="viridis",
-        marker="s",
-        s=200,
-    )
-    plt.suptitle("Spatial Distribution of Perfect Barcodes")
-    plt.tight_layout()
-    plt.savefig(
-        Path(output_dir) / "spatial_quality_scatter.png", dpi=150, bbox_inches="tight"
-    )
-    plt.show()
-    # note missing sites indicate that site has zero perfect barcodes
+        # Add the location to the foci dfs
+        df_foci_pp = df_foci_pp.merge(pos_df, on="Metadata_Site").reset_index()
+
+        g = sns.relplot(
+            data=df_foci_pp,
+            x="x_loc",
+            y="y_loc",
+            hue="PerPerf",
+            col="Metadata_Well",
+            col_wrap=3,
+            palette="viridis",
+            marker="s",
+            s=200,
+        )
+        plt.suptitle("Spatial Distribution of Perfect Barcodes")
+        plt.tight_layout()
+        plt.savefig(
+            Path(output_dir) / "spatial_quality_scatter.png", dpi=150, bbox_inches="tight"
+        )
+        plt.show()
+        # note missing sites indicate that site has zero perfect barcodes
+    else:
+        print("No perfect barcodes found (score == 1.0) - spatial plot skipped")
 else:
     print("No geometry provided - spatial plot skipped")
 

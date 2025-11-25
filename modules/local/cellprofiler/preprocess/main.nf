@@ -25,24 +25,29 @@ process CELLPROFILER_PREPROCESS {
 
     script:
     // Serialize image metadata directly - it already contains all fields (plate, well, site, channels, filename, etc.)
-    def metadata_json = groovy.json.JsonOutput.toJson(image_metas)
+    // Base64 encode to reduce log verbosity
+    def metadata_json_content = groovy.json.JsonOutput.toJson(image_metas)
+    def metadata_base64 = metadata_json_content.bytes.encodeBase64().toString()
 
     """
-    # Create metadata JSON file
-    cat > metadata.json << 'EOF'
-${metadata_json}
-EOF
+    # Create metadata JSON file from base64 (reduces log verbosity)
+    echo '${metadata_base64}' | base64 -d > metadata.json
 
     # Generate load_data.csv
     generate_load_data_csv.py \\
         --metadata-json metadata.json \\
         --pipeline-type preprocess \\
         --images-dir ./images \\
-        --output load_data.csv
+        --output load_data.csv \\
+        --cycle-metadata-name "${params.cycle_metadata_name}"
+
+    # Patch Base image location to use Default Input Folder (staged images)
+    cp -L ${preprocess_cppipe} preprocess_patched.cppipe
+    sed -i 's/Base image location:None|/Base image location:Default Input Folder|/g' preprocess_patched.cppipe
 
     cellprofiler -c -r \\
         ${task.ext.args ?: ''} \\
-        -p ${preprocess_cppipe} \\
+        -p preprocess_patched.cppipe \\
         -o . \\
         --data-file=load_data.csv \\
         --image-directory ./images/ \\

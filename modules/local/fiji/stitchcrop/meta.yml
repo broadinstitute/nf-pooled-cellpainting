@@ -28,16 +28,54 @@ input:
         pattern: "*.{tif,tiff}"
         ontologies:
           - edam: http://edamontology.org/format_3547
-  - - stitch_script:
-        type: file
-        description: Jython script for Fiji to perform stitching and cropping operations
-        pattern: "*.py"
-        ontologies:
-          - edam: http://edamontology.org/format_3996
-  - - crop_percent:
-        type: integer
-        description: Percentage of each tile edge to crop (e.g., 25 means crop 25% from each edge)
-        pattern: "[0-9]+"
+  - stitch_script:
+      type: file
+      description: Jython script for Fiji to perform stitching and cropping operations
+      pattern: "*.py"
+      ontologies:
+        - edam: http://edamontology.org/format_3996
+  - round_or_square:
+      type: string
+      description: Acquisition pattern shape (round or square)
+  - quarter_if_round:
+      type: string
+      description: Which quarter of the round pattern to process
+  - overlap_pct:
+      type: float
+      description: Percentage of overlap between adjacent tiles
+  - scalingstring:
+      type: string
+      description: Scaling factor for image processing
+  - imperwell:
+      type: integer
+      description: Number of images per well
+  - rows:
+      type: integer
+      description: Number of rows in the acquisition grid
+  - columns:
+      type: integer
+      description: Number of columns in the acquisition grid
+  - stitchorder:
+      type: string
+      description: Order in which to stitch tiles
+  - tileperside:
+      type: integer
+      description: Number of tiles per side of the grid
+  - final_tile_size:
+      type: integer
+      description: Final size of each tile after cropping (in pixels)
+  - xoffset_tiles:
+      type: integer
+      description: X-axis offset for tile positioning
+  - yoffset_tiles:
+      type: integer
+      description: Y-axis offset for tile positioning
+  - compress:
+      type: boolean
+      description: Whether to compress output images
+  - should_run:
+      type: boolean
+      description: Whether to run the stitching process
 
 output:
   - stitched_images:

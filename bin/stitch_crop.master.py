@@ -207,7 +207,8 @@ compress = os.getenv("COMPRESS", "True")  # Whether to compress output TIFF file
 first_site_index = os.getenv("FIRST_SITE_INDEX", "0")  # Starting site number in filenames (e.g., 0 or 1)
 
 # Channel information
-channame = "DNA"  # Target channel name for processing (always DNA for this workflow)
+# Reference channels to look for (in priority order: DNA for painting, DAPI for barcoding)
+reference_channels = ["DNA", "DAPI"]
 
 # Unused parameters (kept for compatibility with data flow handled by Nextflow)
 filterstring = "unused"
@@ -219,7 +220,7 @@ downloadfilter = "unused"
 logger.info("=== Configuration ===")
 logger.info("Input directory: {}".format(input_dir))
 logger.info("Output base: {}".format(output_base))
-logger.info("Channel: {}".format(channame))
+logger.info("Reference channels (auto-detect): {}".format(reference_channels))
 logger.info("Grid: {}x{} with {}% overlap".format(rows, columns, overlap_pct))
 logger.info("Round or Square: {}".format(round_or_square))
 logger.info("Quarter if round: {}".format(quarter_if_round))
@@ -409,21 +410,23 @@ if os.path.isdir(input_dir):
                             )
                         )
 
-                    # If this file has our target channel, note its prefix/suffix
-                    if channame in channelSuffix:
-                        logger.info(
-                            "Found target channel ({}) in {}".format(
-                                channame, channelSuffix
-                            )
-                        )
-                        if permprefix is None:
-                            permprefix = prefixBeforeWell
-                            permsuffix = channelSuffix
+                    # If this file has one of our reference channels, note its prefix/suffix
+                    for ref_channel in reference_channels:
+                        if ref_channel in channelSuffix:
                             logger.info(
-                                "Set permanent prefix: {} and suffix: {}".format(
-                                    permprefix, permsuffix
+                                "Found reference channel ({}) in {}".format(
+                                    ref_channel, channelSuffix
                                 )
                             )
+                            if permprefix is None:
+                                permprefix = prefixBeforeWell
+                                permsuffix = channelSuffix
+                                logger.info(
+                                    "Set permanent prefix: {} and suffix: {}".format(
+                                        permprefix, permsuffix
+                                    )
+                                )
+                            break  # Found a reference channel, no need to check others
                 except Exception as e:
                     logger.error("Error processing file {}: {}".format(eachfile, e))
 
@@ -437,6 +440,16 @@ if os.path.isdir(input_dir):
 
     # Sort for consistent processing order
     presuflist.sort()
+
+    # Fallback: If no reference channel was found, use the first available channel
+    if permprefix is None and len(presuflist) > 0:
+        permprefix, permsuffix = presuflist[0]
+        logger.warning(
+            "No reference channel ({}) found in data. Using fallback: prefix='{}', suffix='{}'".format(
+                reference_channels, permprefix, permsuffix
+            )
+        )
+
     logger.info("Final welllist: {}".format(welllist))
     logger.info("Final presuflist: {}".format(presuflist))
     logger.info(
@@ -709,6 +722,22 @@ if os.path.isdir(input_dir):
     # STEP 4b: Process round wells
     elif round_or_square == "round":
         logger.info("Processing round wells")
+
+        # Validate that reference prefix/suffix are set
+        if permprefix is None or permsuffix is None:
+            logger.error(
+                "FATAL: Reference prefix/suffix not set. This should not happen after fallback logic. "
+                "permprefix={}, permsuffix={}, presuflist={}".format(
+                    permprefix, permsuffix, presuflist
+                )
+            )
+            sys.exit(1)
+
+        logger.info(
+            "Using reference channel - prefix: '{}', suffix: '{}'".format(
+                permprefix, permsuffix
+            )
+        )
 
         # Define row_widths based on images per well
         if imperwell == "1364":

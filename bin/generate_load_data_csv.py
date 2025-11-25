@@ -38,10 +38,10 @@ from typing import Dict, List, Tuple, Optional
 PIPELINE_CONFIGS = {
     'illumcalc': {
         'description': 'Illumination calculation - uses original multi-channel images',
-        'file_pattern': r'.*\.ome\.tiff?$',
+        'file_pattern': r'.*\.(?:ome\.tiff?|nd2)$',
         'metadata_cols': None,  # Dynamic based on has_cycles
         'metadata_cols_base': ['Metadata_Plate', 'Metadata_Well', 'Metadata_Site'],
-        'metadata_cols_with_cycles': ['Metadata_Plate', 'Metadata_Well', 'Metadata_Site', 'Metadata_Cycle'],
+        'metadata_cols_with_cycles': ['Metadata_Plate', 'Metadata_Well', 'Metadata_Site'],  # Cycle column name will be added dynamically
         'include_illum_files': False,
         'supports_subdirs': False,
         'cycle_aware': False,
@@ -49,7 +49,7 @@ PIPELINE_CONFIGS = {
     },
     'illumapply': {
         'description': 'Illumination correction - uses original images + illumination functions',
-        'file_pattern': r'.*\.ome\.tiff?$',
+        'file_pattern': r'.*\.(?:ome\.tiff?|nd2)$',
         'metadata_cols': ['Metadata_Plate', 'Metadata_Well', 'Metadata_Site'],
         'include_illum_files': True,
         'supports_subdirs': True,
@@ -58,28 +58,28 @@ PIPELINE_CONFIGS = {
     },
     'segcheck': {
         'description': 'Segmentation check - uses corrected images',
-        'file_pattern': r'Plate_.*_Well_.*_Site_.*_Corr.*\.tiff?$',
+        'file_pattern': r'Plate_.*_Well_.*_Site_.*_Corr.*\.(?:tiff?|nd2)$',
         'metadata_cols': ['Metadata_Plate', 'Metadata_Site', 'Metadata_Well', 'Metadata_Well_Value'],
         'include_illum_files': False,
         'parse_function': 'parse_corrected_image'
     },
     'analysis': {
         'description': 'Full analysis - uses corrected images',
-        'file_pattern': r'Plate_.*_Well_.*_Site_.*_Corr.*\.tiff?$',
+        'file_pattern': r'Plate_.*_Well_.*_Site_.*_Corr.*\.(?:tiff?|nd2)$',
         'metadata_cols': ['Metadata_Plate', 'Metadata_Well', 'Metadata_Site'],
         'include_illum_files': False,
         'parse_function': 'parse_corrected_image'
     },
     'preprocess': {
         'description': 'Barcoding preprocessing - uses cycle-based corrected images',
-        'file_pattern': r'Plate_.*_Well_.*_Site_.*_Cycle\d+_(DNA|DAPI|[ACGT])\.tiff?$',
+        'file_pattern': r'Plate_.*_Well_.*_Site_.*_Cycle\d+_(DNA|DAPI|[ACGT])\.(?:tiff?|nd2)$',
         'metadata_cols': ['Metadata_Plate', 'Metadata_Site', 'Metadata_Well', 'Metadata_Well_Value'],
         'include_illum_files': False,
         'parse_function': 'parse_preprocess_image'
     },
     'combined': {
         'description': 'Combined analysis - uses both cropped cell painting and barcoding images',
-        'file_pattern': r'(Plate_.*_Well_.*_Site_.*_Corr.*\.tiff?|Plate_.*_Well_.*_Site_.*_Cycle\d{2}_\w+\.tiff?|Plate\d+-[A-Z]\d+_Corr.*_Site_\d+\.tiff?|Plate\d+-[A-Z]\d+_Cycle\d+_\w+_Site_\d+\.tiff?)$',
+        'file_pattern': r'(Plate_.*_Well_.*_Site_.*_Corr.*\.(?:tiff?|nd2)|Plate_.*_Well_.*_Site_.*_Cycle\d{2}_\w+\.(?:tiff?|nd2)|Plate\d+-[A-Z]\d+_Corr.*_Site_\d+\.(?:tiff?|nd2)|Plate\d+-[A-Z]\d+_Cycle\d+_\w+_Site_\d+\.(?:tiff?|nd2))$',
         'metadata_cols': ['Metadata_Plate', 'Metadata_Site', 'Metadata_Well', 'Metadata_Well_Value'],
         'include_illum_files': False,
         'parse_function': 'parse_combined_image'
@@ -110,14 +110,14 @@ def parse_original_image(filename: str) -> Optional[Dict]:
     Note: The channel list can be comma-separated in the filename (multi-channel OME-TIFF)
     """
     # Try pattern with cycle first (to detect cycle presence, but don't extract it)
-    # Regex breakdown: Well[A-Z]\d+_Point[A-Z]\d+_\d+_Channel([^_]+)_Cycle\d+_Seq\d+\.ome\.tiff?
+    # Regex breakdown: Well[A-Z]\d+_Point[A-Z]\d+_\d+_Channel([^_]+)_Cycle\d+_Seq\d+\.(?:ome\.tiff?|nd2)
     #   - Well[A-Z]\d+: WellA1, WellB2, etc. (not captured - metadata from JSON)
     #   - Point[A-Z]\d+: PointA1, PointB2, etc. (not captured - site comes from JSON)
     #   - \d+: Numeric sequence (not captured)
     #   - Channel([^_]+): Captures channel names (e.g., "DNA,Phalloidin,CHN2")
     #   - Cycle\d+: Cycle number (not captured - cycle from JSON)
     #   - Seq\d+: Sequence number (not captured)
-    pattern_with_cycle = r'Well[A-Z]\d+_Point[A-Z]\d+_\d+_Channel([^_]+)_Cycle\d+_Seq\d+\.ome\.tiff?'
+    pattern_with_cycle = r'Well[A-Z]\d+_Point[A-Z]\d+_\d+_Channel([^_]+)_Cycle\d+_Seq\d+\.(?:ome\.tiff?|nd2)'
     match = re.search(pattern_with_cycle, filename)
 
     if match:
@@ -133,7 +133,7 @@ def parse_original_image(filename: str) -> Optional[Dict]:
         }
 
     # Try pattern without cycle (same structure but no Cycle\d+ component)
-    pattern = r'Well[A-Z]\d+_Point[A-Z]\d+_\d+_Channel([^_]+)_Seq\d+\.ome\.tiff?'
+    pattern = r'Well[A-Z]\d+_Point[A-Z]\d+_\d+_Channel([^_]+)_Seq\d+\.(?:ome\.tiff?|nd2)'
     match = re.search(pattern, filename)
 
     if not match:
@@ -172,13 +172,13 @@ def parse_corrected_image(filename: str) -> Optional[Dict]:
 
     Note: These are single-channel TIFF files produced after illumination correction
     """
-    # Regex breakdown: Plate_.+?_Well_.+?_Site_\d+_Corr(.+?)\.tiff?
+    # Regex breakdown: Plate_.+?_Well_.+?_Site_\d+_Corr(.+?)\.(?:tiff?|nd2)
     #   - Plate_.+?: Plate identifier (not captured - comes from JSON)
     #   - Well_.+?: Well identifier (not captured - comes from JSON)
     #   - Site_\d+: Site number (not captured - comes from JSON)
     #   - Corr(.+?): Captures channel name after "Corr" prefix (e.g., "DNA", "Phalloidin")
-    #   - \.tiff?: File extension (.tif or .tiff)
-    pattern = r'Plate_.+?_Well_.+?_Site_\d+_Corr(.+?)\.tiff?'
+    #   - \.(?:tiff?|nd2): File extension (.tif, .tiff, or .nd2)
+    pattern = r'Plate_.+?_Well_.+?_Site_\d+_Corr(.+?)\.(?:tiff?|nd2)'
     match = re.match(pattern, filename)
 
     if match:
@@ -214,13 +214,13 @@ def parse_preprocess_image(filename: str) -> Optional[Dict]:
     Note: DAPI is automatically normalized to DNA for consistency
     """
     # Try standard pattern first (for barcode bases: A, C, G, T)
-    # Regex breakdown: Plate_.+?_Well_.+?_Site_\d+_Cycle(\d+)_([ACGT])\.tiff?
+    # Regex breakdown: Plate_.+?_Well_.+?_Site_\d+_Cycle(\d+)_([ACGT])\.(?:tiff?|nd2)
     #   - Plate_.+?: Plate identifier (not captured - comes from JSON)
     #   - Well_.+?: Well identifier (not captured - comes from JSON)
     #   - Site_\d+: Site number (not captured - comes from JSON)
     #   - Cycle(\d+): Captures cycle number (e.g., "01", "02", "03")
     #   - ([ACGT]): Captures barcode base (A, C, G, or T)
-    pattern = r'Plate_.+?_Well_.+?_Site_\d+_Cycle(\d+)_([ACGT])\.tiff?'
+    pattern = r'Plate_.+?_Well_.+?_Site_\d+_Cycle(\d+)_([ACGT])\.(?:tiff?|nd2)'
     match = re.match(pattern, filename)
 
     if match:
@@ -231,7 +231,7 @@ def parse_preprocess_image(filename: str) -> Optional[Dict]:
 
     # Try DNA/DAPI pattern (typically for Cycle01 reference image)
     # Accepts both DNA and DAPI, normalizes to DNA for consistency
-    dna_pattern = r'Plate_.+?_Well_.+?_Site_\d+_Cycle(\d+)_(DNA|DAPI)\.tiff?'
+    dna_pattern = r'Plate_.+?_Well_.+?_Site_\d+_Cycle(\d+)_(DNA|DAPI)\.(?:tiff?|nd2)'
     dna_match = re.match(dna_pattern, filename)
 
     if dna_match:
@@ -283,7 +283,7 @@ def parse_combined_image(filename: str) -> Optional[Dict]:
     """
     # Try new barcoding pattern first (Plate_PlateID_Well_WellID_Site_#_Cycle##_Channel.tiff)
     # Note: cycle is 2-digit zero-padded (\d{2}) to handle cycles > 9
-    barcode_new_pattern = r'Plate_[A-Za-z0-9]+_Well_[A-Z]\d+_Site_\d+_Cycle(\d{2})_([ACGT]|DNA|DAPI)\.tiff?'
+    barcode_new_pattern = r'Plate_[A-Za-z0-9]+_Well_[A-Z]\d+_Site_\d+_Cycle(\d{2})_([ACGT]|DNA|DAPI)\.(?:tiff?|nd2)'
     barcode_new_match = re.match(barcode_new_pattern, filename)
 
     if barcode_new_match:
@@ -294,7 +294,7 @@ def parse_combined_image(filename: str) -> Optional[Dict]:
         }
 
     # Try new cell painting pattern (Plate_PlateID_Well_WellID_Site_#_CorrChannel.tiff)
-    cp_new_pattern = r'Plate_[A-Za-z0-9]+_Well_[A-Z]\d+_Site_\d+_Corr(.+?)\.tiff?'
+    cp_new_pattern = r'Plate_[A-Za-z0-9]+_Well_[A-Z]\d+_Site_\d+_Corr(.+?)\.(?:tiff?|nd2)'
     cp_new_match = re.match(cp_new_pattern, filename)
 
     if cp_new_match:
@@ -304,7 +304,7 @@ def parse_combined_image(filename: str) -> Optional[Dict]:
         }
 
     # Legacy pattern support: barcoding (Plate{plate}-{well}_Cycle{cycle}_{channel}_Site_{site}.tiff)
-    barcode_legacy_pattern = r'Plate\d+-[A-Z]\d+_Cycle(\d+)_([ACGT]|DNA|DAPI)_Site_\d+\.tiff?'
+    barcode_legacy_pattern = r'Plate\d+-[A-Z]\d+_Cycle(\d+)_([ACGT]|DNA|DAPI)_Site_\d+\.(?:tiff?|nd2)'
     barcode_legacy_match = re.match(barcode_legacy_pattern, filename)
 
     if barcode_legacy_match:
@@ -315,7 +315,7 @@ def parse_combined_image(filename: str) -> Optional[Dict]:
         }
 
     # Legacy pattern support: cell painting (Plate{plate}-{well}_Corr{channel}_Site_{site}.tiff)
-    cp_legacy_pattern = r'Plate\d+-[A-Z]\d+_Corr(.+?)_Site_\d+\.tiff?'
+    cp_legacy_pattern = r'Plate\d+-[A-Z]\d+_Corr(.+?)_Site_\d+\.(?:tiff?|nd2)'
     cp_legacy_match = re.match(cp_legacy_pattern, filename)
 
     if cp_legacy_match:
@@ -674,7 +674,39 @@ def collect_and_group_files(
 
         plate = metadata_json['plate']  # Plate comes from JSON
 
-        # Build a lookup map: filename -> full file path
+        # Build file-to-subfolder mapping for multi-cycle data
+        # When files are staged with stageAs: "images/img?/*", Nextflow stages them in order:
+        # - First unique file → img1/
+        # - Second unique file → img2/
+        # - Third unique file → img3/
+        # The order in metadata.json should match this staging order.
+        #
+        # IMPORTANT: When grouping by well (multiple sites), files are staged in the order they
+        # appear in metadata.json, which may be: site0-cycle1, site1-cycle1, site2-cycle1, site0-cycle2, etc.
+        # We need to create a mapping: (filename, cycle) → subfolder_index based on actual file order.
+        file_cycle_to_subfolder = {}
+        if metadata_cycles:
+            # Build mapping based on the order files appear in metadata.json
+            # Track unique (filename, cycle) pairs in order
+            unique_file_cycles = []
+            seen_file_cycles = set()
+
+            for entry in metadata_json['image_metadata']:
+                entry_cycle = entry.get('cycle')
+                entry_filename = entry.get('filename')
+                if entry_cycle is not None and entry_filename:
+                    file_cycle_key = (entry_filename, entry_cycle)
+                    if file_cycle_key not in seen_file_cycles:
+                        unique_file_cycles.append(file_cycle_key)
+                        seen_file_cycles.add(file_cycle_key)
+
+            # Create mapping: (filename, cycle) → img subfolder index (1-based)
+            for idx, (filename, cycle) in enumerate(unique_file_cycles):
+                file_cycle_to_subfolder[(filename, cycle)] = idx + 1
+
+            print(f"✓ Created file-cycle-to-subfolder mapping with {len(file_cycle_to_subfolder)} entries", file=sys.stderr)
+
+        # Build a lookup map: filename → full file path
         # This allows fast matching of JSON filenames to actual files on disk
         file_map = {}
         for img_path in image_files:
@@ -720,9 +752,21 @@ def collect_and_group_files(
                     grouped[key]['images']['_files_by_cycle'] = {}
                 # Only store if not already present (same file may be referenced multiple times)
                 if cycle_num not in grouped[key]['images']['_files_by_cycle']:
-                    grouped[key]['images']['_files_by_cycle'][cycle_num] = {
-                        'file': rel_path
-                    }
+                    # Use file-cycle-to-subfolder mapping if available to construct correct path
+                    file_cycle_key = (expected_filename, entry_cycle)
+                    if file_cycle_to_subfolder and file_cycle_key in file_cycle_to_subfolder:
+                        # Construct path using the mapped subfolder: imgN/filename
+                        subfolder_idx = file_cycle_to_subfolder[file_cycle_key]
+                        filename = os.path.basename(img_path)
+                        cycle_aware_path = f"img{subfolder_idx}/{filename}"
+                        grouped[key]['images']['_files_by_cycle'][cycle_num] = {
+                            'file': cycle_aware_path
+                        }
+                    else:
+                        # Fallback to original behavior if no mapping
+                        grouped[key]['images']['_files_by_cycle'][cycle_num] = {
+                            'file': rel_path
+                        }
             elif entry_channel:
                 # Single-channel file - use appropriate prefix based on type
                 if entry_type == 'cellpainting':
@@ -979,7 +1023,8 @@ def generate_csv_rows(
     metadata_channels: Optional[List[str]] = None,
     has_cycles: bool = False,
     metadata_cycle: Optional[int] = None,
-    metadata_json: Dict = None
+    metadata_json: Dict = None,
+    cycle_metadata_name: str = "Cycle"
 ) -> List[Dict]:
     """
     Generate CellProfiler load_data.csv rows from grouped file data.
@@ -1051,21 +1096,37 @@ def generate_csv_rows(
     if has_site:
         metadata_columns.append('Metadata_Site')
     if has_cycles and has_cycle:
-        metadata_columns.append('Metadata_Cycle')
+        metadata_columns.append(f'Metadata_{cycle_metadata_name}')
 
     if use_image_metadata:
         print(f"✓ Metadata columns from image_metadata array: {', '.join(metadata_columns)}", file=sys.stderr)
     else:
         print(f"✓ Metadata columns from JSON fields: {', '.join(metadata_columns)}", file=sys.stderr)
 
-    # Apply subsampling if needed
-    all_sites = sorted(set(site for _, _, site in grouped.keys()))
-    selected_sites = [site for i, site in enumerate(all_sites) if i % range_skip == 0]
+    # Apply subsampling per well if needed
+    # Group keys by (plate, well) and collect all sites for each well
+    wells_to_sites = {}
+    for (plate, well, site) in grouped.keys():
+        well_key = (plate, well)
+        if well_key not in wells_to_sites:
+            wells_to_sites[well_key] = []
+        wells_to_sites[well_key].append(site)
 
-    if not selected_sites:
-        raise ValueError(f"No sites selected with range_skip={range_skip}")
+    # For each well, select every nth site (or all sites if fewer than range_skip)
+    selected_keys = set()
+    for well_key, sites in wells_to_sites.items():
+        sorted_sites = sorted(sites)
+        # If well has fewer sites than range_skip, use all sites
+        if len(sorted_sites) < range_skip:
+            selected_sites = sorted_sites
+        else:
+            selected_sites = [site for i, site in enumerate(sorted_sites) if i % range_skip == 0]
 
-    print(f"✓ Selected {len(selected_sites)} site(s) from {len(all_sites)} total sites", file=sys.stderr)
+        for site in selected_sites:
+            selected_keys.add((well_key[0], well_key[1], site))
+
+    total_sites = len(grouped.keys())
+    print(f"✓ Selected {len(selected_keys)} image(s) from {total_sites} total images across {len(wells_to_sites)} well(s)", file=sys.stderr)
 
     rows = []  # List of CSV row dicts
     row_errors = []  # Track rows that failed to generate
@@ -1074,8 +1135,8 @@ def generate_csv_rows(
     # Generate one CSV row per (plate, well, site)
     # ==================================================================================
     for (plate, well, site), file_data in sorted(grouped.items()):
-        # Skip sites not selected by subsampling
-        if site not in selected_sites:
+        # Skip images not selected by subsampling
+        if (plate, well, site) not in selected_keys:
             continue
 
         try:
@@ -1099,14 +1160,15 @@ def generate_csv_rows(
             if has_site:
                 row['Metadata_Site'] = site
 
-            # Conditionally include Metadata_Cycle for barcoding workflows
+            # Conditionally include Metadata_Cycle (or custom cycle column name) for barcoding workflows
             if has_cycles and has_cycle:
+                cycle_col_name = f'Metadata_{cycle_metadata_name}'
                 if 'cycle' in metadata_json:
-                    row['Metadata_Cycle'] = metadata_json['cycle']
+                    row[cycle_col_name] = metadata_json['cycle']
                 elif metadata_cycle is not None:
-                    row['Metadata_Cycle'] = metadata_cycle
+                    row[cycle_col_name] = metadata_cycle
                 else:
-                    raise ValueError(f"Metadata_Cycle required but not found in metadata JSON or arguments")
+                    raise ValueError(f"{cycle_col_name} required but not found in metadata JSON or arguments")
 
             # ------------------------------------------------------------------
             # Build file columns (FileName_* and Frame_* columns)
@@ -1386,6 +1448,11 @@ def main():
         '--cycles',
         help='Comma-separated list of cycle numbers for multi-cycle processing (e.g., "1,2,3")'
     )
+    parser.add_argument(
+        '--cycle-metadata-name',
+        default='Cycle',
+        help='Name for the cycle metadata column (default: "Cycle", e.g., "Metadata_Cycle")'
+    )
 
     args = parser.parse_args()
 
@@ -1469,7 +1536,8 @@ def main():
             metadata_channels,
             args.has_cycles,
             metadata_cycle,
-            metadata_json
+            metadata_json,
+            args.cycle_metadata_name
         )
 
         # Apply subdirectory staging if requested
