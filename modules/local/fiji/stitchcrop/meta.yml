@@ -14,7 +14,8 @@ tools:
       homepage: "https://fiji.sc/"
       documentation: "https://imagej.net/software/fiji/"
       tool_dev_url: "https://github.com/fiji/fiji"
-      licence: "GPL-2.0-or-later"
+      doi: "10.1038/nmeth.2019"
+      licence: ["GPL-2.0-or-later"]
 
 input:
   - - meta:
