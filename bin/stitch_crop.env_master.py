@@ -62,32 +62,17 @@ def savefile(im,imname,plugin,compress='false'):
                                 attemptcount +=1
                 print('failed 5 times at saving')
 
-top_outfolder = 'output'
+# Define and create the folders where the images will be output
+out_subdir = 'stitched_images'
+tile_subdir = 'cropped_images'
+downsample_subdir = 'downsampled_images'
 
-if not os.path.exists(top_outfolder):
-        os.mkdir(top_outfolder)
-
-# Define and create the parent folders where the images will be output
-outfolder = os.path.join(top_outfolder,(step_to_stitch + '_stitched'))
-tile_outdir = os.path.join(top_outfolder,(step_to_stitch + '_cropped'))
-downsample_outdir = os.path.join(top_outfolder,(step_to_stitch + '_stitched_10X'))
-if not os.path.exists(outfolder):
-        os.mkdir(outfolder)
-if not os.path.exists(tile_outdir):
-        os.mkdir(tile_outdir)
-if not os.path.exists(downsample_outdir):
-        os.mkdir(downsample_outdir)
-
-# Define and create the batch-specific subfolders where the images will be output
-out_subdir=os.path.join(outfolder, out_subdir_tag)
-tile_subdir=os.path.join(tile_outdir, out_subdir_tag)
-downsample_subdir=os.path.join(downsample_outdir, out_subdir_tag)
+if not os.path.exists(out_subdir):
+        os.mkdir(out_subdir)
 if not os.path.exists(tile_subdir):
         os.mkdir(tile_subdir)
 if not os.path.exists(downsample_subdir):
         os.mkdir(downsample_subdir)
-if not os.path.exists(out_subdir):
-        os.mkdir(out_subdir)
 
 subdir=os.path.join(input_file_location,subdir)
 
