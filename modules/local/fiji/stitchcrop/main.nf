@@ -3,7 +3,7 @@ process FIJI_STITCHCROP {
     label 'fiji'
 
     conda "${moduleDir}/environment.yml"
-    container 'docker.io/wuennemannflorian/fiji_noentrypoint:44dbc2ddb34260e7883980dc6719dfb73babb2e158c11b106c94c0192dad5e95'
+    container 'docker.io/cellprofiler/distributed-fiji:fusion-v0.1.0'
 
     input:
     tuple val(meta), path(corrected_images, stageAs: 'images/')
