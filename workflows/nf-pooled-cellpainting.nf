@@ -29,25 +29,29 @@ workflow POOLED_CELLPAINTING {
     ch_versions = channel.empty()
     ch_multiqc_files = channel.empty()
 
-    ch_samplesheet = ch_samplesheet
+    ch_samplesheet_flat = ch_samplesheet
         .flatMap { meta, image ->
             // Split imaging channels by comma and create a separate entry for each channel
             meta.original_channels = meta.channels
             meta.remove('original_channels')
             return [[meta, image]]
         }
-        .branch { meta, _images ->
-            painting: meta.arm == 'painting'
-            barcoding: meta.arm == 'barcoding'
-        }
 
     // Add meta.arm back into each channel
-    ch_samplesheet_painting = ch_samplesheet.painting.map { meta, image ->
-        [meta + [arm: 'painting'], image]
-    }
-    ch_samplesheet_barcoding = ch_samplesheet.barcoding.map { meta, image ->
-        [meta + [arm: 'barcoding'], image]
-    }
+    ch_samplesheet_painting = ch_samplesheet_flat
+        .filter { meta, _image ->
+            meta.arm == "painting"
+        }
+        .map { meta, image ->
+            [meta + [arm: 'painting'], image]
+        }
+    ch_samplesheet_barcoding = ch_samplesheet_flat
+        .filter { meta, _image ->
+            meta.arm == "barcoding"
+        }
+        .map { meta, image ->
+            [meta + [arm: 'barcoding'], image]
+        }
 
     // Process painting arm of pipeline
     CELLPAINTING(
@@ -56,6 +60,22 @@ workflow POOLED_CELLPAINTING {
         params.painting_illumapply_cppipe,
         params.painting_segcheck_cppipe,
         params.range_skip,
+        params.outdir,
+        params.fiji_stitchcrop_script,
+        params.painting_round_or_square,
+        params.painting_quarter_if_round,
+        params.painting_overlap_pct,
+        params.painting_scalingstring,
+        params.painting_imperwell,
+        params.painting_rows,
+        params.painting_columns,
+        params.painting_stitchorder,
+        params.tileperside,
+        params.final_tile_size,
+        params.painting_xoffset_tiles,
+        params.painting_yoffset_tiles,
+        params.compress,
+        params.qc_painting_passed,
     )
     ch_versions = ch_versions.mix(CELLPAINTING.out.versions)
 
@@ -66,6 +86,29 @@ workflow POOLED_CELLPAINTING {
         params.barcoding_illumapply_cppipe,
         params.barcoding_preprocess_cppipe,
         barcodes,
+        params.outdir,
+        params.barcoding_illumapply_grouping,
+        params.barcoding_shift_threshold,
+        params.barcoding_corr_threshold,
+        params.acquisition_geometry_rows,
+        params.acquisition_geometry_columns,
+        params.callbarcodes_plugin,
+        params.compensatecolors_plugin,
+        params.fiji_stitchcrop_script,
+        params.barcoding_round_or_square,
+        params.barcoding_quarter_if_round,
+        params.barcoding_overlap_pct,
+        params.barcoding_scalingstring,
+        params.barcoding_imperwell,
+        params.barcoding_rows,
+        params.barcoding_columns,
+        params.barcoding_stitchorder,
+        params.tileperside,
+        params.final_tile_size,
+        params.barcoding_xoffset_tiles,
+        params.barcoding_yoffset_tiles,
+        params.compress,
+        params.qc_barcoding_passed,
     )
     ch_versions = ch_versions.mix(BARCODING.out.versions)
 
