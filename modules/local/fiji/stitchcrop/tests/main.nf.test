@@ -30,7 +30,7 @@ nextflow_process {
                     ]
                 ]
                 // Stitch script
-                input[1] = file("\${projectDir}/bin/stitch_crop.test.py", checkIfExists: true)
+                input[1] = file("\${projectDir}/assets/stitchcrop/stitch_crop.test.py", checkIfExists: true)
                 // Painting-specific stitching parameters
                 input[2] = "square"                    // painting_round_or_square
                 input[3] = true                        // painting_quarter_if_round
@@ -130,7 +130,7 @@ nextflow_process {
                     ]
                 ]
                 // Stitch script
-                input[1] = file("\${projectDir}/bin/stitch_crop.test.py", checkIfExists: true)
+                input[1] = file("\${projectDir}/assets/stitchcrop/stitch_crop.test.py", checkIfExists: true)
                 // Barcoding-specific stitching parameters
                 input[2] = "square"                    // barcoding_round_or_square
                 input[3] = true                        // barcoding_quarter_if_round
@@ -175,7 +175,7 @@ nextflow_process {
                         file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/images/Batch1/images_corrected/painting/Plate1/Plate1-A1-3/Plate_Plate1_Well_A1_Site_3_CorrCHN2.tiff")
                     ]
                 ]
-                input[1] = file("\${projectDir}/bin/stitch_crop.test.py", checkIfExists: true)
+                input[1] = file("\${projectDir}/assets/stitchcrop/stitch_crop.test.py", checkIfExists: true)
                 // Painting-specific stitching parameters
                 input[2] = "square"                    // painting_round_or_square
                 input[3] = true                        // painting_quarter_if_round
