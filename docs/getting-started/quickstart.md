@@ -76,17 +76,36 @@ After the run completes, your `results/` directory will contain the full analysi
 
 ```
 results/
-├── images/
-│   ├── corrected/          # Illumination corrected images
-│   └── stitched_cropped/   # Final stitched images
-├── barcoding/
-│   ├── preprocessed/       # Images with called barcodes
-│   └── stitched_cropped/   # Final stitched images
-├── combined/
-│   └── analysis/           # FINAL OUTPUTS
-│       ├── cell.csv        # Single-cell morphology & barcode data
-│       └── image.csv       # Image-level metadata
-└── pipeline_info/          # Execution reports and logs
+├── images/ # All output images
+│   ├── Batch1/
+│   │   ├── illum/ # Illumination correction profiles
+│   │   ├── images_aligned/
+│   │   ├── images_corrected/
+│   │   ├── images_corrected_cropped/
+│   │   ├── images_corrected_stitched/
+│   │   ├── images_corrected_stitched_10X/
+│   │   └── images_segmentation/
+├── multiqc/
+├── pipeline_info/
+└── workspace/
+    ├── analysis/
+    │   └── Batch1/
+    ├── load_data_csv/
+    │   ├── barcoding-illumapply.load_data.csv
+    │   ├── barcoding-illumcalc.load_data.csv
+    │   ├── barcoding-preprocess.load_data.csv
+    │   ├── combined_analysis.load_data.csv
+    │   ├── painting-illumapply.load_data.csv
+    │   ├── painting-illumcalc.load_data.csv
+    │   └── painting-segcheck.load_data.csv
+    └── qc_reports/
+        ├── 1_illumination_painting/
+        ├── 3_segmentation/
+        ├── 4_stitching_painting/
+        ├── 5_illumination_barcoding/
+        ├── 6_alignment/
+        ├── 7_preprocessing/
+        └── 8_stitching_barcoding/
 ```
 
 The most important files are in `results/combined/analysis/`. These CSV files contain the linked phenotype (Cell Painting) and genotype (Barcoding) data for every cell.
@@ -95,6 +114,6 @@ The most important files are in `results/combined/analysis/`. These CSV files co
 
 Now that you've successfully run the test profile, you're ready to process your own data.
 
-- **[Use your own dataset](../usage/custom-data.md)**:
+- **[Use your own dataset](../usage/custom-data.md)**: Run the pipeline with your own dataset or a public dataset from the [Cell Painting Gallery](https://broadinstitute.github.io/cellpainting-gallery/overview.html).
 - **[Parameters Guide](../usage/parameters.md)**: Learn how to configure the pipeline for your specific dataset.
 - **[FAQ](../usage/faq.md)**: Common issues and solutions.

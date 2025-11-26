@@ -2,40 +2,11 @@
 
 Complete reference for pipeline outputs and their organization.
 
-## Output Directory Structure
-
-```
-results/
-├── painting/
-│   ├── illum/
-│   ├── corrected/
-│   └── stitched_cropped/
-├── barcoding/
-│   ├── illum/
-│   ├── corrected/
-│   ├── preprocessed/
-│   └── stitched_cropped/
-├── combined/
-│   └── analysis/
-├── qc/
-│   ├── montage_illum/
-│   ├── montage_segcheck/
-│   ├── montage_preprocess/
-│   ├── montage_stitchcrop/
-│   └── barcode_align/
-├── csvs/
-│   └── load_data/
-└── pipeline_info/
-    ├── execution_report.html
-    ├── execution_timeline.html
-    └── execution_trace.txt
-```
-
 ## Cell Painting Outputs
 
 ### Illumination Functions
 
-**Location**: `results/painting/illum/`
+**Location**: `results/images/{batch}}/`
 
 **Files**:
 
@@ -343,94 +314,3 @@ Pipeline metadata and run parameters.
 ```bash
 nextflow run main.nf -with-report results/pipeline_info/execution_report.html
 ```
-
-## Output File Formats
-
-### TIFF Images
-
-- **Format**: Multi-page TIFF (one page per frame)
-- **Bit depth**: 16-bit unsigned integer
-- **Compression**: LZW (optional)
-- **Metadata**: ImageJ-compatible TIFF tags
-
-### NumPy Arrays (.npy)
-
-- **Format**: NumPy binary format
-- **Shape**: `(height, width)` or `(height, width, channels)`
-- **Dtype**: `float32` or `float64`
-
-### CSV Files
-
-- **Format**: Comma-separated values
-- **Encoding**: UTF-8
-- **Header**: First row contains column names
-- **Separator**: Comma (`,`)
-
-### PNG Images
-
-- **Format**: PNG
-- **Bit depth**: 8-bit RGB
-- **Compression**: PNG default
-
-## Storage Requirements
-
-Approximate storage needs (example experiment):
-
-| Component              | Per Plate   | Per Experiment (96 wells) |
-| ---------------------- | ----------- | ------------------------- |
-| Raw images             | 50 GB       | 5 TB                      |
-| Illumination functions | 100 MB      | 10 GB                     |
-| Corrected images       | 50 GB       | 5 TB                      |
-| Stitched images        | 20 GB       | 2 TB                      |
-| Segmentation masks     | 5 GB        | 500 GB                    |
-| Feature CSVs           | 500 MB      | 50 GB                     |
-| QC outputs             | 1 GB        | 100 GB                    |
-| **Total**              | **~127 GB** | **~12.7 TB**              |
-
-!!! note "Storage Optimization" - Enable compression for TIFF files - Archive intermediate outputs after QC - Use cloud tiered storage for older results
-
-## Accessing Outputs
-
-### From Nextflow
-
-Outputs are published to `params.outdir`:
-
-```groovy
-publishDir "${params.outdir}/painting/corrected", mode: 'copy'
-```
-
-### From Python
-
-```python
-import pandas as pd
-from PIL import Image
-import numpy as np
-
-# Read feature data
-cells = pd.read_csv('results/combined/analysis/batch1/P001/A01/1/Cells.csv')
-
-# Load segmentation mask
-nuclei = Image.open('results/combined/analysis/batch1/P001/A01/1/P001_A01_1_Nuclei.tif')
-
-# Load illumination function
-illum = np.load('results/painting/illum/batch1/P001/P001_IllumDAPI.npy')
-```
-
-### From R
-
-```r
-library(readr)
-library(tiff)
-
-# Read feature data
-cells <- read_csv('results/combined/analysis/batch1/P001/A01/1/Cells.csv')
-
-# Load image
-nuclei <- readTIFF('results/combined/analysis/batch1/P001/A01/1/P001_A01_1_Nuclei.tif')
-```
-
-## Next Steps
-
-- [Parameters](../usage/parameters.md) - Configure output behavior
-- [Architecture](../developer/architecture.md) - Understand output generation
-- [Troubleshooting](troubleshooting.md) - Resolve output issues

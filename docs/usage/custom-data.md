@@ -30,13 +30,13 @@ The samplesheet is a CSV file that maps your image files to their experimental m
 
 ```csv
 path,arm,batch,plate,well,channels,site,cycle,n_frames
-/data/images/painting/batch1/plate1/,painting,batch1,plate1,A01,DAPI-GFP-RFP,1,,3
-/data/images/barcoding/batch1/plate1/,barcoding,batch1,plate1,A01,Cy3-Cy5,1,1,2
-/data/images/barcoding/batch1/plate1/,barcoding,batch1,plate1,A01,Cy3-Cy5,1,2,2
+"/data/images/painting/batch1/plate1/WellA1_PointA1_0000_ChannelPhalloAF750,CHN2-AF488,DAPI_Seq0000.ome.tiff",painting,Batch1,Plate1,A1,"Phalloidin,CHN2,DNA",1,1,3
+"/data/images/barcoding/batch1/plate1/WellA1_PointA1_0000_ChannelC,A,T,G,DAPI_Seq0000.ome.tiff",barcoding,Batch1,Plate1,A1,"C,A,T,G,DNA",1,1,5
+"/data/images/barcoding/batch1/plate1/WellA1_PointA1_0001_ChannelC,A,T,G,DAPI_Seq0001.ome.tiff",barcoding,Batch1,Plate1,A1,"C,A,T,G,DNA",2,1,5
 ```
 
-!!! tip "Channel Names"
-Ensure the channel names in the `channels` column match the names used in your CellProfiler pipelines if you are using `LoadData` modules that reference them, although the pipeline handles most file discovery automatically.
+!!! warning "Channel Names"
+Ensure the channel names in the `channels` column match the names used in your CellProfiler pipelines as the channel names will be used to build load_data.csv columns that need to correspond to your cppipe files provided to the pipeline!
 
 ## 2. Barcodes File
 
@@ -64,15 +64,15 @@ You need to provide paths to these files using the corresponding parameters:
 
 ### Painting Arm
 
-- `--painting_illumcalc_cppipe`: Calculates illumination correction functions.
-- `--painting_illumapply_cppipe`: Applies illumination correction.
-- `--painting_segcheck_cppipe`: Performs segmentation for QC (stops here in Phase 1).
+- `--painting_illumcalc_cppipe`: Calculates illumination correction functions for painting images.
+- `--painting_illumapply_cppipe`: Applies illumination correction to painting images.
+- `--painting_segcheck_cppipe`: Performs quality control for painting segmentation (stops here in Phase 1).
 
 ### Barcoding Arm
 
-- `--barcoding_illumcalc_cppipe`: Calculates illumination correction for barcoding cycles.
-- `--barcoding_illumapply_cppipe`: Applies illumination correction.
-- `--barcoding_preprocess_cppipe`: Performs base calling (decoding).
+- `--barcoding_illumcalc_cppipe`: Calculates illumination correction for barcoding images.
+- `--barcoding_illumapply_cppipe`: Applies illumination correction to barcoding images.
+- `--barcoding_preprocess_cppipe`: Performs base calling (decoding) for barcodes.
 
 ### Combined
 
@@ -81,38 +81,22 @@ You need to provide paths to these files using the corresponding parameters:
 !!! warning "Pipeline Compatibility"
 Ensure your CellProfiler pipelines are compatible with the version of CellProfiler used in the container (currently 4.2.x).
 
-## 4. Directory Structure
-
-While the pipeline is flexible, organizing your data logically helps avoid errors. A recommended structure is:
-
-```
-project_dir/
-├── images/
-│   ├── batch1/
-│   │   ├── plate1/
-│   │   │   ├── painting/
-│   │   │   └── barcoding/
-│   │   └── ...
-├── metadata/
-│   ├── samplesheet.csv
-│   └── barcodes.csv
-└── pipelines/
-    ├── painting_illum.cppipe
-    ├── painting_seg.cppipe
-    └── ...
-```
-
 ## Running the Pipeline
 
 Once your inputs are ready, run the pipeline pointing to your files:
 
 ```bash
 nextflow run seqera-services/nf-pooled-cellpainting \
-    --input metadata/samplesheet.csv \
-    --barcodes metadata/barcodes.csv \
+    --input samplesheet.csv \
+    --barcodes barcodes.csv \
     --outdir results \
-    --painting_illumcalc_cppipe pipelines/painting_illum.cppipe \
-    ... [other pipeline paths] ... \
+    --painting_illumcalc_cppipe your_painting_illumcalc_cppipe.cppipe \
+    --painting_illumapply_cppipe your_painting_illumapply_cppipe.cppipe \
+    --painting_segcheck_cppipe your_painting_segcheck_cppipe.cppipe \
+    --barcoding_illumcalc_cppipe your_barcoding_illumcalc_cppipe.cppipe \
+    --barcoding_illumapply_cppipe your_barcoding_illumapply_cppipe.cppipe \
+    --barcoding_preprocess_cppipe your_barcoding_preprocess_cppipe.cppipe \
+    --combinedanalysis_cppipe your_combinedanalysis_cppipe.cppipe \
     -profile docker
 ```
 
