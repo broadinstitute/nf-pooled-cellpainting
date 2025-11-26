@@ -140,9 +140,7 @@ if os.path.isdir(subdir):
                                 thissuffixnicename = thissuffix.split('.')[0]
                                 if thissuffixnicename[0]=='_':
                                         thissuffixnicename=thissuffixnicename[1:]
-                                tile_subdir_persuf = os.path.join(tile_subdir,thissuffixnicename)
-                                if not os.path.exists(tile_subdir_persuf):
-                                        os.mkdir(tile_subdir_persuf)
+
                                 filename=thisprefix+'_Well_'+eachwell+'_Site_{i}_'+thissuffix
                                 fileoutname='Stitched'+filename.replace("{i}","")
                                 with open(os.path.join(subdir, 'TileConfiguration.registered.txt'),'r') as infile:
@@ -181,7 +179,7 @@ if os.path.isdir(subdir):
                                                 each_tile_num = eachxtile*tileperside + eachytile + 1
                                                 IJ.makeRectangle(eachxtile*tilesize, eachytile*tilesize,tilesize,tilesize)
                                                 im_tile=im.crop()
-                                                savefile(im_tile,os.path.join(tile_subdir_persuf,thissuffixnicename+'_Site_'+str(each_tile_num)+'.tiff'),plugin,compress=compress)
+                                                savefile(im_tile,os.path.join(tile_subdir,thissuffixnicename+'_Site_'+str(each_tile_num)+'.tiff'),plugin,compress=compress)
                                 IJ.run("Close All")
         elif round_or_square == 'round':
                 if imperwell == '1364':
@@ -339,9 +337,7 @@ if os.path.isdir(subdir):
                                         thissuffixnicename = thissuffix.split('.')[0]
                                         if thissuffixnicename[0]=='_':
                                                 thissuffixnicename=thissuffixnicename[1:]
-                                        tile_subdir_persuf = os.path.join(tile_subdir,thissuffixnicename)
-                                        if not os.path.exists(tile_subdir_persuf):
-                                                os.mkdir(tile_subdir_persuf)
+
                                         filename=thisprefix+'_Well_'+eachwell+'_Site_{i}_'+thissuffix
                                         fileoutname='Stitched'+filename.replace("{i}","")
                                         with open(os.path.join(subdir, 'TileConfiguration.registered.txt'),'r') as infile:
@@ -380,7 +376,7 @@ if os.path.isdir(subdir):
                                                         each_tile_num = eachxtile*tileperside + eachytile + 1
                                                         IJ.makeRectangle(eachxtile*tilesize, eachytile*tilesize,tilesize,tilesize)
                                                         im_tile=im.crop()
-                                                        savefile(im_tile,os.path.join(tile_subdir_persuf,thissuffixnicename+'_Site_'+str(each_tile_num)+'.tiff'),plugin,compress=compress)
+                                                        savefile(im_tile,os.path.join(tile_subdir,thissuffixnicename+'_Site_'+str(each_tile_num)+'.tiff'),plugin,compress=compress)
                                         IJ.run("Close All")
 
 
@@ -408,9 +404,7 @@ if os.path.isdir(subdir):
                                         thissuffixnicename = thissuffix.split('.')[0]
                                         if thissuffixnicename[0]=='_':
                                                 thissuffixnicename=thissuffixnicename[1:]
-                                        tile_subdir_persuf = os.path.join(tile_subdir,thissuffixnicename)
-                                        if not os.path.exists(tile_subdir_persuf):
-                                                os.mkdir(tile_subdir_persuf)
+
                                         filename=thisprefix+'_Well_'+eachwell+'_x_{xx}_y_{yy}_'+thissuffix
                                         #Change per quarter
                                         fileoutname='StitchedTopLeft'+filename.replace("{xx}","").replace("{yy}","")
@@ -456,7 +450,7 @@ if os.path.isdir(subdir):
                                                         #Change per quarter
                                                         IJ.makeRectangle((eachxtile*tilesize)+tile_offset, (eachytile*tilesize)+tile_offset,tilesize,tilesize)
                                                         im_tile=im.crop()
-                                                        savefile(im_tile,os.path.join(tile_subdir_persuf,thissuffixnicename+'_Site_'+str(each_tile_num)+'.tiff'),plugin,compress=compress)
+                                                        savefile(im_tile,os.path.join(tile_subdir,thissuffixnicename+'_Site_'+str(each_tile_num)+'.tiff'),plugin,compress=compress)
                                         IJ.run("Close All")
 
                                 #top right quarter
@@ -480,9 +474,7 @@ if os.path.isdir(subdir):
                                         thissuffixnicename = thissuffix.split('.')[0]
                                         if thissuffixnicename[0]=='_':
                                                 thissuffixnicename=thissuffixnicename[1:]
-                                        tile_subdir_persuf = os.path.join(tile_subdir,thissuffixnicename)
-                                        if not os.path.exists(tile_subdir_persuf):
-                                                os.mkdir(tile_subdir_persuf)
+
                                         filename=thisprefix+'_Well_'+eachwell+'_x_{xx}_y_{yy}_'+thissuffix
                                         #Change per quarter
                                         fileoutname='StitchedTopRight'+filename.replace("{xx}","").replace("{yy}","")
@@ -528,7 +520,7 @@ if os.path.isdir(subdir):
                                                         #Change per quarter
                                                         IJ.makeRectangle((eachxtile*tilesize), (eachytile*tilesize)+tile_offset,tilesize,tilesize)
                                                         im_tile=im.crop()
-                                                        savefile(im_tile,os.path.join(tile_subdir_persuf,thissuffixnicename+'_Site_'+str(each_tile_num)+'.tiff'),plugin,compress=compress)
+                                                        savefile(im_tile,os.path.join(tile_subdir,thissuffixnicename+'_Site_'+str(each_tile_num)+'.tiff'),plugin,compress=compress)
                                         IJ.run("Close All")
 
                                 #bottom left quarter
@@ -552,9 +544,7 @@ if os.path.isdir(subdir):
                                         thissuffixnicename = thissuffix.split('.')[0]
                                         if thissuffixnicename[0]=='_':
                                                 thissuffixnicename=thissuffixnicename[1:]
-                                        tile_subdir_persuf = os.path.join(tile_subdir,thissuffixnicename)
-                                        if not os.path.exists(tile_subdir_persuf):
-                                                os.mkdir(tile_subdir_persuf)
+
                                         filename=thisprefix+'_Well_'+eachwell+'_x_{xx}_y_{yy}_'+thissuffix
                                         #Change per quarter
                                         fileoutname='StitchedBottomLeft'+filename.replace("{xx}","").replace("{yy}","")
@@ -600,7 +590,7 @@ if os.path.isdir(subdir):
                                                         #Change per quarter
                                                         IJ.makeRectangle((eachxtile*tilesize)+tile_offset, (eachytile*tilesize),tilesize,tilesize)
                                                         im_tile=im.crop()
-                                                        savefile(im_tile,os.path.join(tile_subdir_persuf,thissuffixnicename+'_Site_'+str(each_tile_num)+'.tiff'),plugin,compress=compress)
+                                                        savefile(im_tile,os.path.join(tile_subdir,thissuffixnicename+'_Site_'+str(each_tile_num)+'.tiff'),plugin,compress=compress)
                                         IJ.run("Close All")
 
                                 #bottom right quarter
@@ -624,9 +614,7 @@ if os.path.isdir(subdir):
                                         thissuffixnicename = thissuffix.split('.')[0]
                                         if thissuffixnicename[0]=='_':
                                                 thissuffixnicename=thissuffixnicename[1:]
-                                        tile_subdir_persuf = os.path.join(tile_subdir,thissuffixnicename)
-                                        if not os.path.exists(tile_subdir_persuf):
-                                                os.mkdir(tile_subdir_persuf)
+
                                         filename=thisprefix+'_Well_'+eachwell+'_x_{xx}_y_{yy}_'+thissuffix
                                         #Change per quarter
                                         fileoutname='StitchedBottomRight'+filename.replace("{xx}","").replace("{yy}","")
@@ -672,7 +660,7 @@ if os.path.isdir(subdir):
                                                         #Change per quarter
                                                         IJ.makeRectangle((eachxtile*tilesize), (eachytile*tilesize),tilesize,tilesize)
                                                         im_tile=im.crop()
-                                                        savefile(im_tile,os.path.join(tile_subdir_persuf,thissuffixnicename+'_Site_'+str(each_tile_num)+'.tiff'),plugin,compress=compress)
+                                                        savefile(im_tile,os.path.join(tile_subdir,thissuffixnicename+'_Site_'+str(each_tile_num)+'.tiff'),plugin,compress=compress)
                                         IJ.run("Close All")
 
         else:
