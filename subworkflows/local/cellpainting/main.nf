@@ -3,13 +3,13 @@
     IMPORT MODULES / SUBWORKFLOWS / FUNCTIONS
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
-include { CELLPROFILER_ILLUMCALC                                      } from '../../../modules/local/cellprofiler/illumcalc'
-include { QC_MONTAGEILLUM as QC_MONTAGEILLUM_PAINTING                 } from '../../../modules/local/qc/montageillum'
-include { QC_MONTAGEILLUM as QC_MONTAGE_SEGCHECK                      } from '../../../modules/local/qc/montageillum'
-include { QC_MONTAGEILLUM as QC_MONTAGE_STITCHCROP_PAINTING           } from '../../../modules/local/qc/montageillum'
+include { CELLPROFILER_ILLUMCALC } from '../../../modules/local/cellprofiler/illumcalc'
+include { QC_MONTAGEILLUM as QC_MONTAGEILLUM_PAINTING } from '../../../modules/local/qc/montageillum'
+include { QC_MONTAGEILLUM as QC_MONTAGE_SEGCHECK } from '../../../modules/local/qc/montageillum'
+include { QC_MONTAGEILLUM as QC_MONTAGE_STITCHCROP_PAINTING } from '../../../modules/local/qc/montageillum'
 include { CELLPROFILER_ILLUMAPPLY as CELLPROFILER_ILLUMAPPLY_PAINTING } from '../../../modules/local/cellprofiler/illumapply'
-include { CELLPROFILER_SEGCHECK                                       } from '../../../modules/local/cellprofiler/segcheck'
-include { FIJI_STITCHCROP                                             } from '../../../modules/local/fiji/stitchcrop'
+include { CELLPROFILER_SEGCHECK } from '../../../modules/local/cellprofiler/segcheck'
+include { FIJI_STITCHCROP } from '../../../modules/local/fiji/stitchcrop'
 
 workflow CELLPAINTING {
     take:
@@ -84,7 +84,7 @@ workflow CELLPAINTING {
         }
         .groupTuple()
         .map { meta, npy_files_list ->
-            [meta, npy_files_list.flatten()]
+            [meta, npy_files_list.flatten().sort { it -> it.name }]
         }
 
     QC_MONTAGEILLUM_PAINTING(
@@ -188,7 +188,9 @@ workflow CELLPAINTING {
         .groupTuple()
         .map { well_meta, _site_list, images_list, image_metas_list ->
             // Flatten all site images and metadata into one list for the well
-            [well_meta, images_list.flatten(), image_metas_list.flatten()]
+            def flat_images = images_list.flatten().sort { img -> img.name }
+            def flat_metas = image_metas_list.flatten().sort { m -> m.filename }
+            [well_meta, flat_images, flat_metas]
         }
 
     //// Segmentation quality check ////
@@ -213,7 +215,7 @@ workflow CELLPAINTING {
         }
         .groupTuple()
         .map { meta, png_files_list ->
-            [meta, png_files_list.flatten()]
+            [meta, png_files_list.flatten().sort { it -> it.name }]
         }
 
     QC_MONTAGE_SEGCHECK(
@@ -248,7 +250,7 @@ workflow CELLPAINTING {
             // Calculate the starting site number from metadata
             def min_site = site_list.min()
             def enriched_meta = well_meta + [first_site_index: min_site]
-            [enriched_meta, images_list.flatten()]
+            [enriched_meta, images_list.flatten().sort { it -> it.name }]
         }
 
     // Create synchronization barrier - wait for ALL QC_MONTAGE_SEGCHECK to complete
@@ -319,7 +321,7 @@ workflow CELLPAINTING {
         }
         .groupTuple()
         .map { meta, tiff_files_list ->
-            [meta, tiff_files_list.flatten()]
+            [meta, tiff_files_list.flatten().sort { it -> it.name }]
         }
 
     QC_MONTAGE_STITCHCROP_PAINTING(
@@ -330,5 +332,5 @@ workflow CELLPAINTING {
 
     emit:
     cropped_images = ch_cropped_images // channel: [ val(meta), [ cropped_images ] ]
-    versions       = ch_versions // channel: [ versions.yml ]
+    versions = ch_versions // channel: [ versions.yml ]
 }
