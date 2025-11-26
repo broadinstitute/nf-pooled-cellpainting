@@ -72,9 +72,7 @@ plugins:
 extra:
   social:
     - icon: fontawesome/brands/github
-      link: https://github.com/your-org
-  version:
-    provider: mike
+      link: https://github.com/seqera-services/nf-pooled-cellpainting
 
 extra_css:
   - stylesheets/extra.css
@@ -90,10 +88,8 @@ nav:
       - Parameters: usage/parameters.md
       - FAQ: usage/faq.md
   - "🛠️ Developer Guide":
+      - Introduction: developer/intro.md
       - Architecture: developer/architecture.md
       - CellProfiler Integration: developer/cellprofiler.md
       - Python Scripts: developer/python-scripts.md
       - Testing: developer/testing.md
-  - "📚 Reference":
-      - Outputs: reference/outputs.md
-      - Troubleshooting: reference/troubleshooting.md
