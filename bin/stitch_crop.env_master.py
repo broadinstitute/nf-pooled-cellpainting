@@ -205,6 +205,8 @@ if os.path.isdir(subdir):
                         40,40,40,40,40,40,40,40,40,
                         38,38,36,36,34,32,
                         30,28,26,22,18]
+                elif imperwell == '1025':
+                        row_widths = [5,11,17,19,23,25,27,29,29,31,33,33,33,35,35,35,37,37,37,37,37,35,35,35,33,33,33,31,29,29,27,25,23,19,17,11,5]
                 elif imperwell == '394':
                         row_widths = [3,7,9,11,11,
                         13,13,15,15,15,
@@ -373,9 +375,8 @@ if os.path.isdir(subdir):
                                         IJ.run("Close All")
                                         im=IJ.open(os.path.join(out_subdir,fileoutname))
                                         im = IJ.getImage()
-                                        tile_offset = upscaled_row_size - (tilesize * tiles_per_quarter)
-                                        for eachxtile in range(tiles_per_quarter):
-                                                for eachytile in range(tiles_per_quarter):
+                                        for eachxtile in range(tileperside):
+                                                for eachytile in range(tileperside):
                                                         each_tile_num = eachxtile*tileperside + eachytile + 1
                                                         IJ.makeRectangle(eachxtile*tilesize, eachytile*tilesize,tilesize,tilesize)
                                                         im_tile=im.crop()
