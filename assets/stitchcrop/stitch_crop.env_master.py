@@ -180,7 +180,7 @@ if os.path.isdir(subdir):
                                                 each_tile_num = eachxtile*tileperside + eachytile + 1
                                                 IJ.makeRectangle(eachxtile*tilesize, eachytile*tilesize,tilesize,tilesize)
                                                 im_tile=im.crop()
-                                                savefile(im_tile,os.path.join(tile_subdir,permprefix+'_Well_'+eachwell+'_Site_'+str(each_tile_num)+'_Corr'+thissuffixnicename+'.tiff'),plugin,compress=compress)
+                                                savefile(im_tile,os.path.join(tile_subdir,permprefix+'_Well_'+eachwell+'_Site_'+str(each_tile_num)+'_'+thissuffixnicename+'.tiff'),plugin,compress=compress)
                                 IJ.run("Close All")
         elif round_or_square == 'round':
                 if imperwell == '1364':
@@ -377,7 +377,7 @@ if os.path.isdir(subdir):
                                                         each_tile_num = eachxtile*tileperside + eachytile + 1
                                                         IJ.makeRectangle(eachxtile*tilesize, eachytile*tilesize,tilesize,tilesize)
                                                         im_tile=im.crop()
-                                                        savefile(im_tile,os.path.join(tile_subdir,permprefix+'_Well_'+eachwell+'_Site_'+str(each_tile_num)+'_Corr'+thissuffixnicename+'.tiff'),plugin,compress=compress)
+                                                        savefile(im_tile,os.path.join(tile_subdir,permprefix+'_Well_'+eachwell+'_Site_'+str(each_tile_num)+'_'+thissuffixnicename+'.tiff'),plugin,compress=compress)
                                         IJ.run("Close All")
 
 
@@ -451,7 +451,7 @@ if os.path.isdir(subdir):
                                                         #Change per quarter
                                                         IJ.makeRectangle((eachxtile*tilesize)+tile_offset, (eachytile*tilesize)+tile_offset,tilesize,tilesize)
                                                         im_tile=im.crop()
-                                                        savefile(im_tile,os.path.join(tile_subdir,permprefix+'_Well_'+eachwell+'_Site_'+str(each_tile_num)+'_Corr'+thissuffixnicename+'.tiff'),plugin,compress=compress)
+                                                        savefile(im_tile,os.path.join(tile_subdir,permprefix+'_Well_'+eachwell+'_Site_'+str(each_tile_num)+'_'+thissuffixnicename+'.tiff'),plugin,compress=compress)
                                         IJ.run("Close All")
 
                                 #top right quarter
@@ -521,7 +521,7 @@ if os.path.isdir(subdir):
                                                         #Change per quarter
                                                         IJ.makeRectangle((eachxtile*tilesize), (eachytile*tilesize)+tile_offset,tilesize,tilesize)
                                                         im_tile=im.crop()
-                                                        savefile(im_tile,os.path.join(tile_subdir,permprefix+'_Well_'+eachwell+'_Site_'+str(each_tile_num)+'_Corr'+thissuffixnicename+'.tiff'),plugin,compress=compress)
+                                                        savefile(im_tile,os.path.join(tile_subdir,permprefix+'_Well_'+eachwell+'_Site_'+str(each_tile_num)+'_'+thissuffixnicename+'.tiff'),plugin,compress=compress)
                                         IJ.run("Close All")
 
                                 #bottom left quarter
@@ -591,7 +591,7 @@ if os.path.isdir(subdir):
                                                         #Change per quarter
                                                         IJ.makeRectangle((eachxtile*tilesize)+tile_offset, (eachytile*tilesize),tilesize,tilesize)
                                                         im_tile=im.crop()
-                                                        savefile(im_tile,os.path.join(tile_subdir,permprefix+'_Well_'+eachwell+'_Site_'+str(each_tile_num)+'_Corr'+thissuffixnicename+'.tiff'),plugin,compress=compress)
+                                                        savefile(im_tile,os.path.join(tile_subdir,permprefix+'_Well_'+eachwell+'_Site_'+str(each_tile_num)+'_'+thissuffixnicename+'.tiff'),plugin,compress=compress)
                                         IJ.run("Close All")
 
                                 #bottom right quarter
@@ -661,7 +661,7 @@ if os.path.isdir(subdir):
                                                         #Change per quarter
                                                         IJ.makeRectangle((eachxtile*tilesize), (eachytile*tilesize),tilesize,tilesize)
                                                         im_tile=im.crop()
-                                                        savefile(im_tile,os.path.join(tile_subdir,permprefix+'_Well_'+eachwell+'_Site_'+str(each_tile_num)+'_Corr'+thissuffixnicename+'.tiff'),plugin,compress=compress)
+                                                        savefile(im_tile,os.path.join(tile_subdir,permprefix+'_Well_'+eachwell+'_Site_'+str(each_tile_num)+'_'+thissuffixnicename+'.tiff'),plugin,compress=compress)
                                         IJ.run("Close All")
 
         else:
