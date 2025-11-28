@@ -74,6 +74,7 @@ workflow POOLED_CELLPAINTING {
         params.painting_xoffset_tiles,
         params.painting_yoffset_tiles,
         params.compress,
+        params.painting_channame,
         params.qc_painting_passed,
     )
     ch_versions = ch_versions.mix(CELLPAINTING.out.versions)
@@ -107,6 +108,7 @@ workflow POOLED_CELLPAINTING {
         params.barcoding_xoffset_tiles,
         params.barcoding_yoffset_tiles,
         params.compress,
+        params.barcoding_channame,
         params.qc_barcoding_passed,
     )
     ch_versions = ch_versions.mix(BARCODING.out.versions)
