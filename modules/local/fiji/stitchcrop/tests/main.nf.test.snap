@@ -34,7 +34,7 @@
                         "well": "A1",
                         "id": "Batch1_Plate1_painting_A1"
                     },
-                    "TileConfiguration.txt:md5,6abaf50b31115b6687c9b9052c26cf74"
+                    "TileConfiguration.txt:md5,59ba28418f1e3469b5b256d27c6b6c1a"
                 ]
             ],
             [
@@ -45,6 +45,6 @@
             "nf-test": "0.9.3",
             "nextflow": "25.10.0"
         },
-        "timestamp": "2025-11-09T02:41:56.586210547"
+        "timestamp": "2025-12-01T21:15:13.480352318"
     }
 }

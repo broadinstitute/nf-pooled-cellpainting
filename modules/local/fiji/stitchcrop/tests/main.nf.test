@@ -30,7 +30,7 @@ nextflow_process {
                     ]
                 ]
                 // Stitch script
-                input[1] = file("\${projectDir}/assets/stitchcrop/stitch_crop.test.py", checkIfExists: true)
+                input[1] = file("\${projectDir}/assets/stitchcrop/stitch_crop.env_master.test_profile.py", checkIfExists: true)
                 // Painting-specific stitching parameters
                 input[2] = "square"                    // painting_round_or_square
                 input[3] = true                        // painting_quarter_if_round
@@ -45,7 +45,8 @@ nextflow_process {
                 input[12] = 0                          // painting_xoffset_tiles
                 input[13] = 0                          // painting_yoffset_tiles
                 input[14] = true                       // compress
-                input[15] = true                       // should_run
+                input[15] = "DNA"                     // channame
+                input[16] = true                       // should_run
                 """
             }
         }
@@ -130,7 +131,7 @@ nextflow_process {
                     ]
                 ]
                 // Stitch script
-                input[1] = file("\${projectDir}/assets/stitchcrop/stitch_crop.test.py", checkIfExists: true)
+                input[1] = file("\${projectDir}/assets/stitchcrop/stitch_crop.env_master.test_profile.py", checkIfExists: true)
                 // Barcoding-specific stitching parameters
                 input[2] = "square"                    // barcoding_round_or_square
                 input[3] = true                        // barcoding_quarter_if_round
@@ -145,7 +146,8 @@ nextflow_process {
                 input[12] = 0                          // barcoding_xoffset_tiles
                 input[13] = 0                          // barcoding_yoffset_tiles
                 input[14] = true                       // compress
-                input[15] = true                       // should_run
+                input[15] = "DAPI"                    // channame
+                input[16] = true                       // should_run
                 """
             }
         }
@@ -175,7 +177,7 @@ nextflow_process {
                         file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/images/Batch1/images_corrected/painting/Plate1/Plate1-A1-3/Plate_Plate1_Well_A1_Site_3_CorrCHN2.tiff")
                     ]
                 ]
-                input[1] = file("\${projectDir}/assets/stitchcrop/stitch_crop.test.py", checkIfExists: true)
+                input[1] = file("\${projectDir}/assets/stitchcrop/stitch_crop.env_master.test_profile.py", checkIfExists: true)
                 // Painting-specific stitching parameters
                 input[2] = "square"                    // painting_round_or_square
                 input[3] = true                        // painting_quarter_if_round
@@ -190,7 +192,8 @@ nextflow_process {
                 input[12] = 0                          // painting_xoffset_tiles
                 input[13] = 0                          // painting_yoffset_tiles
                 input[14] = true                       // compress
-                input[15] = true                       // should_run
+                input[15] = "DNA"                     // channame
+                input[16] = true                       // should_run
                 """
             }
         }
