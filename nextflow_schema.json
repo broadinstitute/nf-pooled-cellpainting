@@ -46,7 +46,7 @@
                 },
                 "fiji_stitchcrop_script": {
                     "type": "string",
-                    "default": "/home/florian/nf-pooled-cellpainting/bin/stitch_crop.env_master.py",
+                    "default": "/home/florian/nf-pooled-cellpainting/assets/stitchcrop/stitch_crop.env_master.py",
                     "description": "Path to script to use for FIJI Stitchcrop."
                 },
                 "range_skip": {
@@ -117,6 +117,11 @@
             "description": "Configuration options for the paintingarm of the pipeline.",
             "default": "",
             "properties": {
+                "painting_channame": {
+                    "type": "string",
+                    "default": "DNA",
+                    "description": "Channel name for nucleus staining for painting arm."
+                },
                 "painting_round_or_square": {
                     "type": "string",
                     "default": "round",
@@ -176,6 +181,11 @@
             "description": "Configuration options for the barcoding (SBS) arm of the pipeline.",
             "default": "",
             "properties": {
+                "barcoding_channame": {
+                    "type": "string",
+                    "default": "DNA",
+                    "description": "Channel name for nucleus staining for barcoding arm."
+                },
                 "barcoding_illumapply_grouping": {
                     "type": "string",
                     "default": "well",
