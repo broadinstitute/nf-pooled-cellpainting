@@ -21,6 +21,7 @@ process FIJI_STITCHCROP {
     val xoffset_tiles
     val yoffset_tiles
     val compress
+    val channame
     val should_run
 
     output:
@@ -65,6 +66,7 @@ process FIJI_STITCHCROP {
     export XOFFSET_TILES="${xoffset_tiles}"
     export YOFFSET_TILES="${yoffset_tiles}"
     export COMPRESS="${compress}"
+    export CHANNAME="${channame}"
     export FIRST_SITE_INDEX="${first_site_index}"
 
     # Run Fiji in headless mode

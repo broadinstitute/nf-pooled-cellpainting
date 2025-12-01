@@ -41,6 +41,7 @@ workflow BARCODING {
     barcoding_xoffset_tiles
     barcoding_yoffset_tiles
     compress
+    barcoding_channame
     qc_barcoding_passed
 
     main:
@@ -359,6 +360,7 @@ workflow BARCODING {
         barcoding_xoffset_tiles,
         barcoding_yoffset_tiles,
         compress,
+        barcoding_channame,
         qc_barcoding_passed,
     )
 

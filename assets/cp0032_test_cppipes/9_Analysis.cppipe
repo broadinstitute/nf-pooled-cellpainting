@@ -673,7 +673,7 @@ CallBarcodes:[module_num:41|svn_version:'Unknown'|variable_revision_number:1|sho
     Input data file location:Default Input Folder|C:\Users\Administrator\Desktop\metadata\20200805_A549_WG_Screen
     Name of the file:Barcodes.csv
     Select the column of barcodes to match against:Barcode
-    Select the column with gene/transcript barcode names:Construct
+    Select the column with gene/transcript barcode names:Gene
     Retain an image of the barcodes color coded by call?:Yes
     Enter the called barcode image name:Barcodes_IntValues
     Retain an image of the barcodes color coded by score match?:Yes
