@@ -1,10 +1,16 @@
 # Quick Start
 
-This guide assumes you have [installed Nextflow and Docker](installation.md) or have the required setup on Seqera Platform. Here we will walk you through running the pipeline using a minimal test dataset to verify your setup and demonstrate the workflow.
+This guide assumes you have [installed Nextflow and Docker](installation.md) or have the required setup on Seqera Platform. We'll walk you through running the pipeline using a minimal test dataset to verify your setup and demonstrate the two-phase workflow.
 
 ## 1. Run the Test Profile (Phase 1)
 
-The pipeline comes with a built-in `test` profile that automatically downloads a small dataset and configures all necessary parameters.
+The pipeline includes a built-in `test` profile that automatically downloads a small dataset. This test dataset contains:
+
+- A subset of images from one well (both Cell Painting and Barcoding arms)
+- Pre-configured CellProfiler pipelines
+- A sample barcodes file
+
+The test is designed to run in about 15-20 minutes locally (or 5-10 minutes on AWS Batch) and demonstrates the complete workflow without requiring your own data.
 
 Run the following command (or submit a launch via [Seqera Platform](https://cloud.seqera.io/))
 
@@ -108,7 +114,7 @@ results/
         └── 8_stitching_barcoding/
 ```
 
-The most important files are in `results/combined/analysis/`. These CSV files contain the linked phenotype (Cell Painting) and genotype (Barcoding) data for every cell.
+The most important files are in `results/workspace/analysis/`. These CSV files contain the linked phenotype (Cell Painting) and genotype (Barcoding) data for every cell.
 
 ## Next Steps
 

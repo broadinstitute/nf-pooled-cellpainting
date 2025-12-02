@@ -30,9 +30,9 @@ process {
 
 The runtime depends on the number of images and the number of tiles. It's difficult to give specific numbers as this is dataset specific, but here are some numbers for datasets we have tested:
 
-- `-profile test`: This small test dataset takes around 5-10 minutes on AWS Batch and around XX minutes locally.
-- `-profile test_full`: This dataset consists of 1 well and 1025 sites. It takes around ... TODO
-- `-profile test_cpg0032`: This dataset consists of 2 full wells and 12 cycles of barcoding and is substantially larger than the other two datasets shown here.
+- `-profile test`: This small test dataset takes around 5-10 minutes to run end-to-end.
+- `-profile test_full`: This dataset consists of 1 well with multiple sites. Expect several hours for this run to succeed.
+- `-profile test_cpg0032`: This larger dataset consists of 2 full wells and 12 cycles of barcoding. Expect several hours (9-10) and substantial resource usage for a complete run.
 
 ## My images are not being found. Why?
 
@@ -53,3 +53,19 @@ No, this is a feature, not a bug! The pipeline is designed to stop after generat
 ## I see "command not found" errors.
 
 Ensure you are using the docker profile if running locally `-profile docker`. On AWS docker is the default container engine and you don't need to specify the docker profile explicitly.
+
+## How do I know if my QC passed?
+
+After Phase 1 completes, check the QC outputs in `results/workspace/qc_reports/`. Look for:
+
+- **Illumination montages**: Should show smooth, gradual intensity variations - not patchy or irregular patterns.
+- **Segmentation previews**: Cell and nucleus outlines should accurately trace the boundaries of actual cells. Look for over-segmentation (one cell split into many) or under-segmentation (multiple cells merged).
+- **Alignment reports** (barcoding): Check that pixel shifts are small and consistent across the field of view.
+
+## Can I process just one arm (painting or barcoding)?
+
+Yes. Simply omit the other arm from your samplesheet. If you only include painting images, the barcoding subworkflow won't run. However, the Combined Analysis step requires both arms, so you'll only get the intermediate outputs.
+
+## Where can I find example CellProfiler pipelines?
+
+The test profile and cpg0032 profile both include working example pipelines. After running `-profile test`, look in your work directory or check the pipeline's `assets/` folder on GitHub. These can serve as templates for your own pipelines.

@@ -1,6 +1,6 @@
 # Installation
 
-This page describes two mode to execute the `nf-pooled-cellpainting` pipeline: locally using the Nextflow CLI (with Docker) or on the cloud using the Seqera Platform.
+This page describes two modes to execute the `nf-pooled-cellpainting` pipeline: locally using the Nextflow CLI (with Docker) or on the cloud using the Seqera Platform.
 
 ## Mode 1: Nextflow CLI (Local/Server)
 

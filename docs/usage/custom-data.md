@@ -28,12 +28,17 @@ The samplesheet is a CSV file that maps your image files to their experimental m
 
 ### Example
 
+Here's a minimal example showing one Cell Painting image and two barcoding cycles:
+
 ```csv
 path,arm,batch,plate,well,channels,site,cycle,n_frames
-"/data/images/painting/batch1/plate1/WellA1_PointA1_0000_ChannelPhalloAF750,CHN2-AF488,DAPI_Seq0000.ome.tiff",painting,Batch1,Plate1,A1,"Phalloidin,CHN2,DNA",1,1,3
-"/data/images/barcoding/batch1/plate1/WellA1_PointA1_0000_ChannelC,A,T,G,DAPI_Seq0000.ome.tiff",barcoding,Batch1,Plate1,A1,"C,A,T,G,DNA",1,1,5
-"/data/images/barcoding/batch1/plate1/WellA1_PointA1_0001_ChannelC,A,T,G,DAPI_Seq0001.ome.tiff",barcoding,Batch1,Plate1,A1,"C,A,T,G,DNA",2,1,5
+"/data/painting/WellA1_PointA1_0000_ChannelPhalloidin,CHN2,DNA_Seq0000.ome.tiff",painting,Batch1,Plate1,A1,"Phalloidin,CHN2,DNA",1,1,3
+"/data/barcoding/WellA1_PointA1_0000_ChannelC,A,T,G,DNA_Seq0000.ome.tiff",barcoding,Batch1,Plate1,A1,"C,A,T,G,DNA",1,1,5
+"/data/barcoding/WellA1_PointA1_0000_ChannelC,A,T,G,DNA_Seq0001.ome.tiff",barcoding,Batch1,Plate1,A1,"C,A,T,G,DNA",1,2,5
 ```
+
+A more complete samplesheet with multiple wells and sites would have many more rows, one per image file.
+
 
 !!! warning "Channel Names"
     Ensure the channel names in the `channels` column match the names used in your CellProfiler pipelines as the channel names will be used to build load_data.csv columns that need to correspond to your cppipe files provided to the pipeline!

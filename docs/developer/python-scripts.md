@@ -1,10 +1,10 @@
 # Python Scripts
 
-Documentation of Python scripts used for data staging and quality control.
+The pipeline includes helper Python scripts that handle data preparation and quality control. You generally don't need to modify these scripts, but understanding what they do helps with debugging when things go wrong.
 
 ## Overview
 
-The pipeline includes several Python scripts in the `bin/` directory:
+These scripts live in the `bin/` directory and are automatically available to all pipeline processes:
 
 - `generate_load_data_csv.py`: Universal CSV generator for CellProfiler
 - `generate_combined_load_data.py`: Specialized CSV for combined analysis

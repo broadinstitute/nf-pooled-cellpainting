@@ -1,11 +1,16 @@
 # Overview
 
-Optical Pooled Screening (OPS) combines two powerful technologies to enable high-throughput phenotypic profiling:
+## What is Optical Pooled Screening?
 
-1.  **Cell Painting**: A morphological profiling assay that stains cellular compartments (nucleus, nucleoli, ER, RNA, Golgi/plasma membrane, mitochondria) to capture a rich phenotypic signature.
-2.  **In-situ Sequencing (ISS)**: A barcoding strategy that allows identification of the genetic perturbation (e.g., CRISPR guide) present in each individual cell directly within the microscope image.
+Imagine you want to understand how thousands of different genes affect cell behavior. Traditionally, you would need to test each gene one at a time - an incredibly slow process. Optical Pooled Screening (OPS) changes this by letting you test many genes simultaneously in the same dish of cells, then use imaging to figure out which gene is in which cell and what it's doing.
 
-The challenge is to accurately link phenotype and genotype at the single-cell level across millions of cells.
+This pipeline combines two powerful technologies:
+
+1. **Cell Painting** captures what cells *look like*. By staining different parts of the cell (nucleus, mitochondria, etc.) with fluorescent dyes, we can measure hundreds of features describing each cell's shape, size, and internal organization. These features tell us how cells respond to genetic perturbations.
+
+2. **In-situ Sequencing (ISS)** tells us what gene is *in* each cell. Each genetic perturbation (like a CRISPR guide) carries a unique DNA barcode. By reading this barcode directly in the microscope image, we can link every cell to its genetic modification.
+
+The magic happens when we combine both: for each cell, we know both its genetic identity (from barcoding) and its phenotype (from Cell Painting). This lets us screen thousands of genes in a single experiment and see how each one changes cell appearance.
 
 ## Pipeline Architecture
 
@@ -41,7 +46,7 @@ Understanding how the pipeline organizes data is key to preparing your inputs co
 - **Site**: A specific field of view within a well.
 - **Cycle** (Barcoding only): Represents a round of sequencing. Cycle 1 is usually the reference for alignment.
 
-![Data Hierarchy Visualization](/assets/images/data_hierarchy.png)
+![Data Hierarchy Visualization](../assets/images/data_hierarchy.png)
 
 ## The "Stop-and-Check" Philosophy
 

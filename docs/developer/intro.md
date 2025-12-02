@@ -54,3 +54,42 @@ modules/
 
 !!! warning "Docker support only"
     The nf-pooled-cellpainting pipeline was developed to work with the Docker container engine and does not currently support conda, singularity or any other container engine!
+
+## Getting Started with Development
+
+### Prerequisites
+
+Before contributing, make sure you have:
+
+1. **Nextflow** (version 23.04.0 or later)
+2. **Docker** (for running the pipeline)
+3. **nf-test** (for running tests) - install via: `curl -fsSL https://code.askimed.com/install/nf-test | bash`
+4. **Git** (for version control)
+
+### Clone and Test
+
+```bash
+# Clone the repository
+git clone https://github.com/seqera-services/nf-pooled-cellpainting.git
+cd nf-pooled-cellpainting
+
+# Run the test suite to verify your setup
+nextflow run . -profile test,docker --outdir test_results
+
+# Run nf-test for module tests
+nf-test test
+```
+
+### Development Workflow
+
+1. Create a feature branch from `dev`
+2. Make your changes
+3. Run tests locally
+4. Submit a pull request
+
+## Next Steps
+
+- [Architecture](architecture.md) - Understand the pipeline structure and data flow
+- [CellProfiler Integration](cellprofiler.md) - Learn how CellProfiler processes are implemented
+- [Testing](testing.md) - Write and run tests for your changes
+- [Python Scripts](python-scripts.md) - Understand the helper scripts

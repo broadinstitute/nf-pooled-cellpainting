@@ -1,10 +1,12 @@
 # CellProfiler Integration
 
-Deep dive into how CellProfiler is integrated and executed within the pipeline.
+[CellProfiler](https://cellprofiler.org/) is the workhorse of this pipeline. It's an open-source tool designed specifically for high-throughput image analysis in biology. If you're new to CellProfiler, think of it as a flexible image processing engine that you configure using "pipeline" files (`.cppipe`).
+
+This page explains how the pipeline uses CellProfiler and how to customize the integration for your own data.
 
 ## Overview
 
-The pipeline uses [CellProfiler](https://cellprofiler.org/) v4.2.8 for image analysis tasks:
+The pipeline uses CellProfiler v4.2.8 for image analysis tasks:
 
 - Illumination correction calculation and application
 - Image preprocessing
