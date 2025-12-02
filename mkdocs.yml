@@ -68,6 +68,8 @@ markdown_extensions:
 plugins:
   - search
   - tags
+  - macros:
+      module_name: docs/macros
 
 extra:
   social:
