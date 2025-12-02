@@ -2,15 +2,15 @@
 
 ## What is Optical Pooled Screening?
 
-Imagine you want to understand how thousands of different genes affect cell behavior. Traditionally, you would need to test each gene one at a time - an incredibly slow process. Optical Pooled Screening (OPS) changes this by letting you test many genes simultaneously in the same dish of cells, then use imaging to figure out which gene is in which cell and what it's doing.
+Optical Pooled Screening (OPS) enables high-throughput functional genomics by combining genetic perturbations with image-based phenotyping at single-cell resolution. Unlike traditional arrayed screening approaches that test perturbations individually, OPS allows thousands of genetic variants to be assayed simultaneously within a single pooled population, with cellular identity decoded through in situ sequencing.
 
-This pipeline combines two powerful technologies:
+This pipeline integrates two complementary methodologies:
 
-1. **Cell Painting** captures what cells *look like*. By staining different parts of the cell (nucleus, mitochondria, etc.) with fluorescent dyes, we can measure hundreds of features describing each cell's shape, size, and internal organization. These features tell us how cells respond to genetic perturbations.
+1. **Cell Painting** provides quantitative morphological profiling. Through multiplexed fluorescent labeling of cellular compartments (nucleus, endoplasmic reticulum, mitochondria, actin cytoskeleton, Golgi apparatus, and RNA), this approach generates high-dimensional feature vectors describing cellular morphology, organization, and intensity distributions. These features serve as phenotypic readouts of perturbation-induced cellular states.
 
-2. **In-situ Sequencing (ISS)** tells us what gene is *in* each cell. Each genetic perturbation (like a CRISPR guide) carries a unique DNA barcode. By reading this barcode directly in the microscope image, we can link every cell to its genetic modification.
+2. **In-situ Sequencing (ISS)** enables spatial genotyping through cyclical imaging of fluorescently labeled nucleotides. Each genetic perturbation is tagged with a unique DNA barcode sequence. Sequential rounds of hybridization, imaging, and base calling reconstruct these barcodes directly within the microscopy field of view, establishing the genetic identity of individual cells.
 
-The magic happens when we combine both: for each cell, we know both its genetic identity (from barcoding) and its phenotype (from Cell Painting). This lets us screen thousands of genes in a single experiment and see how each one changes cell appearance.
+The integration of these modalities yields matched genotype-phenotype data at single-cell resolution. By linking decoded barcodes to segmented cell morphologies, this approach facilitates large-scale perturbation screens where each cell's genetic modification and resulting phenotypic response are simultaneously captured and quantified.
 
 ## Pipeline Architecture
 

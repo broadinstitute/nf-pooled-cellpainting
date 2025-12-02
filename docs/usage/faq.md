@@ -10,13 +10,16 @@ nextflow run seqera-services/nf-pooled-cellpainting ... -resume
 
 ## How much memory and cpu do I need?
 
-This depends heavily on the size of your images and the number of tiles. Some Cellprofiler steps of the pipeline operate serially on images and therefore don't increase memory usage linearly with the number of images. Others do load multiple images into memory at once, which can be a problem for large wells. In general the pipeline has relatively low resource demands, with most processes request 1 cpu (since cellprofiler isn't multithreaded in headless mode) and 2 GB of memory.
+This depends heavily on the size of your images and the number of tiles. Some Cellprofiler steps of the pipeline operate serially on images and therefore don't increase memory usage linearly with the number of images. Others do load multiple images into memory at once, which can be a problem for large wells. In general the pipeline has relatively low resource demands, with most processes request 1 cpu and 2 GB of memory.
 
-- **Illumination correction**: Generally low memory (~4-8 GB).
-- **Stitching**: High memory. For large wells (e.g., 10x10 grids), you might need 32GB+ RAM.
-- **Combined Analysis**: Moderate memory, but CPU intensive.
+The most compute and memory intensive tasks are:
 
-If you encounter exit codes 137 (`OutOfMemoryError`) frequently and task get resubmitted with more memory, try increasing the memory for the specific process in a custom config file. Here is an example for the stitching process. Include this snippet into your Nextflow config (either on Seqera Platform, a local config file or even in your repository config if you want it applied to all pipeline runs):
+- CELLPROFILER_ILLUMAPPLY_BARCODING
+- CELLPROFILER_PREPROCESS
+- FIJI_STITCHCROP
+- CELLPROFILER_COMBINEDANALYSIS
+
+All of these processes require increased amounts of memory, with COMBINEDANALYSIS needing the most. In our tests with cpg0032, CELLPROFILER_COMBINEDANALYSIS needed 32GB of RAM provisioned to not fail. If you encounter exit codes 137 (`OutOfMemoryError`) frequently and task get resubmitted with more memory, try increasing the memory for the specific process in a custom config file. Here is an example for the stitching process. Include this snippet into your Nextflow config (either on Seqera Platform, a local config file or even in your repository config if you want it applied to all pipeline runs). Be aware that increasing resource configuration for your pipeline on AWS will generally lead to provisioning of larger and more expensive EC2 instances!
 
 ```groovy
 process {
@@ -54,6 +57,25 @@ No, this is a feature, not a bug! The pipeline is designed to stop after generat
 
 Ensure you are using the docker profile if running locally `-profile docker`. On AWS docker is the default container engine and you don't need to specify the docker profile explicitly.
 
+## I get "Missing output file(s) expected by process"
+
+If you see an error like:
+
+```
+Caused by:
+  Missing output file(s) `stitched_images/*.tiff` expected by process `POOLED_CELLPAINTING:CELLPAINTING:FIJI_STITCHCROP (Batch1_Plate1_A1)`
+```
+
+This means the process ran (exit code 0) but didn't produce the files Nextflow expected. Unlike a crash, the tool finished without error but simply didn't create any output. Common causes:
+
+- **Tool-specific problems**: The underlying tool (CellProfiler, FIJI, etc.) ran but had nothing to process or encountered a silent failure. In cellprofiler this is sometimes caused when images are flagged. Check the `.command.log` file in the task work directory for warnings.
+
+To debug, navigate to the failed task's work directory (shown in the error) and inspect:
+
+- `.command.log` - stdout/stderr from the tool
+- `.command.sh` - the exact command that ran
+- `.command.err` - any error output
+
 ## How do I know if my QC passed?
 
 After Phase 1 completes, check the QC outputs in `results/workspace/qc_reports/`. Look for:
@@ -68,4 +90,4 @@ Yes. Simply omit the other arm from your samplesheet. If you only include painti
 
 ## Where can I find example CellProfiler pipelines?
 
-The test profile and cpg0032 profile both include working example pipelines. After running `-profile test`, look in your work directory or check the pipeline's `assets/` folder on GitHub. These can serve as templates for your own pipelines.
+The test profile and cpg0032 profile both include working example pipelines. You can find these cppipe files in the `/assets/` subfolders `/cellprofiler` and `cpg0032_test_cppipes` respectively.

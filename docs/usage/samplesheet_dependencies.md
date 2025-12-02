@@ -26,8 +26,9 @@ The samplesheet is the single source of truth for experimental metadata. The pip
     - **Illumination Calculation/Correction**: Metadata (`plate`, `channels`, `cycle`) is passed _explicitly_ to the Python script via CLI arguments.
     - **Preprocessing & Combined Analysis**: Metadata is _implicitly_ derived from filenames in some legacy paths, but the modern implementation relies on the `meta` map passed from Nextflow.
 
-> [!IMPORTANT]
-> **Single Source of Truth**: The pipeline is designed so that metadata (Plate, Well, Site) comes from the **samplesheet**, not the filenames. However, **filenames must still follow specific patterns** so the Python script can correctly identify which file corresponds to which channel/cycle.
+
+!!! danger Single Source of Truth
+    The pipeline is designed so that metadata (Plate, Well, Site) comes from the **samplesheet**, not the filenames. However, **filenames must still follow specific patterns** so the Python script can correctly identify which file corresponds to which channel/cycle.
 
 ---
 
@@ -66,8 +67,8 @@ The Python script (`bin/generate_load_data_csv.py`) uses regular expressions to 
   - `Cycle01` -> Cycle 1
   - `A` -> Channel A
 
-> [!WARNING]
-> **Barcoding Channel Names**: Ensure your samplesheet `channels` column for barcoding rows uses standard base names (`A`, `C`, `G`, `T`) or `DNA`/`DAPI`. Using non-standard names (e.g., `Cy5`, `FITC`) may cause the regex to fail or the script to misinterpret the file type.
+!!! warning Barcoding Channel Names
+    Ensure your samplesheet `channels` column for barcoding rows uses standard base names (`A`, `C`, `G`, `T`) or `DNA`/`DAPI`. Using non-standard names (e.g., `Cy5`, `FITC`) may cause the regex to fail or the script to misinterpret the file type.
 
 ---
 
@@ -108,9 +109,14 @@ If you name a Cell Painting channel `Cycle1` (e.g., `CorrCycle1.tiff`), the scri
 
 Before running the pipeline:
 
-1.  [ ] **Samplesheet Columns**: Ensure `batch`, `plate`, `well`, `site`, `channels`, `arm` are present.
-2.  **Channel Names**:
-    - [ ] Cell Painting: Names in `channels` column match the names in your raw image filenames (e.g., `DNA`, `Mito`).
-    - [ ] Barcoding: Names in `channels` column are `A`, `C`, `G`, `T`, `DNA`, or `DAPI`.
-3.  **Avoid Keywords**: Do not use `Cycle` or `Corr` as part of your raw channel names to avoid regex confusion.
-4.  **Consistency**: Ensure `plate` names are consistent across all rows for the same physical plate.
+1. [ ] **Samplesheet Columns**: Ensure `batch`, `plate`, `well`, `site`, `channels`, `arm` are present.
+
+2. [ ] **Channel Names**:
+
+   - Cell Painting: Names in `channels` column match the names in your raw image filenames (e.g., `DNA`, `Mito`).
+
+   - Barcoding: Names in `channels` column are `A`, `C`, `G`, `T`, `DNA`, or `DAPI`.
+
+3. [ ] **Avoid Keywords**: Do not use `Cycle` or `Corr` as part of your raw channel names to avoid regex confusion.
+
+4. [ ] **Consistency**: Ensure `plate` names are consistent across all rows for the same physical plate.
