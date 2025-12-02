@@ -1,91 +1,62 @@
 # Overview
 
-## What is nf-pooled-cellpainting?
+## What is Optical Pooled Screening?
 
-nf-pooled-cellpainting is a Nextflow pipeline designed for **optical pooled screening (OPS)**, a high-throughput technique that combines:
+Optical Pooled Screening (OPS) enables high-throughput functional genomics by combining genetic perturbations with image-based phenotyping at single-cell resolution. Unlike traditional arrayed screening approaches that test perturbations individually, OPS allows thousands of genetic variants to be assayed simultaneously within a single pooled population, with cellular identity decoded through in situ sequencing.
 
-1. **Cell Painting**: Multi-channel fluorescence microscopy for phenotypic profiling
-2. **Barcoding**: Sequencing-by-synthesis (SBS) for genetic identification
+This pipeline integrates two complementary methodologies:
 
-This approach enables screening of thousands of genetic perturbations while maintaining single-cell resolution.
+1. **Cell Painting** provides quantitative morphological profiling. Through multiplexed fluorescent labeling of cellular compartments (nucleus, endoplasmic reticulum, mitochondria, actin cytoskeleton, Golgi apparatus, and RNA), this approach generates high-dimensional feature vectors describing cellular morphology, organization, and intensity distributions. These features serve as phenotypic readouts of perturbation-induced cellular states.
 
-## Pipeline Workflow
+2. **In-situ Sequencing (ISS)** enables spatial genotyping through cyclical imaging of fluorescently labeled nucleotides. Each genetic perturbation is tagged with a unique DNA barcode sequence. Sequential rounds of hybridization, imaging, and base calling reconstruct these barcodes directly within the microscopy field of view, establishing the genetic identity of individual cells.
 
-The pipeline consists of two parallel processing arms that converge for combined analysis:
+The integration of these modalities yields matched genotype-phenotype data at single-cell resolution. By linking decoded barcodes to segmented cell morphologies, this approach facilitates large-scale perturbation screens where each cell's genetic modification and resulting phenotypic response are simultaneously captured and quantified.
 
-### Cell Painting Arm
+## Pipeline Architecture
 
-```mermaid
-graph LR
-    A[Raw Images] --> B[Illumination Calculation]
-    B --> C[Illumination Correction]
-    C --> D[Segmentation QC]
-    D --> E{QC Pass?}
-    E -->|Yes| F[Stitch & Crop]
-    E -->|No| G[Manual Review]
-```
+The pipeline is designed with two parallel processing "arms" that operate independently before converging for the final analysis.
 
-### Barcoding Arm
+### 1. Cell Painting Arm (Phenotype)
 
-```mermaid
-graph LR
-    A[Cycle Images] --> B[Illumination Calculation]
-    B --> C[Illumination Correction]
-    C --> D[Alignment QC]
-    D --> E[Preprocess & Call Barcodes]
-    E --> F{QC Pass?}
-    F -->|Yes| G[Stitch & Crop]
-    F -->|No| H[Manual Review]
-```
+This arm processes the morphological images.
 
-### Combined Analysis
+- **Illumination Correction**: Corrects for uneven lighting across the field of view, which is critical for accurate intensity measurements.
+- **Segmentation**: Identifies individual cells and nuclei. This is the foundation of the analysis—if segmentation fails, downstream data is invalid.
+- **QC Check**: Generates visual montages to verify that segmentation is performing correctly before proceeding.
 
-When both arms pass QC, the pipeline merges the data for:
+### 2. Barcoding Arm (Genotype)
 
-- Cell segmentation using painting channels
-- Barcode assignment to segmented cells
-- Feature extraction and measurements
-- Comprehensive CSV outputs
+This arm processes the sequencing-by-synthesis (SBS) images.
 
-## Key Concepts
+- **Alignment**: Registers images from multiple sequencing cycles (rounds) to the first cycle to ensure perfect overlap.
+- **Base Calling**: Reads the sequence of fluorescent bases (A, C, G, T) at each pixel to decode the barcode.
+- **QC Check**: Verifies that barcodes are being called with high confidence and aligning to the known library.
 
-### Quality Control Gates
+### 3. Convergence (Single-Cell Mapping)
 
-The pipeline includes **QC gates** controlled by parameters:
+Once both arms pass quality control, they are stitched and merged. The pipeline maps the decoded barcodes from the Barcoding Arm to the segmented cells from the Cell Painting Arm, creating a unified dataset where every cell has both a phenotype and an assigned genetic perturbation.
 
-- `qc_painting_passed`: Enables progression past painting QC
-- `qc_barcoding_passed`: Enables progression past barcoding QC
+## Data Hierarchy
 
-These gates allow manual review before committing to expensive downstream processing.
+Understanding how the pipeline organizes data is key to preparing your inputs correctly.
 
-### Parallelization Strategy
+- **Batch**: A collection of plates processed together.
+- **Plate**: A physical multi-well plate (e.g., 96 or 384 wells).
+- **Well**: A single experimental unit within a plate.
+- **Site**: A specific field of view within a well.
+- **Cycle** (Barcoding only): Represents a round of sequencing. Cycle 1 is usually the reference for alignment.
 
-Processing is parallelized at optimal granularity:
+![Data Hierarchy Visualization](../assets/images/data_hierarchy.png)
 
-- **Illumination calculation**: Per plate (or plate+cycle for barcoding)
-- **Illumination correction**: Per site for both arms
-- **Stitching**: Per well
-- **Combined analysis**: Per site
+## The "Stop-and-Check" Philosophy
 
-### Data Organization
+Processing terabytes of high-content imaging data is computationally expensive. To avoid wasting resources on poor-quality data, the pipeline implements a **"Stop-and-Check"** workflow. This stop and check behaviour is controlled by two pipeline parameters (`--qc_painting_passed` and `--qc_barcoding_passed`), which are both false by default, causing the pipeline to stop before stitch and cropping via Fiji.
 
-Input data follows a structured samplesheet format with metadata for:
+1.  **Phase 1: Raw data processing:**
+    The pipeline runs illumination correction, segmentation (for painting arm) and image alignment across cycles (for barcoding arm) and generates QC images and metrics. It then **stops** processing for the user to manually verify
 
-- `batch`, `plate`, `well`, `site`: Spatial organization
-- `cycle`: Sequencing round (barcoding only)
-- `channels`: Fluorescence channels
-- `n_frames`: Number of tiles per site
+2.  **Phase 2: Manual Review:**
+    You review the QC outputs in the `results/qc` folder (or in the Reports tab if running via Seqera Platform).
 
-## Technology Stack
-
-- **Nextflow**: Workflow orchestration and parallelization
-- **CellProfiler**: Image analysis and feature extraction
-- **Fiji**: Image stitching and montage generation
-- **Python**: CSV generation and QC analysis
-- **Docker/Singularity**: Containerized execution
-
-## Next Steps
-
-- [Installation Guide](installation.md) - Set up the pipeline
-- [Quick Start](quickstart.md) - Run your first analysis
-- [Parameters Reference](../usage/parameters.md) - Configure the pipeline
+3.  **Phase 3: Production Run:**
+    If the data looks good, you "open the gates" by setting the parameters `--qc_painting_passed` and `--qc_barcoding_passed` to `true` and resuming the pipeline. It will pick up exactly where it left off and proceed to the heavy lifting: stitching, feature extraction, and CSV generation. If you only turn one of the parameters to true, that arm (painting or barcoding) will continue with stitching and cropping but then stop because the final combined analysis step needs the outputs from both painting and barcoding.
