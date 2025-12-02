@@ -86,10 +86,13 @@ nav:
   - "💻 Usage":
       - Using Your Own Dataset: usage/custom-data.md
       - Parameters: usage/parameters.md
+      - Samplesheet Dependencies: samplesheet_dependencies.md
       - FAQ: usage/faq.md
   - "🛠️ Developer Guide":
       - Introduction: developer/intro.md
       - Architecture: developer/architecture.md
       - CellProfiler Integration: developer/cellprofiler.md
       - Python Scripts: developer/python-scripts.md
+      - Load Data CSV Generation: load_data_csv_generation.md
+      - Outputs: developer/outputs.md
       - Testing: developer/testing.md

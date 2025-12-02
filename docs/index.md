@@ -89,7 +89,7 @@ flowchart TD
 - [Getting Started](getting-started/quickstart.md) - Install and run your first analysis
 - [Parameters](usage/parameters.md) - Complete parameter reference
 - [Architecture](developer/architecture.md) - Pipeline architecture and implementation
-- [Seqera Platform](usage/seqera-platform.md) - Run on cloud and HPC infrastructure
+- [FAQ](usage/faq.md) - Frequently asked questions
 
 ## Citation
 
@@ -110,10 +110,10 @@ See [CITATIONS.md](https://github.com/seqera-services/nf-pooled-cellpainting/blo
 For questions and support:
 
 - Open an issue on [GitHub](https://github.com/seqera-services/nf-pooled-cellpainting/issues)
-- Review [Troubleshooting Guide](reference/troubleshooting.md)
+- Review [FAQ](usage/faq.md)
 
 ## License
 
-This pipeline is licensed under the [BSD 3-Clause License](LICENSE).
+This pipeline is licensed under the [BSD 3-Clause License](https://github.com/seqera-services/nf-pooled-cellpainting/blob/dev/LICENSE).
 
-Portions of this software are derived from the nf-core project template and nf-core tools, which are licensed under the [MIT License](LICENSE-MIT). This includes the pipeline template structure, module patterns, configuration patterns, and utility functions.
+Portions of this software are derived from the nf-core project template and nf-core tools, which are licensed under the [MIT License](https://github.com/seqera-services/nf-pooled-cellpainting/blob/dev/LICENSE-MIT). This includes the pipeline template structure, module patterns, configuration patterns, and utility functions.

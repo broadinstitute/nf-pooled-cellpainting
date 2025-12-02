@@ -42,21 +42,21 @@ Located in `subworkflows/local/cellpainting/main.nf`. The workflow is organized 
 **1. Illumination Correction**
 
 - **ILLUMCALC**: Calculate illumination corrections per plate (outputs `.npy`).
-  - _Groups by:_ `[batch, plate]`
+  > _Groups by:_ `[batch, plate]`
 - **QC_MONTAGEILLUM**: Generate illumination QC montages.
 - **ILLUMAPPLY**: Apply illumination corrections per site.
-  - _Groups by:_ `[batch, plate, well, site]`
+  > _Groups by:_ `[batch, plate, well, site]`
 
 **2. Segmentation Quality Control**
 
 - **SEGCHECK**: Segmentation quality check (subsampled by `range_skip`).
-  - _Groups by:_ `[batch, plate, well]`
+  > _Groups by:_ `[batch, plate, well]`
 - **QC_MONTAGE_SEGCHECK**: Segmentation QC visualizations.
 
 **3. Image Stitching (Conditional)**
 
 - **FIJI_STITCHCROP**: Stitch and crop images (enabled when `qc_painting_passed`).
-  - _Groups by:_ `[batch, plate, well]`
+  > _Groups by:_ `[batch, plate, well]`
 - **QC_MONTAGE_STITCHCROP**: Stitching QC visualizations.
 
 ### Barcoding Subworkflow
@@ -66,26 +66,22 @@ Located in `subworkflows/local/barcoding/main.nf`. The workflow is organized int
 **1. Illumination Correction**
 
 - **ILLUMCALC**: Calculate cycle-specific illumination corrections.
-  - _Groups by:_ `[batch, plate, cycle]`
+  > _Groups by:_ `[batch, plate, cycle]`
 - **QC_MONTAGEILLUM**: Illumination QC montages.
 - **ILLUMAPPLY**: Apply illumination corrections.
-  - _Groups by:_ `[batch, plate, well]`
+  > _Groups by:_ `[batch, plate, well]`
 
 **2. Barcode Quality Control and Preprocessing**
 
-- **QC_BARCODEALIGN**: Barcode alignment QC.
-  - Checks pixel shifts and correlation between cycles.
-  - Validates against `barcoding_shift_threshold` and `barcoding_corr_threshold`.
-- **PREPROCESS**: Barcode calling and preprocessing.
-  - Uses CellProfiler plugins (`callbarcodes`, `compensatecolors`).
-  - _Groups by:_ `[batch, plate, well,site]`
+- **QC_BARCODEALIGN**: Barcode alignment QC. Checks pixel shifts and correlation between cycles. Validates against `barcoding_shift_threshold` and `barcoding_corr_threshold`.
+- **PREPROCESS**: Barcode calling and preprocessing. Uses CellProfiler plugins (`callbarcodes`, `compensatecolors`).
+  > _Groups by:_ `[batch, plate, well, site]`
 - **QC_PREPROCESS**: Preprocessing QC visualizations.
 
 **3. Image Stitching (Conditional)**
 
-- **FIJI_STITCHCROP**: Stitch and crop images.
-  - Enabled when `qc_barcoding_passed == true`.
-  - _Groups by:_ `[batch, plate, well]`
+- **FIJI_STITCHCROP**: Stitch and crop images. Enabled when `qc_barcoding_passed == true`.
+  > _Groups by:_ `[batch, plate, well]`
 
 ## Channel Architecture
 
@@ -114,22 +110,7 @@ meta = [
 
 ### Grouping Strategy
 
-During the workflow execution, the input channels are grouped based on the parallelization granularity we chose for each pipeline step. The currently implemented grouping strategy is as follows:]
-
-- **CELLPROFILER_ILLUMCALC**:
-  - painting: Grouped by plate
-  - barcoding: Grouped by plate, cycle
-- **CELLPROFILER_ILLUMAPPLY**:
-  - painting: Parallelized per site
-  - barcoding: Parallelized per well
-- **CELLPROFILER_STITCHCROP**:
-  - painting: Parallelized per well
-  - barcoding: Parallelized per well
-- **CELLPROFILER_COMBINEDANALYSIS**:
-  - painting: Parallelized per site
-  - barcoding: Parallelized per site
-
-The channel grouping is implemented throughout workflow and subworkflows.
+During the workflow execution, the input channels are grouped based on the parallelization granularity we chose for each pipeline step. The channel grouping is implemented throughout workflow and subworkflows. Below is an example of what this grouping looks like in Nextflow.
 
 ```groovy
 // Group images by batch and plate for illumination calculation
