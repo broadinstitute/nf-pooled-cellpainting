@@ -6,34 +6,11 @@ Technical overview of the pipeline architecture and implementation.
 
 ### Main Workflow
 
-The main workflow (`main.nf`) orchestrates two parallel subworkflows:
+The main workflow (`workflows/nf-pooled-cellpainting.nf`) orchestrates the pipeline execution:
 
-<!-- ```groovy
-workflow NF_POOLED_CELLPAINTING {
-    // Split samplesheet into painting and barcoding arms
-    ch_samplesheet
-        .branch { meta, files ->
-            painting: meta.arm == 'painting'
-            barcoding: meta.arm == 'barcoding'
-        }
-        .set { ch_branched }
-
-    // Process painting arm
-    CELLPAINTING(ch_branched.painting, ...)
-
-    // Process barcoding arm
-    BARCODING(ch_branched.barcoding, ...)
-
-    // Combined analysis (conditional)
-    if (qc_painting_passed && qc_barcoding_passed) {
-        CELLPROFILER_COMBINEDANALYSIS(
-            CELLPAINTING.out.stitched_cropped,
-            BARCODING.out.stitched_cropped,
-            ...
-        )
-    }
-}
-``` -->
+1. **Subworkflow Execution**: Runs CELLPAINTING and BARCODING subworkflows in parallel
+2. **Combined Analysis**: Merges outputs from both arms (conditional on QC gates)
+3. **MultiQC Report**: Generates unified QC report (conditional on QC gates)
 
 ### Cell Painting Subworkflow
 
@@ -82,6 +59,47 @@ Located in `subworkflows/local/barcoding/main.nf`. The workflow is organized int
 
 - **FIJI_STITCHCROP**: Stitch and crop images. Enabled when `qc_barcoding_passed == true`.
   > _Groups by:_ `[batch, plate, well]`
+
+### Combined Analysis (Conditional)
+
+Located in `modules/local/cellprofiler/combinedanalysis/main.nf`. Executes when both `qc_painting_passed` and `qc_barcoding_passed` are `true`.
+
+**Input Aggregation**
+
+Combines cropped images from both arms, grouped by `[batch, plate, well, site]`:
+
+- **From Cell Painting**: Corrected images (`CorrDNA`, `CorrPhalloidin`, `CorrCHN2`, etc.)
+- **From Barcoding**: Preprocessed cycle images (`Cycle##_A`, `Cycle##_C`, `Cycle##_G`, `Cycle##_T`, `Cycle##_DNA`)
+
+**Processing Steps**
+
+- **CELLPROFILER_COMBINEDANALYSIS**: Runs the combined analysis CellProfiler pipeline.
+  > _Groups by:_ `[batch, plate, well, site]`
+
+**Outputs**
+
+- Overlay images (PNG) showing segmentation results
+- CSV statistics for Nuclei, Cells, Cytoplasm, Foci measurements
+- Segmentation masks (TIFF)
+- Consolidated `load_data.csv` for all samples
+
+### MultiQC Report (Conditional)
+
+Located in `modules/nf-core/multiqc/main.nf`. Executes when both `qc_painting_passed` and `qc_barcoding_passed` are `true`.
+
+**Aggregated Inputs**
+
+- Software versions from all processes
+- Workflow summary parameters
+- Methods description
+
+**Outputs**
+
+- `multiqc_report.html`: Interactive HTML report
+- `multiqc_data/`: Raw data and plot data
+- `multiqc_plots/`: Exported plot files
+
+Configuration is defined in `assets/multiqc_config.yml`.
 
 ## Channel Architecture
 
