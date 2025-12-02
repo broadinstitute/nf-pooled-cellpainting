@@ -61,10 +61,10 @@ modules/
 
 Before contributing, make sure you have:
 
-1. **Nextflow** (version 23.04.0 or later)
-2. **Docker** (for running the pipeline)
-3. **nf-test** (for running tests) - install via: `curl -fsSL https://code.askimed.com/install/nf-test | bash`
-4. **Git** (for version control)
+1. [**Nextflow**](https://www.nextflow.io/) (version 23.04.0 or later)
+2. [**Docker**](https://www.docker.com/) (for running the pipeline)
+   3. [**nf-test**](https://www.nf-test.com/) (for running tests) - install via: `curl -fsSL https://code.askimed.com/install/nf-test | bash`
+   4. [**Git**](https://www.docker.com/) (for version control)
 
 ### Clone and Test
 

@@ -95,6 +95,5 @@ nav:
       - Architecture: developer/architecture.md
       - CellProfiler Integration: developer/cellprofiler.md
       - Python Scripts: developer/python-scripts.md
-      - Load Data CSV Generation: developer/load_data_csv_generation.md
       - Outputs: developer/outputs.md
       - Testing: developer/testing.md

@@ -7,8 +7,8 @@ The pipeline includes helper Python scripts that handle data preparation and qua
 These scripts live in the `bin/` directory and are automatically available to all pipeline processes:
 
 - `generate_load_data_csv.py`: Universal CSV generator for CellProfiler
-- `generate_combined_load_data.py`: Specialized CSV for combined analysis
 - `qc_barcode_align.py`: Barcode alignment quality control
+- `qc_barcode_preprocess.py`: Barcode preprocessing quality control
 
 These scripts are automatically available in the process `PATH` and are called during pipeline execution.
 
@@ -16,7 +16,7 @@ These scripts are automatically available in the process `PATH` and are called d
 
 ### Purpose
 
-Generates `load_data.csv` files required by CellProfiler processes. This is the **primary data staging script** used throughout the pipeline.
+Generates `load_data.csv` files required by CellProfiler processes. This is the **primary data staging script** used throughout the pipeline. 
 
 ### Usage
 
@@ -48,8 +48,7 @@ Stages original multi-channel images for illumination function calculation.
 **Output columns**:
 
 ```
-Metadata_Plate, Metadata_Well, Metadata_Site, Metadata_Frame,
-FileName_<Channel>, PathName_<Channel>
+Metadata_Plate, Metadata_Well, Metadata_Site, Metadata_Frame, FileName_<Channel>
 ```
 
 **Example**:
@@ -70,8 +69,7 @@ Stages original images alongside illumination functions for correction.
 
 ```
 Metadata_Plate, Metadata_Well, Metadata_Site, Metadata_Frame,
-FileName_Orig<Channel>, PathName_Orig<Channel>,
-FileName_Illum<Channel>, PathName_Illum<Channel>
+FileName_Orig<Channel>, FileName_Illum<Channel>
 ```
 
 **Example**:
@@ -91,8 +89,7 @@ Stages corrected images for segmentation quality control.
 **Output columns**:
 
 ```
-Metadata_Plate, Metadata_Well, Metadata_Site, Metadata_Frame,
-FileName_Corr<Channel>, PathName_Corr<Channel>
+Metadata_Plate, Metadata_Well, Metadata_Site, Metadata_Frame, FileName_Corr<Channel>
 ```
 
 #### 4. `preprocess` - Barcoding Preprocessing
@@ -103,7 +100,7 @@ Stages cycle-based images for barcode calling.
 
 ```
 Metadata_Plate, Metadata_Well, Metadata_Site, Metadata_Frame, Metadata_Cycle,
-FileName_Cycle<N>_<Channel>, PathName_Cycle<N>_<Channel>
+FileName_Cycle<N>_<Channel>
 ```
 
 **Example**:
@@ -125,8 +122,71 @@ Stages both painting (corrected) and barcoding (preprocessed) images.
 
 ```
 Metadata_Plate, Metadata_Well, Metadata_Site, Metadata_Frame,
-FileName_Corr<Channel>, PathName_Corr<Channel>,
-FileName_Cycle<N>_<Channel>, PathName_Cycle<N>_<Channel>
+FileName_Corr<Channel>, FileName_Cycle<N>_<Channel>
+```
+
+### Metadata Flow
+
+Metadata originates from the input samplesheet and flows through Nextflow channels to the Python scripts. The scripts use two approaches:
+
+**Pattern A: Metadata-Driven** (ILLUMCALC, ILLUMAPPLY)
+
+Metadata is passed as CLI arguments from the Nextflow `meta` map:
+
+```bash
+generate_load_data_csv.py \
+    --pipeline-type illumcalc \
+    --images-dir ./images \
+    --plate ${meta.plate} \      # from samplesheet
+    --channels "${channels}" \   # from meta.channels
+    --output load_data.csv
+```
+
+**Pattern B: Filename-Driven** (PREPROCESS, COMBINEDANALYSIS)
+
+All metadata is extracted from standardized filenames:
+
+```bash
+generate_load_data_csv.py \
+    --pipeline-type preprocess \
+    --images-dir ./images \
+    --output load_data.csv
+```
+
+### Filename Patterns
+
+The script parses different filename patterns depending on the pipeline stage:
+
+| Image Type | Pattern | Example |
+| :--------- | :------ | :------ |
+| Original | `Well{well}_Point{site}_{frame}_Channel{channels}_Seq*.ome.tiff` | `WellA1_PointA1_0000_ChannelDNA,GFP_Seq0000.ome.tiff` |
+| Corrected | `Plate_{plate}_Well_{well}_Site_{site}_Corr{channel}.tiff` | `Plate_Plate1_Well_A1_Site_1_CorrDNA.tiff` |
+| Illumination | `{plate}_Illum{channel}.npy` | `Plate1_IllumDNA.npy` |
+| Cycle | `Plate_{plate}_Well_{well}_Site_{site}_Cycle{cycle}_{channel}.tiff` | `Plate_Plate1_Well_A1_Site_1_Cycle01_A.tiff` |
+
+### CSV Output Structures
+
+Different pipeline types produce different CSV structures:
+
+**Standard (Cell Painting)**:
+
+```csv
+Metadata_Plate,Metadata_Well,Metadata_Site,FileName_OrigDNA,Frame_OrigDNA,FileName_IllumDNA,...
+Plate1,A1,1,WellA1_Point_0000.ome.tiff,0,Plate1_IllumDNA.npy,...
+```
+
+**With Cycles (Barcoding)**:
+
+```csv
+Metadata_Plate,Metadata_Well,Metadata_Site,Metadata_Cycle,FileName_Cycle01_OrigA,Frame_Cycle01_OrigA,...
+Plate1,A1,1,1,filename.ome.tiff,0,...
+```
+
+**Combined Analysis**:
+
+```csv
+Metadata_Plate,Metadata_Site,Metadata_Well,FileName_CorrDNA,FileName_Cycle01_A,...
+Plate1,1,A1,corrected.tiff,cycle1.tiff,...
 ```
 
 ### Implementation Details
@@ -134,30 +194,9 @@ FileName_Cycle<N>_<Channel>, PathName_Cycle<N>_<Channel>
 The script:
 
 1. **Scans directories** for TIFF images matching expected patterns
-2. **Parses filenames** to extract metadata:
-   - Plate, well, site, frame
-   - Channel name
-   - Cycle (for barcoding)
+2. **Parses filenames** to extract metadata (plate, well, site, frame, channel, cycle)
 3. **Groups images** by metadata keys
 4. **Generates CSV** with proper CellProfiler column names
-
-### Filename Parsing
-
-Expected filename patterns:
-
-```python
-# Original images
-{plate}_{well}_{site}_{frame}_{channel}.tif
-
-# Corrected images
-{plate}_{well}_{site}_Corr{channel}.tif
-
-# Illumination functions
-{plate}_Illum{channel}.npy
-
-# Cycle images
-{plate}_{well}_{site}_{frame}_Cycle{cycle}_{channel}.tif
-```
 
 ### Error Handling
 
@@ -167,37 +206,6 @@ The script validates:
 - Metadata completeness
 - Channel consistency
 - Frame/cycle ranges
-
-## generate_combined_load_data.py
-
-### Purpose
-
-Specialized script for combined analysis that merges painting and barcoding data.
-
-### Usage
-
-```python
-generate_combined_load_data.py \
-    --painting_dir /path/to/corrected/ \
-    --barcoding_dir /path/to/preprocessed/ \
-    --channels DAPI,GFP,RFP \
-    --barcode_channels Cy3,Cy5 \
-    --cycles 1,2,3 \
-    --output combined_load_data.csv
-```
-
-### Key Features
-
-1. **Dual directory scanning**: Reads from both painting and barcoding outputs
-2. **Metadata alignment**: Matches images by `(plate, well, site)`
-3. **Mixed column generation**: Creates both `Corr` and `Cycle` columns
-
-### Output Format
-
-```csv
-Metadata_Plate,Metadata_Well,Metadata_Site,Metadata_Frame,FileName_CorrDAPI,PathName_CorrDAPI,FileName_Cycle1_Cy3,PathName_Cycle1_Cy3,...
-P001,A01,1,0,P001_A01_1_CorrDAPI.tif,/painting/corrected/,P001_A01_1_0_Cycle1_Cy3.tif,/barcoding/preprocessed/,...
-```
 
 ## qc_barcode_align.py
 
@@ -211,9 +219,9 @@ Jupyter notebook for analyzing barcode alignment quality across cycles.
 2. **Calculate pixel shifts**: Measures X/Y displacement between cycles
 3. **Compute correlations**: Calculates Pearson correlation between cycles
 4. **Generate visualizations**:
-   - Scatter plots of pixel shifts
-   - Correlation heatmaps
-   - Spatial shift maps
+    - Scatter plots of pixel shifts
+    - Correlation heatmaps
+    - Spatial shift maps
 5. **Validate thresholds**: Checks against `barcoding_shift_threshold` and `barcoding_corr_threshold`
 
 ### Usage
@@ -263,8 +271,7 @@ def generate_newtype_csv(images, channels, output):
             'Metadata_Plate': img.plate,
             'Metadata_Well': img.well,
             # ... additional metadata
-            f'FileName_{channel}': img.filename,
-            f'PathName_{channel}': img.path
+            f'FileName_{channel}': img.filename
         }
         rows.append(row)
 
@@ -350,16 +357,6 @@ ls test_images/ | grep -E "P[0-9]+_[A-Z][0-9]+_[0-9]+_[0-9]+_.*\.tif"
 
 ```python
 df[['Metadata_Plate', 'Metadata_Well', 'Metadata_Site']].drop_duplicates()
-```
-
-### Path Issues
-
-**Symptom**: CellProfiler can't find images
-
-**Solution**: Use absolute paths or ensure relative paths are correct:
-
-```python
-PathName = os.path.abspath(image_dir)
 ```
 
 ## Next Steps

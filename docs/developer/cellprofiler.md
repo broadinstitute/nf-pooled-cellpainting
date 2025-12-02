@@ -60,61 +60,45 @@ process CELLPROFILER_ILLUMCALC {
 
 ### Structure
 
-CellProfiler pipelines are XML-based `.cppipe` files defining:
+CellProfiler pipelines are text files (`.cppipe`) files defining:
 
 - Input modules (LoadData, LoadImages)
 - Processing modules (CorrectIlluminationCalculate, ApplyIllumination)
 - Output modules (SaveImages, ExportToSpreadsheet)
 
-### Template Support
-
-Pipelines can use template variables:
-
-```xml
-<LoadData>
-    <csv_file_name>load_data.csv</csv_file_name>
-</LoadData>
-```
-
-The pipeline automatically populates:
-
-- Channel names
-- File paths
-- Output directories
-
 ### Example Pipelines
 
-The pipeline requires these `.cppipe` files:
+The pipeline requires these `.cppipe` files (names of the actual files can be different!):
 
 1. **painting_illumcalc.cppipe**: Calculate painting illumination
-   - Inputs: Multi-channel raw images
-   - Outputs: `.npy` illumination functions per channel
+    - Inputs: Multi-channel raw images
+    - Outputs: `.npy` illumination functions per channel
 
 2. **painting_illumapply.cppipe**: Apply painting illumination
-   - Inputs: Raw images + illumination functions
-   - Outputs: Corrected TIFF images
+    - Inputs: Raw images + illumination functions
+    - Outputs: Corrected TIFF images
 
 3. **painting_segcheck.cppipe**: Segmentation QC
-   - Inputs: Corrected images
-   - Outputs: Segmentation previews
+    - Inputs: Corrected images
+    - Outputs: Segmentation previews
 
 4. **barcoding_illumcalc.cppipe**: Calculate barcoding illumination
-   - Inputs: Multi-cycle raw images
-   - Outputs: Cycle-specific illumination functions
+    - Inputs: Multi-cycle raw images
+    - Outputs: Cycle-specific illumination functions
 
 5. **barcoding_illumapply.cppipe**: Apply barcoding illumination
-   - Inputs: Raw cycle images + illumination functions
-   - Outputs: Corrected cycle images
+    - Inputs: Raw cycle images + illumination functions
+    - Outputs: Corrected cycle images
 
 6. **barcoding_preprocess.cppipe**: Barcode calling
-   - Inputs: Corrected cycle images
-   - Outputs: Barcode-called images
-   - Requires: `callbarcodes` and `compensatecolors` plugins
+    - Inputs: Corrected cycle images
+    - Outputs: Barcode-called images
+    - Requires: `callbarcodes` and `compensatecolors` plugins
 
 7. **combinedanalysis.cppipe**: Final analysis
-   - Inputs: Painting corrected + barcoding preprocessed images
-   - Outputs: Segmentation masks, feature measurements
-   - Requires: `callbarcodes` plugin
+    - Inputs: Painting corrected + barcoding preprocessed images
+    - Outputs: Segmentation masks, feature measurements
+    - Requires: `callbarcodes` plugin
 
 ## Load Data CSV Generation
 
@@ -187,73 +171,24 @@ cellprofiler \
 
 ### Plugin Loading
 
-For processes requiring plugins:
+For processes requiring plugins, Nextflow stages plugins into the process based on the plugin path provided.
+Default plugins are loaded from https://github.com/CellProfiler/CellProfiler-plugins via raw github links but local or other sources for the plugins can be specified if required. 
 
 ```bash
-# Download plugins
-wget -O callbarcodes.py ${PLUGIN_URL}
-wget -O compensatecolors.py ${PLUGIN_URL}
+# Stage plugins in nf-pooled-cellpainting.nf
+file(params.callbarcodes_plugin)
 
-# Run with plugin directory
-cellprofiler \
-    -c -r \
-    -p pipeline.cppipe \
-    --plugins-directory=. \
-    --data-file=load_data.csv
+# Stage plugins as input into process
+path plugins, stageAs: "plugins/"
+
+# use plugins in process with cellprofiler
+cellprofiler -c -r \\
+    -p combinedanalysis_patched.cppipe \\
+    -o . \\
+    --data-file=load_data.csv \\
+    --image-directory ./images/ \\
+    --plugins-directory=./plugins/
 ```
-
-### Resource Requirements
-
-Typical resource allocation:
-
-```groovy
-process {
-    withName: 'CELLPROFILER_ILLUMCALC' {
-        cpus = 8
-        memory = 32.GB
-        time = 8.h
-    }
-
-    withName: 'CELLPROFILER_ILLUMAPPLY' {
-        cpus = 4
-        memory = 16.GB
-        time = 4.h
-    }
-
-    withName: 'CELLPROFILER_PREPROCESS' {
-        cpus = 4
-        memory = 16.GB
-        time = 4.h
-    }
-}
-```
-
-## Plugin Architecture
-
-### callbarcodes Plugin
-
-Implements barcode calling logic:
-
-- Reads multi-cycle fluorescence images
-- Identifies brightest channel per cycle
-- Constructs barcode sequences
-- Assigns barcodes to cells
-
-Usage in pipeline:
-
-```xml
-<RunCellpose>
-    <plugin_name>callbarcodes</plugin_name>
-    <!-- Plugin-specific parameters -->
-</RunCellpose>
-```
-
-### compensatecolors Plugin
-
-Performs spectral unmixing:
-
-- Corrects fluorescence bleed-through between channels
-- Improves barcode calling accuracy
 
 ## Output Organization
 
@@ -307,12 +242,7 @@ cat load_data.csv | cut -d',' -f5 | xargs -I {} test -f {} && echo "OK"
 
 **Symptom**: "Plugin 'callbarcodes' not found"
 
-**Solution**: Ensure plugin URL is accessible:
-
-```bash
-wget -O callbarcodes.py ${PLUGIN_URL}
-cellprofiler --plugins-directory=.
-```
+**Solution**: Ensure plugin URL is accessible and pipeline has access to the internet if plugin is loaded from an online source.
 
 #### 3. Memory Errors
 
@@ -329,23 +259,11 @@ process {
 }
 ```
 
-### Debugging
-
-Enable CellProfiler debugging:
-
-```bash
-cellprofiler \
-    -c -r \
-    -p pipeline.cppipe \
-    --log-level=DEBUG \
-    --data-file=load_data.csv
-```
-
 ## Best Practices
 
 1. **Validate pipelines**: Test `.cppipe` files in CellProfiler GUI first
-2. **Template metadata**: Use template variables for flexibility
-3. **Resource tuning**: Profile memory usage and adjust allocation
+2. **Test on subset data first**: Test your dataset on 1 well first, since well is the smallest unit we can use for the pipeline. If the pipeline works on 1 well, it should work on a full plate.
+3. **Resource tuning**: Profile memory usage and adjust allocation (to save time and cost)
 4. **Plugin versioning**: Pin plugin versions for reproducibility
 5. **Output validation**: Check output file counts match expectations
 
