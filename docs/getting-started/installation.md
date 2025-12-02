@@ -20,12 +20,6 @@
 
 ## Install Nextflow
 
-=== "Conda"
-
-    ```bash
-    conda install -c bioconda nextflow
-    ```
-
 === "Manual"
 
     ```bash

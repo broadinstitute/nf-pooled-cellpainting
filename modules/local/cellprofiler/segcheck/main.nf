@@ -2,7 +2,6 @@ process CELLPROFILER_SEGCHECK {
     tag "${meta.id}"
     label 'cellprofiler_basic'
 
-    conda "${moduleDir}/environment.yml"
     container "${workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container
         ? 'oras://community.wave.seqera.io/library/cellprofiler:4.2.8--7c1bd3a82764de92'
         : 'community.wave.seqera.io/library/cellprofiler:4.2.8--aff0a99749304a7f'}"
