@@ -36,7 +36,7 @@ path,arm,batch,plate,well,channels,site,cycle,n_frames
 ```
 
 !!! warning "Channel Names"
-Ensure the channel names in the `channels` column match the names used in your CellProfiler pipelines as the channel names will be used to build load_data.csv columns that need to correspond to your cppipe files provided to the pipeline!
+    Ensure the channel names in the `channels` column match the names used in your CellProfiler pipelines as the channel names will be used to build load_data.csv columns that need to correspond to your cppipe files provided to the pipeline!
 
 ## 2. Barcodes File
 
@@ -79,7 +79,7 @@ You need to provide paths to these files using the corresponding parameters:
 - `--combinedanalysis_cppipe`: The final step that merges data. **Crucially**, this pipeline must expect the input object tables from the previous steps.
 
 !!! warning "Pipeline Compatibility"
-Ensure your CellProfiler pipelines are compatible with the version of CellProfiler used in the container (currently 4.2.x).
+    Ensure your CellProfiler pipelines are compatible with the version of CellProfiler used in the container (currently 4.2.x).
 
 ## Running the Pipeline
 

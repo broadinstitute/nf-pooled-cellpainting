@@ -59,7 +59,7 @@ nextflow run seqera-services/nf-pooled-cellpainting \
 ```
 
 !!! important "The `-resume` flag"
-The `-resume` flag is critical here. It tells Nextflow to use the cached results from the previous run and only execute the _new_ steps (stitching, cropping, and combined analysis). Without it, the pipeline would start from scratch. If you are running on Seqera Platform, make sure you click on resume to use the cached results. Don't use relaunch, as this will restart the run from scratch.
+    The `-resume` flag is critical here. It tells Nextflow to use the cached results from the previous run and only execute the _new_ steps (stitching, cropping, and combined analysis). Without it, the pipeline would start from scratch. If you are running on Seqera Platform, make sure you click on resume to use the cached results. Don't use relaunch, as this will restart the run from scratch.
 
 ### What happens now?
 

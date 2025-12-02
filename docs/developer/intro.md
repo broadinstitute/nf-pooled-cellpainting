@@ -53,4 +53,4 @@ modules/
 ```
 
 !!! warning "Docker support only"
-The nf-pooled-cellpainting pipeline was developed to work with the Docker container engine and does not currently support conda, singularity or any other container engine!
+    The nf-pooled-cellpainting pipeline was developed to work with the Docker container engine and does not currently support conda, singularity or any other container engine!
