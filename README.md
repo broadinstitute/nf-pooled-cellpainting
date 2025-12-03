@@ -5,7 +5,7 @@
 
 ## Introduction
 
-**nf-pooled-cellpainting** is a Nextflow pipeline for processing optical pooled screening (OPS) data, combining Cell Painting phenotypic analysis with sequencing-by-synthesis barcoding.
+**nf-pooled-cellpainting** is a Nextflow pipeline for processing optical pooled screening (OPS) data, combining Cell Painting phenotypic analysis with sequencing-by-synthesis barcoding. The output of the pipeline is a collection of phenotypic measurements for each identified cell in the dataset.
 
 ## Pipeline Overview
 
@@ -17,17 +17,15 @@ The pipeline processes data through two parallel arms:
 Key steps include:
 
 1. Illumination correction (CellProfiler)
-2. Quality control checkpoints
+2. Quality control checkpoints (segmentation evaluation, barcode calling and cycle alignment)
 3. Image stitching and cropping (Fiji)
 4. Segmentation and feature extraction
 5. Barcode calling and assignment
-6. Final version and QC report with MultiQC
+6. Final reporting and QC with MultiQC
 
 ## Quick Start
 
-### Using test data
-
-You can run the pipeline with a very small test dataset to test that the pipeline is executing correctly:
+The pipeline includes a small test dataset to verify that the pipeline executes correctly from end to end. You can run the test profile using the following command:
 
 ```bash
 nextflow run seqera-services/nf-pooled-cellpainting -profile test,docker --outdir results
@@ -35,7 +33,7 @@ nextflow run seqera-services/nf-pooled-cellpainting -profile test,docker --outdi
 
 ### Using your own data
 
-If you want to use your own optical pooled screening data, you need to supply your a samplesheet, a barcode.csv file, your own generated cellprofiler pipeline files (cppipe files) for all of the pipeline steps and an output directory where to write the results.
+To use your own or public optical pooled screening data, you need to supply a samplesheet, a `barcode.csv` file, your own generated CellProfiler pipeline files (`.cppipe` files) for all pipeline steps, and an output directory for the results.
 
 ```bash
 nextflow run seqera-services/nf-pooled-cellpainting \
@@ -52,35 +50,36 @@ nextflow run seqera-services/nf-pooled-cellpainting \
    --outdir results
 ```
 
-<!-- ## Documentation
+Instead of defining parameters on the command line, you can also define them via a Nextflow config file or as json or yaml params files (see [Nextflow documentation](https://nextflow.io/docs/latest/cli.html)).
 
-For detailed documentation, see: **[Full Documentation](https://your-org.github.io/nf-pooled-cellpainting/)**
+## Documentation
 
-- [Installation](https://your-org.github.io/nf-pooled-cellpainting/getting-started/installation/)
-- [Usage Guide](https://your-org.github.io/nf-pooled-cellpainting/usage/parameters/)
-- [Pipeline Architecture](https://your-org.github.io/nf-pooled-cellpainting/developer/architecture/)
-- [Troubleshooting](https://your-org.github.io/nf-pooled-cellpainting/reference/troubleshooting/) -->
+For detailed documentation, see: **[Full Documentation](https://seqera-services.github.io/nf-pooled-cellpainting/)**
 
-## Pipeline Parameters
+- [Installation](https://seqera-services.github.io/nf-pooled-cellpainting/getting-started/installation/)
+- [Usage Guide](https://seqera-services.github.io/nf-pooled-cellpainting/usage/parameters/)
+- [Troubleshooting](https://seqera-services.github.io/nf-pooled-cellpainting/reference/troubleshooting/)
 
-Key parameters:
+## Important pipeline Parameters
 
-| Parameter                   | Description                                   | Required |
-| --------------------------- | --------------------------------------------- | -------- |
-| `--input`                   | Samplesheet CSV with image paths and metadata | Yes      |
-| `--outdir`                  | Output directory                              | Yes      |
-| `--barcodes`                | Barcode reference CSV                         | Yes      |
-| `--painting_*_cppipe`       | CellProfiler pipelines for painting arm       | Yes      |
-| `--barcoding_*_cppipe`      | CellProfiler pipelines for barcoding arm      | Yes      |
-| `--combinedanalysis_cppipe` | Combined analysis pipeline                    | Yes      |
-| `--qc_painting_passed`      | QC passed for painting arm (default: false)   | No       |
-| `--qc_barcoding_passed`     | QC passed for barcoding arm (default: false)  | No       |
+The pipeline contains several parameters that are necessary for correct execution of the pipeline and to determine whether the pipeline will pause for manual quality control.
+
+| Parameter                   | Description                                        | Required |
+| :-------------------------- | :------------------------------------------------- | :------- |
+| `--input`                   | Samplesheet CSV with image paths and metadata      | Yes      |
+| `--outdir`                  | Output directory                                   | Yes      |
+| `--barcodes`                | Barcode reference CSV                              | Yes      |
+| `--painting_*_cppipe`       | CellProfiler pipelines for the painting arm        | Yes      |
+| `--barcoding_*_cppipe`      | CellProfiler pipelines for the barcoding arm       | Yes      |
+| `--combinedanalysis_cppipe` | Combined analysis pipeline                         | Yes      |
+| `--qc_painting_passed`      | QC status for the painting arm (default: `false`)  | No       |
+| `--qc_barcoding_passed`     | QC status for the barcoding arm (default: `false`) | No       |
 
 <!-- See [Parameters Documentation](https://your-org.github.io/nf-pooled-cellpainting/usage/parameters/) for complete list. -->
 
 ## Credits
 
-nf-pooled-cellpainting was originally written by [Florian Wuennemann](https://github.com/FloWuenne) (Seqera), [Ken Brewer](https://github.com/kenibrewer) (Seqera), [Erin Weissbart](https://github.com/ErinWeisbart) (Broad Institute), [Shantanu Singh](https://github.com/shntnu) (Broad Institute).
+nf-pooled-cellpainting was originally written by [Florian Wuennemann](https://github.com/FloWuenne) (Seqera), [Ken Brewer](https://github.com/kenibrewer) (Seqera), [Erin Weissbart](https://github.com/ErinWeisbart) (Broad Institute), and [Shantanu Singh](https://github.com/shntnu) (Broad Institute).
 
 ## Contributions and Support
 
