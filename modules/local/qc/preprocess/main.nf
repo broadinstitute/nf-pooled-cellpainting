@@ -2,7 +2,6 @@ process QC_PREPROCESS {
     tag "${meta.id}"
     label 'qc'
 
-    conda "${moduleDir}/environment.yml"
     container 'community.wave.seqera.io/library/ipykernel_jupytext_nbconvert_pandas_pruned:c397cee54f4ab064'
 
     input:

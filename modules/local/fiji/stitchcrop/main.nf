@@ -2,7 +2,6 @@ process FIJI_STITCHCROP {
     tag "${meta.id}"
     label 'fiji'
 
-    conda "${moduleDir}/environment.yml"
     container 'docker.io/cellprofiler/distributed-fiji:fusion-v0.1.0'
 
     input:
