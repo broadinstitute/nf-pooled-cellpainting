@@ -8,6 +8,8 @@ nextflow_pipeline {
 
     test("nf-pooled-cellpainting - full pipeline - test profile - qc passed") {
 
+        tag "qc_passed"
+
         when {
             params {
                 // Use the test profile parameters
@@ -80,6 +82,8 @@ nextflow_pipeline {
 
     test("nf-pooled-cellpainting - full pipeline - test profile - stub") {
 
+        tag "stub"
+
         options "-stub"
 
         when {
@@ -150,6 +154,8 @@ nextflow_pipeline {
     }
 
     test("nf-pooled-cellpainting - full pipeline - test profile - stub - painting qc false") {
+
+        tag "stub_painting_qc_false"
 
         options "-stub"
 
@@ -228,6 +234,8 @@ nextflow_pipeline {
 
     test("nf-pooled-cellpainting - full pipeline - test profile - stub - barcoding qc false") {
 
+        tag "stub_barcoding_qc_false"
+
         options "-stub"
 
         when {
@@ -304,6 +312,8 @@ nextflow_pipeline {
     }
 
     test("nf-pooled-cellpainting - full pipeline - test profile - stub - both qc false") {
+
+        tag "stub_both_qc_false"
 
         options "-stub"
 
