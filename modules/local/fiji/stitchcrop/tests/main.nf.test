@@ -1,0 +1,218 @@
+/*
+ * NOTE: This test requires corrected TIFF images from CELLPROFILER_ILLUMAPPLY as input.
+ * The test data uses illumination-corrected images from the Cell Painting pipeline.
+ * These are multi-site images that will be stitched together and cropped using Fiji/ImageJ.
+ */
+
+nextflow_process {
+
+    name "Test Process FIJI_STITCHCROP"
+    script "../main.nf"
+    process "FIJI_STITCHCROP"
+
+    tag "fiji"
+    tag "fiji/stitchcrop"
+
+    test("fiji - stitchcrop - painting - corrected_images") {
+
+        tag "painting"
+
+        when {
+            process {
+                """
+                input[0] = [
+                    [batch:'Batch1', plate:'Plate1', arm:'painting', well:'A1', id:'Batch1_Plate1_painting_A1'],
+                    [
+                        file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/images/Batch1/images_corrected/painting/Plate1/Plate1-A1-0/Plate_Plate1_Well_A1_Site_0_CorrCHN2.tiff"),
+                        file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/images/Batch1/images_corrected/painting/Plate1/Plate1-A1-1/Plate_Plate1_Well_A1_Site_1_CorrCHN2.tiff"),
+                        file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/images/Batch1/images_corrected/painting/Plate1/Plate1-A1-2/Plate_Plate1_Well_A1_Site_2_CorrCHN2.tiff"),
+                        file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/images/Batch1/images_corrected/painting/Plate1/Plate1-A1-3/Plate_Plate1_Well_A1_Site_3_CorrCHN2.tiff")
+                    ]
+                ]
+                // Stitch script
+                input[1] = file("\${projectDir}/assets/stitchcrop/stitch_crop.env_master.test_profile.py", checkIfExists: true)
+                // Painting-specific stitching parameters
+                input[2] = "square"                    // painting_round_or_square
+                input[3] = true                        // painting_quarter_if_round
+                input[4] = 10                          // painting_overlap_pct
+                input[5] = 2                           // painting_scalingstring
+                input[6] = "unused"                    // painting_imperwell
+                input[7] = 2                           // painting_rows
+                input[8] = 2                           // painting_columns
+                input[9] = "Grid: snake by rows"      // painting_stitchorder
+                input[10] = 2                          // tileperside
+                input[11] = 800                        // final_tile_size
+                input[12] = 0                          // painting_xoffset_tiles
+                input[13] = 0                          // painting_yoffset_tiles
+                input[14] = true                       // compress
+                input[15] = "DNA"                     // channame
+                input[16] = true                       // should_run
+                """
+            }
+        }
+
+        then {
+            assertAll(
+                { assert process.success },
+                // Check that tiff outputs exist and have expected names (but don't snapshot their checksums)
+                { assert file(process.out.stitched_images.get(0).get(1)).name.endsWith('.tiff') },
+                { assert process.out.cropped_images.get(0).get(1).size() == 4 },
+                { assert process.out.cropped_images.get(0).get(1).every { file(it).name.endsWith('.tiff') } },
+                { assert file(process.out.downsampled_images.get(0).get(1)).name.endsWith('.tiff') },
+                // Only snapshot stable outputs (tile config and versions)
+                { assert snapshot(
+                    process.out.tile_config,
+                    process.out.versions
+                ).match() }
+            )
+        }
+
+    }
+
+    test("fiji - stitchcrop - barcoding - corrected_images") {
+
+        tag "barcoding"
+
+        when {
+            process {
+                """
+                input[0] = [
+                    [batch:'Batch1', plate:'Plate1', arm:'barcoding', well:'A1', id:'Batch1_Plate1_barcoding_A1'],
+                    [
+                        file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/images/Batch1/images_corrected/barcoding/Plate1/Plate1-A1-0/Plate_Plate1_Well_A1_Site_0_Cycle01_A.tiff"),
+                        file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/images/Batch1/images_corrected/barcoding/Plate1/Plate1-A1-0/Plate_Plate1_Well_A1_Site_0_Cycle01_C.tiff"),
+                        file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/images/Batch1/images_corrected/barcoding/Plate1/Plate1-A1-0/Plate_Plate1_Well_A1_Site_0_Cycle01_DNA.tiff"),
+                        file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/images/Batch1/images_corrected/barcoding/Plate1/Plate1-A1-0/Plate_Plate1_Well_A1_Site_0_Cycle01_G.tiff"),
+                        file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/images/Batch1/images_corrected/barcoding/Plate1/Plate1-A1-0/Plate_Plate1_Well_A1_Site_0_Cycle01_T.tiff"),
+                        file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/images/Batch1/images_corrected/barcoding/Plate1/Plate1-A1-0/Plate_Plate1_Well_A1_Site_0_Cycle02_A.tiff"),
+                        file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/images/Batch1/images_corrected/barcoding/Plate1/Plate1-A1-0/Plate_Plate1_Well_A1_Site_0_Cycle02_C.tiff"),
+                        file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/images/Batch1/images_corrected/barcoding/Plate1/Plate1-A1-0/Plate_Plate1_Well_A1_Site_0_Cycle02_G.tiff"),
+                        file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/images/Batch1/images_corrected/barcoding/Plate1/Plate1-A1-0/Plate_Plate1_Well_A1_Site_0_Cycle02_T.tiff"),
+                        file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/images/Batch1/images_corrected/barcoding/Plate1/Plate1-A1-0/Plate_Plate1_Well_A1_Site_0_Cycle03_A.tiff"),
+                        file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/images/Batch1/images_corrected/barcoding/Plate1/Plate1-A1-0/Plate_Plate1_Well_A1_Site_0_Cycle03_C.tiff"),
+                        file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/images/Batch1/images_corrected/barcoding/Plate1/Plate1-A1-0/Plate_Plate1_Well_A1_Site_0_Cycle03_G.tiff"),
+                        file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/images/Batch1/images_corrected/barcoding/Plate1/Plate1-A1-0/Plate_Plate1_Well_A1_Site_0_Cycle03_T.tiff"),
+                        file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/images/Batch1/images_corrected/barcoding/Plate1/Plate1-A1-1/Plate_Plate1_Well_A1_Site_1_Cycle01_A.tiff"),
+                        file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/images/Batch1/images_corrected/barcoding/Plate1/Plate1-A1-1/Plate_Plate1_Well_A1_Site_1_Cycle01_C.tiff"),
+                        file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/images/Batch1/images_corrected/barcoding/Plate1/Plate1-A1-1/Plate_Plate1_Well_A1_Site_1_Cycle01_G.tiff"),
+                        file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/images/Batch1/images_corrected/barcoding/Plate1/Plate1-A1-1/Plate_Plate1_Well_A1_Site_1_Cycle01_T.tiff"),
+                        file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/images/Batch1/images_corrected/barcoding/Plate1/Plate1-A1-1/Plate_Plate1_Well_A1_Site_1_Cycle02_A.tiff"),
+                        file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/images/Batch1/images_corrected/barcoding/Plate1/Plate1-A1-1/Plate_Plate1_Well_A1_Site_1_Cycle02_C.tiff"),
+                        file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/images/Batch1/images_corrected/barcoding/Plate1/Plate1-A1-1/Plate_Plate1_Well_A1_Site_1_Cycle02_G.tiff"),
+                        file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/images/Batch1/images_corrected/barcoding/Plate1/Plate1-A1-1/Plate_Plate1_Well_A1_Site_1_Cycle02_T.tiff"),
+                        file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/images/Batch1/images_corrected/barcoding/Plate1/Plate1-A1-1/Plate_Plate1_Well_A1_Site_1_Cycle03_A.tiff"),
+                        file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/images/Batch1/images_corrected/barcoding/Plate1/Plate1-A1-1/Plate_Plate1_Well_A1_Site_1_Cycle03_C.tiff"),
+                        file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/images/Batch1/images_corrected/barcoding/Plate1/Plate1-A1-1/Plate_Plate1_Well_A1_Site_1_Cycle03_G.tiff"),
+                        file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/images/Batch1/images_corrected/barcoding/Plate1/Plate1-A1-1/Plate_Plate1_Well_A1_Site_1_Cycle03_T.tiff"),
+                        file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/images/Batch1/images_corrected/barcoding/Plate1/Plate1-A1-2/Plate_Plate1_Well_A1_Site_2_Cycle01_A.tiff"),
+                        file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/images/Batch1/images_corrected/barcoding/Plate1/Plate1-A1-2/Plate_Plate1_Well_A1_Site_2_Cycle01_C.tiff"),
+                        file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/images/Batch1/images_corrected/barcoding/Plate1/Plate1-A1-2/Plate_Plate1_Well_A1_Site_2_Cycle01_G.tiff"),
+                        file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/images/Batch1/images_corrected/barcoding/Plate1/Plate1-A1-2/Plate_Plate1_Well_A1_Site_2_Cycle01_T.tiff"),
+                        file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/images/Batch1/images_corrected/barcoding/Plate1/Plate1-A1-2/Plate_Plate1_Well_A1_Site_2_Cycle02_A.tiff"),
+                        file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/images/Batch1/images_corrected/barcoding/Plate1/Plate1-A1-2/Plate_Plate1_Well_A1_Site_2_Cycle02_C.tiff"),
+                        file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/images/Batch1/images_corrected/barcoding/Plate1/Plate1-A1-2/Plate_Plate1_Well_A1_Site_2_Cycle02_G.tiff"),
+                        file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/images/Batch1/images_corrected/barcoding/Plate1/Plate1-A1-2/Plate_Plate1_Well_A1_Site_2_Cycle02_T.tiff"),
+                        file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/images/Batch1/images_corrected/barcoding/Plate1/Plate1-A1-2/Plate_Plate1_Well_A1_Site_2_Cycle03_A.tiff"),
+                        file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/images/Batch1/images_corrected/barcoding/Plate1/Plate1-A1-2/Plate_Plate1_Well_A1_Site_2_Cycle03_C.tiff"),
+                        file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/images/Batch1/images_corrected/barcoding/Plate1/Plate1-A1-2/Plate_Plate1_Well_A1_Site_2_Cycle03_G.tiff"),
+                        file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/images/Batch1/images_corrected/barcoding/Plate1/Plate1-A1-2/Plate_Plate1_Well_A1_Site_2_Cycle03_T.tiff"),
+                        file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/images/Batch1/images_corrected/barcoding/Plate1/Plate1-A1-3/Plate_Plate1_Well_A1_Site_3_Cycle01_A.tiff"),
+                        file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/images/Batch1/images_corrected/barcoding/Plate1/Plate1-A1-3/Plate_Plate1_Well_A1_Site_3_Cycle01_C.tiff"),
+                        file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/images/Batch1/images_corrected/barcoding/Plate1/Plate1-A1-3/Plate_Plate1_Well_A1_Site_3_Cycle01_G.tiff"),
+                        file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/images/Batch1/images_corrected/barcoding/Plate1/Plate1-A1-3/Plate_Plate1_Well_A1_Site_3_Cycle01_T.tiff"),
+                        file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/images/Batch1/images_corrected/barcoding/Plate1/Plate1-A1-3/Plate_Plate1_Well_A1_Site_3_Cycle02_A.tiff"),
+                        file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/images/Batch1/images_corrected/barcoding/Plate1/Plate1-A1-3/Plate_Plate1_Well_A1_Site_3_Cycle02_C.tiff"),
+                        file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/images/Batch1/images_corrected/barcoding/Plate1/Plate1-A1-3/Plate_Plate1_Well_A1_Site_3_Cycle02_G.tiff"),
+                        file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/images/Batch1/images_corrected/barcoding/Plate1/Plate1-A1-3/Plate_Plate1_Well_A1_Site_3_Cycle02_T.tiff"),
+                        file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/images/Batch1/images_corrected/barcoding/Plate1/Plate1-A1-3/Plate_Plate1_Well_A1_Site_3_Cycle03_A.tiff"),
+                        file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/images/Batch1/images_corrected/barcoding/Plate1/Plate1-A1-3/Plate_Plate1_Well_A1_Site_3_Cycle03_C.tiff"),
+                        file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/images/Batch1/images_corrected/barcoding/Plate1/Plate1-A1-3/Plate_Plate1_Well_A1_Site_3_Cycle03_G.tiff"),
+                        file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/images/Batch1/images_corrected/barcoding/Plate1/Plate1-A1-3/Plate_Plate1_Well_A1_Site_3_Cycle03_T.tiff")
+                    ]
+                ]
+                // Stitch script
+                input[1] = file("\${projectDir}/assets/stitchcrop/stitch_crop.env_master.test_profile.py", checkIfExists: true)
+                // Barcoding-specific stitching parameters
+                input[2] = "square"                    // barcoding_round_or_square
+                input[3] = true                        // barcoding_quarter_if_round
+                input[4] = 10                          // barcoding_overlap_pct
+                input[5] = 2                           // barcoding_scalingstring
+                input[6] = "unused"                    // barcoding_imperwell
+                input[7] = 2                           // barcoding_rows
+                input[8] = 2                           // barcoding_columns
+                input[9] = "Grid: snake by rows"      // barcoding_stitchorder
+                input[10] = 2                          // tileperside
+                input[11] = 800                        // final_tile_size
+                input[12] = 0                          // barcoding_xoffset_tiles
+                input[13] = 0                          // barcoding_yoffset_tiles
+                input[14] = true                       // compress
+                input[15] = "DAPI"                    // channame
+                input[16] = true                       // should_run
+                """
+            }
+        }
+
+        then {
+            assertAll(
+                { assert process.success }
+            )
+        }
+
+    }
+
+    test("fiji - stitchcrop - stub") {
+
+        options "-stub"
+
+        when {
+            process {
+                """
+                // Same input as regular test
+                input[0] = [
+                    [batch:'Batch1', plate:'Plate1', arm:'painting', well:'A1', id:'Batch1_Plate1_painting_A1'],
+                    [
+                        file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/images/Batch1/images_corrected/painting/Plate1/Plate1-A1-0/Plate_Plate1_Well_A1_Site_0_CorrCHN2.tiff"),
+                        file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/images/Batch1/images_corrected/painting/Plate1/Plate1-A1-1/Plate_Plate1_Well_A1_Site_1_CorrCHN2.tiff"),
+                        file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/images/Batch1/images_corrected/painting/Plate1/Plate1-A1-2/Plate_Plate1_Well_A1_Site_2_CorrCHN2.tiff"),
+                        file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/images/Batch1/images_corrected/painting/Plate1/Plate1-A1-3/Plate_Plate1_Well_A1_Site_3_CorrCHN2.tiff")
+                    ]
+                ]
+                input[1] = file("\${projectDir}/assets/stitchcrop/stitch_crop.env_master.test_profile.py", checkIfExists: true)
+                // Painting-specific stitching parameters
+                input[2] = "square"                    // painting_round_or_square
+                input[3] = true                        // painting_quarter_if_round
+                input[4] = 10                          // painting_overlap_pct
+                input[5] = 2                           // painting_scalingstring
+                input[6] = "unused"                    // painting_imperwell
+                input[7] = 2                           // painting_rows
+                input[8] = 2                           // painting_columns
+                input[9] = "Grid: snake by rows"      // painting_stitchorder
+                input[10] = 2                          // tileperside
+                input[11] = 800                        // final_tile_size
+                input[12] = 0                          // painting_xoffset_tiles
+                input[13] = 0                          // painting_yoffset_tiles
+                input[14] = true                       // compress
+                input[15] = "DNA"                     // channame
+                input[16] = true                       // should_run
+                """
+            }
+        }
+
+        then {
+            assertAll(
+                { assert process.success },
+                // Check that tiff outputs exist and have expected names (but don't snapshot their checksums)
+                { assert file(process.out.stitched_images.get(0).get(1)).name == 'Plate_Plate1_Well_A1_Site_1_Stitched_CorrDNA.tiff' },
+                { assert process.out.cropped_images.get(0).get(1).size() == 2 },
+                { assert process.out.cropped_images.get(0).get(1).every { file(it).name.endsWith('.tiff') } },
+                { assert file(process.out.downsampled_images.get(0).get(1)).name == 'Plate_Plate1_Well_A1_Site_1_Stitched_CorrDNA.tiff' },
+                // Only snapshot stable outputs (tile config and versions)
+                { assert snapshot(
+                    process.out.tile_config,
+                    process.out.versions
+                ).match() }
+            )
+        }
+    }
+
+}

@@ -1,0 +1,50 @@
+{
+    "fiji - stitchcrop - stub": {
+        "content": [
+            [
+                [
+                    {
+                        "batch": "Batch1",
+                        "plate": "Plate1",
+                        "arm": "painting",
+                        "well": "A1",
+                        "id": "Batch1_Plate1_painting_A1"
+                    },
+                    "TileConfiguration.txt:md5,d41d8cd98f00b204e9800998ecf8427e"
+                ]
+            ],
+            [
+                "versions.yml:md5,48fdc2d868518f7d0d672ab1488db410"
+            ]
+        ],
+        "meta": {
+            "nf-test": "0.9.3",
+            "nextflow": "25.10.0"
+        },
+        "timestamp": "2025-11-18T01:41:55.53558124"
+    },
+    "fiji - stitchcrop - painting - corrected_images": {
+        "content": [
+            [
+                [
+                    {
+                        "batch": "Batch1",
+                        "plate": "Plate1",
+                        "arm": "painting",
+                        "well": "A1",
+                        "id": "Batch1_Plate1_painting_A1"
+                    },
+                    "TileConfiguration.txt:md5,59ba28418f1e3469b5b256d27c6b6c1a"
+                ]
+            ],
+            [
+                "versions.yml:md5,05ad37a5e97798a96e40b06bcfb25949"
+            ]
+        ],
+        "meta": {
+            "nf-test": "0.9.3",
+            "nextflow": "25.10.0"
+        },
+        "timestamp": "2025-12-01T21:15:13.480352318"
+    }
+}

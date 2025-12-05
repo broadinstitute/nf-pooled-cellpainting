@@ -1,7 +1,7 @@
 {
     "$schema": "https://json-schema.org/draft/2020-12/schema",
-    "$id": "https://raw.githubusercontent.com/seqera-services/nf-pooled-cellpainting/master/nextflow_schema.json",
-    "title": "seqera-services/nf-pooled-cellpainting pipeline parameters",
+    "$id": "https://raw.githubusercontent.com/broadinstitute/nf-pooled-cellpainting/master/nextflow_schema.json",
+    "title": "broadinstitute/nf-pooled-cellpainting pipeline parameters",
     "description": "A Nextflow pipeline for analysing optical pooled screens (OPS) data.",
     "type": "object",
     "$defs": {
@@ -10,7 +10,7 @@
             "type": "object",
             "fa_icon": "fas fa-terminal",
             "description": "Define where the pipeline should find input data and save output data.",
-            "required": ["input", "outdir"],
+            "required": ["input", "outdir", "barcodes", "fiji_stitchcrop_script"],
             "properties": {
                 "input": {
                     "type": "string",
@@ -29,12 +29,265 @@
                     "description": "The output directory where the results will be saved. You have to use absolute paths to storage on Cloud infrastructure.",
                     "fa_icon": "fas fa-folder-open"
                 },
+                "qc_painting_passed": {
+                    "type": "boolean",
+                    "description": "Flag to check whether quality control for the painting arm has been performed",
+                    "fa_icon": "far fa-check-circle"
+                },
+                "qc_barcoding_passed": {
+                    "type": "boolean",
+                    "description": "Flag to check whether quality control for the barcoding arm has been performed",
+                    "fa_icon": "fas fa-check-circle"
+                },
+                "barcodes": {
+                    "type": "string",
+                    "description": "Path to barcodes.csv file for SBS data.",
+                    "fa_icon": "fas fa-qrcode"
+                },
+                "fiji_stitchcrop_script": {
+                    "type": "string",
+                    "default": "/home/florian/nf-pooled-cellpainting/assets/stitchcrop/stitch_crop.env_master.py",
+                    "description": "Path to script to use for FIJI Stitchcrop."
+                },
+                "range_skip": {
+                    "type": "integer",
+                    "default": 2,
+                    "description": "Step number for subsampling images for segcheck."
+                },
+                "cycle_metadata_name": {
+                    "type": "string",
+                    "default": "Cycle",
+                    "description": "What should the cycle metadata column be named? (Must align with cppipe cycle name!)"
+                },
                 "multiqc_title": {
                     "type": "string",
                     "description": "MultiQC report title. Printed as page header, used for filename if not otherwise specified.",
                     "fa_icon": "fas fa-file-signature"
                 }
             }
+        },
+        "cellprofiler_group": {
+            "title": "Cellprofiler Pipelines",
+            "type": "object",
+            "description": "Paths to custom cellprofiler pipeline files (cppipe)",
+            "default": "",
+            "properties": {
+                "painting_illumcalc_cppipe": {
+                    "type": "string",
+                    "description": "Cellprofiler pipeline for painting illumination calculation."
+                },
+                "painting_illumapply_cppipe": {
+                    "type": "string",
+                    "description": "Cellprofiler pipeline for applying illumination profiles for painting arm."
+                },
+                "painting_segcheck_cppipe": {
+                    "type": "string",
+                    "description": "Cellprofiler pipeline for running segmentation QC check."
+                },
+                "barcoding_illumcalc_cppipe": {
+                    "type": "string",
+                    "description": "Cellprofiler pipeline for barcoding arm illumination calculation."
+                },
+                "barcoding_illumapply_cppipe": {
+                    "type": "string",
+                    "description": "Cellprofiler pipeline for illumination profiles for barcoding arm."
+                },
+                "barcoding_preprocess_cppipe": {
+                    "type": "string",
+                    "description": "Cellprofiler pipeline for barcoding preprocessing."
+                },
+                "combinedanalysis_cppipe": {
+                    "type": "string",
+                    "description": "Cellprofiler pipeline for combined analysis."
+                }
+            },
+            "required": [
+                "painting_illumcalc_cppipe",
+                "painting_illumapply_cppipe",
+                "painting_segcheck_cppipe",
+                "barcoding_illumcalc_cppipe",
+                "barcoding_illumapply_cppipe",
+                "barcoding_preprocess_cppipe",
+                "combinedanalysis_cppipe"
+            ]
+        },
+        "painting_arm_parameters": {
+            "title": "Painting arm parameters",
+            "type": "object",
+            "description": "Configuration options for the paintingarm of the pipeline.",
+            "default": "",
+            "properties": {
+                "painting_channame": {
+                    "type": "string",
+                    "default": "DNA",
+                    "description": "Channel name for nucleus staining for painting arm."
+                },
+                "painting_round_or_square": {
+                    "type": "string",
+                    "default": "round",
+                    "description": "Well shape for processing"
+                },
+                "painting_quarter_if_round": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Whether to divide round wells into quarters for processing"
+                },
+                "painting_overlap_pct": {
+                    "type": "integer",
+                    "default": 10,
+                    "description": "Image overlap percentage"
+                },
+                "painting_scalingstring": {
+                    "type": "integer",
+                    "default": 1,
+                    "description": "Scaling for images."
+                },
+                "painting_imperwell": {
+                    "type": "string",
+                    "default": "unused",
+                    "description": "Number of images per well."
+                },
+                "painting_rows": {
+                    "type": "integer",
+                    "default": 2,
+                    "description": "Rows for image grid layout."
+                },
+                "painting_columns": {
+                    "type": "integer",
+                    "default": 2,
+                    "description": "Columns for image grid layout."
+                },
+                "painting_stitchorder": {
+                    "type": "string",
+                    "default": "Grid: snake by rows",
+                    "description": "Tile arrangement method."
+                },
+                "painting_xoffset_tiles": {
+                    "type": "integer",
+                    "default": 0,
+                    "description": "Optional offsets for troubleshooting stitching misalignments."
+                },
+                "painting_yoffset_tiles": {
+                    "type": "integer",
+                    "default": 0,
+                    "description": "Optional offsets for troubleshooting stitching misalignments."
+                }
+            },
+            "fa_icon": "fas fa-paint-brush"
+        },
+        "barcoding_sequencing_by_synthesis_options": {
+            "title": "Barcoding (Sequencing-by-synthesis) options",
+            "type": "object",
+            "description": "Configuration options for the barcoding (SBS) arm of the pipeline.",
+            "default": "",
+            "properties": {
+                "barcoding_channame": {
+                    "type": "string",
+                    "default": "DNA",
+                    "description": "Channel name for nucleus staining for barcoding arm."
+                },
+                "barcoding_illumapply_grouping": {
+                    "type": "string",
+                    "default": "well",
+                    "description": "What level to parallelize illumapply for barcoding arm.",
+                    "enum": ["well", "site"]
+                },
+                "barcoding_round_or_square": {
+                    "type": "string",
+                    "default": "round",
+                    "description": "Well shape for processing."
+                },
+                "barcoding_quarter_if_round": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Whether to divide round wells into quarters for processing."
+                },
+                "barcoding_overlap_pct": {
+                    "type": "integer",
+                    "default": 10,
+                    "description": "Image overlap percentage."
+                },
+                "barcoding_scalingstring": {
+                    "type": "number",
+                    "default": 1.99,
+                    "description": "Scaling for images."
+                },
+                "barcoding_imperwell": {
+                    "type": "string",
+                    "default": "unused",
+                    "description": "Number of images per well."
+                },
+                "barcoding_rows": {
+                    "type": "integer",
+                    "default": 2,
+                    "description": "Rows for image grid layout."
+                },
+                "barcoding_columns": {
+                    "type": "integer",
+                    "default": 2,
+                    "description": "Columns for image grid layout."
+                },
+                "barcoding_stitchorder": {
+                    "type": "string",
+                    "default": "Grid: snake by rows",
+                    "description": "Tile arrangement method."
+                },
+                "barcoding_xoffset_tiles": {
+                    "type": "integer",
+                    "default": 0,
+                    "description": "Optional offsets for troubleshooting stitching misalignments"
+                },
+                "barcoding_yoffset_tiles": {
+                    "type": "integer",
+                    "default": 0,
+                    "description": "Optional offsets for troubleshooting stitching misalignments"
+                },
+                "barcoding_shift_threshold": {
+                    "type": "integer",
+                    "default": 50,
+                    "description": "Shift threshold for barcoding align QC step."
+                },
+                "barcoding_corr_threshold": {
+                    "type": "number",
+                    "default": 0.9,
+                    "description": "Correlation threshold for barcoding align QC step."
+                },
+                "acquisition_geometry_rows": {
+                    "type": "integer",
+                    "description": "Number of rows in acquisition geometry for QC spatial plots (square patterns).",
+                    "default": 2
+                },
+                "acquisition_geometry_columns": {
+                    "type": "integer",
+                    "description": "Number of columns in acquisition geometry for QC spatial plots (square patterns).",
+                    "default": 2
+                }
+            },
+            "fa_icon": "fas fa-dna"
+        },
+        "general_pipeline_parameters_for_both_arms": {
+            "title": "General pipeline parameters for both arms",
+            "type": "object",
+            "description": "",
+            "default": "",
+            "properties": {
+                "tileperside": {
+                    "type": "integer",
+                    "default": 10,
+                    "description": "Number of tiles to create along each axis."
+                },
+                "final_tile_size": {
+                    "type": "integer",
+                    "default": 5500,
+                    "description": "Pixel dimensions for output tiles."
+                },
+                "compress": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Whether to compress output files."
+                }
+            },
+            "fa_icon": "fas fa-cog"
         },
         "institutional_config_options": {
             "title": "Institutional config options",
@@ -83,6 +336,25 @@
                     "fa_icon": "fas fa-users-cog"
                 }
             }
+        },
+        "cellprofiler_plugins": {
+            "title": "Cellprofiler plugins",
+            "type": "object",
+            "description": "",
+            "default": "",
+            "properties": {
+                "callbarcodes_plugin": {
+                    "type": "string",
+                    "default": "https://raw.githubusercontent.com/CellProfiler/CellProfiler-plugins/refs/heads/master/active_plugins/callbarcodes.py",
+                    "description": "Cellprofiler plugin for calling barcodes."
+                },
+                "compensatecolors_plugin": {
+                    "type": "string",
+                    "default": "https://raw.githubusercontent.com/CellProfiler/CellProfiler-plugins/refs/heads/master/active_plugins/compensatecolors.py",
+                    "description": "Cellprofiler plugin for compensating colors."
+                }
+            },
+            "fa_icon": "fas fa-plug"
         },
         "generic_options": {
             "title": "Generic options",
@@ -166,7 +438,22 @@
             "$ref": "#/$defs/input_output_options"
         },
         {
+            "$ref": "#/$defs/cellprofiler_group"
+        },
+        {
+            "$ref": "#/$defs/painting_arm_parameters"
+        },
+        {
+            "$ref": "#/$defs/barcoding_sequencing_by_synthesis_options"
+        },
+        {
+            "$ref": "#/$defs/general_pipeline_parameters_for_both_arms"
+        },
+        {
             "$ref": "#/$defs/institutional_config_options"
+        },
+        {
+            "$ref": "#/$defs/cellprofiler_plugins"
         },
         {
             "$ref": "#/$defs/generic_options"

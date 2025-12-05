@@ -1,0 +1,26 @@
+{
+    "barcode alignment - 3 cycles - 3 wells - stub": {
+        "content": [
+            [
+                "versions.yml:md5,2b15854b64002269ff1cfa7d5d5f4454"
+            ]
+        ],
+        "meta": {
+            "nf-test": "0.9.3",
+            "nextflow": "25.10.0"
+        },
+        "timestamp": "2025-11-10T02:49:07.24723597"
+    },
+    "barcode alignment - 3 cycles - 3 wells": {
+        "content": [
+            [
+                "versions.yml:md5,57eeb80a5a17625f2f1bdacd81cf7ab4"
+            ]
+        ],
+        "meta": {
+            "nf-test": "0.9.3",
+            "nextflow": "25.10.0"
+        },
+        "timestamp": "2025-11-10T02:48:57.777947101"
+    }
+}

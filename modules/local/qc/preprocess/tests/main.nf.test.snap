@@ -1,0 +1,26 @@
+{
+    "barcode preprocessing QC - 3 cycles - 3 wells - stub": {
+        "content": [
+            [
+                "versions.yml:md5,34abf0235f1949aabeb280390255cdd6"
+            ]
+        ],
+        "meta": {
+            "nf-test": "0.9.3",
+            "nextflow": "25.10.0"
+        },
+        "timestamp": "2025-11-10T03:59:52.055699278"
+    },
+    "barcode preprocessing QC - 3 cycles - 3 wells": {
+        "content": [
+            [
+                "versions.yml:md5,0efe1189d8ec1f49d2a2774bae9dfd8d"
+            ]
+        ],
+        "meta": {
+            "nf-test": "0.9.3",
+            "nextflow": "25.10.0"
+        },
+        "timestamp": "2025-11-10T04:10:16.071551886"
+    }
+}

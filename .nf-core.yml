@@ -3,6 +3,7 @@ repository_type: pipeline
 nf_core_version: 3.3.2
 
 lint:
+  template_strings: false
   files_unchanged:
     - .prettierignore
     - LICENSE
@@ -27,6 +28,7 @@ lint:
     - validation.summary.afterText
   multiqc_config:
     - report_comment
+    - export_plots
   files_exist:
     - LICENSE
     - CODE_OF_CONDUCT.md
@@ -41,15 +43,19 @@ lint:
     - assets/email_template.html
     - assets/sendmail_template.txt
     - assets/email_template.txt
+    - tests/default.nf.test
+    - docs/output.md
+    - docs/usage.md
   readme:
     - nextflow_badge
     - nfcore_template_badge
+  nf_test_content: false
 
 template:
-  org: seqera-services
+  org: broadinstitute
   name: nf-pooled-cellpainting
   description: A Nextflow pipeline for analysing optical pooled screens (OPS) data.
-  author: Florian Wuennemann
+  author: Florian Wuennemann, Ken Brewer, Erin Weissbart, Shantanu Singh, and Seqera Services
   version: 1.0.0dev
   force: true
   outdir: .

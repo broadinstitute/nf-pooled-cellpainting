@@ -1,72 +1,97 @@
-# seqera-services/nf-pooled-cellpainting
+# nf-pooled-cellpainting
+
+[![Nextflow](https://img.shields.io/badge/nextflow%20DSL2-%E2%89%A525.04.8-23aa62.svg)](https://www.nextflow.io/)
+[![run with docker](https://img.shields.io/badge/run%20with-docker-0db7ed?labelColor=000000&logo=docker)](https://www.docker.com/)
 
 ## Introduction
 
-**seqera-services/nf-pooled-cellpainting** is a bioinformatics pipeline that ...
+**nf-pooled-cellpainting** is a Nextflow pipeline for processing optical pooled screening (OPS) data, combining Cell Painting phenotypic analysis with sequencing-by-synthesis barcoding. The output of the pipeline is a collection of phenotypic measurements for each identified cell in the dataset.
 
-<!-- TODO nf-core:
-   Complete this sentence with a 2-3 sentence summary of what types of data the pipeline ingests, a brief overview of the
-   major pipeline sections and the types of output it produces. You're giving an overview to someone new
-   to nf-core here, in 15-20 seconds. For an example, see https://github.com/nf-core/rnaseq/blob/master/README.md#introduction
--->
+## Pipeline Overview
 
-<!-- TODO nf-core: Include a figure that guides the user through the major workflow steps. Many nf-core
-     workflows use the "tube map" design for that. See https://nf-co.re/docs/guidelines/graphic_design/workflow_diagrams#examples for examples.   -->
-<!-- TODO nf-core: Fill in short bullet-pointed list of the default steps in the pipeline -->2. Present QC for raw reads ([`MultiQC`](http://multiqc.info/))
+The pipeline processes data through two parallel arms:
 
-## Usage
+- **Cell Painting**: Multi-channel fluorescence microscopy for phenotypic profiling
+- **Barcoding**: Sequencing-by-synthesis for cell identification by genetic barcoding
 
-> [!NOTE]
-> If you are new to Nextflow and nf-core, please refer to [this page](https://nf-co.re/docs/usage/installation) on how to set-up Nextflow. Make sure to [test your setup](https://nf-co.re/docs/usage/introduction#how-to-run-a-pipeline) with `-profile test` before running the workflow on actual data.
+Key steps include:
 
-<!-- TODO nf-core: Describe the minimum required steps to execute the pipeline, e.g. how to prepare samplesheets.
-     Explain what rows and columns represent. For instance (please edit as appropriate):
+1. Illumination correction (CellProfiler)
+2. Quality control checkpoints (segmentation evaluation, barcode calling and cycle alignment)
+3. Image stitching and cropping (Fiji)
+4. Segmentation and feature extraction
+5. Barcode calling and assignment
+6. Final reporting and QC with MultiQC
 
-First, prepare a samplesheet with your input data that looks as follows:
+## Quick Start
 
-`samplesheet.csv`:
-
-```csv
-sample,fastq_1,fastq_2
-CONTROL_REP1,AEG588A1_S1_L002_R1_001.fastq.gz,AEG588A1_S1_L002_R2_001.fastq.gz
-```
-
-Each row represents a fastq file (single-end) or a pair of fastq files (paired end).
-
--->
-
-Now, you can run the pipeline using:
-
-<!-- TODO nf-core: update the following command to include all required parameters for a minimal example -->
+The pipeline includes a small test dataset to verify that the pipeline executes correctly from end to end. You can run the test profile using the following command:
 
 ```bash
-nextflow run seqera-services/nf-pooled-cellpainting \
-   -profile <docker/singularity/.../institute> \
-   --input samplesheet.csv \
-   --outdir <OUTDIR>
+nextflow run broadinstitute/nf-pooled-cellpainting -profile test,docker --outdir results
 ```
 
-> [!WARNING]
-> Please provide pipeline parameters via the CLI or Nextflow `-params-file` option. Custom config files including those provided by the `-c` Nextflow option can be used to provide any configuration _**except for parameters**_; see [docs](https://nf-co.re/docs/usage/getting_started/configuration#custom-configuration-files).
+### Using your own data
+
+To use your own or public optical pooled screening data, you need to supply a samplesheet, a `barcode.csv` file, your own generated CellProfiler pipeline files (`.cppipe` files) for all pipeline steps, and an output directory for the results.
+
+```bash
+nextflow run broadinstitute/nf-pooled-cellpainting \
+   -profile docker \
+   --input samplesheet.csv \
+   --barcodes barcodes.csv \
+   --painting_illumcalc_cppipe painting_illumcalc.cppipe \
+   --painting_illumapply_cppipe painting_illumapply.cppipe \
+   --painting_segcheck_cppipe painting_segcheck.cppipe \
+   --barcoding_illumcalc_cppipe barcoding_illumcalc.cppipe \
+   --barcoding_illumapply_cppipe barcoding_illumapply.cppipe \
+   --barcoding_preprocess_cppipe barcoding_preprocess.cppipe \
+   --combinedanalysis_cppipe combinedanalysis.cppipe \
+   --outdir results
+```
+
+Instead of defining parameters on the command line, you can also define them via a Nextflow config file or as json or yaml params files (see [Nextflow documentation](https://nextflow.io/docs/latest/cli.html)).
+
+## Documentation
+
+For detailed documentation, see: **[Full Documentation](https://broadinstitute.github.io/nf-pooled-cellpainting/)**
+
+- [Installation](https://broadinstitute.github.io/nf-pooled-cellpainting/getting-started/installation/)
+- [Usage Guide](https://broadinstitute.github.io/nf-pooled-cellpainting/usage/parameters/)
+- [Troubleshooting](https://broadinstitute.github.io/nf-pooled-cellpainting/reference/troubleshooting/)
+
+## Important pipeline Parameters
+
+The pipeline contains several parameters that are necessary for correct execution of the pipeline and to determine whether the pipeline will pause for manual quality control.
+
+| Parameter                   | Description                                        | Required |
+| :-------------------------- | :------------------------------------------------- | :------- |
+| `--input`                   | Samplesheet CSV with image paths and metadata      | Yes      |
+| `--outdir`                  | Output directory                                   | Yes      |
+| `--barcodes`                | Barcode reference CSV                              | Yes      |
+| `--painting_*_cppipe`       | CellProfiler pipelines for the painting arm        | Yes      |
+| `--barcoding_*_cppipe`      | CellProfiler pipelines for the barcoding arm       | Yes      |
+| `--combinedanalysis_cppipe` | Combined analysis pipeline                         | Yes      |
+| `--qc_painting_passed`      | QC status for the painting arm (default: `false`)  | No       |
+| `--qc_barcoding_passed`     | QC status for the barcoding arm (default: `false`) | No       |
+
+<!-- See [Parameters Documentation](https://your-org.github.io/nf-pooled-cellpainting/usage/parameters/) for complete list. -->
 
 ## Credits
 
-seqera-services/nf-pooled-cellpainting was originally written by Florian Wuennemann.
-
-We thank the following people for their extensive assistance in the development of this pipeline:
-
-<!-- TODO nf-core: If applicable, make list of people who have also contributed -->
+nf-pooled-cellpainting was originally written by [Florian Wuennemann](https://github.com/FloWuenne) (Seqera), [Ken Brewer](https://github.com/kenibrewer) (Seqera), [Erin Weissbart](https://github.com/ErinWeisbart) (Broad Institute), and [Shantanu Singh](https://github.com/shntnu) (Broad Institute).
 
 ## Contributions and Support
 
 If you would like to contribute to this pipeline, please see the [contributing guidelines](.github/CONTRIBUTING.md).
 
+## License
+
+This pipeline is licensed under the [BSD 3-Clause License](LICENSE).
+
+Portions of this software are derived from the nf-core project template and nf-core tools, which are licensed under the [MIT License](LICENSE-MIT). This includes the pipeline template structure, module patterns, configuration patterns, and utility functions.
+
 ## Citations
-
-<!-- TODO nf-core: Add citation for pipeline after first release. Uncomment lines below and update Zenodo doi and badge at the top of this file. -->
-<!-- If you use seqera-services/nf-pooled-cellpainting for your analysis, please cite it using the following doi: [10.5281/zenodo.XXXXXX](https://doi.org/10.5281/zenodo.XXXXXX) -->
-
-<!-- TODO nf-core: Add bibliography of tools and data used in your pipeline -->
 
 An extensive list of references for the tools used by the pipeline can be found in the [`CITATIONS.md`](CITATIONS.md) file.
 

@@ -1,0 +1,102 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/nf-core/modules/master/modules/meta-schema.json
+name: "cellprofiler_preprocess"
+description: Performs SBS (Sequencing by Synthesis) preprocessing on barcoding images using CellProfiler.
+keywords:
+  - cellprofiler
+  - image_analysis
+  - preprocessing
+  - barcoding
+  - sbs
+  - sequencing_by_synthesis
+tools:
+  - "cellprofiler":
+      description: "CellProfiler is free, open-source software for quantitative analysis of biological images."
+      homepage: "https://cellprofiler.org/"
+      documentation: "https://cellprofiler-manual.s3.amazonaws.com/CellProfiler-4.2.8/index.html"
+      tool_dev_url: "https://github.com/CellProfiler/CellProfiler"
+      doi: "https://doi.org/10.1186/s12859-021-04344-9"
+      licence: ["BSD-3-clause"]
+      identifier: biotools:CellProfiler
+
+input:
+  - - meta:
+        type: map
+        description: |
+          Groovy Map containing sample information
+          e.g. `[ id:'sample1', batch:'batch1', plate:'plate1', well:'A01', arm:'barcoding' ]`
+    - aligned_images:
+        type: file
+        description: Illumination-corrected and aligned images from SBS cycles for preprocessing
+        pattern: "*.{tif,tiff,png}"
+        ontologies:
+          - edam: http://edamontology.org/format_3547
+    - image_metas:
+        type: list
+        description: "List of image metadata maps containing plate, well, site, channels, filename information"
+  - preprocess_cppipe:
+      type: file
+      description: CellProfiler pipeline file (.cppipe) defining the preprocessing workflow for SBS images
+      pattern: "*.cppipe"
+      ontologies:
+        - edam: http://edamontology.org/format_2330
+  - barcodes:
+      type: file
+      description: CSV file containing barcode sequences and metadata for cell identification
+      pattern: "Barcodes.csv"
+      ontologies:
+        - edam: http://edamontology.org/format_3752
+  - plugins:
+      type: directory
+      description: Directory containing CellProfiler plugins required for preprocessing
+
+output:
+  - preprocessed_images:
+      - meta:
+          type: map
+          description: |
+            Groovy Map containing sample information
+            e.g. `[ id:'sample1', batch:'batch1', plate:'plate1', well:'A01', arm:'barcoding' ]`
+      - "*.tiff":
+          type: file
+          description: Preprocessed TIFF images after SBS averaging and processing
+          pattern: "*.tiff"
+          ontologies:
+            - edam: http://edamontology.org/format_3591
+  - overlay:
+      - "overlay/*.tiff":
+          type: file
+          description: Overlay images showing segmentation and preprocessing results for quality control
+          pattern: "overlay/*.tiff"
+          ontologies:
+            - edam: http://edamontology.org/format_3591
+  - preprocess_stats:
+      - meta:
+          type: map
+          description: |
+            Groovy Map containing sample information
+            e.g. `[ id:'sample1', batch:'batch1', plate:'plate1', well:'A01', arm:'barcoding' ]`
+      - "BarcodePreprocessing*.csv":
+          type: file
+          description: CSV files containing preprocessing measurements and statistics (Cells, Nuclei, Image, Experiment, AllFoci, Foci)
+          pattern: "BarcodePreprocess*.csv"
+          ontologies:
+            - edam: http://edamontology.org/format_3752
+  - load_data_csv:
+      - "load_data.csv":
+          type: file
+          description: CellProfiler LoadData CSV file used for batch processing
+          pattern: "load_data.csv"
+          ontologies:
+            - edam: http://edamontology.org/format_3752
+  - versions:
+      - versions.yml:
+          type: file
+          description: File containing software versions
+          pattern: "versions.yml"
+          ontologies:
+            - edam: http://edamontology.org/format_3750
+
+authors:
+  - "@FloWuenne"
+maintainers:
+  - "@FloWuenne"

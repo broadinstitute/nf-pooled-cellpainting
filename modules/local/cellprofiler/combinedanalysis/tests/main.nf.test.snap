@@ -1,0 +1,181 @@
+{
+    "cellprofiler - combinedanalysis - cropped_images - stub": {
+        "content": [
+            {
+                "0": [
+                    [
+                        {
+                            "id": "Batch1_Plate1_A1_1",
+                            "batch": "Batch1",
+                            "plate": "Plate1",
+                            "well": "A1",
+                            "site": 1
+                        },
+                        [
+                            "Plate1-B1_CorrDNA_Site_4_Overlay.png:md5,d41d8cd98f00b204e9800998ecf8427e",
+                            "Plate1-B1_CorrDNA_Site_4_SpotOverlay.png:md5,d41d8cd98f00b204e9800998ecf8427e"
+                        ]
+                    ]
+                ],
+                "1": [
+                    [
+                        {
+                            "id": "Batch1_Plate1_A1_1",
+                            "batch": "Batch1",
+                            "plate": "Plate1",
+                            "well": "A1",
+                            "site": 1
+                        },
+                        [
+                            "BarcodeFoci.csv:md5,d41d8cd98f00b204e9800998ecf8427e",
+                            "Cells.csv:md5,d41d8cd98f00b204e9800998ecf8427e",
+                            "ConfluentRegions.csv:md5,d41d8cd98f00b204e9800998ecf8427e",
+                            "Cytoplasm.csv:md5,d41d8cd98f00b204e9800998ecf8427e",
+                            "Experiment.csv:md5,d41d8cd98f00b204e9800998ecf8427e",
+                            "Foci.csv:md5,d41d8cd98f00b204e9800998ecf8427e",
+                            "Foci_NonCellEdge.csv:md5,d41d8cd98f00b204e9800998ecf8427e",
+                            "Foci_PreMask.csv:md5,d41d8cd98f00b204e9800998ecf8427e",
+                            "Image.csv:md5,d41d8cd98f00b204e9800998ecf8427e",
+                            "Nuclei.csv:md5,d41d8cd98f00b204e9800998ecf8427e",
+                            "PreCells.csv:md5,d41d8cd98f00b204e9800998ecf8427e",
+                            "RelateObjects.csv:md5,d41d8cd98f00b204e9800998ecf8427e",
+                            "ResizeCells.csv:md5,d41d8cd98f00b204e9800998ecf8427e",
+                            "ResizeConfluent.csv:md5,d41d8cd98f00b204e9800998ecf8427e",
+                            "ResizeNuclei.csv:md5,d41d8cd98f00b204e9800998ecf8427e",
+                            "Resize_Foci.csv:md5,d41d8cd98f00b204e9800998ecf8427e",
+                            "load_data.csv:md5,d41d8cd98f00b204e9800998ecf8427e"
+                        ]
+                    ]
+                ],
+                "2": [
+                    [
+                        {
+                            "id": "Batch1_Plate1_A1_1",
+                            "batch": "Batch1",
+                            "plate": "Plate1",
+                            "well": "A1",
+                            "site": 1
+                        },
+                        "stub_mask.tiff:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "3": [
+                    "load_data.csv:md5,d41d8cd98f00b204e9800998ecf8427e"
+                ],
+                "4": [
+                    "versions.yml:md5,795803aa173c77404af3cf020ec3f8d2"
+                ],
+                "csv_stats": [
+                    [
+                        {
+                            "id": "Batch1_Plate1_A1_1",
+                            "batch": "Batch1",
+                            "plate": "Plate1",
+                            "well": "A1",
+                            "site": 1
+                        },
+                        [
+                            "BarcodeFoci.csv:md5,d41d8cd98f00b204e9800998ecf8427e",
+                            "Cells.csv:md5,d41d8cd98f00b204e9800998ecf8427e",
+                            "ConfluentRegions.csv:md5,d41d8cd98f00b204e9800998ecf8427e",
+                            "Cytoplasm.csv:md5,d41d8cd98f00b204e9800998ecf8427e",
+                            "Experiment.csv:md5,d41d8cd98f00b204e9800998ecf8427e",
+                            "Foci.csv:md5,d41d8cd98f00b204e9800998ecf8427e",
+                            "Foci_NonCellEdge.csv:md5,d41d8cd98f00b204e9800998ecf8427e",
+                            "Foci_PreMask.csv:md5,d41d8cd98f00b204e9800998ecf8427e",
+                            "Image.csv:md5,d41d8cd98f00b204e9800998ecf8427e",
+                            "Nuclei.csv:md5,d41d8cd98f00b204e9800998ecf8427e",
+                            "PreCells.csv:md5,d41d8cd98f00b204e9800998ecf8427e",
+                            "RelateObjects.csv:md5,d41d8cd98f00b204e9800998ecf8427e",
+                            "ResizeCells.csv:md5,d41d8cd98f00b204e9800998ecf8427e",
+                            "ResizeConfluent.csv:md5,d41d8cd98f00b204e9800998ecf8427e",
+                            "ResizeNuclei.csv:md5,d41d8cd98f00b204e9800998ecf8427e",
+                            "Resize_Foci.csv:md5,d41d8cd98f00b204e9800998ecf8427e",
+                            "load_data.csv:md5,d41d8cd98f00b204e9800998ecf8427e"
+                        ]
+                    ]
+                ],
+                "load_data_csv": [
+                    "load_data.csv:md5,d41d8cd98f00b204e9800998ecf8427e"
+                ],
+                "overlay_images": [
+                    [
+                        {
+                            "id": "Batch1_Plate1_A1_1",
+                            "batch": "Batch1",
+                            "plate": "Plate1",
+                            "well": "A1",
+                            "site": 1
+                        },
+                        [
+                            "Plate1-B1_CorrDNA_Site_4_Overlay.png:md5,d41d8cd98f00b204e9800998ecf8427e",
+                            "Plate1-B1_CorrDNA_Site_4_SpotOverlay.png:md5,d41d8cd98f00b204e9800998ecf8427e"
+                        ]
+                    ]
+                ],
+                "segmentation_masks": [
+                    [
+                        {
+                            "id": "Batch1_Plate1_A1_1",
+                            "batch": "Batch1",
+                            "plate": "Plate1",
+                            "well": "A1",
+                            "site": 1
+                        },
+                        "stub_mask.tiff:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "versions": [
+                    "versions.yml:md5,795803aa173c77404af3cf020ec3f8d2"
+                ]
+            }
+        ],
+        "meta": {
+            "nf-test": "0.9.2",
+            "nextflow": "25.10.0"
+        },
+        "timestamp": "2025-11-03T12:32:45.620408"
+    },
+    "cellprofiler - combinedanalysis - cropped_images": {
+        "content": [
+            [
+                [
+                    {
+                        "id": "Batch1_Plate1_A1_1",
+                        "batch": "Batch1",
+                        "plate": "Plate1",
+                        "well": "A1",
+                        "site": 1
+                    },
+                    [
+                        "Plate_Plate1_Well_A1_Site_1_CorrDNA_Overlay.png:md5,0485dd0aeb4a8f238b8c8b60b09f3d59",
+                        "Plate_Plate1_Well_A1_Site_1_CorrDNA_SpotOverlay.png:md5,f393e15efd6e0b0b2375039195342ec8"
+                    ]
+                ]
+            ],
+            [
+                "ConfluentRegions.csv:md5,a571723aaf676b899a9362c1eacf1b7d",
+                "Foci_NonCellEdge.csv:md5,fb97e2060f0ef5c5efb6908ef68606d7",
+                "Foci_PreMask.csv:md5,0587e4260f0bcb287474a571a8ce4c05",
+                "PreCells.csv:md5,b9fab8ffba6485496697635e78a61353",
+                "RelateObjects.csv:md5,3da81709fbb8fa99eba7722e911114ad",
+                "ResizeCells.csv:md5,1c1eed0479d840b039a526d59d82b7c5",
+                "ResizeConfluent.csv:md5,4c60f3b1f8805e61294a9e966038f042",
+                "ResizeNuclei.csv:md5,6665408dd8a7b4a003e35f479ad8fce3",
+                "Resize_Foci.csv:md5,56a07981e4013e82c3c2a91d2b28ea3a",
+                "load_data.csv:md5,51da288bdbcda5de97cb5d8843f1a37b"
+            ],
+            [
+                "load_data.csv:md5,51da288bdbcda5de97cb5d8843f1a37b"
+            ],
+            [
+                "versions.yml:md5,795803aa173c77404af3cf020ec3f8d2"
+            ]
+        ],
+        "meta": {
+            "nf-test": "0.9.3",
+            "nextflow": "25.10.0"
+        },
+        "timestamp": "2025-11-10T20:34:10.949948283"
+    }
+}

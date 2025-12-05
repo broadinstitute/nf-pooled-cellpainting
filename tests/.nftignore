@@ -7,3 +7,25 @@ multiqc/multiqc_data/multiqc_software_versions.txt
 multiqc/multiqc_plots/{svg,pdf,png}/*.{svg,pdf,png}
 multiqc/multiqc_report.html
 pipeline_info/*.{html,json,txt,yml}
+
+## ================================================================================
+## Global unstable file types - Image processing outputs are inherently non-reproducible
+## due to floating point operations, compression variations, and metadata differences
+## ================================================================================
+
+# ALL TIFF images - unstable checksums due to floating point operations, metadata, compression
+*.tiff
+*.tif
+
+# ALL NumPy array files - floating point precision differences between runs
+*.npy
+
+# ALL PNG images - compression and rendering variations
+*.png
+
+# ALL CSV files from CellProfiler - contain timestamps, paths, and run-specific metadata
+*.csv
+
+# QC reports - unstable rendering/metadata (matplotlib version differences, timestamps, etc.)
+*.html
+*.ipynb

@@ -1,33 +1,67 @@
 {
     "$schema": "https://json-schema.org/draft/2020-12/schema",
-    "$id": "https://raw.githubusercontent.com/seqera-services/nf-pooled-cellpainting/master/assets/schema_input.json",
-    "title": "seqera-services/nf-pooled-cellpainting pipeline - params.input schema",
+    "$id": "https://raw.githubusercontent.com/broadinstitute/nf-pooled-cellpainting/master/assets/schema_input.json",
+    "title": "broadinstitute/nf-pooled-cellpainting pipeline - params.input schema",
     "description": "Schema for the file provided with params.input",
     "type": "array",
     "items": {
         "type": "object",
         "properties": {
-            "sample": {
+            "path": {
+                "type": "string",
+                "format": "file-path",
+                "pattern": "^\\S+$",
+                "errorMessage": "File path must be provided and cannot contain spaces"
+            },
+            "arm": {
                 "type": "string",
                 "pattern": "^\\S+$",
-                "errorMessage": "Sample name must be provided and cannot contain spaces",
-                "meta": ["id"]
+                "errorMessage": "Experiment arm must be provided and cannot contain spaces",
+                "meta": ["arm"]
             },
-            "fastq_1": {
+            "batch": {
                 "type": "string",
-                "format": "file-path",
-                "exists": true,
-                "pattern": "^([\\S\\s]*\\/)?[^\\s\\/]+\\.f(ast)?q\\.gz$",
-                "errorMessage": "FastQ file for reads 1 must be provided, cannot contain spaces and must have extension '.fq.gz' or '.fastq.gz'"
+                "pattern": "^\\S+$",
+                "errorMessage": "Batch identifier must be provided and cannot contain spaces",
+                "meta": ["batch"]
             },
-            "fastq_2": {
+            "plate": {
                 "type": "string",
-                "format": "file-path",
-                "exists": true,
-                "pattern": "^([\\S\\s]*\\/)?[^\\s\\/]+\\.f(ast)?q\\.gz$",
-                "errorMessage": "FastQ file for reads 2 cannot contain spaces and must have extension '.fq.gz' or '.fastq.gz'"
+                "pattern": "^\\S+$",
+                "errorMessage": "Plate identifier must be provided and cannot contain spaces",
+                "meta": ["plate"]
+            },
+            "well": {
+                "type": "string",
+                "pattern": "^[A-Z][0-9]+$",
+                "errorMessage": "Well position must be provided in format like A1, B2, etc.",
+                "meta": ["well"]
+            },
+            "site": {
+                "type": "integer",
+                "minimum": 0,
+                "errorMessage": "FOV of the image must be a non-negative integer (starting at 0 or 1, but be consistent)",
+                "meta": ["site"]
+            },
+            "cycle": {
+                "type": "integer",
+                "minimum": 1,
+                "errorMessage": "The imaging round must be a positive integer",
+                "meta": ["cycle"]
+            },
+            "channels": {
+                "type": "string",
+                "pattern": "^[^,]+(,[^,]+)*$",
+                "errorMessage": "Channel names must be provided as comma-separated values without spaces around commas",
+                "meta": ["channels"]
+            },
+            "n_frames": {
+                "type": "integer",
+                "minimum": 1,
+                "errorMessage": "Number of frames must be a positive integer",
+                "meta": ["n_frames"]
             }
         },
-        "required": ["sample", "fastq_1"]
+        "required": ["path", "arm", "batch", "plate", "well", "site", "cycle", "channels"]
     }
 }

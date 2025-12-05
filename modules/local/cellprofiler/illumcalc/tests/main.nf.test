@@ -1,0 +1,113 @@
+nextflow_process {
+
+    name "Test Process CELLPROFILER_ILLUMCALC"
+    script "../main.nf"
+    process "CELLPROFILER_ILLUMCALC"
+
+    tag "cellprofiler"
+    tag "cellprofiler/illumcalc"
+
+    test("cellprofiler - illumcalc - painting") {
+
+        when {
+            params {
+                cp_multichannel_parallel = false
+            }
+            process {
+                """
+                input[0] = [
+                    [batch:'Batch1', plate:'Plate1', channels:'CHN2-AF488', id:'Batch1_Plate1_CHN2-AF488'],
+                    'CHN2-AF488',
+                    null,
+                    [   file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1_sub25/Source1/images/Batch1/images/Plate1/20X_CP_Plate1_20240319_122800_179/WellA1_PointA1_0000_ChannelPhalloAF750,CHN2-AF488,DAPI_Seq0000.ome.tiff"),
+                        file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1_sub25/Source1/images/Batch1/images/Plate1/20X_CP_Plate1_20240319_122800_179/WellA1_PointA1_0001_ChannelPhalloAF750,CHN2-AF488,DAPI_Seq0001.ome.tiff"),
+                        file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1_sub25/Source1/images/Batch1/images/Plate1/20X_CP_Plate1_20240319_122800_179/WellA1_PointA1_0002_ChannelPhalloAF750,CHN2-AF488,DAPI_Seq0002.ome.tiff"),
+                        file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1_sub25/Source1/images/Batch1/images/Plate1/20X_CP_Plate1_20240319_122800_179/WellA1_PointA1_0003_ChannelPhalloAF750,CHN2-AF488,DAPI_Seq0003.ome.tiff"),
+                        file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1_sub25/Source1/images/Batch1/images/Plate1/20X_CP_Plate1_20240319_122800_179/WellA2_PointA2_0000_ChannelPhalloAF750,CHN2-AF488,DAPI_Seq1025.ome.tiff"),
+                        file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1_sub25/Source1/images/Batch1/images/Plate1/20X_CP_Plate1_20240319_122800_179/WellA2_PointA2_0001_ChannelPhalloAF750,CHN2-AF488,DAPI_Seq1026.ome.tiff"),
+                        file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1_sub25/Source1/images/Batch1/images/Plate1/20X_CP_Plate1_20240319_122800_179/WellA2_PointA2_0002_ChannelPhalloAF750,CHN2-AF488,DAPI_Seq1027.ome.tiff"),
+                        file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1_sub25/Source1/images/Batch1/images/Plate1/20X_CP_Plate1_20240319_122800_179/WellA2_PointA2_0003_ChannelPhalloAF750,CHN2-AF488,DAPI_Seq1028.ome.tiff"),
+                        file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1_sub25/Source1/images/Batch1/images/Plate1/20X_CP_Plate1_20240319_122800_179/WellB1_PointB1_0000_ChannelPhalloAF750,CHN2-AF488,DAPI_Seq3075.ome.tiff"),
+                        file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1_sub25/Source1/images/Batch1/images/Plate1/20X_CP_Plate1_20240319_122800_179/WellB1_PointB1_0001_ChannelPhalloAF750,CHN2-AF488,DAPI_Seq3076.ome.tiff"),
+                        file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1_sub25/Source1/images/Batch1/images/Plate1/20X_CP_Plate1_20240319_122800_179/WellB1_PointB1_0002_ChannelPhalloAF750,CHN2-AF488,DAPI_Seq3077.ome.tiff"),
+                        file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1_sub25/Source1/images/Batch1/images/Plate1/20X_CP_Plate1_20240319_122800_179/WellB1_PointB1_0003_ChannelPhalloAF750,CHN2-AF488,DAPI_Seq3078.ome.tiff")],
+                    [   [plate:'Plate1', batch:'Batch1', well:'A1', site:0, channels:['CHN2-AF488'], filename:'WellA1_PointA1_0000_ChannelPhalloAF750,CHN2-AF488,DAPI_Seq0000.ome.tiff'],
+                        [plate:'Plate1', batch:'Batch1', well:'A1', site:1, channels:['CHN2-AF488'], filename:'WellA1_PointA1_0001_ChannelPhalloAF750,CHN2-AF488,DAPI_Seq0001.ome.tiff'],
+                        [plate:'Plate1', batch:'Batch1', well:'A1', site:2, channels:['CHN2-AF488'], filename:'WellA1_PointA1_0002_ChannelPhalloAF750,CHN2-AF488,DAPI_Seq0002.ome.tiff'],
+                        [plate:'Plate1', batch:'Batch1', well:'A1', site:3, channels:['CHN2-AF488'], filename:'WellA1_PointA1_0003_ChannelPhalloAF750,CHN2-AF488,DAPI_Seq0003.ome.tiff'],
+                        [plate:'Plate1', batch:'Batch1', well:'A2', site:0, channels:['CHN2-AF488'], filename:'WellA2_PointA2_0000_ChannelPhalloAF750,CHN2-AF488,DAPI_Seq1025.ome.tiff'],
+                        [plate:'Plate1', batch:'Batch1', well:'A2', site:1, channels:['CHN2-AF488'], filename:'WellA2_PointA2_0001_ChannelPhalloAF750,CHN2-AF488,DAPI_Seq1026.ome.tiff'],
+                        [plate:'Plate1', batch:'Batch1', well:'A2', site:2, channels:['CHN2-AF488'], filename:'WellA2_PointA2_0002_ChannelPhalloAF750,CHN2-AF488,DAPI_Seq1027.ome.tiff'],
+                        [plate:'Plate1', batch:'Batch1', well:'A2', site:3, channels:['CHN2-AF488'], filename:'WellA2_PointA2_0003_ChannelPhalloAF750,CHN2-AF488,DAPI_Seq1028.ome.tiff'],
+                        [plate:'Plate1', batch:'Batch1', well:'B1', site:0, channels:['CHN2-AF488'], filename:'WellB1_PointB1_0000_ChannelPhalloAF750,CHN2-AF488,DAPI_Seq3075.ome.tiff'],
+                        [plate:'Plate1', batch:'Batch1', well:'B1', site:1, channels:['CHN2-AF488'], filename:'WellB1_PointB1_0001_ChannelPhalloAF750,CHN2-AF488,DAPI_Seq3076.ome.tiff'],
+                        [plate:'Plate1', batch:'Batch1', well:'B1', site:2, channels:['CHN2-AF488'], filename:'WellB1_PointB1_0002_ChannelPhalloAF750,CHN2-AF488,DAPI_Seq3077.ome.tiff'],
+                        [plate:'Plate1', batch:'Batch1', well:'B1', site:3, channels:['CHN2-AF488'], filename:'WellB1_PointB1_0003_ChannelPhalloAF750,CHN2-AF488,DAPI_Seq3078.ome.tiff']]
+                ]
+                input[1] = "${projectDir}/assets/cellprofiler/painting_illumcalc_cppipe.template"
+                input[2] = false
+                """
+            }
+        }
+
+        then {
+            assertAll(
+                { assert process.success },
+                { assert snapshot(process.out.illumination_corrections).match() }
+            )
+        }
+
+    }
+
+    test("cellprofiler - illumcalc - stub") {
+
+        options "-stub"
+
+        when {
+            process {
+                """
+                input[0] = [
+                    [batch:'Batch1', plate:'Plate1', channels:'CHN2-AF488', id:'Batch1_Plate1_CHN2-AF488'],
+                    'CHN2-AF488',
+                    null,
+                    [   file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1_sub25/Source1/images/Batch1/images/Plate1/20X_CP_Plate1_20240319_122800_179/WellA1_PointA1_0000_ChannelPhalloAF750,CHN2-AF488,DAPI_Seq0000.ome.tiff"),
+                        file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1_sub25/Source1/images/Batch1/images/Plate1/20X_CP_Plate1_20240319_122800_179/WellA1_PointA1_0001_ChannelPhalloAF750,CHN2-AF488,DAPI_Seq0001.ome.tiff"),
+                        file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1_sub25/Source1/images/Batch1/images/Plate1/20X_CP_Plate1_20240319_122800_179/WellA1_PointA1_0002_ChannelPhalloAF750,CHN2-AF488,DAPI_Seq0002.ome.tiff"),
+                        file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1_sub25/Source1/images/Batch1/images/Plate1/20X_CP_Plate1_20240319_122800_179/WellA1_PointA1_0003_ChannelPhalloAF750,CHN2-AF488,DAPI_Seq0003.ome.tiff"),
+                        file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1_sub25/Source1/images/Batch1/images/Plate1/20X_CP_Plate1_20240319_122800_179/WellA2_PointA2_0000_ChannelPhalloAF750,CHN2-AF488,DAPI_Seq1025.ome.tiff"),
+                        file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1_sub25/Source1/images/Batch1/images/Plate1/20X_CP_Plate1_20240319_122800_179/WellA2_PointA2_0001_ChannelPhalloAF750,CHN2-AF488,DAPI_Seq1026.ome.tiff"),
+                        file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1_sub25/Source1/images/Batch1/images/Plate1/20X_CP_Plate1_20240319_122800_179/WellA2_PointA2_0002_ChannelPhalloAF750,CHN2-AF488,DAPI_Seq1027.ome.tiff"),
+                        file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1_sub25/Source1/images/Batch1/images/Plate1/20X_CP_Plate1_20240319_122800_179/WellA2_PointA2_0003_ChannelPhalloAF750,CHN2-AF488,DAPI_Seq1028.ome.tiff"),
+                        file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1_sub25/Source1/images/Batch1/images/Plate1/20X_CP_Plate1_20240319_122800_179/WellB1_PointB1_0000_ChannelPhalloAF750,CHN2-AF488,DAPI_Seq3075.ome.tiff"),
+                        file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1_sub25/Source1/images/Batch1/images/Plate1/20X_CP_Plate1_20240319_122800_179/WellB1_PointB1_0001_ChannelPhalloAF750,CHN2-AF488,DAPI_Seq3076.ome.tiff"),
+                        file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1_sub25/Source1/images/Batch1/images/Plate1/20X_CP_Plate1_20240319_122800_179/WellB1_PointB1_0002_ChannelPhalloAF750,CHN2-AF488,DAPI_Seq3077.ome.tiff"),
+                        file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1_sub25/Source1/images/Batch1/images/Plate1/20X_CP_Plate1_20240319_122800_179/WellB1_PointB1_0003_ChannelPhalloAF750,CHN2-AF488,DAPI_Seq3078.ome.tiff")],
+                    [   [plate:'Plate1', batch:'Batch1', well:'A1', site:0, channels:['CHN2-AF488'], filename:'WellA1_PointA1_0000_ChannelPhalloAF750,CHN2-AF488,DAPI_Seq0000.ome.tiff'],
+                        [plate:'Plate1', batch:'Batch1', well:'A1', site:1, channels:['CHN2-AF488'], filename:'WellA1_PointA1_0001_ChannelPhalloAF750,CHN2-AF488,DAPI_Seq0001.ome.tiff'],
+                        [plate:'Plate1', batch:'Batch1', well:'A1', site:2, channels:['CHN2-AF488'], filename:'WellA1_PointA1_0002_ChannelPhalloAF750,CHN2-AF488,DAPI_Seq0002.ome.tiff'],
+                        [plate:'Plate1', batch:'Batch1', well:'A1', site:3, channels:['CHN2-AF488'], filename:'WellA1_PointA1_0003_ChannelPhalloAF750,CHN2-AF488,DAPI_Seq0003.ome.tiff'],
+                        [plate:'Plate1', batch:'Batch1', well:'A2', site:0, channels:['CHN2-AF488'], filename:'WellA2_PointA2_0000_ChannelPhalloAF750,CHN2-AF488,DAPI_Seq1025.ome.tiff'],
+                        [plate:'Plate1', batch:'Batch1', well:'A2', site:1, channels:['CHN2-AF488'], filename:'WellA2_PointA2_0001_ChannelPhalloAF750,CHN2-AF488,DAPI_Seq1026.ome.tiff'],
+                        [plate:'Plate1', batch:'Batch1', well:'A2', site:2, channels:['CHN2-AF488'], filename:'WellA2_PointA2_0002_ChannelPhalloAF750,CHN2-AF488,DAPI_Seq1027.ome.tiff'],
+                        [plate:'Plate1', batch:'Batch1', well:'A2', site:3, channels:['CHN2-AF488'], filename:'WellA2_PointA2_0003_ChannelPhalloAF750,CHN2-AF488,DAPI_Seq1028.ome.tiff'],
+                        [plate:'Plate1', batch:'Batch1', well:'B1', site:0, channels:['CHN2-AF488'], filename:'WellB1_PointB1_0000_ChannelPhalloAF750,CHN2-AF488,DAPI_Seq3075.ome.tiff'],
+                        [plate:'Plate1', batch:'Batch1', well:'B1', site:1, channels:['CHN2-AF488'], filename:'WellB1_PointB1_0001_ChannelPhalloAF750,CHN2-AF488,DAPI_Seq3076.ome.tiff'],
+                        [plate:'Plate1', batch:'Batch1', well:'B1', site:2, channels:['CHN2-AF488'], filename:'WellB1_PointB1_0002_ChannelPhalloAF750,CHN2-AF488,DAPI_Seq3077.ome.tiff'],
+                        [plate:'Plate1', batch:'Batch1', well:'B1', site:3, channels:['CHN2-AF488'], filename:'WellB1_PointB1_0003_ChannelPhalloAF750,CHN2-AF488,DAPI_Seq3078.ome.tiff']]
+                ]
+                input[1] = "${projectDir}/assets/cellprofiler/painting_illumcalc_cppipe.template"
+                input[2] = false
+                """
+            }
+        }
+
+        then {
+            assertAll(
+                { assert process.success },
+                { assert snapshot(process.out).match() }
+            )
+        }
+
+    }
+
+}

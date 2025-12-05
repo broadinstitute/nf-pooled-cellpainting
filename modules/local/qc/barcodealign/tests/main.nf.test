@@ -1,0 +1,90 @@
+nextflow_process {
+
+    name "Test Process QC_BARCODEALIGN"
+    script "../main.nf"
+    process "QC_BARCODEALIGN"
+
+    tag "modules"
+    tag "modules_local"
+    tag "qc"
+    tag "qc/barcodealign"
+
+    test("barcode alignment - 3 cycles - 3 wells") {
+
+        when {
+            process {
+                """
+                // Test data from work directory - contains CellProfiler output CSV files
+                // with alignment metrics (shifts and correlations) for multiple wells
+                input[0] = [
+                    [ id:'Batch1_Plate1', batch:'Batch1', plate:'Plate1', arm:'barcoding' ], // meta map
+                    ['A1', 'A2', 'B1'], // wells list
+                    [
+                        file('s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/images/Batch1/images_aligned/barcoding/Plate1/Plate1-A1/BarcodingApplication_Image.csv', checkIfExists: true)
+                    ], // CSV files (one per well), currently one per site due to online data availability TODO: UPDATE
+                    3 // num_cycles
+                ]
+                input[1] = file("${projectDir}/bin/qc_barcode_align.py", checkIfExists: true)
+                input[2] = 50.0 // shift_threshold
+                input[3] = 0.9  // corr_threshold
+                input[4] = 2    // rows
+                input[5] = 2    // columns
+                """
+            }
+        }
+
+        then {
+            assertAll(
+                { assert process.success },
+                { assert snapshot(process.out.versions).match() },
+                // Check that notebook and HTML files exist (not reproducible due to timestamps)
+                { assert process.out.notebook.get(0).get(1) ==~ /.*\.ipynb/ },
+                { assert process.out.html_report.get(0).get(1) ==~ /.*\.html/ },
+                // Check that PNG files exist (multiple files generated)
+                { assert process.out.png_reports.get(0) instanceof List },
+                { assert process.out.png_reports.get(0).size() > 0 },
+                { assert process.out.png_reports.get(0).every { it.toString().endsWith('.png') } }
+            )
+        }
+
+    }
+
+    test("barcode alignment - 3 cycles - 3 wells - stub") {
+
+        options "-stub"
+
+        when {
+            process {
+                """
+                input[0] = [
+                    [ id:'Batch1_Plate1', batch:'Batch1', plate:'Plate1', arm:'barcoding' ],
+                    ['A1', 'A2', 'B1'],
+                    [
+                        file('s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/images/Batch1/images_aligned/barcoding/Plate1/Plate1-A1/BarcodingApplication_Image.csv', checkIfExists: true)
+                    ],
+                    3
+                ]
+                input[1] = file("${projectDir}/bin/qc_barcode_align.py", checkIfExists: true)
+                input[2] = 50.0
+                input[3] = 0.9
+                input[4] = 2
+                input[5] = 2
+                """
+            }
+        }
+
+        then {
+            assertAll(
+                { assert process.success },
+                { assert snapshot(process.out.versions).match() },
+                // Check that stub files exist
+                { assert process.out.notebook.get(0).get(1) ==~ /.*\.ipynb/ },
+                { assert process.out.html_report.get(0).get(1) ==~ /.*\.html/ },
+                // Check that PNG file exists (stub creates single file)
+                { assert process.out.png_reports.get(0) ==~ /.*\.png/ }
+            )
+        }
+
+    }
+
+}

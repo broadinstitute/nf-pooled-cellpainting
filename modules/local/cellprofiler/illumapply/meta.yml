@@ -1,0 +1,91 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/nf-core/modules/master/modules/meta-schema.json
+name: "cellprofiler_illumapply"
+description: "Apply illumination correction to microscopy images using CellProfiler"
+keywords:
+  - cellprofiler
+  - illumination_correction
+  - cellpainting
+  - microscopy
+  - image_processing
+tools:
+  - "cellprofiler":
+      description: "CellProfiler is free, open-source software for quantitative analysis of biological images."
+      homepage: "https://cellprofiler.org/"
+      documentation: "https://cellprofiler-manual.s3.amazonaws.com/CellProfiler-4.2.8/index.html"
+      tool_dev_url: "https://github.com/CellProfiler/CellProfiler"
+      doi: "https://doi.org/10.1186/s12859-021-04344-9"
+      licence: ["BSD-3-clause"]
+      identifier: biotools:CellProfiler
+
+input:
+  - - meta:
+        type: map
+        description: "Groovy Map containing sample information (e.g. batch, plate, arm, well)"
+    - channels:
+        type: string
+        description: "Comma-separated list of channel names"
+    - cycles:
+        type: string
+        description: "Comma-separated list of cycle names or identifiers"
+    - images:
+        type: file
+        description: "Input microscopy images to be corrected"
+        pattern: "*.{tif,tiff,ome.tiff}"
+        ontologies:
+          - edam: "http://edamontology.org/data_2968" # Image
+    - image_metas:
+        type: list
+        description: "List of image metadata maps containing plate, well, site, channels, filename information"
+    - npy_files:
+        type: file
+        description: "Illumination correction files in numpy format"
+        pattern: "*.npy"
+        ontologies:
+          - edam: "http://edamontology.org/data_0006" # Data
+  - illumination_apply_cppipe:
+      type: file
+      description: "CellProfiler pipeline file for applying illumination correction"
+      pattern: "*.cppipe"
+      ontologies:
+        - edam: "http://edamontology.org/data_0006" # Data
+  - has_cycles:
+      type: boolean
+      description: "Whether the experiment includes multiple cycles"
+
+output:
+  - corrected_images:
+      - meta:
+          type: map
+          description: "Groovy Map containing sample information (e.g. batch, plate, arm, well)"
+      - "*.tiff":
+          type: file
+          description: "Illumination-corrected microscopy images"
+          pattern: "*.tiff"
+          ontologies:
+            - edam: "http://edamontology.org/data_2968" # Image
+            - edam: "http://edamontology.org/format_3547" # TIFF
+      - "*.csv":
+          type: file
+          description: "CSV files with metadata for corrected images"
+          pattern: "*.csv"
+          ontologies:
+            - edam: "http://edamontology.org/format_3752" # CSV
+  - load_data_csv:
+      - "load_data.csv":
+          type: file
+          description: "Generated load_data.csv file used by CellProfiler to load and organize input images"
+          pattern: "load_data.csv"
+          ontologies:
+            - edam: "http://edamontology.org/format_3752" # CSV
+  - versions:
+      - versions.yml:
+          type: file
+          description: "File containing software versions"
+          pattern: "versions.yml"
+          ontologies:
+            - edam: "http://edamontology.org/format_3750" # YAML
+
+authors:
+  - "@FloWuenne"
+maintainers:
+  - "@FloWuenne"

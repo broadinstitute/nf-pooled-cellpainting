@@ -1,0 +1,30 @@
+.params-table {
+  width: 100%;
+  table-layout: fixed;
+}
+
+.params-table th:nth-child(1),
+.params-table td:nth-child(1) {
+  width: 30%;
+}
+
+.params-table th:nth-child(2),
+.params-table td:nth-child(2) {
+  width: 40%;
+}
+
+.params-table th:nth-child(3),
+.params-table td:nth-child(3) {
+  width: 10%;
+}
+
+.params-table th:nth-child(4),
+.params-table td:nth-child(4) {
+  width: 10%;
+}
+
+.params-table th:nth-child(5),
+.params-table td:nth-child(5) {
+  width: 10%;
+  text-align: center;
+}
