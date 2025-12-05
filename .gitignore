@@ -7,8 +7,6 @@ testing/
 testing*
 *.pyc
 null/
-CLAUDE.md
-SKILLS.md
 .claude/
 .nf-test.log
 .nf-test/
@@ -17,3 +15,9 @@ SKILLS.md
 # MkDocs
 site/
 .cache/
+
+# transcripts etc.
+resources
+
+# test output
+.nf-test-*.nf

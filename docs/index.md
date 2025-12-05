@@ -1,95 +1,69 @@
 # nf-pooled-cellpainting
 
-nf-pooled-cellpainting is a Nextflow pipeline for the processing and analysis of optical pooled screening (OPS) data combining Cell Painting phenotypic analysis with sequencing-by-synthesis barcoding.
+A Nextflow pipeline for processing and analyzing optical pooled screening (OPS) data, combining Cell Painting phenotypic analysis with sequencing-by-synthesis (SBS) barcoding.
 
-## Introduction
+## What This Pipeline Does
 
-The pipeline builds upon previous work by the Broad Institute and the [Cimini lab](https://cimini-lab.broadinstitute.org/) establishing large scale image analysis for cell painting assays.
-nf-pooled-cellpainting processes optical pooled screening (OPS) data through two parallel processing arms:
-
-- **Cell Painting Arm**: Phenotypic profiling using multi-channel fluorescence microscopy
-- **Barcoding Arm**: Genetic barcoding using sequencing-by-synthesis (SBS)
-
-The pipeline takes images of cells stained with cell painting markers and images of sequencing-by-synthesis (SBS) barcoding images as input and processes them through a number of image analysis and processing steps using Cellprofiler, Fiji and custom python scripts. A detailed workflow description can be found in the [Workflow](developer/architecture.md) section. A high level overview of the different steps in the pipeline is shown in the Mermaid diagram below.
+- **Processes** microscopy images through parallel Cell Painting and Barcoding arms
+- **Corrects** illumination artifacts and aligns multi-cycle images
+- **Segments** cells and extracts morphological features
+- **Decodes** genetic barcodes and assigns them to individual cells
+- **Produces** linked genotype-phenotype measurements at single-cell resolution
 
 ```mermaid
-flowchart TD
+flowchart LR
     subgraph Input
-        Samplesheet[Samplesheet]
+        S[Samplesheet]
     end
 
-    subgraph "Cell Painting Arm"
-        CP_IllumCalc[IllumCalc]
-        CP_IllumQC[Illum QC]
-        CP_IllumApply[IllumApply]
-        CP_SegCheck[SegCheck]
-        CP_SegCheckQC[SegCheck QC]
-        CP_StitchCrop[Stitch & Crop]
-        CP_StitchQC[Stitch QC]
+    subgraph Processing
+        CP[Cell Painting<br/>Phenotype]
+        BC[Barcoding<br/>Genotype]
     end
 
-    subgraph "Barcoding Arm"
-        BC_IllumCalc[IllumCalc]
-        BC_IllumQC[Illum QC]
-        BC_IllumApply[IllumApply]
-        BC_AlignQC[Align QC]
-        BC_Preprocess[Preprocess]
-        BC_PreprocessQC[Preprocess QC]
-        BC_StitchCrop[Stitch & Crop]
-        BC_StitchQC[Stitch QC]
+    subgraph Output
+        CA[Combined Analysis<br/>Linked Data]
     end
 
-    subgraph "Combined Analysis"
-        CombinedAnalysis[Combined Analysis]
-        MultiQC[MultiQC]
-    end
-
-    %% Input connections
-    Samplesheet --> CP_IllumCalc
-    Samplesheet --> BC_IllumCalc
-
-    %% Cell Painting Flow
-    CP_IllumCalc --> CP_IllumQC
-    CP_IllumCalc --> CP_IllumApply
-    CP_IllumApply --> CP_SegCheck
-    CP_SegCheck --> CP_SegCheckQC
-    CP_SegCheckQC -.-> CP_StitchCrop
-    CP_IllumApply --> CP_StitchCrop
-    CP_StitchCrop --> CP_StitchQC
-
-    %% Barcoding Flow
-    BC_IllumCalc --> BC_IllumQC
-    BC_IllumCalc --> BC_IllumApply
-    BC_IllumApply --> BC_AlignQC
-    BC_IllumApply --> BC_Preprocess
-    BC_Preprocess --> BC_PreprocessQC
-    BC_PreprocessQC -.-> BC_StitchCrop
-    BC_Preprocess --> BC_StitchCrop
-    BC_StitchCrop --> BC_StitchQC
-
-    %% Combined Flow
-    CP_StitchCrop --> CombinedAnalysis
-    BC_StitchCrop --> CombinedAnalysis
-    CombinedAnalysis --> MultiQC
+    S --> CP
+    S --> BC
+    CP --> CA
+    BC --> CA
 ```
 
-## Key Features
+## Documentation
 
-- **Dual-arm, parallel processing** for painting and barcoding data
-- **Illumination correction** via CellProfiler
-- **Automated image stitching** with Fiji
-- **Possibility for parallelization** at plate, well, and site levels
-- **Quality control gates** at critical pipeline stages
-- **Resumability** after manual QC and failed pipeline runs
-- **CellProfiler plugin support** for barcode calling and color compensation
-- **Easily portable across** cloud and HPC executions
+| Document | Description |
+|----------|-------------|
+| [User Guide](guide.md) | Installation, quickstart, custom data, AWS deployment, FAQ |
+| [Parameters](parameters.md) | Complete parameter reference |
+| [Technical Reference](reference.md) | Architecture, CellProfiler integration, outputs |
 
 ## Quick Links
 
-- [Getting Started](getting-started/quickstart.md) - Install and run your first analysis
-- [Parameters](usage/parameters.md) - Complete parameter reference
-- [Architecture](developer/architecture.md) - Pipeline architecture and implementation
-- [FAQ](usage/faq.md) - Frequently asked questions
+**Getting Started**:
+
+- [Installation](guide.md#installation)
+- [Quick Start with Test Data](guide.md#quick-start)
+- [Using Your Own Data](guide.md#using-your-own-data)
+
+**Cloud Deployment**:
+
+- [Running on AWS with Seqera Platform](guide.md#running-on-aws-with-seqera-platform)
+
+**Reference**:
+
+- [Pipeline Architecture](reference.md#architecture)
+- [Output Formats](reference.md#output-reference)
+
+## Key Features
+
+- **Dual-arm parallel processing** for painting and barcoding data
+- **Illumination correction** via CellProfiler
+- **Automated image stitching** with Fiji
+- **Quality control gates** at critical pipeline stages
+- **Resumability** after manual QC review
+- **Cloud-native** execution on AWS Batch via Seqera Platform
 
 ## Citation
 
@@ -103,17 +77,9 @@ If you use this pipeline, please cite the original authors and tools:
 - Fiji/ImageJ (Schindelin et al., 2012)
 - Nextflow (Di Tommaso et al., 2017)
 
-See [CITATIONS.md](https://github.com/broadinstitute/nf-pooled-cellpainting/blob/dev/CITATIONS.md) for a list of complete citations.
+See [CITATIONS.md](https://github.com/broadinstitute/nf-pooled-cellpainting/blob/dev/CITATIONS.md) for complete citations.
 
 ## Support
 
-For questions and support:
-
 - Open an issue on [GitHub](https://github.com/broadinstitute/nf-pooled-cellpainting/issues)
-- Review [FAQ](usage/faq.md)
-
-## License
-
-This pipeline is licensed under the [BSD 3-Clause License](https://github.com/broadinstitute/nf-pooled-cellpainting/blob/dev/LICENSE).
-
-Portions of this software are derived from the nf-core project template and nf-core tools, which are licensed under the [MIT License](https://github.com/broadinstitute/nf-pooled-cellpainting/blob/dev/LICENSE-MIT). This includes the pipeline template structure, module patterns, configuration patterns, and utility functions.
+- Review the [FAQ](guide.md#frequently-asked-questions)
