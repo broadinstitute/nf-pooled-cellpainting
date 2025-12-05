@@ -813,54 +813,54 @@
         "content": [
             60,
             {
-                "CELLPROFILER_ILLUMAPPLY_PAINTING": {
+                "CELLPROFILER_COMBINEDANALYSIS": {
                     "cellprofiler": "4.2.8"
-                },
-                "Workflow": {
-                    "broadinstitute/nf-pooled-cellpainting": "v1.0.0dev"
                 },
                 "CELLPROFILER_ILLUMAPPLY_BARCODING": {
                     "cellprofiler": "4.2.8"
                 },
-                "CELLPROFILER_PREPROCESS": {
+                "CELLPROFILER_ILLUMAPPLY_PAINTING": {
                     "cellprofiler": "4.2.8"
                 },
                 "CELLPROFILER_ILLUMCALC": {
                     "cellprofiler": "4.2.8"
                 },
-                "CELLPROFILER_COMBINEDANALYSIS": {
+                "CELLPROFILER_PREPROCESS": {
                     "cellprofiler": "4.2.8"
                 },
-                "QC_MONTAGE_SEGCHECK": {
-                    "qc_montage": "0.1.0"
-                },
-                "QC_MONTAGEILLUM_BARCODING": {
-                    "qc_montage": "0.1.0"
+                "CELLPROFILER_SEGCHECK": {
+                    "cellprofiler": "4.2.8"
                 },
                 "FIJI_STITCHCROP": {
                     "fiji": "4.0.5"
                 },
-                "QC_MONTAGE_STITCHCROP_PAINTING": {
+                "QC_BARCODEALIGN": {
+                    "jupytext": "1.18.1",
+                    "nbconvert": "7.16.6",
+                    "papermill": "2.6.0 from /opt/conda/lib/python3.13/site-packages/papermill/cli.py (3.13.9)"
+                },
+                "QC_MONTAGE_SEGCHECK": {
                     "qc_montage": "0.1.0"
                 },
                 "QC_MONTAGE_STITCHCROP_BARCODING": {
                     "qc_montage": "0.1.0"
                 },
-                "QC_BARCODEALIGN": {
-                    "jupytext": "1.18.1",
-                    "papermill": "2.6.0 from /opt/conda/lib/python3.13/site-packages/papermill/cli.py (3.13.9)",
-                    "nbconvert": "7.16.6"
+                "QC_MONTAGE_STITCHCROP_PAINTING": {
+                    "qc_montage": "0.1.0"
                 },
-                "CELLPROFILER_SEGCHECK": {
-                    "cellprofiler": "4.2.8"
+                "QC_MONTAGEILLUM_BARCODING": {
+                    "qc_montage": "0.1.0"
                 },
                 "QC_MONTAGEILLUM_PAINTING": {
                     "qc_montage": "0.1.0"
                 },
                 "QC_PREPROCESS": {
                     "jupytext": "1.18.1",
-                    "papermill": "2.6.0 from /opt/conda/lib/python3.13/site-packages/papermill/cli.py (3.13.9)",
-                    "nbconvert": "7.16.6"
+                    "nbconvert": "7.16.6",
+                    "papermill": "2.6.0 from /opt/conda/lib/python3.13/site-packages/papermill/cli.py (3.13.9)"
+                },
+                "Workflow": {
+                    "broadinstitute/nf-pooled-cellpainting": "v1.0.0dev"
                 }
             },
             [
