@@ -816,6 +816,9 @@
                 "CELLPROFILER_ILLUMAPPLY_PAINTING": {
                     "cellprofiler": "4.2.8"
                 },
+                "Workflow": {
+                    "seqera-services/nf-pooled-cellpainting": "v1.0.0dev"
+                },
                 "CELLPROFILER_ILLUMAPPLY_BARCODING": {
                     "cellprofiler": "4.2.8"
                 },
@@ -836,9 +839,6 @@
                 },
                 "FIJI_STITCHCROP": {
                     "fiji": "4.0.5"
-                },
-                "Workflow": {
-                    "seqera-services/nf-pooled-cellpainting": "v1.0.0dev"
                 },
                 "QC_MONTAGE_STITCHCROP_PAINTING": {
                     "qc_montage": "0.1.0"
