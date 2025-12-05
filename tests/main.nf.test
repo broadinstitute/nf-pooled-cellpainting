@@ -6,13 +6,18 @@ nextflow_pipeline {
     tag "pipeline"
     tag "nf_pooled_cellpainting"
 
-    test("nf-pooled-cellpainting - full pipeline - test profile") {
+    test("nf-pooled-cellpainting - full pipeline - test profile - qc passed") {
+
+        tag "qc_passed"
 
         when {
             params {
                 // Use the test profile parameters
                 config_profile_name         = 'Test profile'
                 config_profile_description  = 'Minimal test dataset to check pipeline function'
+
+                qc_painting_passed          = true
+                qc_barcoding_passed         = true
 
                 // Input data
                 input                       = "${projectDir}/assets/samplesheet.csv"
@@ -32,7 +37,6 @@ nextflow_pipeline {
                 painting_round_or_square    = "square"
                 painting_quarter_if_round   = true
                 painting_overlap_pct        = 10
-                painting_scalingstring      = 2
                 painting_imperwell          = "unused"
                 painting_rows               = 2
                 painting_columns            = 2
@@ -42,7 +46,6 @@ nextflow_pipeline {
                 barcoding_round_or_square   = "square"
                 barcoding_quarter_if_round  = true
                 barcoding_overlap_pct       = 10
-                barcoding_scalingstring     = 2
                 barcoding_imperwell         = "unused"
                 barcoding_rows              = 2
                 barcoding_columns           = 2
@@ -59,8 +62,9 @@ nextflow_pipeline {
         then {
             // stable_name: All files + folders in ${params.outdir}/ with a stable name
             def stable_name = getAllFilesFromDir(params.outdir, relative: true, includeDir: true, ignore: ['pipeline_info/*.{html,json,txt}'])
-            // stable_path: All files in ${params.outdir}/ with stable content
-            def stable_path = getAllFilesFromDir(params.outdir, ignoreFile: 'tests/.nftignore')
+            // NOTE: stable_path (file content checksums) is NOT included in the snapshot because image processing
+            // outputs from CellProfiler, FIJI, etc. have non-reproducible checksums due to floating point operations,
+            // compression variations, and metadata differences between runs.
             assert workflow.success
             assertAll(
                 { assert workflow.success},
@@ -70,15 +74,15 @@ nextflow_pipeline {
                     // pipeline versions.yml file for multiqc from which Nextflow version is removed because we tests pipelines on multiple Nextflow versions
                     removeNextflowVersion("$outputDir/pipeline_info/nf-pooled-cellpainting_software_mqc_versions.yml"),
                     // All stable path name, with a relative path
-                    stable_name,
-                    // All files with stable contents
-                    stable_path
+                    stable_name
                 ).match() }
             )
         }
     }
 
     test("nf-pooled-cellpainting - full pipeline - test profile - stub") {
+
+        tag "stub"
 
         options "-stub"
 
@@ -139,6 +143,243 @@ nextflow_pipeline {
                 { assert workflow.success},
                 { assert snapshot(
                     // Number of successful tasks
+                    workflow.trace.succeeded().size(),
+                    // All stable path name, with a relative path
+                    stable_name,
+                    // All files with stable contents
+                    stable_path
+                ).match() }
+            )
+        }
+    }
+
+    test("nf-pooled-cellpainting - full pipeline - test profile - stub - painting qc false") {
+
+        tag "stub_painting_qc_false"
+
+        options "-stub"
+
+        when {
+            params {
+                // Use the test profile parameters
+                config_profile_name         = 'Test profile'
+                config_profile_description  = 'Minimal test dataset to check pipeline function'
+
+                // QC parameters - painting failed, barcoding passed
+                qc_painting_passed          = false
+                qc_barcoding_passed         = true
+
+                // Input data
+                input                       = "${projectDir}/assets/samplesheet.csv"
+                barcodes                    = "s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1_sub25/Source1/workspace/metadata/Barcodes.csv"
+                range_skip                  = 2
+                fiji_stitchcrop_script      = "${projectDir}/assets/stitchcrop/stitch_crop.test.py"
+
+                painting_illumcalc_cppipe   = "${projectDir}/assets/cellprofiler/painting_illumcalc_cppipe.template"
+                painting_illumapply_cppipe  = "${projectDir}/assets/cellprofiler/painting_illumapply.cppipe"
+                painting_segcheck_cppipe    = "${projectDir}/assets/cellprofiler/painting_segcheck.cppipe"
+                barcoding_illumcalc_cppipe  = "${projectDir}/assets/cellprofiler/barcoding_illumcalc_cppipe.template"
+                barcoding_illumapply_cppipe = "${projectDir}/assets/cellprofiler/barcoding_illumapply.cppipe"
+                barcoding_preprocess_cppipe = "${projectDir}/assets/cellprofiler/barcoding_preprocess.cppipe"
+                combinedanalysis_cppipe     = "${projectDir}/assets/cellprofiler/combined_analysis.cppipe"
+
+                // Stitching/Cropping parameters - Painting-specific
+                painting_round_or_square    = "square"
+                painting_quarter_if_round   = true
+                painting_overlap_pct        = 10
+                painting_scalingstring      = 2
+                painting_imperwell          = "unused"
+                painting_rows               = 2
+                painting_columns            = 2
+                painting_stitchorder        = "Grid: snake by rows"
+
+                // Stitching/Cropping parameters - Barcoding-specific
+                barcoding_round_or_square   = "square"
+                barcoding_quarter_if_round  = true
+                barcoding_overlap_pct       = 10
+                barcoding_scalingstring     = 2
+                barcoding_imperwell         = "unused"
+                barcoding_rows              = 2
+                barcoding_columns           = 2
+                barcoding_stitchorder       = "Grid: snake by rows"
+
+                tileperside                 = 2
+                final_tile_size             = 800
+
+                // Output directory
+                outdir                      = "${outputDir}"
+            }
+        }
+
+        then {
+            // stable_name: All files + folders in ${params.outdir}/ with a stable name
+            def stable_name = getAllFilesFromDir(params.outdir, relative: true, includeDir: true, ignore: ['pipeline_info/*.{html,json,txt}'])
+            // stable_path: All files in ${params.outdir}/ with stable content
+            def stable_path = getAllFilesFromDir(params.outdir, ignoreFile: 'tests/.nftignore')
+            assertAll(
+                { assert workflow.success},
+                // Combined analysis should NOT run when painting QC failed
+                { assert !workflow.trace.succeeded().collect { it.name }.any { it.startsWith('POOLED_CELLPAINTING:CELLPROFILER_COMBINEDANALYSIS') } },
+                { assert snapshot(
+                    // Number of successful tasks (should be fewer than qc passed test)
+                    workflow.trace.succeeded().size(),
+                    // All stable path name, with a relative path
+                    stable_name,
+                    // All files with stable contents
+                    stable_path
+                ).match() }
+            )
+        }
+    }
+
+    test("nf-pooled-cellpainting - full pipeline - test profile - stub - barcoding qc false") {
+
+        tag "stub_barcoding_qc_false"
+
+        options "-stub"
+
+        when {
+            params {
+                // Use the test profile parameters
+                config_profile_name         = 'Test profile'
+                config_profile_description  = 'Minimal test dataset to check pipeline function'
+
+                // QC parameters - painting passed, barcoding failed
+                qc_painting_passed          = true
+                qc_barcoding_passed         = false
+
+                // Input data
+                input                       = "${projectDir}/assets/samplesheet.csv"
+                barcodes                    = "s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1_sub25/Source1/workspace/metadata/Barcodes.csv"
+                range_skip                  = 2
+                fiji_stitchcrop_script      = "${projectDir}/assets/stitchcrop/stitch_crop.test.py"
+
+                painting_illumcalc_cppipe   = "${projectDir}/assets/cellprofiler/painting_illumcalc_cppipe.template"
+                painting_illumapply_cppipe  = "${projectDir}/assets/cellprofiler/painting_illumapply.cppipe"
+                painting_segcheck_cppipe    = "${projectDir}/assets/cellprofiler/painting_segcheck.cppipe"
+                barcoding_illumcalc_cppipe  = "${projectDir}/assets/cellprofiler/barcoding_illumcalc_cppipe.template"
+                barcoding_illumapply_cppipe = "${projectDir}/assets/cellprofiler/barcoding_illumapply.cppipe"
+                barcoding_preprocess_cppipe = "${projectDir}/assets/cellprofiler/barcoding_preprocess.cppipe"
+                combinedanalysis_cppipe     = "${projectDir}/assets/cellprofiler/combined_analysis.cppipe"
+
+                // Stitching/Cropping parameters - Painting-specific
+                painting_round_or_square    = "square"
+                painting_quarter_if_round   = true
+                painting_overlap_pct        = 10
+                painting_scalingstring      = 2
+                painting_imperwell          = "unused"
+                painting_rows               = 2
+                painting_columns            = 2
+                painting_stitchorder        = "Grid: snake by rows"
+
+                // Stitching/Cropping parameters - Barcoding-specific
+                barcoding_round_or_square   = "square"
+                barcoding_quarter_if_round  = true
+                barcoding_overlap_pct       = 10
+                barcoding_scalingstring     = 2
+                barcoding_imperwell         = "unused"
+                barcoding_rows              = 2
+                barcoding_columns           = 2
+                barcoding_stitchorder       = "Grid: snake by rows"
+
+                tileperside                 = 2
+                final_tile_size             = 800
+
+                // Output directory
+                outdir                      = "${outputDir}"
+            }
+        }
+
+        then {
+            // stable_name: All files + folders in ${params.outdir}/ with a stable name
+            def stable_name = getAllFilesFromDir(params.outdir, relative: true, includeDir: true, ignore: ['pipeline_info/*.{html,json,txt}'])
+            // stable_path: All files in ${params.outdir}/ with stable content
+            def stable_path = getAllFilesFromDir(params.outdir, ignoreFile: 'tests/.nftignore')
+            assertAll(
+                { assert workflow.success},
+                // Combined analysis should NOT run when barcoding QC failed
+                { assert !workflow.trace.succeeded().collect { it.name }.any { it.startsWith('POOLED_CELLPAINTING:CELLPROFILER_COMBINEDANALYSIS') } },
+                { assert snapshot(
+                    // Number of successful tasks (should be fewer than qc passed test)
+                    workflow.trace.succeeded().size(),
+                    // All stable path name, with a relative path
+                    stable_name,
+                    // All files with stable contents
+                    stable_path
+                ).match() }
+            )
+        }
+    }
+
+    test("nf-pooled-cellpainting - full pipeline - test profile - stub - both qc false") {
+
+        tag "stub_both_qc_false"
+
+        options "-stub"
+
+        when {
+            params {
+                // Use the test profile parameters
+                config_profile_name         = 'Test profile'
+                config_profile_description  = 'Minimal test dataset to check pipeline function'
+
+                // QC parameters - both failed
+                qc_painting_passed          = false
+                qc_barcoding_passed         = false
+
+                // Input data
+                input                       = "${projectDir}/assets/samplesheet.csv"
+                barcodes                    = "s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1_sub25/Source1/workspace/metadata/Barcodes.csv"
+                range_skip                  = 2
+                fiji_stitchcrop_script      = "${projectDir}/assets/stitchcrop/stitch_crop.test.py"
+
+                painting_illumcalc_cppipe   = "${projectDir}/assets/cellprofiler/painting_illumcalc_cppipe.template"
+                painting_illumapply_cppipe  = "${projectDir}/assets/cellprofiler/painting_illumapply.cppipe"
+                painting_segcheck_cppipe    = "${projectDir}/assets/cellprofiler/painting_segcheck.cppipe"
+                barcoding_illumcalc_cppipe  = "${projectDir}/assets/cellprofiler/barcoding_illumcalc_cppipe.template"
+                barcoding_illumapply_cppipe = "${projectDir}/assets/cellprofiler/barcoding_illumapply.cppipe"
+                barcoding_preprocess_cppipe = "${projectDir}/assets/cellprofiler/barcoding_preprocess.cppipe"
+                combinedanalysis_cppipe     = "${projectDir}/assets/cellprofiler/combined_analysis.cppipe"
+
+                // Stitching/Cropping parameters - Painting-specific
+                painting_round_or_square    = "square"
+                painting_quarter_if_round   = true
+                painting_overlap_pct        = 10
+                painting_scalingstring      = 2
+                painting_imperwell          = "unused"
+                painting_rows               = 2
+                painting_columns            = 2
+                painting_stitchorder        = "Grid: snake by rows"
+
+                // Stitching/Cropping parameters - Barcoding-specific
+                barcoding_round_or_square   = "square"
+                barcoding_quarter_if_round  = true
+                barcoding_overlap_pct       = 10
+                barcoding_scalingstring     = 2
+                barcoding_imperwell         = "unused"
+                barcoding_rows              = 2
+                barcoding_columns           = 2
+                barcoding_stitchorder       = "Grid: snake by rows"
+
+                tileperside                 = 2
+                final_tile_size             = 800
+
+                // Output directory
+                outdir                      = "${outputDir}"
+            }
+        }
+
+        then {
+            // stable_name: All files + folders in ${params.outdir}/ with a stable name
+            def stable_name = getAllFilesFromDir(params.outdir, relative: true, includeDir: true, ignore: ['pipeline_info/*.{html,json,txt}'])
+            // stable_path: All files in ${params.outdir}/ with stable content
+            def stable_path = getAllFilesFromDir(params.outdir, ignoreFile: 'tests/.nftignore')
+            assertAll(
+                { assert workflow.success},
+                // Combined analysis should NOT run when both QC failed
+                { assert !workflow.trace.succeeded().collect { it.name }.any { it.startsWith('POOLED_CELLPAINTING:CELLPROFILER_COMBINEDANALYSIS') } },
+                { assert snapshot(
+                    // Number of successful tasks (should be fewer than qc passed test)
                     workflow.trace.succeeded().size(),
                     // All stable path name, with a relative path
                     stable_name,

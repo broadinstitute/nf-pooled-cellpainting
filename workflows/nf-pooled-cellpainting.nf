@@ -114,110 +114,113 @@ workflow POOLED_CELLPAINTING {
     ch_versions = ch_versions.mix(BARCODING.out.versions)
 
     //// Combined analysis of painting and barcoding data ////
-    // Only run if both painting and barcoding QC have been marked as pass
-
-    // Combine cropped images from both arms
-    CELLPAINTING.out.cropped_images
-        .map { meta, images -> [meta + [arm_source: 'cellpainting'], images] }
-        .mix(
-            BARCODING.out.cropped_images.map { meta, images -> [meta + [arm_source: 'barcoding'], images] }
-        )
-        .flatMap { meta, images ->
-            // Flatten images and associate each image file with its metadata (including arm_source)
-            images.collect { img -> [meta, img] }
-        }
-        .map { meta, image ->
-            // Create SIMPLE STRING grouping key for proper groupTuple operation
-            def group_key = "${meta.batch}_${meta.plate}_${meta.well}_${meta.site}"
-            def group_meta = [
-                batch: meta.batch,
-                plate: meta.plate,
-                well: meta.well,
-                site: meta.site,
-                id: group_key,
-                arm_source: meta.arm_source,
-            ]
-            [group_key, group_meta, image]
-        }
-        .groupTuple(by: 0)
-        .map { _group_key, meta_list, images_list ->
-            // Use first meta (they should all be identical for common fields like batch, plate, well, site)
-            def common_meta = meta_list[0]
-
-            // Build image metadata for each image, using the preserved arm_source and existing channel info
-            def image_metas = (0..<images_list.size()).collect { i ->
-                def img = images_list[i]
-                def current_meta = meta_list[i]
-                // Get the specific meta for this image
-                def img_meta = [
-                    well: common_meta.well,
-                    site: common_meta.site,
-                    filename: img.name,
-                    type: current_meta.arm_source,
+    // Only run if BOTH painting and barcoding QC have been marked as pass
+    if (params.qc_painting_passed && params.qc_barcoding_passed) {
+        // Combine cropped images from both arms
+        CELLPAINTING.out.cropped_images
+            .map { meta, images -> [meta + [arm_source: 'cellpainting'], images] }
+            .mix(
+                BARCODING.out.cropped_images.map { meta, images -> [meta + [arm_source: 'barcoding'], images] }
+            )
+            .flatMap { meta, images ->
+                // Flatten images and associate each image file with its metadata (including arm_source)
+                images.collect { img -> [meta, img] }
+            }
+            .map { meta, image ->
+                // Create SIMPLE STRING grouping key for proper groupTuple operation
+                def group_key = "${meta.batch}_${meta.plate}_${meta.well}_${meta.site}"
+                def group_meta = [
+                    batch: meta.batch,
+                    plate: meta.plate,
+                    well: meta.well,
+                    site: meta.site,
+                    id: group_key,
+                    arm_source: meta.arm_source,
                 ]
+                [group_key, group_meta, image]
+            }
+            .groupTuple(by: 0)
+            .map { _group_key, meta_list, images_list ->
+                // Use first meta (they should all be identical for common fields like batch, plate, well, site)
+                def common_meta = meta_list[0]
 
-                // Add channel and cycle information based on arm_source
-                if (current_meta.arm_source == 'barcoding') {
-                    // For barcoding, channels are typically 'DNA' and 'CycleXX'
-                    // We need to infer the channel from the filename or assume a default if not explicitly in meta
-                    // Assuming channel is part of the filename for barcoding as before, or could be passed in meta
-                    def barcode_match = (img.name =~ /Cycle(\d+)_([A-Z]+|DNA|DAPI)\.tiff?$/)
-                    if (barcode_match) {
-                        img_meta.cycle = barcode_match[0][1] as Integer
-                        img_meta.channel = barcode_match[0][2]
+                // Build image metadata for each image, using the preserved arm_source and existing channel info
+                def image_metas = (0..<images_list.size()).collect { i ->
+                    def img = images_list[i]
+                    def current_meta = meta_list[i]
+                    // Get the specific meta for this image
+                    def img_meta = [
+                        well: common_meta.well,
+                        site: common_meta.site,
+                        filename: img.name,
+                        type: current_meta.arm_source,
+                    ]
+
+                    // Add channel and cycle information based on arm_source
+                    if (current_meta.arm_source == 'barcoding') {
+                        // For barcoding, channels are typically 'DNA' and 'CycleXX'
+                        // We need to infer the channel from the filename or assume a default if not explicitly in meta
+                        // Assuming channel is part of the filename for barcoding as before, or could be passed in meta
+                        def barcode_match = (img.name =~ /Cycle(\d+)_([A-Z]+|DNA|DAPI)\.tiff?$/)
+                        if (barcode_match) {
+                            img_meta.cycle = barcode_match[0][1] as Integer
+                            img_meta.channel = barcode_match[0][2]
+                        }
+                        else {
+                            log.warn("Could not parse cycle/channel for barcoding image: ${img.name}")
+                            img_meta.channel = 'unknown'
+                        }
+                    }
+                    else if (current_meta.arm_source == 'cellpainting') {
+                        // For painting, channels are typically defined in the samplesheet (meta.channels)
+                        // We need to infer the channel from the filename as it's not directly in meta for individual image
+                        def cp_match = (img.name =~ /Corr([A-Za-z0-9_]+)\.tiff?$/)
+                        if (cp_match) {
+                            img_meta.channel = cp_match[0][1]
+                        }
+                        else {
+                            log.warn("Could not parse channel for painting image: ${img.name}")
+                            img_meta.channel = 'unknown'
+                        }
                     }
                     else {
-                        log.warn("Could not parse cycle/channel for barcoding image: ${img.name}")
+                        log.warn("Unknown arm_source for image: ${img.name} (arm: ${current_meta.arm_source})")
                         img_meta.channel = 'unknown'
                     }
+                    img_meta
                 }
-                else if (current_meta.arm_source == 'cellpainting') {
-                    // For painting, channels are typically defined in the samplesheet (meta.channels)
-                    // We need to infer the channel from the filename as it's not directly in meta for individual image
-                    def cp_match = (img.name =~ /Corr([A-Za-z0-9_]+)\.tiff?$/)
-                    if (cp_match) {
-                        img_meta.channel = cp_match[0][1]
-                    }
-                    else {
-                        log.warn("Could not parse channel for painting image: ${img.name}")
-                        img_meta.channel = 'unknown'
-                    }
+
+                // Prepare metadata structure for combined analysis
+                def metadata_for_json = [
+                    plate: common_meta.plate,
+                    image_metadata: image_metas,
+                ]
+                // Add optional fields if present
+                if (common_meta.batch) {
+                    metadata_for_json.batch = common_meta.batch
                 }
-                else {
-                    log.warn("Unknown arm_source for image: ${img.name} (arm: ${current_meta.arm_source})")
-                    img_meta.channel = 'unknown'
-                }
-                img_meta
+
+                [common_meta, images_list, metadata_for_json]
             }
+            .set { ch_cropped_images }
 
-            // Prepare metadata structure for combined analysis
-            def metadata_for_json = [
-                plate: common_meta.plate,
-                image_metadata: image_metas,
-            ]
-            // Add optional fields if present
-            if (common_meta.batch) {
-                metadata_for_json.batch = common_meta.batch
-            }
-
-            [common_meta, images_list, metadata_for_json]
-        }
-        .set { ch_cropped_images }
-
-    CELLPROFILER_COMBINEDANALYSIS(
-        ch_cropped_images,
-        params.combinedanalysis_cppipe,
-        barcodes,
-        file(params.callbarcodes_plugin),
-    )
-    ch_versions = ch_versions.mix(CELLPROFILER_COMBINEDANALYSIS.out.versions)
-    // Merge load_data CSVs across all samples
-    CELLPROFILER_COMBINEDANALYSIS.out.load_data_csv.collectFile(
-        name: "combined_analysis.load_data.csv",
-        keepHeader: true,
-        skip: 1,
-        storeDir: "${params.outdir}/workspace/load_data_csv/",
-    )
+        CELLPROFILER_COMBINEDANALYSIS(
+            ch_cropped_images,
+            params.combinedanalysis_cppipe,
+            barcodes,
+            file(params.callbarcodes_plugin),
+        )
+        ch_versions = ch_versions.mix(CELLPROFILER_COMBINEDANALYSIS.out.versions)
+        // Merge load_data CSVs across all samples
+        CELLPROFILER_COMBINEDANALYSIS.out.load_data_csv.collectFile(
+            name: "combined_analysis.load_data.csv",
+            keepHeader: true,
+            skip: 1,
+            storeDir: "${params.outdir}/workspace/load_data_csv/",
+        )
+    } else {
+        log.info "Skipping combined analysis: Both qc_painting_passed (${params.qc_painting_passed}) and qc_barcoding_passed (${params.qc_barcoding_passed}) must be true. Review QC montages for both arms and set both parameters to true to proceed."
+    }
 
 
     //

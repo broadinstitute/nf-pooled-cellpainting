@@ -34,7 +34,7 @@
                             "well": "A01",
                             "id": "Batch1_Plate1_painting_A1"
                         },
-                        "Plate_Plate1_Well_A01_Site_null_CorrPhalloidin.tiff:md5,d41d8cd98f00b204e9800998ecf8427e",
+                        "Plate_Plate1_Well_A01_Site_1_CorrPhalloidin.tiff:md5,d41d8cd98f00b204e9800998ecf8427e",
                         [
                             "PaintingIllumApplication_Cells.csv:md5,d41d8cd98f00b204e9800998ecf8427e",
                             "PaintingIllumApplication_ConfluentRegions.csv:md5,d41d8cd98f00b204e9800998ecf8427e",
@@ -60,7 +60,7 @@
                             "well": "A01",
                             "id": "Batch1_Plate1_painting_A1"
                         },
-                        "Plate_Plate1_Well_A01_Site_null_CorrPhalloidin.tiff:md5,d41d8cd98f00b204e9800998ecf8427e",
+                        "Plate_Plate1_Well_A01_Site_1_CorrPhalloidin.tiff:md5,d41d8cd98f00b204e9800998ecf8427e",
                         [
                             "PaintingIllumApplication_Cells.csv:md5,d41d8cd98f00b204e9800998ecf8427e",
                             "PaintingIllumApplication_ConfluentRegions.csv:md5,d41d8cd98f00b204e9800998ecf8427e",
@@ -83,6 +83,6 @@
             "nf-test": "0.9.3",
             "nextflow": "25.10.0"
         },
-        "timestamp": "2025-11-09T01:55:39.698630852"
+        "timestamp": "2025-12-05T01:12:03.26786026"
     }
 }
