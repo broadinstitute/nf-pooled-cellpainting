@@ -50,12 +50,18 @@ When updating documentation:
 4. **Version changes**: Update examples when pipeline parameters or behavior changes
 5. **Cross-references**: Use relative links between documents
 
+### Local Docs Setup
+
+```bash
+uv venv .venv
+source .venv/bin/activate
+uv pip install -r docs-requirements.txt
+mkdocs serve
+```
+
 ### Common Commands for Docs
 
 ```bash
-# Serve docs locally
-mkdocs serve
-
 # Build docs
 mkdocs build
 
