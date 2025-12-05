@@ -839,6 +839,12 @@
                     "nbconvert": "7.16.6",
                     "papermill": "2.6.0 from /opt/conda/lib/python3.13/site-packages/papermill/cli.py (3.13.9)"
                 },
+                "QC_MONTAGEILLUM_BARCODING": {
+                    "qc_montage": "0.1.0"
+                },
+                "QC_MONTAGEILLUM_PAINTING": {
+                    "qc_montage": "0.1.0"
+                },
                 "QC_MONTAGE_SEGCHECK": {
                     "qc_montage": "0.1.0"
                 },
@@ -846,12 +852,6 @@
                     "qc_montage": "0.1.0"
                 },
                 "QC_MONTAGE_STITCHCROP_PAINTING": {
-                    "qc_montage": "0.1.0"
-                },
-                "QC_MONTAGEILLUM_BARCODING": {
-                    "qc_montage": "0.1.0"
-                },
-                "QC_MONTAGEILLUM_PAINTING": {
                     "qc_montage": "0.1.0"
                 },
                 "QC_PREPROCESS": {
