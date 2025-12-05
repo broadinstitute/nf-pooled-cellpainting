@@ -25,7 +25,7 @@ This mode is best for development, testing, or running on a single server.
     Run the pipeline help command to verify everything is working and Docker is accessible:
 
     ```bash
-    nextflow run seqera-services/nf-pooled-cellpainting -profile docker --help -r dev
+    nextflow run broadinstitute/nf-pooled-cellpainting -profile docker --help -r dev
     ```
 
 3.  Head to the [Quick Start Guide](quickstart.md) to run your first test analysis.
@@ -46,7 +46,7 @@ This mode is recommended for production runs at scale.
 1.  **Add pipeline to Launchpad**:
     - Navigate to the **Launchpad** in your workspace.
     - Click **Add Pipeline**.
-    - Enter the repository URL: `https://github.com/seqera-services/nf-pooled-cellpainting`.
+    - Enter the repository URL: `https://github.com/broadinstitute/nf-pooled-cellpainting`.
     - Select your AWS Batch Compute Environment.
 
 2.  **Launch**:

@@ -1,5 +1,5 @@
 //
-// Subworkflow with functionality specific to the seqera-services/nf-pooled-cellpainting pipeline
+// Subworkflow with functionality specific to the broadinstitute/nf-pooled-cellpainting pipeline
 //
 
 /*

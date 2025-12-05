@@ -817,7 +817,7 @@
                     "cellprofiler": "4.2.8"
                 },
                 "Workflow": {
-                    "seqera-services/nf-pooled-cellpainting": "v1.0.0dev"
+                    "broadinstitute/nf-pooled-cellpainting": "v1.0.0dev"
                 },
                 "CELLPROFILER_ILLUMAPPLY_BARCODING": {
                     "cellprofiler": "4.2.8"

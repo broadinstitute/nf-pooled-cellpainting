@@ -91,7 +91,7 @@ You need to provide paths to these files using the corresponding parameters:
 Once your inputs are ready, run the pipeline pointing to your files:
 
 ```bash
-nextflow run seqera-services/nf-pooled-cellpainting \
+nextflow run broadinstitute/nf-pooled-cellpainting \
     --input samplesheet.csv \
     --barcodes barcodes.csv \
     --outdir results \

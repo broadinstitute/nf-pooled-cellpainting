@@ -70,7 +70,7 @@ Before contributing, make sure you have:
 
 ```bash
 # Clone the repository
-git clone https://github.com/seqera-services/nf-pooled-cellpainting.git
+git clone https://github.com/broadinstitute/nf-pooled-cellpainting.git
 cd nf-pooled-cellpainting
 
 # Run the test suite to verify your setup

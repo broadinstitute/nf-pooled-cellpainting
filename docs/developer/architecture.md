@@ -254,7 +254,7 @@ if (params.qc_painting_passed) {
 }
 ```
 
-Importantly, only setting `if else` statements to control the gating behaviour is not sufficient because Nextflow uses the dataflow paradigm and will still process all sites / wells / plates even if the QC checks fail. To prevent this, we use the [when](https://github.com/seqera-services/nf-pooled-cellpainting/blob/025098a756da05ae1948fa94a74dd9747af90a88/modules/local/fiji/stitchcrop/main.nf#L33-L34) parameter inside the `FIJI_STITCHCROP` process to control the execution of the process. This `when` parameter will only let the process be executed if the `qc_painting_passed` or `qc_barcoding_passed` parameter respectively are set to `true`.
+Importantly, only setting `if else` statements to control the gating behaviour is not sufficient because Nextflow uses the dataflow paradigm and will still process all sites / wells / plates even if the QC checks fail. To prevent this, we use the [when](https://github.com/broadinstitute/nf-pooled-cellpainting/blob/025098a756da05ae1948fa94a74dd9747af90a88/modules/local/fiji/stitchcrop/main.nf#L33-L34) parameter inside the `FIJI_STITCHCROP` process to control the execution of the process. This `when` parameter will only let the process be executed if the `qc_painting_passed` or `qc_barcoding_passed` parameter respectively are set to `true`.
 
 ### Manual Review Workflow
 
@@ -291,14 +291,14 @@ For more details about the `load_data.csv` file, see the [Cellprofiler Integrati
 
 ### CellProfiler Plugins
 
-Cellprofiler plugins are downloaded and staged by Nextflow from the Cellprofiler plugin repository by default: [https://github.com/seqera-services/nf-pooled-cellpainting/blob/025098a756da05ae1948fa94a74dd9747af90a88/nextflow.config#L83-L84](https://github.com/seqera-services/nf-pooled-cellpainting/blob/025098a756da05ae1948fa94a74dd9747af90a88/nextflow.config#L83-L84)
+Cellprofiler plugins are downloaded and staged by Nextflow from the Cellprofiler plugin repository by default: [https://github.com/broadinstitute/nf-pooled-cellpainting/blob/025098a756da05ae1948fa94a74dd9747af90a88/nextflow.config#L83-L84](https://github.com/broadinstitute/nf-pooled-cellpainting/blob/025098a756da05ae1948fa94a74dd9747af90a88/nextflow.config#L83-L84)
 
 ## Error Handling
 
 ### Retry Strategy
 
 Error and retry strategies are defined in the base.config file in the `/conf` directory. The pipeline supports retrying failed processes in case of insufficient memory or other defined error codes. The specific parameters and exit codes for retry behaviour can be modified via nextflow configuration:
-[base.config](https://github.com/seqera-services/nf-pooled-cellpainting/blob/dev/conf/base.config)
+[base.config](https://github.com/broadinstitute/nf-pooled-cellpainting/blob/dev/conf/base.config)
 
 ## Next Steps
 

@@ -52,7 +52,7 @@ lint:
   nf_test_content: false
 
 template:
-  org: seqera-services
+  org: broadinstitute
   name: nf-pooled-cellpainting
   description: A Nextflow pipeline for analysing optical pooled screens (OPS) data.
   author: Florian Wuennemann, Ken Brewer, Erin Weissbart, Shantanu Singh, and Seqera Services

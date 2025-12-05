@@ -28,7 +28,7 @@ Key steps include:
 The pipeline includes a small test dataset to verify that the pipeline executes correctly from end to end. You can run the test profile using the following command:
 
 ```bash
-nextflow run seqera-services/nf-pooled-cellpainting -profile test,docker --outdir results
+nextflow run broadinstitute/nf-pooled-cellpainting -profile test,docker --outdir results
 ```
 
 ### Using your own data
@@ -36,7 +36,7 @@ nextflow run seqera-services/nf-pooled-cellpainting -profile test,docker --outdi
 To use your own or public optical pooled screening data, you need to supply a samplesheet, a `barcode.csv` file, your own generated CellProfiler pipeline files (`.cppipe` files) for all pipeline steps, and an output directory for the results.
 
 ```bash
-nextflow run seqera-services/nf-pooled-cellpainting \
+nextflow run broadinstitute/nf-pooled-cellpainting \
    -profile docker \
    --input samplesheet.csv \
    --barcodes barcodes.csv \
@@ -54,11 +54,11 @@ Instead of defining parameters on the command line, you can also define them via
 
 ## Documentation
 
-For detailed documentation, see: **[Full Documentation](https://seqera-services.github.io/nf-pooled-cellpainting/)**
+For detailed documentation, see: **[Full Documentation](https://broadinstitute.github.io/nf-pooled-cellpainting/)**
 
-- [Installation](https://seqera-services.github.io/nf-pooled-cellpainting/getting-started/installation/)
-- [Usage Guide](https://seqera-services.github.io/nf-pooled-cellpainting/usage/parameters/)
-- [Troubleshooting](https://seqera-services.github.io/nf-pooled-cellpainting/reference/troubleshooting/)
+- [Installation](https://broadinstitute.github.io/nf-pooled-cellpainting/getting-started/installation/)
+- [Usage Guide](https://broadinstitute.github.io/nf-pooled-cellpainting/usage/parameters/)
+- [Troubleshooting](https://broadinstitute.github.io/nf-pooled-cellpainting/reference/troubleshooting/)
 
 ## Important pipeline Parameters
 

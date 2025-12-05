@@ -5,7 +5,7 @@
 Nextflow has a built-in resume feature. Simply add `-resume` to your command line. Nextflow will check the cache and only run the steps that haven't completed successfully or have changed.
 
 ```bash
-nextflow run seqera-services/nf-pooled-cellpainting ... -resume
+nextflow run broadinstitute/nf-pooled-cellpainting ... -resume
 ```
 
 ## How much memory and cpu do I need?

@@ -103,17 +103,17 @@ If you use this pipeline, please cite the original authors and tools:
 - Fiji/ImageJ (Schindelin et al., 2012)
 - Nextflow (Di Tommaso et al., 2017)
 
-See [CITATIONS.md](https://github.com/seqera-services/nf-pooled-cellpainting/blob/dev/CITATIONS.md) for a list of complete citations.
+See [CITATIONS.md](https://github.com/broadinstitute/nf-pooled-cellpainting/blob/dev/CITATIONS.md) for a list of complete citations.
 
 ## Support
 
 For questions and support:
 
-- Open an issue on [GitHub](https://github.com/seqera-services/nf-pooled-cellpainting/issues)
+- Open an issue on [GitHub](https://github.com/broadinstitute/nf-pooled-cellpainting/issues)
 - Review [FAQ](usage/faq.md)
 
 ## License
 
-This pipeline is licensed under the [BSD 3-Clause License](https://github.com/seqera-services/nf-pooled-cellpainting/blob/dev/LICENSE).
+This pipeline is licensed under the [BSD 3-Clause License](https://github.com/broadinstitute/nf-pooled-cellpainting/blob/dev/LICENSE).
 
-Portions of this software are derived from the nf-core project template and nf-core tools, which are licensed under the [MIT License](https://github.com/seqera-services/nf-pooled-cellpainting/blob/dev/LICENSE-MIT). This includes the pipeline template structure, module patterns, configuration patterns, and utility functions.
+Portions of this software are derived from the nf-core project template and nf-core tools, which are licensed under the [MIT License](https://github.com/broadinstitute/nf-pooled-cellpainting/blob/dev/LICENSE-MIT). This includes the pipeline template structure, module patterns, configuration patterns, and utility functions.

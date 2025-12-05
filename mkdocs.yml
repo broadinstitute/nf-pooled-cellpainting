@@ -1,7 +1,7 @@
 site_name: nf-pooled-cellpainting
 site_description: A Nextflow pipeline for optical pooled screening combining Cell Painting and barcoding
 site_author: Seqera & Broad Institute
-repo_url: https://github.com/seqera-services/nf-pooled-cellpainting
+repo_url: https://github.com/broadinstitute/nf-pooled-cellpainting
 repo_name: nf-pooled-cellpainting
 
 theme:
@@ -74,7 +74,7 @@ plugins:
 extra:
   social:
     - icon: fontawesome/brands/github
-      link: https://github.com/seqera-services/nf-pooled-cellpainting
+      link: https://github.com/broadinstitute/nf-pooled-cellpainting
 
 extra_css:
   - stylesheets/extra.css

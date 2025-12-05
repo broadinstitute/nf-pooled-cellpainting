@@ -15,7 +15,7 @@ The test is designed to run in about 15-20 minutes locally (or 5-10 minutes on A
 Run the following command (or submit a launch via [Seqera Platform](https://cloud.seqera.io/))
 
 ```bash
-nextflow run seqera-services/nf-pooled-cellpainting \
+nextflow run broadinstitute/nf-pooled-cellpainting \
     -profile test,docker \
     --outdir results
 ```
@@ -56,7 +56,7 @@ Once you are satisfied with the QC results (for this test data, we assume they a
 Resume the pipeline with the QC flags set to `true`:
 
 ```bash
-nextflow run seqera-services/nf-pooled-cellpainting \
+nextflow run broadinstitute/nf-pooled-cellpainting \
     -profile test,docker \
     --outdir results \
     --qc_painting_passed true \

@@ -1,9 +1,9 @@
 #!/usr/bin/env nextflow
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    seqera-services/nf-pooled-cellpainting
+    broadinstitute/nf-pooled-cellpainting
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    Github : https://github.com/seqera-services/nf-pooled-cellpainting
+    Github : https://github.com/broadinstitute/nf-pooled-cellpainting
 ----------------------------------------------------------------------------------------
 */
 

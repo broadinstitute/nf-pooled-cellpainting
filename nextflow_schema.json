@@ -1,7 +1,7 @@
 {
     "$schema": "https://json-schema.org/draft/2020-12/schema",
-    "$id": "https://raw.githubusercontent.com/seqera-services/nf-pooled-cellpainting/master/nextflow_schema.json",
-    "title": "seqera-services/nf-pooled-cellpainting pipeline parameters",
+    "$id": "https://raw.githubusercontent.com/broadinstitute/nf-pooled-cellpainting/master/nextflow_schema.json",
+    "title": "broadinstitute/nf-pooled-cellpainting pipeline parameters",
     "description": "A Nextflow pipeline for analysing optical pooled screens (OPS) data.",
     "type": "object",
     "$defs": {

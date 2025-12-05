@@ -1,6 +1,6 @@
 {
-    "name": "seqera-services/nf-pooled-cellpainting",
-    "homePage": "https://github.com/seqera-services/nf-pooled-cellpainting",
+    "name": "broadinstitute/nf-pooled-cellpainting",
+    "homePage": "https://github.com/broadinstitute/nf-pooled-cellpainting",
     "repos": {
         "https://github.com/nf-core/modules.git": {
             "modules": {
