@@ -416,6 +416,15 @@ For image processing workloads, select instance families with:
 - `m6id` - General-purpose with NVMe
 - `r6id` - Memory-optimized with NVMe
 
+!!! warning "Fusion Snapshots: Pin Specific Instance Sizes"
+    When using Fusion Snapshots, **pin specific instance sizes** (not just families) to ensure successful snapshot creation. Snapshots require sufficient memory-to-NVMe-bandwidth ratio to complete within the 2-minute spot reclamation window.
+
+    **Recommended for Fusion Snapshots** (pin all of these in your compute environment):
+
+    - `c6id.large`, `c6id.xlarge`, `c6id.2xlarge`, `c6id.4xlarge`, `c6id.8xlarge`, `c6id.12xlarge`
+
+    Avoid letting AWS auto-select very large instances (e.g., `32xlarge`) which may sit idle after tasks complete, costing ~$6/hour for minimal utilization. The `12xlarge` ceiling provides sufficient memory for most Combined Analysis tasks while limiting cost exposure.
+
 ### Configuring the Pipeline in Seqera Platform
 
 Navigate to **Launchpad** → **Add Pipeline**.
@@ -465,6 +474,31 @@ qc_barcoding_passed: true
 3. **Right-size Max CPUs**: Start with 500-1000, increase based on queue times
 4. **Use Appropriate Instance Types**: Memory-optimized (`r6id`) for Combined Analysis; compute-optimized (`c6id`) for illumination steps
 5. **Clean Up Work Directory**: Periodically delete old work directories from S3
+6. **Route Long Tasks to On-Demand**: See below for avoiding spot reclaim losses on multi-hour tasks
+
+### Routing Long-Running Tasks to On-Demand Instances
+
+Long-running tasks like `FIJI_STITCHCROP` (up to 4-6 hours) and `CELLPROFILER_COMBINEDANALYSIS` risk losing hours of work if spot instances are reclaimed. To avoid this:
+
+1. **Create an on-demand compute environment** in Seqera Platform (duplicate your spot environment, disable Fusion Snapshots since they're unnecessary for on-demand)
+
+2. **Route specific processes** to the on-demand queue by adding to your Nextflow config:
+
+```groovy
+process {
+    withName: 'FIJI_STITCHCROP' {
+        queue = '<on-demand-queue-name>'
+    }
+    withName: 'CELLPROFILER_COMBINEDANALYSIS' {
+        queue = '<on-demand-queue-name>'
+    }
+}
+```
+
+The queue name is visible in your Seqera Platform compute environment under "Manual config attributes".
+
+!!! tip "When to use on-demand"
+    Use on-demand for tasks that: (1) run longer than 1-2 hours, (2) have experienced repeated spot reclamations, or (3) are in the final stages of a critical run
 
 ### Resource Requirements by Process
 

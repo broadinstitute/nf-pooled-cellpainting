@@ -240,6 +240,64 @@ process {
 
 Exit codes 130-145, 104, and 175 trigger automatic retry with increased resources.
 
+### Testing and CI/CD
+
+#### GitHub Actions Workflow
+
+The pipeline uses GitHub Actions for continuous integration. Tests run automatically on pull requests (`.github/workflows/nf-test.yml`):
+
+- **Trigger**: Pull requests (excluding docs, markdown, and image changes)
+- **Container profile**: Docker only (Singularity is not tested)
+- **Sharding**: Tests are split across up to 7 parallel runners for faster execution
+- **Change detection**: Only tests affected by changed files are executed (`nf-test --changed-since HEAD^`)
+
+#### NF-test Structure
+
+Tests are organized at two levels:
+
+| Level | Location | Purpose |
+|-------|----------|---------|
+| **Module tests** | `modules/local/*/tests/main.nf.test` | Unit tests for individual processes |
+| **Pipeline tests** | `tests/main.nf.test` | End-to-end tests with different parameter configurations |
+
+#### Handling Non-Reproducible Outputs
+
+Image processing outputs (CellProfiler, Fiji) have non-reproducible checksums due to floating point operations, compression variations, and metadata differences. The pipeline handles this in two ways:
+
+**1. Global ignore file** (`tests/.nftignore`):
+
+```text
+# Ignore all image types with unstable checksums
+*.tiff
+*.tif
+*.npy
+*.png
+*.csv
+*.html
+```
+
+**2. File existence assertions** in test files (see `modules/local/cellprofiler/combinedanalysis/tests/main.nf.test`):
+
+```groovy
+// Exclude specific files from snapshot, check existence instead
+process.out.csv_stats.get(0).get(1).findAll {
+    file(it).name != "Experiment.csv" &&
+    file(it).name != "Image.csv"
+}
+// Then assert file exists separately
+{ assert process.out.csv_stats.get(0).get(1).any { file(it).name == "Experiment.csv" } }
+```
+
+#### Updating Snapshots
+
+When intentionally changing outputs, update snapshots with:
+
+```bash
+nf-test test --update-snapshot
+```
+
+This overwrites existing `.nf.test.snap` files. Review the diff carefully before committing.
+
 ---
 
 ## CellProfiler Integration

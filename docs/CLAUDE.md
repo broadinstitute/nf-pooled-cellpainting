@@ -71,6 +71,12 @@ The `mkdocs.yml` file controls navigation. When restructuring:
 - Use descriptive names that indicate content
 - Match nav structure to actual file organization
 
+## Session Transcripts
+
+- **Location**: `resources/` folder (git-ignored) stores meeting transcripts and screenshots
+- **Naming**: `YYYY-MM-DD-transcript.txt` for transcripts, `YYYY-MM-DD-screenshots/` for images
+- **Usage**: Reference transcripts to identify documentation gaps and cross-check with guide.md/reference.md
+
 ## Interaction Guidelines
 
 - **Read "For Document Contributors" sections first**: Each major document (guide.md, reference.md) contains a "For Document Contributors" section at the end with editorial guidelines. Read these before making changes to understand the document's purpose, audience, structure principles, and terminology.
