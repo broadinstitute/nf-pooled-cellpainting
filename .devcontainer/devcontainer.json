@@ -1,4 +1,10 @@
 {
+    // Current setup uses nfcore/gitpod image with pre-installed tools.
+    // Future consideration: use pixi for unified local/container environments:
+    //   - "image": "mcr.microsoft.com/devcontainers/base:ubuntu"
+    //   - "features": { "ghcr.io/prefix-dev/devcontainer-features/pixi:1": {} }
+    //   - "postCreateCommand": "pixi install"
+    // See pixi.toml for the project's dependency definitions.
     "name": "nfcore",
     "image": "nfcore/gitpod:latest",
     "remoteUser": "gitpod",
