@@ -12,17 +12,18 @@ nf-pooled-cellpainting is a Nextflow pipeline for processing optical pooled scre
 # Run the pipeline with test profile
 nextflow run main.nf -profile test,docker --outdir results
 
+# Quick local tests (recommended for development)
+nf-test test modules/local/cellprofiler/illumcalc/tests/main.nf.test --profile debug,test,docker  # ~30s
+nf-test test modules/local/cellprofiler/segcheck/tests/main.nf.test --profile debug,test,docker   # ~30s
+
+# Full pipeline test (slow - 5-10+ minutes, runs actual image processing)
+nf-test test tests/main.nf.test --profile debug,test,docker --verbose
+
 # Run all nf-test tests
 nf-test test --profile debug,test,docker --verbose
 
-# Run a specific test file
-nf-test test tests/main.nf.test --profile debug,test,docker --verbose
-
-# Run tests for a specific module
-nf-test test modules/local/cellprofiler/illumcalc/tests/main.nf.test --profile debug,test,docker
-
-# Run stub tests (faster, no actual processing)
-nf-test test tests/main.nf.test --profile debug,test,docker -stub
+# Dry-run to check workflow logic without running containers
+nextflow run main.nf -profile test,docker --outdir results -preview
 
 # Lint the pipeline
 nf-core pipelines lint .
@@ -85,8 +86,10 @@ Both must be true for combined analysis to run.
 
 - Image processing outputs (CellProfiler, Fiji) have non-reproducible checksums due to floating point operations
 - Snapshot tests verify file names and task counts rather than file contents
-- Use `-stub` for faster tests that skip actual image processing
+- Module tests (`modules/local/*/tests/`) are faster than full pipeline tests
+- Full pipeline test (`tests/main.nf.test`) takes 5-10+ minutes as it runs actual CellProfiler/Fiji processing
 - Test data is fetched from S3: `s3://nf-pooled-cellpainting-sandbox/`
+- NullPointerException warnings from nf-test on macOS are expected (workflow.trace issue)
 
 ## Configuration
 
