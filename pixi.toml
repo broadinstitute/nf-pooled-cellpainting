@@ -65,14 +65,6 @@ description = "Test illumination calculation module (~30s)"
 cmd = "nf-test test modules/local/cellprofiler/segcheck/tests/main.nf.test --profile debug,test,docker"
 description = "Test segmentation check module (~30s)"
 
-[tasks.test-quick]
-cmd = "nf-test test modules/local/cellprofiler/illumcalc/tests/main.nf.test modules/local/cellprofiler/segcheck/tests/main.nf.test --profile debug,test,docker"
-description = "Test illumcalc + segcheck modules (~1 min)"
-
-[tasks.test-full]
-cmd = "nf-test test tests/main.nf.test --profile debug,test,docker --verbose"
-description = "Run full pipeline test (slow, 5-10+ minutes)"
-
 # Linting
 [tasks.lint]
 cmd = "nf-core pipelines lint"

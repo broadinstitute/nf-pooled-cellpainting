@@ -21,14 +21,10 @@ All commands assume you're in a `pixi shell` or prefixed with `pixi run`.
 
 ```bash
 # Quick local tests (recommended for development)
-pixi run test-quick      # Run illumcalc + segcheck tests (~1 min)
 pixi run test-illumcalc  # Illumination calculation module (~30s)
 pixi run test-segcheck   # Segmentation check module (~30s)
 
-# Full pipeline test (slow - 5-10+ minutes, runs actual image processing)
-pixi run test-full
-
-# Run all nf-test tests
+# Run all nf-test tests (modules + full pipeline, slow)
 pixi run test
 
 # Dry-run to check workflow logic without running containers
