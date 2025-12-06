@@ -21,3 +21,4 @@ resources
 
 # test output
 .nf-test-*.nf
+.pixi/

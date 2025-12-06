@@ -6,30 +6,61 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 nf-pooled-cellpainting is a Nextflow pipeline for processing optical pooled screening (OPS) data, combining Cell Painting phenotypic analysis with sequencing-by-synthesis barcoding. The pipeline processes microscopy images through two parallel arms and produces phenotypic measurements for each identified cell.
 
-## Build and Test Commands
+## Development Setup
+
+This project uses [pixi](https://pixi.sh) for dependency management. Install pixi, then:
 
 ```bash
-# Run the pipeline with test profile
-nextflow run main.nf -profile test,docker --outdir results
+pixi install          # Install dependencies
+pixi shell            # Activate environment (recommended for interactive work)
+```
 
+## Build and Test Commands
+
+All commands assume you're in a `pixi shell` or prefixed with `pixi run`.
+
+```bash
 # Quick local tests (recommended for development)
-nf-test test modules/local/cellprofiler/illumcalc/tests/main.nf.test --profile debug,test,docker  # ~30s
-nf-test test modules/local/cellprofiler/segcheck/tests/main.nf.test --profile debug,test,docker   # ~30s
+pixi run test-quick      # Run illumcalc + segcheck tests (~1 min)
+pixi run test-illumcalc  # Illumination calculation module (~30s)
+pixi run test-segcheck   # Segmentation check module (~30s)
 
 # Full pipeline test (slow - 5-10+ minutes, runs actual image processing)
-nf-test test tests/main.nf.test --profile debug,test,docker --verbose
+pixi run test-full
 
 # Run all nf-test tests
-nf-test test --profile debug,test,docker --verbose
+pixi run test
 
 # Dry-run to check workflow logic without running containers
-nextflow run main.nf -profile test,docker --outdir results -preview
+pixi run preview
+
+# Run the pipeline with test profile
+pixi run pipeline
 
 # Lint the pipeline
-nf-core pipelines lint .
+pixi run lint
 
 # Update schema after adding parameters
-nf-core pipelines schema build
+pixi run build-schema
+
+# Clean up work directories
+pixi run clean-work      # Remove work, results, .nextflow
+pixi run clean-all-work  # Also remove .nf-test cache
+
+# Documentation
+pixi run serve-docs      # Serve docs locally
+pixi run build-docs      # Build docs
+
+# List all available tasks
+pixi task list
+```
+
+### Without pixi (direct commands)
+
+```bash
+nextflow run main.nf -profile test,docker --outdir results -preview
+nf-test test modules/local/cellprofiler/illumcalc/tests/main.nf.test --profile debug,test,docker
+nf-core pipelines lint
 ```
 
 ## Architecture

@@ -49,8 +49,8 @@ all = { features = ["docs", "dev"], solve-group = "default" }
 
 # Pipeline execution
 [tasks]
-preview = { cmd = "nextflow run main.nf -profile test,docker --outdir results -preview", description = "Dry-run pipeline to check workflow logic" }
-run-test = { cmd = "nextflow run main.nf -profile test,docker --outdir results", description = "Run pipeline with test profile" }
+preview = { cmd = "nextflow run main.nf -profile test,docker --outdir results -preview", description = "Preview pipeline without containers" }
+pipeline = { cmd = "nextflow run main.nf -profile test,docker --outdir results", description = "Run pipeline with test profile" }
 
 # Testing
 [tasks.test]
@@ -59,15 +59,15 @@ description = "Run all nf-test tests"
 
 [tasks.test-illumcalc]
 cmd = "nf-test test modules/local/cellprofiler/illumcalc/tests/main.nf.test --profile debug,test,docker"
-description = "Quick test: illumination calculation module (~30s)"
+description = "Test illumination calculation module (~30s)"
 
 [tasks.test-segcheck]
 cmd = "nf-test test modules/local/cellprofiler/segcheck/tests/main.nf.test --profile debug,test,docker"
-description = "Quick test: segmentation check module (~30s)"
+description = "Test segmentation check module (~30s)"
 
 [tasks.test-quick]
 cmd = "nf-test test modules/local/cellprofiler/illumcalc/tests/main.nf.test modules/local/cellprofiler/segcheck/tests/main.nf.test --profile debug,test,docker"
-description = "Run quick module tests (illumcalc + segcheck)"
+description = "Test illumcalc + segcheck modules (~1 min)"
 
 [tasks.test-full]
 cmd = "nf-test test tests/main.nf.test --profile debug,test,docker --verbose"
@@ -79,20 +79,20 @@ cmd = "nf-core pipelines lint"
 description = "Lint the pipeline with nf-core"
 
 # Schema management
-[tasks.schema-build]
+[tasks.build-schema]
 cmd = "nf-core pipelines schema build --dir ."
 description = "Update schema after adding parameters"
 
 # Documentation (requires docs environment)
 [feature.docs.tasks]
-docs-serve = { cmd = "mkdocs serve", description = "Serve documentation locally" }
-docs-build = { cmd = "mkdocs build", description = "Build documentation" }
+serve-docs = { cmd = "mkdocs serve", description = "Serve documentation locally" }
+build-docs = { cmd = "mkdocs build", description = "Build documentation" }
 
 # Clean up
-[tasks.clean]
-cmd = "rm -rf work results .nextflow .nextflow.log*"
+[tasks.clean-work]
+cmd = "rm -rf work results .nextflow .nextflow.log* 2>/dev/null || true"
 description = "Clean Nextflow work directory and results"
 
-[tasks.clean-all]
-cmd = "rm -rf work results .nextflow .nextflow.log* .nf-test"
+[tasks.clean-all-work]
+cmd = "rm -rf work results .nextflow .nextflow.log* .nf-test 2>/dev/null || true"
 description = "Clean all generated files including nf-test cache"
