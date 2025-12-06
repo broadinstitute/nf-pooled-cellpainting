@@ -290,11 +290,30 @@ process.out.csv_stats.get(0).get(1).findAll {
 
 #### Updating Snapshots
 
-When intentionally changing outputs, update snapshots with:
+When intentionally changing outputs, update snapshots using **GitHub Codespaces** (recommended for macOS users):
 
 ```bash
-nf-test test --update-snapshot
+# Create a codespace with enough resources (need 3+ CPUs for FIJI processes)
+gh codespace create --repo broadinstitute/nf-pooled-cellpainting --branch dev --machine largePremiumLinux
+
+# Open in browser
+gh codespace code --codespace <name> --web
+
+# Inside the codespace, run tests with snapshot update
+nf-test test tests/main.nf.test --profile debug,test,docker --update-snapshot
+
+# Review changes, commit, and push
+git diff tests/main.nf.test.snap
+git add tests/main.nf.test.snap
+git commit -m "fix: regenerate snapshots"
+git push
+
+# Delete codespace when done (to avoid charges)
+gh codespace delete --codespace <name>
 ```
+
+!!! warning "Local macOS Limitations"
+    Running `nf-test test --update-snapshot` locally on macOS may fail due to `workflow.trace` not being populated correctly with Nextflow edge versions. Use GitHub Codespaces instead.
 
 This overwrites existing `.nf.test.snap` files. Review the diff carefully before committing.
 
