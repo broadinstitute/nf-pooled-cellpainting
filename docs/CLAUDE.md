@@ -24,8 +24,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with do
 
 - **Cell Painting**: Use full term in prose, "CP" only in diagrams if space-constrained
 - **SBS**: Define as "Sequencing by Synthesis" on first use, then use abbreviation
-- **Barcoding**: Preferred term for "SBS", in the context of this worflow
-- **Painting**: Preferred term for "Cell Painting", when referring to terms like "painting arm" in the context of this worflow
+- **Barcoding**: Preferred term for "SBS", in the context of this workflow
+- **Painting**: Preferred term for "Cell Painting", when referring to terms like "painting arm" in the context of this workflow
 - **OPS**: Define as "Optical Pooled Screening" on first use
 - **Seqera Platform**: Current name (formerly "Nextflow Tower")
 - **CellProfiler pipeline** (.cppipe): Image processing definition

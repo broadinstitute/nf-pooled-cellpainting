@@ -8,10 +8,12 @@ nf-pooled-cellpainting is a Nextflow pipeline for processing optical pooled scre
 
 ## Development Setup
 
-This project uses [pixi](https://pixi.sh) for dependency management. Install pixi, then:
+**Note**: The pipeline runs entirely in Docker containers (CellProfiler, Fiji, etc.). End users only need Nextflow + Docker. This section covers the **developer environment** for working on the pipeline code.
+
+This project uses [pixi](https://pixi.sh) to manage developer tools (nextflow, nf-test, nf-core, mkdocs). Install pixi, then:
 
 ```bash
-pixi install          # Install dependencies
+pixi install          # Install developer tools
 pixi shell            # Activate environment (recommended for interactive work)
 ```
 
@@ -21,8 +23,8 @@ All commands assume you're in a `pixi shell` or prefixed with `pixi run`.
 
 ```bash
 # Quick local tests (recommended for development)
-pixi run test-illumcalc  # Illumination calculation module (~30s)
-pixi run test-segcheck   # Segmentation check module (~30s)
+pixi run test-illumcalc  # Illumination calculation module (~1 min)
+pixi run test-segcheck   # Segmentation check module (~45s)
 
 # Run all nf-test tests (modules + full pipeline, slow)
 pixi run test

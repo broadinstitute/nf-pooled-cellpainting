@@ -248,7 +248,7 @@ The pipeline uses GitHub Actions for continuous integration. Tests run automatic
 
 - **Trigger**: Pull requests (excluding docs, markdown, and image changes)
 - **Container profile**: Docker only (Singularity is not tested)
-- **Sharding**: Tests are split across up to 7 parallel runners for faster execution
+- **Sharding**: Dynamically calculated as `min(affected_tests, 7)` - if your PR only changes one module, only that module's tests run
 - **Change detection**: Only tests affected by changed files are executed (`nf-test --changed-since HEAD^`)
 
 #### NF-test Structure
@@ -258,7 +258,34 @@ Tests are organized at two levels:
 | Level | Location | Purpose |
 |-------|----------|---------|
 | **Module tests** | `modules/local/*/tests/main.nf.test` | Unit tests for individual processes |
-| **Pipeline tests** | `tests/main.nf.test` | End-to-end tests with different parameter configurations |
+| **Pipeline tests** | `tests/main.nf.test` | End-to-end integration tests |
+
+Each test file contains multiple test cases. Most include both a "real" test and a "stub" test:
+
+- **Real tests**: Run actual containers (CellProfiler, Fiji) and process images
+- **Stub tests**: Skip containers entirely—each process has a `stub:` block that creates empty output files with correct names, allowing fast validation of workflow wiring and conditional logic
+
+| Module | Test Cases | Container |
+|--------|------------|-----------|
+| `cellprofiler/illumcalc` | 2 | CellProfiler |
+| `cellprofiler/illumapply` | 2 | CellProfiler |
+| `cellprofiler/segcheck` | 2 | CellProfiler |
+| `cellprofiler/preprocess` | 2 | CellProfiler |
+| `cellprofiler/combinedanalysis` | 2 | CellProfiler |
+| `fiji/stitchcrop` | 3 | Fiji |
+| `qc/montageillum` | 4 | Python (numpy/pillow) |
+| `qc/barcodealign` | 2 | Python (pandas) |
+| `qc/preprocess` | 2 | Python (pandas) |
+| `tests/main.nf.test` | 5 | Full pipeline |
+| **Total** | **26** | |
+
+The pipeline tests in `tests/main.nf.test` cover different QC gate scenarios:
+
+- `qc_passed`: Full run with both QC flags true
+- `stub`: Workflow logic without containers
+- `stub_painting_qc_false`: Verifies combined analysis is skipped
+- `stub_barcoding_qc_false`: Verifies combined analysis is skipped
+- `stub_both_qc_false`: Verifies pipeline stops at QC phase
 
 #### Handling Non-Reproducible Outputs
 

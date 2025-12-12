@@ -59,11 +59,11 @@ description = "Run all nf-test tests"
 
 [tasks.test-illumcalc]
 cmd = "nf-test test modules/local/cellprofiler/illumcalc/tests/main.nf.test --profile debug,test,docker"
-description = "Test illumination calculation module (~30s)"
+description = "Test illumination calculation module (~1 min)"
 
 [tasks.test-segcheck]
 cmd = "nf-test test modules/local/cellprofiler/segcheck/tests/main.nf.test --profile debug,test,docker"
-description = "Test segmentation check module (~30s)"
+description = "Test segmentation check module (~45s)"
 
 # Linting
 [tasks.lint]
