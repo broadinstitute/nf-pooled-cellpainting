@@ -858,9 +858,6 @@
                     "jupytext": "1.18.1",
                     "nbconvert": "7.16.6",
                     "papermill": "2.6.0 from /opt/conda/lib/python3.13/site-packages/papermill/cli.py (3.13.9)"
-                },
-                "Workflow": {
-                    "broadinstitute/nf-pooled-cellpainting": "v1.0.0dev"
                 }
             },
             [
