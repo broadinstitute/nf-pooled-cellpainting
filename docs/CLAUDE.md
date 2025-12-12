@@ -53,21 +53,11 @@ When updating documentation:
 ### Local Docs Setup
 
 ```bash
-uv venv .venv
-source .venv/bin/activate
-uv pip install -r docs-requirements.txt
-mkdocs serve
+pixi run serve-docs    # Serve documentation locally
+pixi run build-docs    # Build documentation
 ```
 
-### Common Commands for Docs
-
-```bash
-# Build docs
-mkdocs build
-
-# Deploy to GitHub Pages (usually via CI)
-mkdocs gh-deploy
-```
+Deploy to GitHub Pages is handled via CI.
 
 ### MkDocs Configuration
 
