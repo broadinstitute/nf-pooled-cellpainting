@@ -290,6 +290,19 @@ process.out.csv_stats.get(0).get(1).findAll {
 
 #### Updating Snapshots
 
+**When to update snapshots:**
+
+- Adding/removing output files or directories
+- Changing output file structure or naming
+- Modifying which processes run (affects task counts)
+- Upgrading tools that change output format
+
+**When you DON'T need to update snapshots:**
+
+- Version bumps (Nextflow and pipeline versions are excluded from comparison)
+- Refactoring code that doesn't change outputs
+- Documentation changes
+
 When intentionally changing outputs, update snapshots using **GitHub Codespaces** (recommended for macOS users):
 
 ```bash
