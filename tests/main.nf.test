@@ -73,7 +73,7 @@ nextflow_pipeline {
                     workflow.trace.succeeded().size(),
                     // pipeline versions.yml file for multiqc with Workflow section removed (contains volatile Nextflow and pipeline versions)
                     removeFromYamlMap(
-                        removeNextflowVersion("$outputDir/pipeline_info/nf-pooled-cellpainting_software_mqc_versions.yml"),
+                        "$outputDir/pipeline_info/nf-pooled-cellpainting_software_mqc_versions.yml",
                         "Workflow"
                     ),
                     // All stable path name, with a relative path
