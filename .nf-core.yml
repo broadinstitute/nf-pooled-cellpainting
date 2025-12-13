@@ -4,6 +4,25 @@ nf_core_version: 3.3.2
 
 lint:
   template_strings: false
+  # ----------------------------------------------------------------------------------
+  # EXPECTED LINT FAILURES (4): module/subworkflow version mismatches
+  #
+  # The check_local_copy lint test cannot be disabled via config. These failures
+  # are expected and acceptable:
+  #   - multiqc (module)
+  #   - utils_nextflow_pipeline (subworkflow)
+  #   - utils_nfcore_pipeline (subworkflow)
+  #   - utils_nfschema_plugin (subworkflow)
+  #
+  # This is a broadinstitute pipeline, not an official nf-core pipeline. We pin to
+  # known-working versions rather than tracking latest nf-core releases.
+  #
+  # To update these components (when deliberately upgrading):
+  #   nf-core modules update multiqc
+  #   nf-core subworkflows update utils_nextflow_pipeline
+  #   nf-core subworkflows update utils_nfcore_pipeline
+  #   nf-core subworkflows update utils_nfschema_plugin
+  # ----------------------------------------------------------------------------------
   files_unchanged:
     - .prettierignore
     - LICENSE
@@ -19,9 +38,6 @@ lint:
     - .github/workflows/linting_comment.yml
     - assets/email_template.txt
     - docs/README.md
-  # Ignore .venv directory - false positives from Python packages
-  merge_markers:
-    - .venv
   nextflow_config:
     - manifest.name
     - manifest.homePage
