@@ -7,7 +7,6 @@ lint:
   files_unchanged:
     - .prettierignore
     - LICENSE
-    - .prettierignore
     - CODE_OF_CONDUCT.md
     - assets/nf-core-nf-pooled-cellpainting_logo_light.png
     - docs/images/nf-core-nf-pooled-cellpainting_logo_light.png
@@ -15,10 +14,14 @@ lint:
     - .github/ISSUE_TEMPLATE/bug_report.yml
     - .github/CONTRIBUTING.md
     - .github/PULL_REQUEST_TEMPLATE.md
+    # Custom workflow configs for this pipeline (not using nf-core template versions)
+    - .github/workflows/linting.yml
+    - .github/workflows/linting_comment.yml
     - assets/email_template.txt
     - docs/README.md
-    - .prettierignore
-    - .prettierignore
+  # Ignore .venv directory - false positives from Python packages
+  merge_markers:
+    - .venv
   nextflow_config:
     - manifest.name
     - manifest.homePage
@@ -29,7 +32,6 @@ lint:
   multiqc_config:
     - report_comment
     - export_plots
-    - report_section_order
   files_exist:
     - LICENSE
     - CODE_OF_CONDUCT.md
