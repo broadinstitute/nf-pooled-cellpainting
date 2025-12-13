@@ -1,3 +1,28 @@
+/*
+ * Pipeline Integration Tests
+ * ==========================
+ *
+ * Test Types:
+ *   - "qc passed" (real): Runs actual containers, verifies full pipeline execution (~30 min)
+ *   - "stub" variants: Skip containers, verify workflow logic and branching (~1-2 min)
+ *
+ * Snapshot Strategy:
+ *   - stable_name: File/directory names (relative paths) - verifies outputs exist
+ *   - stable_path: File contents filtered by tests/.nftignore - excludes unstable files
+ *   - workflow.trace.succeeded().size(): Task count - verifies correct processes ran
+ *
+ * versions.yml Handling:
+ *   - Real tests: Include versions.yml but remove "Workflow" section via removeFromYamlMap()
+ *     to exclude volatile Nextflow/pipeline versions while keeping tool versions (CellProfiler, etc.)
+ *   - Stub tests: Exclude versions.yml entirely via .nftignore - no real containers run,
+ *     so tool versions aren't meaningful
+ *
+ * Why image checksums aren't snapshotted:
+ *   - CellProfiler: Outputs contain timestamps and timing information
+ *   - Fiji: Stitchcrop process has some stochasticity
+ *   See tests/.nftignore for excluded file types.
+ */
+
 nextflow_pipeline {
 
     name "Test Workflow NF_POOLED_CELLPAINTING"
