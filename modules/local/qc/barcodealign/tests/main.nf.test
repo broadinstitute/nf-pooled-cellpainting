@@ -8,6 +8,7 @@ nextflow_process {
     tag "modules_local"
     tag "qc"
     tag "qc/barcodealign"
+    tag "fast"
 
     test("barcode alignment - 3 cycles - 3 wells") {
 

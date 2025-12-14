@@ -12,9 +12,9 @@ inputs:
     required: true
   paths:
     description: "Test paths"
-    required: true
+    required: false
   tags:
-    description: "Tags to pass as argument for nf-test --tag parameter"
+    description: "Tags to pass as argument for nf-test --tag parameter (comma-separated for multiple tags, e.g. '!slow' to exclude slow tests)"
     required: false
 runs:
   using: "composite"
@@ -51,9 +51,16 @@ runs:
       env:
         NFT_WORKDIR: ${{ env.NFT_WORKDIR }}
       run: |
+        # Build tag argument (nf-test uses comma-separated values in single --tag)
+        TAG_ARGS=""
+        if [ -n "${{ inputs.tags }}" ]; then
+          TAG_ARGS="--tag ${{ inputs.tags }}"
+        fi
+        echo "Tag arguments: $TAG_ARGS"
+
         nf-test test \
           --profile=+${{ inputs.profile }} \
-          $(if [ -n "${{ inputs.tags }}" ]; then echo "--tag ${{ inputs.tags }}"; fi) \
+          $TAG_ARGS \
           --ci \
           --changed-since HEAD^ \
           --verbose \

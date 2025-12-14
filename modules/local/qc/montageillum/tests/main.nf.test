@@ -8,6 +8,7 @@ nextflow_process {
     tag "modules_"
     tag "qc"
     tag "qc/montageillum"
+    tag "fast"
 
     test("generate montage - cellpainting illumination") {
 

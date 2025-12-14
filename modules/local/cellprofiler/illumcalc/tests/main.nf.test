@@ -6,6 +6,7 @@ nextflow_process {
 
     tag "cellprofiler"
     tag "cellprofiler/illumcalc"
+    tag "fast"
 
     test("cellprofiler - illumcalc - painting") {
 

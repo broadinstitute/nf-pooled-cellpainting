@@ -12,6 +12,7 @@ nextflow_process {
 
     tag "fiji"
     tag "fiji/stitchcrop"
+    tag "fast"
 
     test("fiji - stitchcrop - painting - corrected_images") {
 

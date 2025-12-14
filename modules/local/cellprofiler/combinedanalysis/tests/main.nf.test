@@ -6,6 +6,7 @@ nextflow_process {
 
     tag "cellprofiler"
     tag "cellprofiler/combinedanalysis"
+    tag "fast"
 
     test("cellprofiler - combinedanalysis - cropped_images") {
 
