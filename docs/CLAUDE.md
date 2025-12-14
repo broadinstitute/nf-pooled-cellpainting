@@ -8,17 +8,16 @@ This file provides guidance to Claude Code (claude.ai/code) when working with do
 
 - **Consolidate over fragment**: Prefer one long comprehensive document over many small files
 - **Progressive disclosure**: Overview → concepts → details within each document
-- **Clear entry points**: Each document should have a clear "Start Here" section
 - **Shallow hierarchy**: Keep directory structure to 2 levels max
 
 ### Content Standards
 
-- Use consistent Markdown formatting with appropriate language tags
+- **Parsimony over completeness**: Avoid redundant navigation aids (manual TOCs, "Quick Links" sections, feature lists that duplicate content elsewhere). Let MkDocs handle navigation. Landing pages should be minimal - link to docs, not summarize them.
+- **Diagrams where they teach**: Use Mermaid diagrams only in guide.md/reference.md where they explain concepts. Avoid decorative diagrams on landing pages.
 - Write concisely with numbered steps for complex procedures
 - Include concrete examples with real commands and outputs
 - Format code blocks, file paths, and commands appropriately
 - Link to existing content rather than duplicating
-- Use Mermaid diagrams for workflows and architecture visualization
 
 ### Terminology
 
@@ -35,9 +34,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with do
 
 The documentation is organized into:
 
-1. **index.md** - Landing page with overview and navigation
+1. **index.md** - Minimal landing page (brief description, doc links, citation)
 2. **guide.md** - Comprehensive user guide (installation → quickstart → custom data → cloud execution → FAQ)
-3. **reference.md** - Technical reference (architecture, CellProfiler integration, scripts, outputs)
+3. **reference.md** - Technical reference (architecture, channels, QC gates, testing/CI)
 4. **parameters.md** - Auto-generated parameter reference (from nextflow_schema.json)
 
 ### For Maintainers

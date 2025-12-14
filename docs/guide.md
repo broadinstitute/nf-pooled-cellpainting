@@ -2,17 +2,6 @@
 
 This comprehensive guide covers everything you need to run the nf-pooled-cellpainting pipeline, from installation through production deployment on AWS.
 
-## Table of Contents
-
-- [Overview](#overview)
-- [Installation](#installation)
-- [Quick Start](#quick-start)
-- [Using Your Own Data](#using-your-own-data)
-- [Running on AWS with Seqera Platform](#running-on-aws-with-seqera-platform)
-- [Frequently Asked Questions](#frequently-asked-questions)
-
----
-
 ## Overview
 
 ### What is Optical Pooled Screening?
@@ -50,7 +39,7 @@ flowchart TD
     subgraph "Barcoding Arm"
         BC_IllumCalc[IllumCalc]
         BC_IllumQC[Illum QC]
-        BC_IllumApply[IllumApply]
+        BC_IllumApply[IllumApply & Align]
         BC_AlignQC[Align QC]
         BC_Preprocess[Preprocess]
         BC_PreprocessQC[Preprocess QC]
@@ -90,19 +79,19 @@ flowchart TD
 
 #### Cell Painting Arm (Phenotype)
 
-- **Illumination Correction**: Corrects for uneven lighting across the field of view
-- **Segmentation**: Identifies individual cells and nuclei
-- **QC Check**: Generates visual montages to verify segmentation quality
+- **Illumination Correction**: Calculates and applies correction for uneven lighting (shown as separate steps in diagram)
+- **Segmentation Check**: Verifies cell/nuclei segmentation quality on a subset of images
+- **Stitch & Crop**: Stitches fields of view into whole-well images and crops into tiles
 
 #### Barcoding Arm (Genotype)
 
-- **Alignment**: Registers images from multiple sequencing cycles to the first cycle
-- **Base Calling**: Reads the sequence of fluorescent bases (A, C, G, T) at each pixel
-- **QC Check**: Verifies barcode calling confidence and alignment quality
+- **Illumination Correction & Alignment**: Calculates and applies per-cycle correction, then aligns all cycles to cycle 1
+- **Preprocessing**: Compensates for spectral bleed-through, identifies barcode foci, and generates QC metrics
+- **Stitch & Crop**: Stitches and crops to match Cell Painting tiles
 
 #### Combined Analysis
 
-Once both arms pass quality control, the pipeline maps decoded barcodes to segmented cells, creating a unified dataset where every cell has both a phenotype and an assigned genetic perturbation.
+Once both arms pass quality control, the pipeline aligns Cell Painting and barcoding images, segments cells from the phenotypic stains, measures morphological features, and assigns barcode foci to cells—linking each cell's genotype to its phenotype.
 
 ### The "Stop-and-Check" Workflow
 
@@ -111,7 +100,7 @@ Processing terabytes of high-content imaging data is computationally expensive. 
 - `--qc_painting_passed` (default: `false`)
 - `--qc_barcoding_passed` (default: `false`)
 
-**Phase 1 - Initial Processing**: The pipeline runs illumination correction, segmentation (painting arm), and image alignment (barcoding arm), then generates QC images and **stops**.
+**Phase 1 - Initial Processing**: The pipeline runs through the QC checkpoints for both arms (SegCheck QC for painting, Preprocess QC for barcoding), generates QC montages, and **stops before Stitch & Crop**.
 
 **Phase 2 - Manual Review**: You review QC outputs in `results/workspace/qc_reports/`.
 

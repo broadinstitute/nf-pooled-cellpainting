@@ -4,6 +4,11 @@ site_author: Seqera & Broad Institute
 repo_url: https://github.com/broadinstitute/nf-pooled-cellpainting
 repo_name: nf-pooled-cellpainting
 
+# Exclude archived docs and internal files from build
+exclude_docs: |
+  _archive/
+  CLAUDE.md
+
 theme:
   name: material
   favicon: images/microscope_favicon.png

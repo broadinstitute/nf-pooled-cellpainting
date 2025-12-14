@@ -17,6 +17,7 @@ python = ">=3.11"
 nextflow = ">=24.0"
 nf-test = ">=0.9"
 nf-core = ">=3.0"
+watchdog = ">=6.0.0,<7"
 
 # =============================================================================
 # Features - Modular dependency groups
@@ -38,10 +39,7 @@ prettier = ">=3.0"
 # Environments - Combine features for different use cases
 # =============================================================================
 [environments]
-default = { features = [], solve-group = "default" }
-docs = { features = ["docs"], solve-group = "default" }
-dev = { features = ["dev"], solve-group = "default" }
-all = { features = ["docs", "dev"], solve-group = "default" }
+default = { features = ["docs", "dev"], solve-group = "default" }
 
 # =============================================================================
 # Tasks - Common development workflows
@@ -75,10 +73,14 @@ description = "Lint the pipeline with nf-core"
 cmd = "nf-core pipelines schema build --dir ."
 description = "Update schema after adding parameters"
 
-# Documentation (requires docs environment)
-[feature.docs.tasks]
-serve-docs = { cmd = "mkdocs serve", description = "Serve documentation locally" }
-build-docs = { cmd = "mkdocs build", description = "Build documentation" }
+# Documentation
+[tasks.serve-docs]
+cmd = "mkdocs serve --livereload"
+description = "Serve documentation locally"
+
+[tasks.build-docs]
+cmd = "mkdocs build"
+description = "Build documentation"
 
 # Clean up
 [tasks.clean-work]
