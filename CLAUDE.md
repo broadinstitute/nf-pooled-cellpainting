@@ -134,3 +134,15 @@ Both must be true for combined analysis to run.
 - `--barcodes` - Barcode reference CSV
 - `--outdir` - Output directory
 - CellProfiler pipeline files (`.cppipe`) for each processing step
+
+## nf-core Conventions
+
+This pipeline follows nf-core conventions. See [.github/CONTRIBUTING.md](.github/CONTRIBUTING.md) for contribution guidelines and coding standards.
+
+**Quick checklist** (verify before PR):
+
+- [ ] Pinned containers, no host dependencies
+- [ ] Resource labels used (not hard-coded cpus/memory)
+- [ ] Schema updated (`pixi run build-schema`)
+- [ ] Lint passes (`pixi run lint`)
+- [ ] Tests pass (`pixi run test`)

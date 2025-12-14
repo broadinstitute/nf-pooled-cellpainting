@@ -3,7 +3,11 @@ repository_type: pipeline
 nf_core_version: 3.3.2
 
 lint:
-  template_strings: false
+  # Files that legitimately use {{ }} syntax (GitHub Actions, MkDocs macros)
+  template_strings:
+    - .github/workflows/
+    - .github/actions/
+    - docs/parameters.md
   # ----------------------------------------------------------------------------------
   # EXPECTED LINT FAILURES (4): module/subworkflow version mismatches
   #

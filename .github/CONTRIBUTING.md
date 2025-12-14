@@ -9,6 +9,10 @@ Please use the pre-filled template to save time.
 However, don't be put off by this template - other more general issues and suggestions are welcome!
 Contributions to the code are even more welcome ;)
 
+## Development Setup
+
+See [CLAUDE.md](../CLAUDE.md) for development environment setup (pixi), commands, and architecture overview.
+
 ## Contribution workflow
 
 If you'd like to write some code for broadinstitute/nf-pooled-cellpainting, the standard workflow is as follows:
