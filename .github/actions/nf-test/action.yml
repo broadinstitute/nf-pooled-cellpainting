@@ -14,7 +14,7 @@ inputs:
     description: "Test paths"
     required: false
   tags:
-    description: "Tags to pass as argument for nf-test --tag parameter (comma-separated for multiple tags, e.g. '!slow' to exclude slow tests)"
+    description: "Tags to pass as argument for nf-test --tag parameter (comma-separated for multiple tags, e.g. 'fast' to run only fast tests)"
     required: false
 runs:
   using: "composite"
