@@ -3,30 +3,29 @@ repository_type: pipeline
 nf_core_version: 3.3.2
 
 lint:
-  # Files that legitimately use {{ }} syntax (GitHub Actions, MkDocs macros)
+  # Files that legitimately use Jinja template syntax (GitHub Actions, MkDocs macros)
   template_strings:
     - .github/workflows/
     - .github/actions/
     - docs/parameters.md
   # ----------------------------------------------------------------------------------
-  # EXPECTED LINT FAILURES (4): module/subworkflow version mismatches
+  # Disable nf-core component version checks (modules/subworkflows)
   #
-  # The check_local_copy lint test cannot be disabled via config. These failures
-  # are expected and acceptable:
+  # This is a Broad Institute pipeline, not an official nf-core pipeline. We pin to
+  # known-working versions rather than tracking latest nf-core releases. This setting
+  # disables check_local_copy and version mismatch checks for:
   #   - multiqc (module)
   #   - utils_nextflow_pipeline (subworkflow)
   #   - utils_nfcore_pipeline (subworkflow)
   #   - utils_nfschema_plugin (subworkflow)
   #
-  # This is a broadinstitute pipeline, not an official nf-core pipeline. We pin to
-  # known-working versions rather than tracking latest nf-core releases.
-  #
-  # To update these components (when deliberately upgrading):
+  # To update components when deliberately upgrading:
   #   nf-core modules update multiqc
   #   nf-core subworkflows update utils_nextflow_pipeline
   #   nf-core subworkflows update utils_nfcore_pipeline
   #   nf-core subworkflows update utils_nfschema_plugin
   # ----------------------------------------------------------------------------------
+  nfcore_components: false
   files_unchanged:
     - .prettierignore
     - LICENSE
