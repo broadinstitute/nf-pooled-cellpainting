@@ -25,6 +25,39 @@ If you'd like to write some code for broadinstitute/nf-pooled-cellpainting, the 
 
 If you're not used to this workflow with git, you can start with some [docs from GitHub](https://help.github.com/en/github/collaborating-with-issues-and-pull-requests) or even their [excellent `git` resources](https://try.github.io/).
 
+## Branching Model
+
+This pipeline follows the standard nf-core branching model (a simplified [Git Flow](https://nvie.com/posts/a-successful-git-branching-model/)):
+
+| Branch     | Purpose                               |
+| ---------- | ------------------------------------- |
+| `main`     | Stable releases only                  |
+| `dev`      | Integration branch for development    |
+| `TEMPLATE` | nf-core template sync (do not modify) |
+
+### Workflow
+
+```
+feature-branch → dev → main
+```
+
+1. **Feature development**: Create a feature branch from `dev`, PR back to `dev`
+2. **Release**: When ready, PR `dev` → `main`
+3. **Hotfixes**: For critical bugs in releases, PR directly to `main`
+
+### CI Time Implications
+
+PRs to `main` trigger additional release-validation workflows (e.g., download tests for offline deployment) that don't run on PRs to `dev`. This means PRs targeting `main` take longer.
+
+### Best Practice
+
+**Avoid having an open `dev → main` PR while actively iterating.** Every push to `dev` will trigger the full release CI instead of the faster development CI.
+
+Instead:
+
+- Work on feature branches, PR to `dev` (faster CI)
+- Only open a `dev → main` PR when ready to release
+
 ## Tests
 
 You have the option to test your changes locally by running the pipeline. For receiving warnings about process selectors and other `debug` information, it is recommended to use the debug profile. Execute all the tests with the following command:
