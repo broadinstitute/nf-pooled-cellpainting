@@ -119,6 +119,8 @@ Both must be true for combined analysis to run.
 - Full pipeline test (`tests/main.nf.test`) takes 5-10+ minutes as it runs actual CellProfiler/Fiji processing
 - Test data is fetched from S3: `s3://nf-pooled-cellpainting-sandbox/`
 - NullPointerException warnings from nf-test on macOS are expected (workflow.trace issue)
+- Tests must be tagged `fast` or `slow` (nf-test doesn't support negation like `!slow`)
+- New tests need `tag "fast"` or they won't run in CI fast mode
 
 ## Configuration
 
