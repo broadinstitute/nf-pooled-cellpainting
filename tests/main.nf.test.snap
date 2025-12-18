@@ -373,10 +373,10 @@
             ]
         ],
         "meta": {
-            "nf-test": "0.9.3",
-            "nextflow": "25.10.0"
+            "nf-test": "0.9.2",
+            "nextflow": "25.10.2"
         },
-        "timestamp": "2025-12-04T21:42:33.68494742"
+        "timestamp": "2025-12-06T01:07:33.630759071"
     },
     "nf-pooled-cellpainting - full pipeline - test profile - stub - barcoding qc false": {
         "content": [
@@ -804,63 +804,60 @@
             ]
         ],
         "meta": {
-            "nf-test": "0.9.3",
-            "nextflow": "25.10.0"
+            "nf-test": "0.9.2",
+            "nextflow": "25.10.2"
         },
-        "timestamp": "2025-12-04T21:43:44.324274829"
+        "timestamp": "2025-12-06T01:08:22.089473027"
     },
     "nf-pooled-cellpainting - full pipeline - test profile - qc passed": {
         "content": [
             60,
             {
-                "CELLPROFILER_ILLUMAPPLY_PAINTING": {
+                "CELLPROFILER_COMBINEDANALYSIS": {
                     "cellprofiler": "4.2.8"
-                },
-                "Workflow": {
-                    "broadinstitute/nf-pooled-cellpainting": "v1.0.0dev"
                 },
                 "CELLPROFILER_ILLUMAPPLY_BARCODING": {
                     "cellprofiler": "4.2.8"
                 },
-                "CELLPROFILER_PREPROCESS": {
+                "CELLPROFILER_ILLUMAPPLY_PAINTING": {
                     "cellprofiler": "4.2.8"
                 },
                 "CELLPROFILER_ILLUMCALC": {
                     "cellprofiler": "4.2.8"
                 },
-                "CELLPROFILER_COMBINEDANALYSIS": {
+                "CELLPROFILER_PREPROCESS": {
                     "cellprofiler": "4.2.8"
                 },
-                "QC_MONTAGE_SEGCHECK": {
-                    "qc_montage": "0.1.0"
-                },
-                "QC_MONTAGEILLUM_BARCODING": {
-                    "qc_montage": "0.1.0"
+                "CELLPROFILER_SEGCHECK": {
+                    "cellprofiler": "4.2.8"
                 },
                 "FIJI_STITCHCROP": {
                     "fiji": "4.0.5"
                 },
-                "QC_MONTAGE_STITCHCROP_PAINTING": {
+                "QC_BARCODEALIGN": {
+                    "jupytext": "1.18.1",
+                    "nbconvert": "7.16.6",
+                    "papermill": "2.6.0 from /opt/conda/lib/python3.13/site-packages/papermill/cli.py (3.13.9)"
+                },
+                "QC_MONTAGEILLUM_BARCODING": {
+                    "qc_montage": "0.1.0"
+                },
+                "QC_MONTAGEILLUM_PAINTING": {
+                    "qc_montage": "0.1.0"
+                },
+                "QC_MONTAGE_SEGCHECK": {
                     "qc_montage": "0.1.0"
                 },
                 "QC_MONTAGE_STITCHCROP_BARCODING": {
                     "qc_montage": "0.1.0"
                 },
-                "QC_BARCODEALIGN": {
-                    "jupytext": "1.18.1",
-                    "papermill": "2.6.0 from /opt/conda/lib/python3.13/site-packages/papermill/cli.py (3.13.9)",
-                    "nbconvert": "7.16.6"
-                },
-                "CELLPROFILER_SEGCHECK": {
-                    "cellprofiler": "4.2.8"
-                },
-                "QC_MONTAGEILLUM_PAINTING": {
+                "QC_MONTAGE_STITCHCROP_PAINTING": {
                     "qc_montage": "0.1.0"
                 },
                 "QC_PREPROCESS": {
                     "jupytext": "1.18.1",
-                    "papermill": "2.6.0 from /opt/conda/lib/python3.13/site-packages/papermill/cli.py (3.13.9)",
-                    "nbconvert": "7.16.6"
+                    "nbconvert": "7.16.6",
+                    "papermill": "2.6.0 from /opt/conda/lib/python3.13/site-packages/papermill/cli.py (3.13.9)"
                 }
             },
             [
@@ -2940,9 +2937,9 @@
             ]
         ],
         "meta": {
-            "nf-test": "0.9.3",
-            "nextflow": "25.10.0"
+            "nf-test": "0.9.2",
+            "nextflow": "25.10.2"
         },
-        "timestamp": "2025-12-04T21:43:10.227247173"
+        "timestamp": "2025-12-06T01:07:57.974586887"
     }
 }

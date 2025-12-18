@@ -4,14 +4,19 @@ site_author: Seqera & Broad Institute
 repo_url: https://github.com/broadinstitute/nf-pooled-cellpainting
 repo_name: nf-pooled-cellpainting
 
+# Exclude archived docs and internal files from build
+exclude_docs: |
+  _archive/
+  CLAUDE.md
+
 theme:
   name: material
   favicon: images/microscope_favicon.png
   features:
     - navigation.tabs
     - navigation.tabs.sticky
-    - navigation.sections
     - navigation.top
+    - toc.integrate
     - search.suggest
     - search.highlight
     - content.tabs.link
@@ -80,20 +85,7 @@ extra_css:
   - stylesheets/extra.css
 
 nav:
-  - "🏠 Home": index.md
-  - "🚀 Getting Started":
-      - Overview: getting-started/overview.md
-      - Installation: getting-started/installation.md
-      - Quick Start: getting-started/quickstart.md
-  - "💻 Usage":
-      - Using Your Own Dataset: usage/custom-data.md
-      - Parameters: usage/parameters.md
-      - Samplesheet Dependencies: usage/samplesheet_dependencies.md
-      - FAQ: usage/faq.md
-  - "🛠️ Developer Guide":
-      - Introduction: developer/intro.md
-      - Architecture: developer/architecture.md
-      - CellProfiler Integration: developer/cellprofiler.md
-      - Python Scripts: developer/python-scripts.md
-      - Outputs: developer/outputs.md
-      - Testing: developer/testing.md
+  - Home: index.md
+  - User Guide: guide.md
+  - Parameters: parameters.md
+  - Technical Reference: reference.md

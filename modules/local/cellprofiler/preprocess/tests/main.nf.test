@@ -6,6 +6,7 @@ nextflow_process {
 
     tag "cellprofiler"
     tag "cellprofiler/preprocess"
+    tag "fast"
 
     test("cellprofiler - preprocess - barcoding") {
 

@@ -3,11 +3,32 @@ repository_type: pipeline
 nf_core_version: 3.3.2
 
 lint:
-  template_strings: false
+  # Files that legitimately use Jinja template syntax (GitHub Actions, MkDocs macros)
+  template_strings:
+    - .github/workflows/
+    - .github/actions/
+    - docs/parameters.md
+  # ----------------------------------------------------------------------------------
+  # Disable nf-core component version checks (modules/subworkflows)
+  #
+  # This is a Broad Institute pipeline, not an official nf-core pipeline. We pin to
+  # known-working versions rather than tracking latest nf-core releases. This setting
+  # disables check_local_copy and version mismatch checks for:
+  #   - multiqc (module)
+  #   - utils_nextflow_pipeline (subworkflow)
+  #   - utils_nfcore_pipeline (subworkflow)
+  #   - utils_nfschema_plugin (subworkflow)
+  #
+  # To update components when deliberately upgrading:
+  #   nf-core modules update multiqc
+  #   nf-core subworkflows update utils_nextflow_pipeline
+  #   nf-core subworkflows update utils_nfcore_pipeline
+  #   nf-core subworkflows update utils_nfschema_plugin
+  # ----------------------------------------------------------------------------------
+  nfcore_components: false
   files_unchanged:
     - .prettierignore
     - LICENSE
-    - .prettierignore
     - CODE_OF_CONDUCT.md
     - assets/nf-core-nf-pooled-cellpainting_logo_light.png
     - docs/images/nf-core-nf-pooled-cellpainting_logo_light.png
@@ -15,10 +36,11 @@ lint:
     - .github/ISSUE_TEMPLATE/bug_report.yml
     - .github/CONTRIBUTING.md
     - .github/PULL_REQUEST_TEMPLATE.md
+    # Custom workflow configs for this pipeline (not using nf-core template versions)
+    - .github/workflows/linting.yml
+    - .github/workflows/linting_comment.yml
     - assets/email_template.txt
     - docs/README.md
-    - .prettierignore
-    - .prettierignore
   nextflow_config:
     - manifest.name
     - manifest.homePage
@@ -46,6 +68,7 @@ lint:
     - tests/default.nf.test
     - docs/output.md
     - docs/usage.md
+    - docs/README.md
   readme:
     - nextflow_badge
     - nfcore_template_badge
@@ -56,7 +79,7 @@ template:
   name: nf-pooled-cellpainting
   description: A Nextflow pipeline for analysing optical pooled screens (OPS) data.
   author: Florian Wuennemann, Ken Brewer, Erin Weissbart, Shantanu Singh, and Seqera Services
-  version: 1.0.0dev
+  version: 1.1.0dev
   force: true
   outdir: .
   skip_features:

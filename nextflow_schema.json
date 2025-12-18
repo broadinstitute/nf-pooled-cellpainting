@@ -46,8 +46,7 @@
                 },
                 "fiji_stitchcrop_script": {
                     "type": "string",
-                    "default": "/home/florian/nf-pooled-cellpainting/assets/stitchcrop/stitch_crop.env_master.py",
-                    "description": "Path to script to use for FIJI Stitchcrop."
+                    "description": "Path to script to use for FIJI Stitchcrop. Defaults to ${projectDir}/assets/stitchcrop/stitch_crop.env_master.py"
                 },
                 "range_skip": {
                     "type": "integer",

@@ -1,0 +1,92 @@
+# Pixi configuration for nf-pooled-cellpainting
+# https://pixi.sh/latest/reference/pixi_manifest/
+
+[workspace]
+name = "nf-pooled-cellpainting"
+description = "Nextflow pipeline for processing optical pooled screening (OPS) data"
+channels = ["conda-forge", "bioconda"]
+platforms = ["osx-arm64", "osx-64", "linux-64"]
+repository = "https://github.com/broadinstitute/nf-pooled-cellpainting"
+license = "MIT"
+
+# =============================================================================
+# Base Dependencies - Core tools needed for pipeline development
+# =============================================================================
+[dependencies]
+python = ">=3.11"
+nextflow = ">=24.0"
+nf-test = ">=0.9"
+nf-core = ">=3.0"
+watchdog = ">=6.0.0,<7"
+
+# =============================================================================
+# Features - Modular dependency groups
+# =============================================================================
+
+# Documentation tools
+[feature.docs.dependencies]
+mkdocs = ">=1.5.0"
+mkdocs-material = ">=9.5.0"
+mkdocs-macros-plugin = ">=1.0.0"
+pymdown-extensions = ">=10.7.0"
+
+# Development tools (linting, formatting)
+[feature.dev.dependencies]
+pre-commit = ">=3.0"
+prettier = ">=3.0"
+
+# =============================================================================
+# Environments - Combine features for different use cases
+# =============================================================================
+[environments]
+default = { features = ["docs", "dev"], solve-group = "default" }
+
+# =============================================================================
+# Tasks - Common development workflows
+# =============================================================================
+
+# Pipeline execution
+[tasks]
+preview = { cmd = "nextflow run main.nf -profile test,docker --outdir results -preview", description = "Preview pipeline without containers" }
+pipeline = { cmd = "nextflow run main.nf -profile test,docker --outdir results", description = "Run pipeline with test profile" }
+
+# Testing
+[tasks.test]
+cmd = "nf-test test --profile debug,test,docker --verbose"
+description = "Run all nf-test tests"
+
+[tasks.test-illumcalc]
+cmd = "nf-test test modules/local/cellprofiler/illumcalc/tests/main.nf.test --profile debug,test,docker"
+description = "Test illumination calculation module (~1 min)"
+
+[tasks.test-segcheck]
+cmd = "nf-test test modules/local/cellprofiler/segcheck/tests/main.nf.test --profile debug,test,docker"
+description = "Test segmentation check module (~45s)"
+
+# Linting
+[tasks.lint]
+cmd = "nf-core pipelines lint"
+description = "Lint the pipeline with nf-core"
+
+# Schema management
+[tasks.build-schema]
+cmd = "nf-core pipelines schema build --dir ."
+description = "Update schema after adding parameters"
+
+# Documentation
+[tasks.serve-docs]
+cmd = "mkdocs serve --livereload"
+description = "Serve documentation locally"
+
+[tasks.build-docs]
+cmd = "mkdocs build"
+description = "Build documentation"
+
+# Clean up
+[tasks.clean-work]
+cmd = "rm -rf work results .nextflow .nextflow.log* 2>/dev/null || true"
+description = "Clean Nextflow work directory and results"
+
+[tasks.clean-all-work]
+cmd = "rm -rf work results .nextflow .nextflow.log* .nf-test 2>/dev/null || true"
+description = "Clean all generated files including nf-test cache"

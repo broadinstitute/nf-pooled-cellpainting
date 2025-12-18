@@ -1,3 +1,28 @@
+/*
+ * Pipeline Integration Tests
+ * ==========================
+ *
+ * Test Types:
+ *   - "qc passed" (real): Runs actual containers, verifies full pipeline execution (~30 min)
+ *   - "stub" variants: Skip containers, verify workflow logic and branching (~1-2 min)
+ *
+ * Snapshot Strategy:
+ *   - stable_name: File/directory names (relative paths) - verifies outputs exist
+ *   - stable_path: File contents filtered by tests/.nftignore - excludes unstable files
+ *   - workflow.trace.succeeded().size(): Task count - verifies correct processes ran
+ *
+ * versions.yml Handling:
+ *   - Real tests: Include versions.yml but remove "Workflow" section via removeFromYamlMap()
+ *     to exclude volatile Nextflow/pipeline versions while keeping tool versions (CellProfiler, etc.)
+ *   - Stub tests: Exclude versions.yml entirely via .nftignore - no real containers run,
+ *     so tool versions aren't meaningful
+ *
+ * Why image checksums aren't snapshotted:
+ *   - CellProfiler: Outputs contain timestamps and timing information
+ *   - Fiji: Stitchcrop process has some stochasticity
+ *   See tests/.nftignore for excluded file types.
+ */
+
 nextflow_pipeline {
 
     name "Test Workflow NF_POOLED_CELLPAINTING"
@@ -9,6 +34,7 @@ nextflow_pipeline {
     test("nf-pooled-cellpainting - full pipeline - test profile - qc passed") {
 
         tag "qc_passed"
+        tag "slow"
 
         when {
             params {
@@ -71,8 +97,11 @@ nextflow_pipeline {
                 { assert snapshot(
                     // Number of successful tasks
                     workflow.trace.succeeded().size(),
-                    // pipeline versions.yml file for multiqc from which Nextflow version is removed because we tests pipelines on multiple Nextflow versions
-                    removeNextflowVersion("$outputDir/pipeline_info/nf-pooled-cellpainting_software_mqc_versions.yml"),
+                    // pipeline versions.yml file for multiqc with Workflow section removed (contains volatile Nextflow and pipeline versions)
+                    removeFromYamlMap(
+                        "$outputDir/pipeline_info/nf-pooled-cellpainting_software_mqc_versions.yml",
+                        "Workflow"
+                    ),
                     // All stable path name, with a relative path
                     stable_name
                 ).match() }
@@ -83,6 +112,7 @@ nextflow_pipeline {
     test("nf-pooled-cellpainting - full pipeline - test profile - stub") {
 
         tag "stub"
+        tag "fast"
 
         options "-stub"
 
@@ -156,6 +186,7 @@ nextflow_pipeline {
     test("nf-pooled-cellpainting - full pipeline - test profile - stub - painting qc false") {
 
         tag "stub_painting_qc_false"
+        tag "fast"
 
         options "-stub"
 
@@ -235,6 +266,7 @@ nextflow_pipeline {
     test("nf-pooled-cellpainting - full pipeline - test profile - stub - barcoding qc false") {
 
         tag "stub_barcoding_qc_false"
+        tag "fast"
 
         options "-stub"
 
@@ -314,6 +346,7 @@ nextflow_pipeline {
     test("nf-pooled-cellpainting - full pipeline - test profile - stub - both qc false") {
 
         tag "stub_both_qc_false"
+        tag "fast"
 
         options "-stub"
 
