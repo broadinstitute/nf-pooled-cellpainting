@@ -10,9 +10,9 @@ Optical Pooled Screening (OPS) enables high-throughput functional genomics by co
 
 This pipeline integrates two complementary methodologies:
 
-1. **Cell Painting** provides quantitative morphological profiling. Through multiplexed fluorescent labeling of cellular compartments (nucleus, endoplasmic reticulum, mitochondria, actin cytoskeleton, Golgi apparatus, and RNA), this approach generates high-dimensional feature vectors describing cellular morphology, organization, and intensity distributions.
+1. **Cell Painting** is a morphological profiling assay that produces single-cell, quantitative phenotypic measurements. Through multiplexed fluorescent labeling of cellular compartments (DNA, endoplasmic reticulum, mitochondria, actin, Golgi apparatus, nucleoli, plasma membrane, and cytoplasmic RNA), this approach generates high-dimensional feature vectors describing cellular morphology, organization, and intensity distributions.
 
-2. **In-situ Sequencing (SBS)** enables spatial genotyping through cyclical imaging of fluorescently labeled nucleotides. Each genetic perturbation is tagged with a unique DNA barcode sequence. Sequential rounds of hybridization, imaging, and base calling reconstruct these barcodes directly within the microscopy field of view.
+2. **In-situ Sequencing**, also known as sequencing-by-synthesis (SBS) enables spatial genotyping through cyclical imaging of fluorescently labeled nucleotides. Each genetic perturbation is tagged with a unique DNA barcode sequence. Sequential rounds of hybridization, imaging, and base calling reconstruct these barcodes directly within the microscopy field of view.
 
 The integration of these modalities yields matched genotype-phenotype data at single-cell resolution.
 
@@ -79,23 +79,23 @@ flowchart TD
 
 #### Cell Painting Arm (Phenotype)
 
-- **Illumination Correction**: Calculates and applies correction for uneven lighting (shown as separate steps in diagram)
+- **Illumination Correction & Application**: Calculates and applies flat-field illumination correction
 - **Segmentation Check**: Verifies cell/nuclei segmentation quality on a subset of images
 - **Stitch & Crop**: Stitches fields of view into whole-well images and crops into tiles
 
 #### Barcoding Arm (Genotype)
 
-- **Illumination Correction & Alignment**: Calculates and applies per-cycle correction, then aligns all cycles to cycle 1
+- **Illumination Correction & Alignment**: Calculates and applies flat-field illumination correction, then aligns all cycles to cycle 1
 - **Preprocessing**: Compensates for spectral bleed-through, identifies barcode foci, and generates QC metrics
 - **Stitch & Crop**: Stitches and crops to match Cell Painting tiles
 
 #### Combined Analysis
 
-Once both arms pass quality control, the pipeline aligns Cell Painting and barcoding images, segments cells from the phenotypic stains, measures morphological features, and assigns barcode foci to cells—linking each cell's genotype to its phenotype.
+Once both arms pass quality control, the final **Analysis** pipeline aligns Cell Painting and barcoding images, segments cells from the phenotypic stains, measures morphological features, reads an SBS barcodes for each SBS focus and selects a best match from the barcode library, and assigns barcode foci to cells — linking each cell's genotype to its phenotype.
 
 ### The "Stop-and-Check" Workflow
 
-Processing terabytes of high-content imaging data is computationally expensive. To avoid wasting resources on poor-quality data, the pipeline implements a **"Stop-and-Check"** workflow controlled by two parameters:
+Making morphological measurements in high-content imaging data is computationally expensive. To avoid wasting resources on poor-quality data, the pipeline implements a **"Stop-and-Check"** workflow controlled by two parameters:
 
 - `--qc_painting_passed` (default: `false`)
 - `--qc_barcoding_passed` (default: `false`)
@@ -116,7 +116,7 @@ Understanding how the pipeline organizes data:
 | **Plate** | Physical multi-well plate | `Plate1` |
 | **Well** | Single experimental unit | `A01` |
 | **Site** | Field of view within a well | `1`, `2`, `3`... |
-| **Cycle** | Sequencing round (barcoding only) | `1`, `2`, `3`... |
+| **Cycle** | Sequencing round for barcoding. Also supports multi-round phenotype acquisition | `1`, `2`, `3`... |
 
 ---
 
@@ -159,11 +159,11 @@ This walkthrough uses the built-in test profile to demonstrate the complete two-
 
 ### Step 1: Run the Test Profile (Phase 1)
 
-The test profile automatically downloads a small dataset containing:
+The test profile automatically downloads a small dummy dataset containing:
 
 - A subset of images from one well (both Cell Painting and Barcoding arms)
 - Pre-configured CellProfiler pipelines
-- A sample barcodes file
+- A sample Barcodes.csv file
 
 ```bash
 nextflow run broadinstitute/nf-pooled-cellpainting \
@@ -194,7 +194,7 @@ results/workspace/qc_reports/
 └── 7_preprocessing/
 ```
 
-Check for:
+On real data, check for the following. Note that the test data is too small to produce meaningful QC:
 
 - **Illumination montages**: Smooth, gradual intensity variations (not patchy)
 - **Segmentation previews**: Cell/nucleus outlines accurately trace boundaries
@@ -257,7 +257,7 @@ Maps image files to experimental metadata.
 | `well` | Well identifier | String (e.g., `A01`) |
 | `channels` | Channel names | Comma-separated string |
 | `site` | Site number | Integer |
-| `cycle` | Cycle number | Integer (barcoding only) |
+| `cycle` | Cycle number (required for barcoding. Supported for phenotyping) | Integer |
 | `n_frames` | Number of frames | Integer |
 
 **Example:**
@@ -363,7 +363,7 @@ From your Seqera Platform workspace, navigate to **Compute Environments** → **
 |---------|-------------------|-------|
 | **Name** | `AWSBatch_pooled_cellpainting` | Descriptive name |
 | **Platform** | AWS Batch | |
-| **Credentials** | Your AWS credentials | Must have Batch permissions |
+| **Credentials** | Your AWS credentials | Must have AWS Batch permissions |
 | **Region** | `us-east-1` (or your preferred region) | Should match your S3 bucket |
 | **Work directory** | `s3://your-bucket/work` | Pipeline scratch data |
 

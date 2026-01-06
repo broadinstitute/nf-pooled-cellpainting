@@ -79,7 +79,7 @@ The pipeline contains several parameters that are necessary for correct executio
 
 ## Credits
 
-nf-pooled-cellpainting was originally written by [Florian Wuennemann](https://github.com/FloWuenne) (Seqera), [Ken Brewer](https://github.com/kenibrewer) (Seqera), [Erin Weissbart](https://github.com/ErinWeisbart) (Broad Institute), and [Shantanu Singh](https://github.com/shntnu) (Broad Institute).
+nf-pooled-cellpainting was originally written by [Florian Wuennemann](https://github.com/FloWuenne) (Seqera), [Ken Brewer](https://github.com/kenibrewer) (Seqera), [Erin Weisbart](https://github.com/ErinWeisbart) (Broad Institute), and [Shantanu Singh](https://github.com/shntnu) (Broad Institute).
 
 ## Contributions and Support
 
