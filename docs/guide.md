@@ -12,7 +12,7 @@ This pipeline integrates two complementary methodologies:
 
 1. **Cell Painting** is a morphological profiling assay that produces single-cell, quantitative phenotypic measurements. Through multiplexed fluorescent labeling of cellular compartments (DNA, endoplasmic reticulum, mitochondria, actin, Golgi apparatus, nucleoli, plasma membrane, and cytoplasmic RNA), this approach generates high-dimensional feature vectors describing cellular morphology, organization, and intensity distributions.
 
-2. **In-situ Sequencing**, also known as sequencing-by-synthesis (SBS) enables spatial genotyping through cyclical imaging of fluorescently labeled nucleotides. Each genetic perturbation is tagged with a unique DNA barcode sequence. Sequential rounds of hybridization, imaging, and base calling reconstruct these barcodes directly within the microscopy field of view.
+2. **In-situ Sequencing** (ISS) enables spatial genotyping by decoding DNA barcodes directly within the microscopy field of view. In optical pooled screens, this is typically achieved using sequencing-by-synthesis (SBS) chemistry: each genetic perturbation is tagged with a unique barcode, and sequential rounds of fluorescent nucleotide incorporation, imaging, and base calling reconstruct the barcode sequence while preserving spatial information. This arm can be referred to as "barcoding", "ISS", or "SBS".
 
 The integration of these modalities yields matched genotype-phenotype data at single-cell resolution.
 
