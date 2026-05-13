@@ -59,7 +59,7 @@ ls test_images/ | grep -E "P[0-9]+_[A-Z][0-9]+_[0-9]+_[0-9]+_.*\.tif"
 df[['Metadata_Plate', 'Metadata_Well', 'Metadata_Site']].drop_duplicates()
 ```
 
-## Changes to the Nextflow codebase are not reflected in your run
+## Changes to the Nextflow codebase are not reflected in your Seqera Platform run
 
 **Symptom**: A resumed or relaunched pipeline does not include changes made to the Nextflow workflow codebase since the last launch.
 
@@ -72,3 +72,26 @@ df[['Metadata_Plate', 'Metadata_Well', 'Metadata_Site']].drop_duplicates()
 **Symptom**: Triggering independent runs using separate subsets of wells/images from a single plate makes it so that runs cannot be resumed but instead start from the beginning.
 
 **Solution**: You cannot process two separate subsets of wells/images from a single plate in independent runs because there are some files that are created on a per-plate basis (e.g. illum .npy files). Therefore the output of one workflow trigger will overwrite the output of the other and since files are overwritten, Nextflow starts the workflow over upon resumption. To get around this, you must use different "Plate" metadata in your samplesheet (e.g. Plate1_subset1 in one samplesheet and Plate1_subset2 in the other samplesheet instead of just Plate1 in both samplesheets).
+
+## Local run fails to pull Docker on a Mac
+
+**Symptom**: You are running a local run on a Mac and get an error like:
+
+```
+Command error:
+  Unable to find image 'cellprofiler/distributed-fiji:fusion-v0.1.0' locally
+  fusion-v0.1.0: Pulling from cellprofiler/distributed-fiji
+  docker: no matching manifest for linux/arm64/v8 in the manifest list entries
+```
+
+**Solution**: Add `containerOptions = '--platform linux/amd64'` to your config for the process that is failing to pull the Docker. e.g.
+
+```
+process {
+    withName: 'POOLED_CELLPAINTING:BARCODING:FIJI_STITCHCROP' {
+        cpus   = { 1 * task.attempt }
+        memory = { 10.GB * task.attempt }
+        containerOptions = '--platform linux/amd64'
+    }
+}
+```
