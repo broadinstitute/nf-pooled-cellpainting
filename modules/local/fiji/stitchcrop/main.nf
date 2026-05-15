@@ -20,13 +20,14 @@ process FIJI_STITCHCROP {
     val xoffset_tiles
     val yoffset_tiles
     val compress
+    val phenix
     val channame
     val should_run
 
     output:
     tuple val(meta), path("stitched_images/*.tiff"), emit: stitched_images
     tuple val(meta), path("stitched_images/TileConfiguration.txt"), emit: tile_config
-    tuple val(meta), path("cropped_images/*.tiff"), emit: cropped_images
+    tuple val(meta), path("cropped_images/**/*.tiff"), emit: cropped_images
     tuple val(meta), path("downsampled_images/*.tiff"), emit: downsampled_images
     path ("versions.yml"), emit: versions
 
@@ -66,7 +67,7 @@ process FIJI_STITCHCROP {
     export YOFFSET_TILES="${yoffset_tiles}"
     export COMPRESS="${compress}"
     export CHANNAME="${channame}"
-    export FIRST_SITE_INDEX="${first_site_index}"
+    export PHENIX="${phenix}"
 
     # Run Fiji in headless mode
     /opt/fiji/Fiji.app/ImageJ-linux64 \\
@@ -94,16 +95,16 @@ process FIJI_STITCHCROP {
         # Barcoding arm - use Cycle format
         touch stitched_images/${prefix}_Stitched_Cycle01_DNA.tiff
         touch stitched_images/TileConfiguration.txt
-        touch cropped_images/${prefix}_Cycle01_DNA.tiff
-        touch cropped_images/${prefix}_Cycle01_A.tiff
-        touch cropped_images/${prefix}_Cycle02_A.tiff
+        touch cropped_images/DNA/${prefix}_Cycle01_DNA.tiff
+        touch cropped_images/A/${prefix}_Cycle01_A.tiff
+        touch cropped_images/A/${prefix}_Cycle02_A.tiff
         touch downsampled_images/${prefix}_Stitched_Cycle01_DNA.tiff
     else
         # Cell painting arm - use Corr format
         touch stitched_images/${prefix}_Stitched_CorrDNA.tiff
         touch stitched_images/TileConfiguration.txt
-        touch cropped_images/${prefix}_CorrDNA.tiff
-        touch cropped_images/${prefix}_CorrER.tiff
+        touch cropped_images/DNA/${prefix}_CorrDNA.tiff
+        touch cropped_images/ER/${prefix}_CorrER.tiff
         touch downsampled_images/${prefix}_Stitched_CorrDNA.tiff
     fi
 
