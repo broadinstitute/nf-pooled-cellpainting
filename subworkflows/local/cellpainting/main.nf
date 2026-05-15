@@ -33,6 +33,7 @@ workflow CELLPAINTING {
     painting_xoffset_tiles
     painting_yoffset_tiles
     compress
+    phenix
     painting_channame
     qc_painting_passed
 
@@ -281,6 +282,7 @@ workflow CELLPAINTING {
         painting_xoffset_tiles,
         painting_yoffset_tiles,
         compress,
+        phenix,
         painting_channame,
         qc_painting_passed,
     )
