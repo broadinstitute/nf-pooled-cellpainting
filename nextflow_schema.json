@@ -213,7 +213,7 @@
                 },
                 "barcoding_imperwell": {
                     "type": "integer",
-                    "default": 80,
+                    "default": 20,
                     "description": "Number of images per well."
                 },
                 "barcoding_rows": {
