@@ -79,7 +79,7 @@ PIPELINE_CONFIGS = {
     },
     'combined': {
         'description': 'Combined analysis - uses both cropped cell painting and barcoding images',
-        'file_pattern': r'(Plate_.*_Well_.*_Site_.*_Corr.*\.(?:tiff?|nd2)|Plate_.*_Well_.*_Site_.*_Cycle\d{2}_\w+\.(?:tiff?|nd2)|Plate\d+-[A-Z]\d+_Corr.*_Site_\d+\.(?:tiff?|nd2)|Plate\d+-[A-Z]\d+_Cycle\d+_\w+_Site_\d+\.(?:tiff?|nd2))$',
+        'file_pattern': r'(Corr\w+_Plate_.*_Well_.*_Site_.*\.(?:tiff?|nd2)|Cycle\d{2}_\w+_Plate_.*_Well_.*_Site_.*\.(?:tiff?|nd2)|Plate_.*_Well_.*_Site_.*_Corr.*\.(?:tiff?|nd2)|Plate_.*_Well_.*_Site_.*_Cycle\d{2}_\w+\.(?:tiff?|nd2)|Plate\d+-[A-Z]\d+_Corr.*_Site_\d+\.(?:tiff?|nd2)|Plate\d+-[A-Z]\d+_Cycle\d+_\w+_Site_\d+\.(?:tiff?|nd2))$',
         'metadata_cols': ['Metadata_Plate', 'Metadata_Site', 'Metadata_Well', 'Metadata_Well_Value'],
         'include_illum_files': False,
         'parse_function': 'parse_combined_image'
