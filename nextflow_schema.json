@@ -142,8 +142,8 @@
                     "description": "Scaling for images."
                 },
                 "painting_imperwell": {
-                    "type": "string",
-                    "default": "unused",
+                    "type": "integer",
+                    "default": 80,
                     "description": "Number of images per well."
                 },
                 "painting_rows": {
@@ -182,7 +182,7 @@
             "properties": {
                 "barcoding_channame": {
                     "type": "string",
-                    "default": "DNA",
+                    "default": "DAPI",
                     "description": "Channel name for nucleus staining for barcoding arm."
                 },
                 "barcoding_illumapply_grouping": {
@@ -212,8 +212,8 @@
                     "description": "Scaling for images."
                 },
                 "barcoding_imperwell": {
-                    "type": "string",
-                    "default": "unused",
+                    "type": "integer",
+                    "default": 80,
                     "description": "Number of images per well."
                 },
                 "barcoding_rows": {
@@ -284,6 +284,11 @@
                     "type": "boolean",
                     "default": true,
                     "description": "Whether to compress output files."
+                },
+                "phenix": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Whether the images are from a Phenix microscope where the first image is in the center of the well"
                 }
             },
             "fa_icon": "fas fa-cog"
