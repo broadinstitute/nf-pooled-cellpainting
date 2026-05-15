@@ -74,6 +74,7 @@ workflow POOLED_CELLPAINTING {
         params.painting_xoffset_tiles,
         params.painting_yoffset_tiles,
         params.compress,
+        params.phenix,
         params.painting_channame,
         params.qc_painting_passed,
     )
@@ -108,6 +109,7 @@ workflow POOLED_CELLPAINTING {
         params.barcoding_xoffset_tiles,
         params.barcoding_yoffset_tiles,
         params.compress,
+        params.phenix,
         params.barcoding_channame,
         params.qc_barcoding_passed,
     )
@@ -161,7 +163,7 @@ workflow POOLED_CELLPAINTING {
                         // For barcoding, channels are typically 'DNA' and 'CycleXX'
                         // We need to infer the channel from the filename or assume a default if not explicitly in meta
                         // Assuming channel is part of the filename for barcoding as before, or could be passed in meta
-                        def barcode_match = (img.name =~ /Cycle(\d+)_([A-Z]+|DNA|DAPI)\.tiff?$/)
+                        def barcode_match = (img.name =~ /Cycle(\d+)_(A488|A568|A647|DNA|DAPI|[ACGT])(?:_Site_\d+)?\.tiff?$/)
                         if (barcode_match) {
                             img_meta.cycle = barcode_match[0][1] as Integer
                             img_meta.channel = barcode_match[0][2]
