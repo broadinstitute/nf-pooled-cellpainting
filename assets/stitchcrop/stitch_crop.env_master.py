@@ -452,13 +452,14 @@ def apply_stitching_per_well_section_and_channel(eachpresuf, subdir,round_or_squ
                     im_tile,
                     os.path.join(
                         tile_subdir_persuf,
-                        thissuffixnicename
-                        + "_Plate_"
+                        "Plate_"
                         + str(plate)
                         + "_Well_"
                         + str(eachwell)
                         + "_Site_"
                         + str(each_tile_num)
+                        + "_"
+                        + thissuffixnicename
                         + ".tiff",
                     ),
                     plugin,
@@ -602,13 +603,14 @@ def apply_stitching_per_well_section_and_channel(eachpresuf, subdir,round_or_squ
                 im_tile,
                 os.path.join(
                     tile_subdir_persuf,
-                    thissuffixnicename
-                    + "_Plate_"
+                    "Plate_"
                     + str(plate)
                     + "_Well_"
                     + str(eachwell)
                     + "_Site_"
                     + str(eachtile)
+                    + "_"
+                    + thissuffixnicename
                     + ".tiff",
                 ),
                 plugin,
