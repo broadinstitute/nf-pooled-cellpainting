@@ -430,20 +430,32 @@ def load_metadata_json(metadata_json_path: str) -> Dict:
         if 'arm' in first_entry:
             normalized_metadata['arm'] = first_entry['arm']
         if 'channels' in first_entry and first_entry['channels'] is not None:
+            # Dedupe in order of first appearance so downstream iteration
+            # (Frame_idx mapping, column order) is deterministic. `list(set(...))`
+            # randomizes per-process via PYTHONHASHSEED and broke the multi-channel
+            # discriminator below.
             if isinstance(first_entry['channels'], list):
                 channels_aggregated = []
                 for entry in metadata:
                     if isinstance(entry.get('channels'), list):
-                        channels_aggregated += entry['channels']
-                normalized_metadata['channels'] = list(set(channels_aggregated))
+                        for ch in entry['channels']:
+                            if ch not in channels_aggregated:
+                                channels_aggregated.append(ch)
+                normalized_metadata['channels'] = channels_aggregated
+                # Single-channel-per-entry mode means each entry contributes a
+                # different channel; compare as sets so original list order
+                # doesn't flip this flag.
+                single_channels_present = (
+                    set(normalized_metadata['channels']) != set(first_entry['channels'])
+                )
             elif isinstance(first_entry['channels'], str):
-                normalized_metadata['channels'] = ",".join(sorted(set(
-                    entry.get('channels')
-                    for entry in metadata
-                    if entry.get('channels') is not None
-                )))
-
-            single_channels_present = normalized_metadata['channels'] != first_entry['channels']
+                channels_seen = []
+                for entry in metadata:
+                    ch_str = entry.get('channels')
+                    if ch_str is not None and ch_str not in channels_seen:
+                        channels_seen.append(ch_str)
+                normalized_metadata['channels'] = ",".join(channels_seen)
+                single_channels_present = normalized_metadata['channels'] != first_entry['channels']
 
         # Detect cycles: if multiple unique cycles exist, create 'cycles' list
         # Otherwise use single 'cycle' value
@@ -519,8 +531,16 @@ def load_metadata_json(metadata_json_path: str) -> Dict:
             # Preserve channel if present (for single-channel images like segcheck)
             if 'channel' in entry:
                 metadata_entry['channel'] = str(entry['channel'])
-            elif single_channels_present:
-                metadata_entry['channel'] = str(entry['channels'])
+            elif single_channels_present and 'channels' in entry:
+                # Synthesize a singular `channel` from a single-element `channels`
+                # list/string. Multi-element lists are multi-channel files and
+                # must NOT be turned into a literal list-string here, which was
+                # the root cause of the KeyError 'DNA'/'CHN2' failures.
+                ch = entry['channels']
+                if isinstance(ch, list) and len(ch) == 1:
+                    metadata_entry['channel'] = str(ch[0])
+                elif isinstance(ch, str):
+                    metadata_entry['channel'] = ch
             result['image_metadata'].append(metadata_entry)
 
     # Extract optional fields
@@ -1239,11 +1259,13 @@ def generate_csv_rows(
                 # Multi-cycle multi-channel images - generate columns for each cycle
                 illum_by_cycle = file_data['illum'].get('_by_cycle', {})
 
-                # Get channels from JSON metadata (required!)
-                if metadata_json and 'channels' in metadata_json:
-                    channels_to_use = metadata_json['channels']
-                elif metadata_channels:
+                # CLI --channels overrides JSON (matches the "overriding JSON"
+                # log line emitted by main()); without this the override never
+                # reaches column generation.
+                if metadata_channels:
                     channels_to_use = metadata_channels
+                elif metadata_json and 'channels' in metadata_json:
+                    channels_to_use = metadata_json['channels']
                 else:
                     raise ValueError("Channels must be specified in JSON metadata or CLI args")
 
@@ -1296,11 +1318,13 @@ def generate_csv_rows(
             elif files_by_cycle:
                 illum_by_cycle = file_data['illum'].get('_by_cycle', {})
 
-                # Get channels from JSON metadata (required!)
-                if metadata_json and 'channels' in metadata_json:
-                    channels_to_use = metadata_json['channels']
-                elif metadata_channels:
+                # CLI --channels overrides JSON (matches the "overriding JSON"
+                # log line emitted by main()); without this the override never
+                # reaches column generation.
+                if metadata_channels:
                     channels_to_use = metadata_channels
+                elif metadata_json and 'channels' in metadata_json:
+                    channels_to_use = metadata_json['channels']
                 else:
                     raise ValueError("Channels must be specified in JSON metadata or CLI args")
 
@@ -1351,11 +1375,13 @@ def generate_csv_rows(
                 # Example: WellA1_PointA1_0000_ChannelDNA,Phalloidin,CHN2_Seq0000.ome.tiff
                 filename = file_data['images']['_file']
 
-                # Get channels from JSON metadata (required!)
-                if metadata_json and 'channels' in metadata_json:
-                    channels_to_use = metadata_json['channels']
-                elif metadata_channels:
+                # CLI --channels overrides JSON (matches the "overriding JSON"
+                # log line emitted by main()); without this the override never
+                # reaches column generation.
+                if metadata_channels:
                     channels_to_use = metadata_channels
+                elif metadata_json and 'channels' in metadata_json:
+                    channels_to_use = metadata_json['channels']
                 else:
                     raise ValueError("Channels must be specified in JSON metadata or CLI args")
 
@@ -1396,11 +1422,13 @@ def generate_csv_rows(
 
             # PATTERN 4: Single channel files for illum calc and apply, without cycles
             elif 'illum' in pipeline_type:
-                # Get channels from JSON metadata (required!)
-                if metadata_json and 'channels' in metadata_json:
-                    channels_to_use = metadata_json['channels']
-                elif metadata_channels:
+                # CLI --channels overrides JSON (matches the "overriding JSON"
+                # log line emitted by main()); without this the override never
+                # reaches column generation.
+                if metadata_channels:
                     channels_to_use = metadata_channels
+                elif metadata_json and 'channels' in metadata_json:
+                    channels_to_use = metadata_json['channels']
                 else:
                     raise ValueError("Channels must be specified in JSON metadata or CLI args")
 
