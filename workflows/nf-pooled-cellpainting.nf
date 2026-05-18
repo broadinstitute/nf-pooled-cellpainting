@@ -190,11 +190,22 @@ workflow POOLED_CELLPAINTING {
                     img_meta
                 }
 
+                // Detect unique cycles from barcoding images
+                def unique_cycles = image_metas
+                    .findAll { it.cycle != null }
+                    .collect { it.cycle }
+                    .unique()
+                    .sort()
+
                 // Prepare metadata structure for combined analysis
                 def metadata_for_json = [
                     plate: common_meta.plate,
                     image_metadata: image_metas,
                 ]
+                // Add cycles so the CSV generator uses cycle-prefixed column names
+                if (unique_cycles) {
+                    metadata_for_json.cycles = unique_cycles
+                }
                 // Add optional fields if present
                 if (common_meta.batch) {
                     metadata_for_json.batch = common_meta.batch

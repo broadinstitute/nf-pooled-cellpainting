@@ -56,7 +56,7 @@ workflow CELLPAINTING {
         }
         .groupTuple()
         .map { meta, images_meta_list, images_list ->
-            def all_channels = images_meta_list[0].channels
+            def all_channels = images_meta_list.channels.unique().join(", ")
             // Return tuple: (shared meta, channels, cycles, images, per-image metadata)
             [meta, all_channels, null, images_list, images_meta_list]
         }
@@ -108,7 +108,7 @@ workflow CELLPAINTING {
         }
         .groupTuple()
         .map { site_meta, images_meta_list, images_list ->
-            def all_channels = images_meta_list[0].channels
+            def all_channels = images_meta_list.channels.unique().join(", ")
             // Check if images have MULTIPLE cycles (not just a single cycle value)
             def all_cycles = images_meta_list.collect { m -> m.cycle }.findAll { c -> c != null }.unique().sort()
             def unique_cycles = all_cycles.size() > 1 ? all_cycles : null

@@ -38,7 +38,7 @@ from typing import Dict, List, Tuple, Optional
 PIPELINE_CONFIGS = {
     'illumcalc': {
         'description': 'Illumination calculation - uses original multi-channel images',
-        'file_pattern': r'.*\.(?:ome\.tiff?|nd2)$',
+        'file_pattern': r'.*\.(?:tiff?|nd2)$',
         'metadata_cols': None,  # Dynamic based on has_cycles
         'metadata_cols_base': ['Metadata_Plate', 'Metadata_Well', 'Metadata_Site'],
         'metadata_cols_with_cycles': ['Metadata_Plate', 'Metadata_Well', 'Metadata_Site'],  # Cycle column name will be added dynamically
@@ -49,7 +49,7 @@ PIPELINE_CONFIGS = {
     },
     'illumapply': {
         'description': 'Illumination correction - uses original images + illumination functions',
-        'file_pattern': r'.*\.(?:ome\.tiff?|nd2)$',
+        'file_pattern': r'.*\.(?:tiff?|nd2)$',
         'metadata_cols': ['Metadata_Plate', 'Metadata_Well', 'Metadata_Site'],
         'include_illum_files': True,
         'supports_subdirs': True,
@@ -72,7 +72,7 @@ PIPELINE_CONFIGS = {
     },
     'preprocess': {
         'description': 'Barcoding preprocessing - uses cycle-based corrected images',
-        'file_pattern': r'Plate_.*_Well_.*_Site_.*_Cycle\d+_(DNA|DAPI|[ACGT])\.(?:tiff?|nd2)$',
+        'file_pattern': r'Plate_.*_Well_.*_Site_.*_Cycle\d+_(DNA|DAPI|A488|A568|A647|[ACGT])\.(?:tiff?|nd2)$',
         'metadata_cols': ['Metadata_Plate', 'Metadata_Site', 'Metadata_Well', 'Metadata_Well_Value'],
         'include_illum_files': False,
         'parse_function': 'parse_preprocess_image'
@@ -89,7 +89,9 @@ PIPELINE_CONFIGS = {
 
 def parse_original_image(filename: str) -> Optional[Dict]:
     """
-    Parse original multi-channel image filename to extract ONLY channel information.
+    Parse original image filename to extract ONLY channel information.
+
+    We check for multichannel patterns first, and then for a single-channel pattern.
 
     IMPORTANT: This function ONLY parses channel info from filenames.
     Metadata (plate, well, site, cycle) MUST come from JSON - NOT from filenames.
@@ -103,7 +105,7 @@ def parse_original_image(filename: str) -> Optional[Dict]:
 
     Returns:
         Dict with:
-        - 'channels': List of channel names (e.g., ['DNA', 'Phalloidin', 'CHN2'])
+        - 'channels': List of channel names (e.g., ['DNA', 'Phalloidin', 'CHN2']), OR False if channel name is not in the file name.
         - 'frames': Dict mapping channel name to frame index (0-indexed)
         Returns None if filename doesn't match expected pattern
 
@@ -117,38 +119,36 @@ def parse_original_image(filename: str) -> Optional[Dict]:
     #   - Channel([^_]+): Captures channel names (e.g., "DNA,Phalloidin,CHN2")
     #   - Cycle\d+: Cycle number (not captured - cycle from JSON)
     #   - Seq\d+: Sequence number (not captured)
-    pattern_with_cycle = r'Well[A-Z]\d+_Point[A-Z]\d+_\d+_Channel([^_]+)_Cycle\d+_Seq\d+\.(?:ome\.tiff?|nd2)'
-    match = re.search(pattern_with_cycle, filename)
-
-    if match:
-        channels_str = match.group(1)
-        # Parse channels - could be comma-separated (e.g., "DNA,Phalloidin,CHN2")
-        channels = [ch.strip() for ch in channels_str.split(',')]
-        # Build frame mapping - each channel gets its sequential frame number
-        # Frame 0 = first channel, Frame 1 = second channel, etc.
-        frames = {ch: idx for idx, ch in enumerate(channels)}
-        return {
-            'channels': channels,
-            'frames': frames
-        }
-
-    # Try pattern without cycle (same structure but no Cycle\d+ component)
-    pattern = r'Well[A-Z]\d+_Point[A-Z]\d+_\d+_Channel([^_]+)_Seq\d+\.(?:ome\.tiff?|nd2)'
-    match = re.search(pattern, filename)
-
-    if not match:
-        return None
-
-    channels_str = match.group(1)
-    # Parse channels - could be comma-separated
-    channels = [ch.strip() for ch in channels_str.split(',')]
-    # Build frame mapping - each channel gets its sequential frame number
-    frames = {ch: idx for idx, ch in enumerate(channels)}
-
-    return {
-        'channels': channels,
-        'frames': frames
+    possible_multichannel_patterns = {
+        "multichannel_with_cycle" : r'Well[A-Z]\d+_Point[A-Z]\d+_\d+_Channel([^_]+)_Cycle\d+_Seq\d+\.(?:ome\.tiff?|nd2)',
+        "multichannel_without_cycle" : r'Well[A-Z]\d+_Point[A-Z]\d+_\d+_Channel([^_]+)_Seq\d+\.(?:ome\.tiff?|nd2)'
     }
+
+    for _, pattern in possible_multichannel_patterns.items():
+        match = re.search(pattern, filename)
+        if match:
+            channels_str = match.group(1)
+            # Parse channels - could be comma-separated (e.g., "DNA,Phalloidin,CHN2")
+            channels = [ch.strip() for ch in channels_str.split(',')]
+            # Build frame mapping - each channel gets its sequential frame number
+            frames = {ch: idx for idx, ch in enumerate(channels)}
+
+            return {
+                'channels': channels,
+                'frames': frames
+            }
+
+    single_channel_pattern = r'r[0-9]{2}c[0-9]{2}f[0-9]{2}p[0-9]{2}-ch[0-9]{1,2}.*\.tiff'
+    #We have single channel images where channel is indicated with a number; frame must be zero
+    #We don't know channel names at this point, they must come from the sample sheet, so we'll pass False
+    match = re.match(single_channel_pattern, filename)
+    if match:
+        return {
+                'channel': False,
+                'frames': 0
+            }
+
+    return None
 
 
 def parse_corrected_image(filename: str) -> Optional[Dict]:
@@ -409,6 +409,8 @@ def load_metadata_json(metadata_json_path: str) -> Dict:
     except Exception as e:
         raise IOError(f"Error reading metadata file {metadata_json_path}: {e}")
 
+    single_channels_present = False
+
     # Handle simplified array format: if JSON is an array, extract common fields from first entry
     if isinstance(metadata, list):
         if not metadata:
@@ -423,12 +425,37 @@ def load_metadata_json(metadata_json_path: str) -> Dict:
         # Extract common fields that should be consistent across all entries
         if 'plate' in first_entry:
             normalized_metadata['plate'] = first_entry['plate']
-        if 'channels' in first_entry:
-            normalized_metadata['channels'] = first_entry['channels']
         if 'batch' in first_entry:
             normalized_metadata['batch'] = first_entry['batch']
         if 'arm' in first_entry:
             normalized_metadata['arm'] = first_entry['arm']
+        if 'channels' in first_entry and first_entry['channels'] is not None:
+            # Dedupe in order of first appearance so downstream iteration
+            # (Frame_idx mapping, column order) is deterministic. `list(set(...))`
+            # randomizes per-process via PYTHONHASHSEED and broke the multi-channel
+            # discriminator below.
+            if isinstance(first_entry['channels'], list):
+                channels_aggregated = []
+                for entry in metadata:
+                    if isinstance(entry.get('channels'), list):
+                        for ch in entry['channels']:
+                            if ch not in channels_aggregated:
+                                channels_aggregated.append(ch)
+                normalized_metadata['channels'] = channels_aggregated
+                # Single-channel-per-entry mode means each entry contributes a
+                # different channel; compare as sets so original list order
+                # doesn't flip this flag.
+                single_channels_present = (
+                    set(normalized_metadata['channels']) != set(first_entry['channels'])
+                )
+            elif isinstance(first_entry['channels'], str):
+                channels_seen = []
+                for entry in metadata:
+                    ch_str = entry.get('channels')
+                    if ch_str is not None and ch_str not in channels_seen:
+                        channels_seen.append(ch_str)
+                normalized_metadata['channels'] = ",".join(channels_seen)
+                single_channels_present = normalized_metadata['channels'] != first_entry['channels']
 
         # Detect cycles: if multiple unique cycles exist, create 'cycles' list
         # Otherwise use single 'cycle' value
@@ -504,6 +531,16 @@ def load_metadata_json(metadata_json_path: str) -> Dict:
             # Preserve channel if present (for single-channel images like segcheck)
             if 'channel' in entry:
                 metadata_entry['channel'] = str(entry['channel'])
+            elif single_channels_present and 'channels' in entry:
+                # Synthesize a singular `channel` from a single-element `channels`
+                # list/string. Multi-element lists are multi-channel files and
+                # must NOT be turned into a literal list-string here, which was
+                # the root cause of the KeyError 'DNA'/'CHN2' failures.
+                ch = entry['channels']
+                if isinstance(ch, list) and len(ch) == 1:
+                    metadata_entry['channel'] = str(ch[0])
+                elif isinstance(ch, str):
+                    metadata_entry['channel'] = ch
             result['image_metadata'].append(metadata_entry)
 
     # Extract optional fields
@@ -661,6 +698,7 @@ def collect_and_group_files(
     grouped = {}  # Dict mapping (plate, well, site) -> {'images': {...}, 'illum': {...}}
     parse_errors = []  # Track files that failed to parse
     missing_metadata = []  # Track files with missing metadata
+    parsed_channels = [] #Track channels we've found
 
     # MODE A: image_metadata array - match files by FILENAME (most common)
     # ==================================================================================
@@ -706,12 +744,7 @@ def collect_and_group_files(
 
             print(f"✓ Created file-cycle-to-subfolder mapping with {len(file_cycle_to_subfolder)} entries", file=sys.stderr)
 
-        # Build a lookup map: filename → full file path
-        # This allows fast matching of JSON filenames to actual files on disk
-        file_map = {}
-        for img_path in image_files:
-            filename = os.path.basename(img_path)
-            file_map[filename] = img_path
+        # Removed a previous mapping that assumed uniqueness
 
         # Iterate through metadata entries and find matching files
         for entry in metadata_json['image_metadata']:
@@ -722,16 +755,24 @@ def collect_and_group_files(
             entry_channel = entry.get('channel')  # Get channel from entry if present (for single-channel files)
             entry_type = entry.get('type', '')  # Get type from entry if present (cellpainting, barcoding, etc.)
 
+            if entry_channel not in parsed_channels:
+                parsed_channels.append(entry_channel)
+
             if not expected_filename:
                 print(f"⚠ Warning: No filename in metadata entry for well={well}, site={site}", file=sys.stderr)
                 continue
 
-            if expected_filename not in file_map:
+            # Find files we know about that match our file, check for uniqueness
+            matching_filename = [x for x in image_files if expected_filename in x]
+
+            if len(matching_filename)==0:
                 print(f"⚠ Warning: File '{expected_filename}' from metadata not found in images directory", file=sys.stderr)
                 continue
+            elif len(matching_filename)>1:
+                print(f"⚠ Warning: File '{expected_filename}' could not be uniquely matched within the images directory", file=sys.stderr)
+                continue
 
-            img_path = file_map[expected_filename]
-            rel_path = os.path.relpath(img_path, images_dir)
+            rel_path = os.path.relpath(matching_filename[0], images_dir)
             key = (plate, well, site)
 
             # Initialize grouped entry if not exists
@@ -741,9 +782,12 @@ def collect_and_group_files(
             # Store file based on whether it has cycle/channel information
             # NO PARSING - just use metadata from JSON
             if entry_cycle is not None and entry_channel:
-                # Cycle + channel (like preprocess: Cycle01_DNA)
-                cycle_channel_key = f"Cycle{entry_cycle:02d}_{entry_channel}"
-                grouped[key]['images'][cycle_channel_key] = rel_path
+                if metadata_cycles:
+                    # Cycle + channel (like preprocess: Cycle01_DNA)
+                    cycle_channel_key = f"Cycle{entry_cycle:02d}_{entry_channel}"
+                    grouped[key]['images'][cycle_channel_key] = rel_path
+                else:
+                    grouped[key]['images'][entry_channel] = rel_path
             elif entry_cycle is not None:
                 # Multi-cycle only: store per cycle
                 cycle_num = entry_cycle
@@ -757,7 +801,9 @@ def collect_and_group_files(
                     if file_cycle_to_subfolder and file_cycle_key in file_cycle_to_subfolder:
                         # Construct path using the mapped subfolder: imgN/filename
                         subfolder_idx = file_cycle_to_subfolder[file_cycle_key]
-                        filename = os.path.basename(img_path)
+                        # NB: previous version referenced an undefined `img_path`; rel_path is
+                        # the resolved staged path and its basename is the file's leaf name.
+                        filename = os.path.basename(rel_path)
                         cycle_aware_path = f"img{subfolder_idx}/{filename}"
                         grouped[key]['images']['_files_by_cycle'][cycle_num] = {
                             'file': cycle_aware_path
@@ -905,26 +951,50 @@ def collect_and_group_files(
                 continue
 
             # Sort and assign to cycles by order
-            sorted_paths = sorted(img_paths, key=lambda x: x[1])
+            if '/' in img_paths[0][1]:
+                #We have sub-paths staged in order - string matching won't work, we need int matching
+                sorted_paths = sorted(img_paths, key=lambda x: int(re.match(r'img([0-9]{1,5})',x[1]).group(1)))
+            else:
+                sorted_paths = sorted(img_paths, key=lambda x: x[1])
 
-            if len(sorted_paths) != len(metadata_cycles):
-                print(f"⚠ Expected {len(metadata_cycles)} images for {key}, found {len(sorted_paths)}", file=sys.stderr)
+            if len(sorted_paths) == len(metadata_cycles):
+                # Clear and recreate as _files_by_cycle
+                for k, _ in img_paths:
+                    del grouped[key]['images'][k]
+
+                grouped[key]['images']['_files_by_cycle'] = {}
+                grouped[key]['cycles'] = set(metadata_cycles)
+
+                for idx, cycle_num in enumerate(sorted(metadata_cycles)):
+                    img_path = sorted_paths[idx][1]
+                    # No parsing needed - just store the file path
+                    grouped[key]['images']['_files_by_cycle'][cycle_num] = {
+                        'file': img_path
+                    }
+
+            elif len(parsed_channels)>0 and len(sorted_paths) == len(metadata_cycles)*len(parsed_channels) and 'illum' in pipeline_type:
+
+                # Clear and recreate as _files_by_cycle
+                for k, _ in img_paths:
+                    del grouped[key]['images'][k]
+
+                grouped[key]['images']['_files_by_cycle'] = {}
+                grouped[key]['cycles'] = set(metadata_cycles)
+
+                for cyc_idx, cycle_num in enumerate(sorted(metadata_cycles)):
+                    for chan_idx, channel in enumerate(parsed_channels):
+                        img_path = sorted_paths[cyc_idx*len(parsed_channels)+chan_idx][1]
+                        # This feels dangerous, and should probably be changed to a parser someday
+                        if cycle_num not in  grouped[key]['images']['_files_by_cycle']:
+                            grouped[key]['images']['_files_by_cycle'][cycle_num] = {
+                                channel: img_path
+                            }
+                        else:
+                            grouped[key]['images']['_files_by_cycle'][cycle_num][channel] = img_path
+
+            else:
+                print(f"⚠ Expected {len(metadata_cycles)} or {len(metadata_cycles)*len(parsed_channels)} images for {key}, found {len(sorted_paths)}", file=sys.stderr)
                 continue
-
-            # Clear and recreate as _files_by_cycle
-            for k, _ in img_paths:
-                del grouped[key]['images'][k]
-
-            grouped[key]['images']['_files_by_cycle'] = {}
-            grouped[key]['cycles'] = set(metadata_cycles)
-
-            for idx, cycle_num in enumerate(sorted(metadata_cycles)):
-                img_path = sorted_paths[idx][1]
-                # No parsing needed - just store the file path
-                grouped[key]['images']['_files_by_cycle'][cycle_num] = {
-                    'file': img_path
-                }
-
         print(f"✓ Assigned images to {len(metadata_cycles)} cycles", file=sys.stderr)
 
     # Collect illumination files if needed
@@ -1175,18 +1245,27 @@ def generate_csv_rows(
             # Strategy depends on file organization pattern
             # ------------------------------------------------------------------
 
+            # PATTERN 1 / PATTERN 2 share the same outer key (_files_by_cycle); we
+            # discriminate by peeking *inside* a cycle dict, since both layouts arrive here:
+            #   PATTERN 1: {cycle: {'file': path}}        — one multi-channel OME-TIFF per cycle
+            #   PATTERN 2: {cycle: {channel: path, ...}}  — one file per channel per cycle (Phenix)
+            files_by_cycle = file_data['images'].get('_files_by_cycle')
+            sample_cycle = next(iter(files_by_cycle.values()), None) if files_by_cycle else None
+            is_multichannel_per_cycle = isinstance(sample_cycle, dict) and 'file' in sample_cycle
+
             # PATTERN 1: Multi-cycle multi-channel files
-            # (e.g., illumcalc with multiple cycles)
-            if '_files_by_cycle' in file_data['images']:
+            # (e.g., illumcalc with multiple cycles; test profile uses this with n_frames>1)
+            if files_by_cycle and is_multichannel_per_cycle:
                 # Multi-cycle multi-channel images - generate columns for each cycle
-                files_by_cycle = file_data['images']['_files_by_cycle']
                 illum_by_cycle = file_data['illum'].get('_by_cycle', {})
 
-                # Get channels from JSON metadata (required!)
-                if metadata_json and 'channels' in metadata_json:
-                    channels_to_use = metadata_json['channels']
-                elif metadata_channels:
+                # CLI --channels overrides JSON (matches the "overriding JSON"
+                # log line emitted by main()); without this the override never
+                # reaches column generation.
+                if metadata_channels:
                     channels_to_use = metadata_channels
+                elif metadata_json and 'channels' in metadata_json:
+                    channels_to_use = metadata_json['channels']
                 else:
                     raise ValueError("Channels must be specified in JSON metadata or CLI args")
 
@@ -1234,18 +1313,75 @@ def generate_csv_rows(
                                     file=sys.stderr
                                 )
 
-            # PATTERN 2: Single multi-channel file (e.g., one OME-TIFF with all channels)
+            # PATTERN 2: Multi-cycle single-channel files from illum corr or apply pipelines
+            # (Phenix-style: separate file per channel inside each cycle)
+            elif files_by_cycle:
+                illum_by_cycle = file_data['illum'].get('_by_cycle', {})
+
+                # CLI --channels overrides JSON (matches the "overriding JSON"
+                # log line emitted by main()); without this the override never
+                # reaches column generation.
+                if metadata_channels:
+                    channels_to_use = metadata_channels
+                elif metadata_json and 'channels' in metadata_json:
+                    channels_to_use = metadata_json['channels']
+                else:
+                    raise ValueError("Channels must be specified in JSON metadata or CLI args")
+
+                # Check if we have multiple cycles - if only one, don't use cycle prefix
+                num_cycles = len(files_by_cycle)
+                use_cycle_prefix = num_cycles > 1
+
+                # Sort cycles to ensure consistent column order
+                for cycle_num in sorted(files_by_cycle.keys()):
+                    cycle_info = files_by_cycle[cycle_num]
+                    cycle_str = f"{cycle_num:02d}"
+
+                    # Add FileName and Frame for each channel in this cycle
+                    for channel, filename in cycle_info.items():
+                        if use_cycle_prefix:
+                            row[f'FileName_Cycle{cycle_str}_Orig{channel}'] = filename
+                        else:
+                            row[f'FileName_Orig{channel}'] = filename
+
+                        # Add illumination file if available for this cycle
+                        if cycle_num in illum_by_cycle and channel in illum_by_cycle[cycle_num]:
+                            if use_cycle_prefix:
+                                row[f'FileName_Cycle{cycle_str}_Illum{channel}'] = illum_by_cycle[cycle_num][channel]
+                            else:
+                                row[f'FileName_Illum{channel}'] = illum_by_cycle[cycle_num][channel]
+
+                    # Validate we have all required illumination files for this cycle
+                    if config['include_illum_files']:
+                        if cycle_num not in illum_by_cycle:
+                            print(
+                                f"⚠ Missing illumination files for cycle {cycle_num} "
+                                f"in {plate}/{well}/Site{site}",
+                                file=sys.stderr
+                            )
+                        else:
+                            missing_illum = [ch for ch in channels_to_use if ch not in illum_by_cycle[cycle_num]]
+                            if missing_illum:
+                                print(
+                                    f"⚠ Missing illumination files for channels {missing_illum} in cycle {cycle_num} "
+                                    f"in {plate}/{well}/Site{site}",
+                                    file=sys.stderr
+                                )
+
+            # PATTERN 3: Single multi-channel file (e.g., one OME-TIFF with all channels)
             # (e.g., illumcalc without cycles, illumapply single cycle)
             elif '_file' in file_data['images']:
                 # One multi-channel file contains all channels as frames
                 # Example: WellA1_PointA1_0000_ChannelDNA,Phalloidin,CHN2_Seq0000.ome.tiff
                 filename = file_data['images']['_file']
 
-                # Get channels from JSON metadata (required!)
-                if metadata_json and 'channels' in metadata_json:
-                    channels_to_use = metadata_json['channels']
-                elif metadata_channels:
+                # CLI --channels overrides JSON (matches the "overriding JSON"
+                # log line emitted by main()); without this the override never
+                # reaches column generation.
+                if metadata_channels:
                     channels_to_use = metadata_channels
+                elif metadata_json and 'channels' in metadata_json:
+                    channels_to_use = metadata_json['channels']
                 else:
                     raise ValueError("Channels must be specified in JSON metadata or CLI args")
 
@@ -1283,7 +1419,53 @@ def generate_csv_rows(
                             f"in {plate}/{well}/Site{site}",
                             file=sys.stderr
                         )
-            # PATTERN 3: Single-channel files or cycle-based files
+
+            # PATTERN 4: Single channel files for illum calc and apply, without cycles
+            elif 'illum' in pipeline_type:
+                # CLI --channels overrides JSON (matches the "overriding JSON"
+                # log line emitted by main()); without this the override never
+                # reaches column generation.
+                if metadata_channels:
+                    channels_to_use = metadata_channels
+                elif metadata_json and 'channels' in metadata_json:
+                    channels_to_use = metadata_json['channels']
+                else:
+                    raise ValueError("Channels must be specified in JSON metadata or CLI args")
+
+                # Determine if we need cycle-specific column names
+                # (for illumapply with cycle-aware flag)
+                use_cycle_columns = config.get('cycle_aware', False) and metadata_cycle is not None and has_cycles
+
+                # Add FileName and Frame for each channel
+                # All channels point to the same file, differentiated by Frame number
+                # Frame 0 = first channel, Frame 1 = second channel, etc.
+                for frame_idx, channel in enumerate(channels_to_use):
+                    # Generate column names with or without cycle prefix
+                    if use_cycle_columns:
+                        cycle_str = f"{metadata_cycle:02d}"
+                        row[f'FileName_Cycle{cycle_str}_Orig{channel}'] = file_data['images'][channel]
+                    else:
+                        row[f'FileName_Orig{channel}'] = file_data['images'][channel]
+
+                    # Add illumination file if available
+                    # Match illumination files by channel name (they should use metadata channel names)
+                    if channel in file_data['illum']:
+                        if use_cycle_columns:
+                            row[f'FileName_Cycle{cycle_str}_Illum{channel}'] = file_data['illum'][channel]
+                        else:
+                            row[f'FileName_Illum{channel}'] = file_data['illum'][channel]
+
+                # Validate we have all required illumination files
+                if config['include_illum_files']:
+                    missing_illum = [ch for ch in channels_to_use if ch not in file_data['illum']]
+                    if missing_illum:
+                        print(
+                            f"⚠ Missing illumination files for channels {missing_illum} "
+                            f"in {plate}/{well}/Site{site}",
+                            file=sys.stderr
+                            )
+
+            # PATTERN 5: Single-channel files or cycle-based files
             # (e.g., analysis, segcheck, preprocess, combined pipelines)
             else:
                 # Multiple separate files, one per channel or per cycle/channel combination

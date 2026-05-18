@@ -62,7 +62,7 @@ workflow BARCODING {
         }
         .groupTuple()
         .map { meta, images_meta_list, images_list ->
-            def all_channels = images_meta_list[0].channels
+            def all_channels = images_meta_list.channels.unique().join(", ")
             // Return tuple: (shared meta, channels, cycle, images, per-image metadata)
             [meta, all_channels, meta.cycle, images_list, images_meta_list]
         }
@@ -132,7 +132,7 @@ workflow BARCODING {
             // For barcoding, we expect multiple cycles
             def all_cycles = images_meta_list.collect { m -> m.cycle }.findAll { c -> c != null }.unique().sort()
             def unique_cycles = all_cycles.size() > 1 ? all_cycles : null
-            def all_channels = images_meta_list[0].channels
+            def all_channels = images_meta_list.channels.unique().join(", ")
 
             // Return tuple: (shared meta, channels, cycles, images, per-image metadata)
             [group_meta, all_channels, unique_cycles, images_list, images_meta_list]

@@ -9,7 +9,7 @@ process CELLPROFILER_ILLUMCALC {
         : 'community.wave.seqera.io/library/cellprofiler:4.2.8--aff0a99749304a7f'}"
 
     input:
-    tuple val(meta), val(channels), val(cycle), path(images, stageAs: "images/"), val(image_metas)
+    tuple val(meta), val(channels), val(cycle), path(images, stageAs: "images/img?/*"), val(image_metas)
     path illumination_cppipe
     val has_cycles
 
@@ -26,10 +26,37 @@ process CELLPROFILER_ILLUMCALC {
     // Base64 encode to reduce log verbosity
     def metadata_json_content = toJson(image_metas)
     def metadata_base64 = metadata_json_content.bytes.encodeBase64().toString()
+    def staged_list_base64 = images.toString().bytes.encodeBase64().toString()
 
     """
     # Create metadata JSON file from base64 (reduces log verbosity)
     echo '${metadata_base64}' | base64 -d > metadata.json
+    echo '${staged_list_base64}' | base64 -d > staged_list.txt
+    # Replace the metadata with staged paths instead
+    # Groovy arrays are ordered, so this should be safe, but check paths match anyway
+
+    python3 -c "
+import json
+import os
+
+# Read metadata to get staging indices
+with open('metadata.json') as f:
+    metadata = json.load(f)
+with open('staged_list.txt') as f:
+    staged_list = f.read()
+
+staged_list = staged_list.split(' ')
+# we need to remove the initial "images" part of the path
+staged_list = [os.path.sep.join(x.split(os.path.sep)[1:]) for x in staged_list]
+
+for x in range(len(metadata)):
+    if metadata[x]['filename']==staged_list[x].split(os.path.sep)[-1]:
+
+        metadata[x]['filename']=staged_list[x]
+
+with open('metadata.json','w') as f:
+    json.dump(metadata,f)
+"
 
     # Generate load_data.csv
     generate_load_data_csv.py \\
