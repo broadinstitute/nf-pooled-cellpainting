@@ -123,7 +123,7 @@ nextflow_process {
                 input[12] = 0                          // barcoding_xoffset_tiles
                 input[13] = 0                          // barcoding_yoffset_tiles
                 input[14] = true                       // compress
-                input[15] = false                      //phenix                
+                input[15] = false                      //phenix
                 input[16] = "DAPI"                    // channame
                 input[17] = true                       // should_run
                 """
