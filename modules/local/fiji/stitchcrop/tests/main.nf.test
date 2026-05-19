@@ -48,6 +48,7 @@ nextflow_process {
                 input[14] = true                       // compress
                 input[15] = "DNA"                     // channame
                 input[16] = true                       // should_run
+                input[17] = false                      //phenix
                 """
             }
         }
@@ -124,6 +125,7 @@ nextflow_process {
                 input[14] = true                       // compress
                 input[15] = "DAPI"                    // channame
                 input[16] = true                       // should_run
+                input[17] = false                      //phenix
                 """
             }
         }
@@ -170,6 +172,7 @@ nextflow_process {
                 input[14] = true                       // compress
                 input[15] = "DNA"                     // channame
                 input[16] = true                       // should_run
+                input[17] = false                      //phenix
                 """
             }
         }
