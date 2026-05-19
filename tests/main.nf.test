@@ -141,7 +141,7 @@ nextflow_pipeline {
                 painting_quarter_if_round   = true
                 painting_overlap_pct        = 10
                 painting_scalingstring      = 2
-                painting_imperwell          = "unused"
+                painting_imperwell          = 1
                 painting_rows               = 2
                 painting_columns            = 2
                 painting_stitchorder        = "Grid: snake by rows"
@@ -151,7 +151,7 @@ nextflow_pipeline {
                 barcoding_quarter_if_round  = true
                 barcoding_overlap_pct       = 10
                 barcoding_scalingstring     = 2
-                barcoding_imperwell         = "unused"
+                barcoding_imperwell         = 1
                 barcoding_rows              = 2
                 barcoding_columns           = 2
                 barcoding_stitchorder       = "Grid: snake by rows"
@@ -219,7 +219,7 @@ nextflow_pipeline {
                 painting_quarter_if_round   = true
                 painting_overlap_pct        = 10
                 painting_scalingstring      = 2
-                painting_imperwell          = "unused"
+                painting_imperwell          = 1
                 painting_rows               = 2
                 painting_columns            = 2
                 painting_stitchorder        = "Grid: snake by rows"
@@ -229,7 +229,7 @@ nextflow_pipeline {
                 barcoding_quarter_if_round  = true
                 barcoding_overlap_pct       = 10
                 barcoding_scalingstring     = 2
-                barcoding_imperwell         = "unused"
+                barcoding_imperwell         = 1
                 barcoding_rows              = 2
                 barcoding_columns           = 2
                 barcoding_stitchorder       = "Grid: snake by rows"
@@ -299,7 +299,7 @@ nextflow_pipeline {
                 painting_quarter_if_round   = true
                 painting_overlap_pct        = 10
                 painting_scalingstring      = 2
-                painting_imperwell          = "unused"
+                painting_imperwell          = 1
                 painting_rows               = 2
                 painting_columns            = 2
                 painting_stitchorder        = "Grid: snake by rows"
@@ -309,7 +309,7 @@ nextflow_pipeline {
                 barcoding_quarter_if_round  = true
                 barcoding_overlap_pct       = 10
                 barcoding_scalingstring     = 2
-                barcoding_imperwell         = "unused"
+                barcoding_imperwell         = 1
                 barcoding_rows              = 2
                 barcoding_columns           = 2
                 barcoding_stitchorder       = "Grid: snake by rows"
@@ -379,7 +379,7 @@ nextflow_pipeline {
                 painting_quarter_if_round   = true
                 painting_overlap_pct        = 10
                 painting_scalingstring      = 2
-                painting_imperwell          = "unused"
+                painting_imperwell          = 1
                 painting_rows               = 2
                 painting_columns            = 2
                 painting_stitchorder        = "Grid: snake by rows"
@@ -389,7 +389,7 @@ nextflow_pipeline {
                 barcoding_quarter_if_round  = true
                 barcoding_overlap_pct       = 10
                 barcoding_scalingstring     = 2
-                barcoding_imperwell         = "unused"
+                barcoding_imperwell         = 1
                 barcoding_rows              = 2
                 barcoding_columns           = 2
                 barcoding_stitchorder       = "Grid: snake by rows"
