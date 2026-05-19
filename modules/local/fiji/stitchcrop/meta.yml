@@ -115,7 +115,7 @@ output:
       - "*.tiff":
           type: file
           description: Cropped tile images extracted from stitched images for downstream analysis
-          pattern: "cropped_images/**/*.{tif,tiff}"
+          pattern: "cropped_images/**.{tif,tiff}"
           ontologies:
             - edam: http://edamontology.org/format_3547
   - downsampled_images:

@@ -27,7 +27,7 @@ process FIJI_STITCHCROP {
     output:
     tuple val(meta), path("stitched_images/*.tiff"), emit: stitched_images
     tuple val(meta), path("stitched_images/TileConfiguration.txt"), emit: tile_config
-    tuple val(meta), path("cropped_images/**/*.tiff"), emit: cropped_images
+    tuple val(meta), path("cropped_images/**.tiff"), emit: cropped_images
     tuple val(meta), path("downsampled_images/*.tiff"), emit: downsampled_images
     path ("versions.yml"), emit: versions
 
