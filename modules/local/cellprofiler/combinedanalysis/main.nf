@@ -13,7 +13,7 @@ process CELLPROFILER_COMBINEDANALYSIS {
     path plugins, stageAs: "plugins/"
 
     output:
-    tuple val(meta), path("*.png"), emit: overlay_images
+    tuple val(meta), path("*.png"), emit: overlay_images, optional: true
     tuple val(meta), path("*.csv"), emit: csv_stats
     tuple val(meta), path("segmentation_masks/*.tiff"), emit: segmentation_masks, optional: true
     path "load_data.csv", emit: load_data_csv
