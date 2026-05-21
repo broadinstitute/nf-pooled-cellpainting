@@ -25,6 +25,7 @@ xoffset_tiles = os.getenv("XOFFSET_TILES", "0")
 yoffset_tiles = os.getenv("YOFFSET_TILES", "0")
 compress = os.getenv("COMPRESS", "True")
 phenix = os.getenv("PHENIX", "False")
+save_cropped_to_subdirs = False
 
 from ij import IJ, WindowManager
 import os
@@ -588,9 +589,10 @@ def apply_stitching_per_well_section_and_channel(
         thissuffixnicename = thissuffix.split(".")[0]
         if thissuffixnicename[0] == "_":
             thissuffixnicename = thissuffixnicename[1:]
-        tile_subdir_persuf = os.path.join(tile_subdir, thissuffixnicename)
-        if not os.path.exists(tile_subdir_persuf):
-            os.mkdir(tile_subdir_persuf)
+        if save_cropped_to_subdirs:
+            tile_subdir_persuf = os.path.join(tile_subdir, thissuffixnicename)
+            if not os.path.exists(tile_subdir_persuf):
+                os.mkdir(tile_subdir_persuf)
         filename = thisprefix + "_Well_" + eachwell + "_Site_{i}_" + thissuffix
         fileoutname = "Stitched" + filename.replace("{i}", "")
         with open(
@@ -706,23 +708,42 @@ def apply_stitching_per_well_section_and_channel(
                     tilesize,
                 )
                 im_tile = im.crop()
-                savefile(
-                    im_tile,
-                    os.path.join(
-                        tile_subdir_persuf,
-                        "Plate_"
-                        + str(plate)
-                        + "_Well_"
-                        + str(eachwell)
-                        + "_Site_"
-                        + str(each_tile_num)
-                        + "_"
-                        + thissuffixnicename
-                        + ".tiff",
-                    ),
-                    plugin,
-                    compress=compress,
-                )
+                if save_cropped_to_subdirs:
+                    savefile(
+                        im_tile,
+                        os.path.join(
+                            tile_subdir_persuf,
+                            "Plate_"
+                            + str(plate)
+                            + "_Well_"
+                            + str(eachwell)
+                            + "_Site_"
+                            + str(each_tile_num)
+                            + "_"
+                            + thissuffixnicename
+                            + ".tiff",
+                        ),
+                        plugin,
+                        compress=compress,
+                    )
+                else:
+                    savefile(
+                        im_tile,
+                        os.path.join(
+                            tile_subdir,
+                            "Plate_"
+                            + str(plate)
+                            + "_Well_"
+                            + str(eachwell)
+                            + "_Site_"
+                            + str(each_tile_num)
+                            + "_"
+                            + thissuffixnicename
+                            + ".tiff",
+                        ),
+                        plugin,
+                        compress=compress,
+                    )
         IJ.run("Close All")
     else:
         quarter_options = stitched_quarter_dict[quarter]
@@ -730,9 +751,10 @@ def apply_stitching_per_well_section_and_channel(
         thissuffixnicename = thissuffix.split(".")[0]
         if thissuffixnicename[0] == "_":
             thissuffixnicename = thissuffixnicename[1:]
-        tile_subdir_persuf = os.path.join(tile_subdir, thissuffixnicename)
-        if not os.path.exists(tile_subdir_persuf):
-            os.mkdir(tile_subdir_persuf)
+        if save_cropped_to_subdirs:
+            tile_subdir_persuf = os.path.join(tile_subdir, thissuffixnicename)
+            if not os.path.exists(tile_subdir_persuf):
+                os.mkdir(tile_subdir_persuf)
         filename = thisprefix + "_Well_" + eachwell + "_x_{xx}_y_{yy}_" + thissuffix
         fileoutname = quarter_options["name"] + filename.replace("{xx}", "").replace(
             "{yy}", ""
@@ -851,23 +873,42 @@ def apply_stitching_per_well_section_and_channel(
                 tilesize,
             )
             im_tile = im.crop()
-            savefile(
-                im_tile,
-                os.path.join(
-                    tile_subdir_persuf,
-                    "Plate_"
-                    + str(plate)
-                    + "_Well_"
-                    + str(eachwell)
-                    + "_Site_"
-                    + str(eachtile)
-                    + "_"
-                    + thissuffixnicename
-                    + ".tiff",
-                ),
-                plugin,
-                compress=compress,
-            )
+            if save_cropped_to_subdirs:
+                savefile(
+                    im_tile,
+                    os.path.join(
+                        tile_subdir_persuf,
+                        "Plate_"
+                        + str(plate)
+                        + "_Well_"
+                        + str(eachwell)
+                        + "_Site_"
+                        + str(eachtile)
+                        + "_"
+                        + thissuffixnicename
+                        + ".tiff",
+                    ),
+                    plugin,
+                    compress=compress,
+                )
+            else:
+                savefile(
+                    im_tile,
+                    os.path.join(
+                        tile_subdir,
+                        "Plate_"
+                        + str(plate)
+                        + "_Well_"
+                        + str(eachwell)
+                        + "_Site_"
+                        + str(eachtile)
+                        + "_"
+                        + thissuffixnicename
+                        + ".tiff",
+                    ),
+                    plugin,
+                    compress=compress,
+                )
         IJ.run("Close All")
 
 
