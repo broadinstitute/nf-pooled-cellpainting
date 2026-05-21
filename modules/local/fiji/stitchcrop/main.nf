@@ -95,16 +95,16 @@ process FIJI_STITCHCROP {
         # Barcoding arm - use Cycle format
         touch stitched_images/${prefix}_Stitched_Cycle01_DNA.tiff
         touch stitched_images/TileConfiguration.txt
-        touch cropped_images/DNA/${prefix}_Cycle01_DNA.tiff
-        touch cropped_images/A/${prefix}_Cycle01_A.tiff
-        touch cropped_images/A/${prefix}_Cycle02_A.tiff
+        touch cropped_images/${prefix}_Cycle01_DNA.tiff
+        touch cropped_images/${prefix}_Cycle01_A.tiff
+        touch cropped_images/${prefix}_Cycle02_A.tiff
         touch downsampled_images/${prefix}_Stitched_Cycle01_DNA.tiff
     else
         # Cell painting arm - use Corr format
         touch stitched_images/${prefix}_Stitched_CorrDNA.tiff
         touch stitched_images/TileConfiguration.txt
-        touch cropped_images/DNA/${prefix}_CorrDNA.tiff
-        touch cropped_images/ER/${prefix}_CorrER.tiff
+        touch cropped_images/${prefix}_CorrDNA.tiff
+        touch cropped_images/${prefix}_CorrER.tiff
         touch downsampled_images/${prefix}_Stitched_CorrDNA.tiff
     fi
 
