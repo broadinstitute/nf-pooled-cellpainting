@@ -9,7 +9,7 @@ process CELLPROFILER_PREPROCESS {
     input:
     tuple val(meta), path(aligned_images, stageAs: "images/"), val(image_metas)
     path preprocess_cppipe
-    path barcodes, stageAs: "images/Barcodes.csv"
+    path barcodes    // stage to root to prevent collision with image file staging
     path plugins, stageAs: "plugins/"
 
     output:
@@ -31,6 +31,9 @@ process CELLPROFILER_PREPROCESS {
     """
     # Create metadata JSON file from base64 (reduces log verbosity)
     echo '${metadata_base64}' | base64 -d > metadata.json
+
+    # Stage barcodes into images/ directory (avoids Nextflow 26 + Fusion stageAs conflict)
+    ln -sf ../\${barcodes} ./images/Barcodes.csv
 
     # Generate load_data.csv
     generate_load_data_csv.py \\
