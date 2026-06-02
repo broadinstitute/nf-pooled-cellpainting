@@ -39,7 +39,7 @@ process CELLPROFILER_COMBINEDANALYSIS {
     echo '${metadata_base64}' | base64 -d > metadata.json
 
     # Stage barcodes into images/ directory (avoids Nextflow 26 + Fusion stageAs conflict)
-    ln -sf ../\${barcodes} ./images/Barcodes.csv
+    cp -L ${barcodes} ./images/${barcodes}
 
     # Generate load_data.csv using the unified script with 'combined' pipeline type
     generate_load_data_csv.py \\
