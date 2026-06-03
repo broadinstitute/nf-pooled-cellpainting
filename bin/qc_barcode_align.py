@@ -192,6 +192,8 @@ else:
     print("Cache saved")
 
 # Check if MI alignment was used
+has_MI = False
+has_debris = False
 if any(col in df_image.columns for col in shift_list_MI):
     has_MI = True
 if any([x for x in df_image.columns if 'Debris' in x]):
