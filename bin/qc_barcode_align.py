@@ -23,6 +23,7 @@
 # %%
 import os
 from pathlib import Path
+import re
 import pandas as pd
 import seaborn as sns
 import datetime
@@ -154,6 +155,8 @@ if os.path.isfile(test_file):
     print (f"Detected {len(MI_cols)} MI columns for channel {channel_name}")
     debris_cols = [x for x in test_df.columns if "Count_Debris" in x]
     print (f"Detected {len(debris_cols)} debris columns")
+    OL_cols = [x for x in test_df.columns if "Overlap_Recall" in x]
+    print (f"Detected {len(OL_cols)} Overlap_Recall columns")
 
 # Build column lists using detected channel name
 shift_list = []
@@ -170,8 +173,8 @@ shift_list_MI = [x for x in MI_cols if "Align_Xshift_Cycle" in x or "Align_Yshif
 corr_list_MI = [x for x in MI_cols if "Correlation_Correlation_Cycle" in x]
 
 id_list = ["Metadata_Well", "Metadata_Plate", "Metadata_Site"]
-column_list_with_MI = id_list + shift_list + corr_list + shift_list_MI + corr_list_MI + debris_cols + orig_cols
-column_list_no_MI = id_list + shift_list + corr_list + debris_cols + orig_cols
+column_list = list(set(id_list + shift_list + corr_list + shift_list_MI + corr_list_MI + debris_cols + orig_cols + OL_cols))
+
 
 # Load data with caching support
 if use_cache and cache_file.exists():
@@ -181,7 +184,7 @@ if use_cache and cache_file.exists():
 else:
     print(f"Loading data from: {csvfolder}")
     df_image = merge_csvs(
-        csvfolder, "BarcodingApplication_Image.csv", column_list=column_list_with_MI, backup_list=column_list_no_MI, filter_string=None
+        csvfolder, "BarcodingApplication_Image.csv", column_list=column_list, backup_list=None, filter_string=None
     )
 
     print(f"Loaded {len(df_image)} rows")
@@ -463,6 +466,51 @@ print(
 
 df_shift.loc[df_shift["value"] > 100].sort_values(by="value", ascending=False).head(20)
 
+# %%
+# Alignment quality using thresholding
+# Handles well edge much better than image correlation
+def make_plot(df):
+    records = []
+    for col in df.columns:
+        # Extract the cycle number (e.g., 'Cycle02')
+        cycle_match = re.search(r'(Cycle\d+)', col, flags=re.IGNORECASE)
+        cycle_num = cycle_match.group(1) if cycle_match else "Unknown"
+        
+        # Grab just this column
+        temp_df = df[[col]].copy()
+        temp_df.columns = ['ARI_Value'] # Standardize the column name
+        temp_df['Cycle'] = cycle_num    # Add the category label
+        
+        records.append(temp_df)
+    # Combine into a single long DataFrame
+    plot_df = pd.concat(records, ignore_index=True)
+
+    plt.figure(figsize=(12, 6))
+
+    sns.stripplot(
+        data=plot_df,
+        x='Cycle',
+        y='ARI_Value',
+        alpha=0.7,
+        legend=False      # Legend is redundant since the X-axis already labels the cycles
+    )
+
+    min_val = plot_df['ARI_Value'].min()
+    plt.axhline(y=min_val, color='blue', linestyle='--', linewidth=1.5, 
+                label=f'Global Minimum ({min_val:.3f})')
+    plt.axhline(y=0.8, color='red', linestyle='--', linewidth=1.5, 
+                label=f'QC Threshold (0.8)')
+    plt.legend(loc='lower right') 
+
+    # Lock Y-axis to 0-1
+    plt.ylim(0, 1)
+    plt.ylabel('Overlap Recall')
+
+    plt.tight_layout()
+    plt.show()
+if OL_cols:
+    make_plot(df_image[[x for x in OL_cols if 'MI' not in x]])
+
 # %% [markdown]
 # ## Pixel Shifts Analysis - MI ALIGNMENT METHOD
 #
@@ -643,3 +691,7 @@ if MI_cols:
     )
 
     df_shift_MI.loc[df_shift_MI["value"] > 100].sort_values(by="value", ascending=False).head(20)
+
+# %
+if OL_cols:
+    make_plot(df_image[[x for x in OL_cols if 'MI' in x]])
