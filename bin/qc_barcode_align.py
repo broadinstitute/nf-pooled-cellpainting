@@ -693,5 +693,5 @@ if MI_cols:
     df_shift_MI.loc[df_shift_MI["value"] > 100].sort_values(by="value", ascending=False).head(20)
 
 # %
-if OL_cols:
+if OL_cols and MI_cols:
     make_plot(df_image[[x for x in OL_cols if 'MI' in x]])
