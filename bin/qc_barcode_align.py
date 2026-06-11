@@ -116,7 +116,7 @@ def merge_csvs(csvfolder, filename, column_list=None, backup_list=None, filter_s
                         os.path.join(csvfolder, eachfolder, filename),
                         index_col=False,
                         usecols=backup_list,
-                    )                    
+                    )
             count += 1
             if count % 500 == 0:
                 print(count, datetime.datetime.ctime(datetime.datetime.now()))
@@ -149,7 +149,7 @@ if os.path.isfile(test_file):
         print("Detected channel naming convention: DAPI")
     else:
         print(f"Could not detect channel naming convention, defaulting to {channel_name}")
-    
+
     orig_cols = [x for x in test_df.columns if "Correlation_Correlation" in x and "Orig" in x]
     MI_cols = [x for x in test_df.columns if "MI" in x and channel_name in x]
     print (f"Detected {len(MI_cols)} MI columns for channel {channel_name}")
@@ -475,12 +475,12 @@ def make_plot(df):
         # Extract the cycle number (e.g., 'Cycle02')
         cycle_match = re.search(r'(Cycle\d+)', col, flags=re.IGNORECASE)
         cycle_num = cycle_match.group(1) if cycle_match else "Unknown"
-        
+
         # Grab just this column
         temp_df = df[[col]].copy()
         temp_df.columns = ['ARI_Value'] # Standardize the column name
         temp_df['Cycle'] = cycle_num    # Add the category label
-        
+
         records.append(temp_df)
     # Combine into a single long DataFrame
     plot_df = pd.concat(records, ignore_index=True)
@@ -496,11 +496,11 @@ def make_plot(df):
     )
 
     min_val = plot_df['ARI_Value'].min()
-    plt.axhline(y=min_val, color='blue', linestyle='--', linewidth=1.5, 
+    plt.axhline(y=min_val, color='blue', linestyle='--', linewidth=1.5,
                 label=f'Global Minimum ({min_val:.3f})')
-    plt.axhline(y=0.8, color='red', linestyle='--', linewidth=1.5, 
+    plt.axhline(y=0.8, color='red', linestyle='--', linewidth=1.5,
                 label=f'QC Threshold (0.8)')
-    plt.legend(loc='lower right') 
+    plt.legend(loc='lower right')
 
     # Lock Y-axis to 0-1
     plt.ylim(0, 1)
