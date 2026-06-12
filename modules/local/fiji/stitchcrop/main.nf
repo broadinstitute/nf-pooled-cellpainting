@@ -20,13 +20,14 @@ process FIJI_STITCHCROP {
     val xoffset_tiles
     val yoffset_tiles
     val compress
+    val phenix
     val channame
     val should_run
 
     output:
     tuple val(meta), path("stitched_images/*.tiff"), emit: stitched_images
     tuple val(meta), path("stitched_images/TileConfiguration.txt"), emit: tile_config
-    tuple val(meta), path("cropped_images/*.tiff"), emit: cropped_images
+    tuple val(meta), path("cropped_images/**.tiff"), emit: cropped_images
     tuple val(meta), path("downsampled_images/*.tiff"), emit: downsampled_images
     path ("versions.yml"), emit: versions
 
@@ -66,6 +67,7 @@ process FIJI_STITCHCROP {
     export YOFFSET_TILES="${yoffset_tiles}"
     export COMPRESS="${compress}"
     export CHANNAME="${channame}"
+    export PHENIX="${phenix}"
     export FIRST_SITE_INDEX="${first_site_index}"
 
     # Run Fiji in headless mode

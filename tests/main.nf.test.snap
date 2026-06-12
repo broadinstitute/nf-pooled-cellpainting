@@ -2114,6 +2114,7 @@
                 "workspace/qc_reports/7_preprocessing/Plate1/barcode_score_distribution_per_well.png",
                 "workspace/qc_reports/7_preprocessing/Plate1/library_nucleotide_frequency.png",
                 "workspace/qc_reports/7_preprocessing/Plate1/observed_nucleotide_frequency.png",
+                "workspace/qc_reports/7_preprocessing/Plate1/observed_nucleotide_frequency_noYlim.png",
                 "workspace/qc_reports/7_preprocessing/Plate1/spatial_quality_scatter.png",
                 "workspace/qc_reports/8_stitching_barcoding",
                 "workspace/qc_reports/8_stitching_barcoding/Plate1",

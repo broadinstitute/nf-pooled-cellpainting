@@ -48,6 +48,7 @@ nextflow_process {
                     [
                         plate: 'Plate1',
                         batch: 'Batch1',
+                        cycles: [1, 2, 3],
                         image_metadata: [
                             // Painting images
                             [well:'A1', site:1, filename:'Plate_Plate1_Well_A1_Site_1_CorrCHN2.tiff', type:'cellpainting', channel:'CHN2'],
@@ -152,6 +153,7 @@ nextflow_process {
                     [
                         plate: 'Plate1',
                         batch: 'Batch1',
+                        cycles: [1, 2, 3],
                         image_metadata: [
                             // Painting images
                             [well:'A1', site:1, filename:'Plate_Plate1_Well_A1_Site_1_CorrCHN2.tiff', type:'cellpainting', channel:'CHN2'],

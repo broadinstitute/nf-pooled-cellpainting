@@ -130,11 +130,11 @@
                 ]
             }
         ],
+        "timestamp": "2026-06-11T13:23:45.6324904",
         "meta": {
-            "nf-test": "0.9.2",
-            "nextflow": "25.10.0"
-        },
-        "timestamp": "2025-11-03T12:32:45.620408"
+            "nf-test": "0.9.5",
+            "nextflow": "26.04.3"
+        }
     },
     "cellprofiler - combinedanalysis - cropped_images": {
         "content": [
@@ -172,10 +172,10 @@
                 "versions.yml:md5,795803aa173c77404af3cf020ec3f8d2"
             ]
         ],
+        "timestamp": "2026-06-11T13:23:35.504790852",
         "meta": {
-            "nf-test": "0.9.3",
-            "nextflow": "25.10.0"
-        },
-        "timestamp": "2025-11-10T20:34:10.949948283"
+            "nf-test": "0.9.5",
+            "nextflow": "26.04.3"
+        }
     }
 }

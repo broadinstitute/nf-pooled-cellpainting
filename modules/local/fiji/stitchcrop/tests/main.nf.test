@@ -37,7 +37,7 @@ nextflow_process {
                 input[3] = true                        // painting_quarter_if_round
                 input[4] = 10                          // painting_overlap_pct
                 input[5] = 2                           // painting_scalingstring
-                input[6] = "unused"                    // painting_imperwell
+                input[6] = 1                           // painting_imperwell
                 input[7] = 2                           // painting_rows
                 input[8] = 2                           // painting_columns
                 input[9] = "Grid: snake by rows"      // painting_stitchorder
@@ -46,8 +46,9 @@ nextflow_process {
                 input[12] = 0                          // painting_xoffset_tiles
                 input[13] = 0                          // painting_yoffset_tiles
                 input[14] = true                       // compress
-                input[15] = "DNA"                     // channame
-                input[16] = true                       // should_run
+                input[15] = false                      //phenix
+                input[16] = "DNA"                     // channame
+                input[17] = true                       // should_run
                 """
             }
         }
@@ -113,7 +114,7 @@ nextflow_process {
                 input[3] = true                        // barcoding_quarter_if_round
                 input[4] = 10                          // barcoding_overlap_pct
                 input[5] = 2                           // barcoding_scalingstring
-                input[6] = "unused"                    // barcoding_imperwell
+                input[6] = 1                           // barcoding_imperwell
                 input[7] = 2                           // barcoding_rows
                 input[8] = 2                           // barcoding_columns
                 input[9] = "Grid: snake by rows"      // barcoding_stitchorder
@@ -122,8 +123,9 @@ nextflow_process {
                 input[12] = 0                          // barcoding_xoffset_tiles
                 input[13] = 0                          // barcoding_yoffset_tiles
                 input[14] = true                       // compress
-                input[15] = "DAPI"                    // channame
-                input[16] = true                       // should_run
+                input[15] = false                      //phenix
+                input[16] = "DAPI"                    // channame
+                input[17] = true                       // should_run
                 """
             }
         }
@@ -159,7 +161,7 @@ nextflow_process {
                 input[3] = true                        // painting_quarter_if_round
                 input[4] = 10                          // painting_overlap_pct
                 input[5] = 2                           // painting_scalingstring
-                input[6] = "unused"                    // painting_imperwell
+                input[6] = 1                           // painting_imperwell
                 input[7] = 2                           // painting_rows
                 input[8] = 2                           // painting_columns
                 input[9] = "Grid: snake by rows"      // painting_stitchorder
@@ -168,8 +170,9 @@ nextflow_process {
                 input[12] = 0                          // painting_xoffset_tiles
                 input[13] = 0                          // painting_yoffset_tiles
                 input[14] = true                       // compress
-                input[15] = "DNA"                     // channame
-                input[16] = true                       // should_run
+                input[15] = false                      //phenix
+                input[16] = "DNA"                     // channame
+                input[17] = true                       // should_run
                 """
             }
         }

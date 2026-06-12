@@ -25,7 +25,7 @@ final_tile_size = os.getenv("FINAL_TILE_SIZE", "2960")
 xoffset_tiles = os.getenv("XOFFSET_TILES", "0")
 yoffset_tiles = os.getenv("YOFFSET_TILES", "0")
 compress = os.getenv("COMPRESS", "True")
-first_site_index = os.getenv("FIRST_SITE_INDEX", "0")
+first_site_index = os.getenv("FIRST_SITE_INDEX", "1")
 
 from ij import IJ, WindowManager
 import os
