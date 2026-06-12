@@ -471,7 +471,7 @@ df_shift.loc[df_shift["value"] > 100].sort_values(by="value", ascending=False).h
 # Handles well edge much better than image correlation
 def make_plot(df):
     records = []
-    for col in df.columns:
+    for col in [x for x in df.columns if 'Metadata' not in x]:
         # Extract the cycle number (e.g., 'Cycle02')
         cycle_match = re.search(r'(Cycle\d+)', col, flags=re.IGNORECASE)
         cycle_num = cycle_match.group(1) if cycle_match else "Unknown"
@@ -480,7 +480,8 @@ def make_plot(df):
         temp_df = df[[col]].copy()
         temp_df.columns = ['ARI_Value'] # Standardize the column name
         temp_df['Cycle'] = cycle_num    # Add the category label
-
+        temp_df['Well'] = df['Metadata_Well']
+        
         records.append(temp_df)
     # Combine into a single long DataFrame
     plot_df = pd.concat(records, ignore_index=True)
@@ -492,6 +493,8 @@ def make_plot(df):
         x='Cycle',
         y='ARI_Value',
         alpha=0.7,
+        col="Well",
+        col_wrap=3,
         legend=False      # Legend is redundant since the X-axis already labels the cycles
     )
 
@@ -509,7 +512,7 @@ def make_plot(df):
     plt.tight_layout()
     plt.show()
 if OL_cols:
-    make_plot(df_image[[x for x in OL_cols if 'MI' not in x]])
+    make_plot(df_image[[x for x in OL_cols if 'MI' not in x]+['Metadata_Well']])
 
 # %% [markdown]
 # ## Pixel Shifts Analysis - MI ALIGNMENT METHOD
@@ -694,4 +697,4 @@ if MI_cols:
 
 # %
 if OL_cols and MI_cols:
-    make_plot(df_image[[x for x in OL_cols if 'MI' in x]])
+    make_plot(df_image[[x for x in OL_cols if 'MI' in x]+['Metadata_Well']])

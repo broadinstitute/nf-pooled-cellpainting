@@ -21,6 +21,7 @@ import pandas as pd
 import seaborn as sns
 import datetime
 import matplotlib.pyplot as plt
+import matplotlib.lines as mlines
 
 # %matplotlib inline
 
@@ -105,7 +106,7 @@ barcode_col = "Barcode"
 
 # %%
 # Describe barcodes
-print(len(bc_df), "total barcodes")
+print(len(bc_df), "total barcodes in library")
 rep5 = sum(
     [
         any(repeat in read for repeat in ["AAAAA", "CCCCC", "GGGGG", "TTTTT"])
@@ -266,6 +267,14 @@ column_list = [
 
 csvfolder = input_dir
 cache_file = Path(output_dir) / "cached_barcode_foci.parquet"
+folderlist = os.listdir(csvfolder)
+test_file = os.path.join(csvfolder, folderlist[0], filename)
+test_df = pd.read_csv(test_file, nrows=0)
+thresh_cols = [x for x in test_df.columns if '_Threshold_' in x]
+if thresh_cols: # used for 2/3 color 
+    median_cols = [x for x in thresh_cols if '_MedianIntensity_' in x]
+    int_cols = [x for x in thresh_cols if '_IntegratedIntensity_' in x]
+    column_list = column_list + median_cols + int_cols
 
 # Load data with caching support
 if use_cache and cache_file.exists():
@@ -289,9 +298,6 @@ print(f"Detected site numbering: starting at {min_site} ({'0-based' if min_site 
 print(f"Total sites per well: {max_site - min_site + 1}")
 
 # %%
-df_foci.head()
-
-# %%
 # useful dataframe manipulations
 df_foci.sort_values(by=["Metadata_Well", "Metadata_Site"], inplace=True)
 df_foci["well-site"] = (
@@ -302,10 +308,21 @@ df_foci_well_groups = df_foci.groupby("Metadata_Well")
 print(
     sum(df_foci["Barcode_MatchedTo_Score"] == 1)
     * 100.0
-    / sum(df_foci["Barcode_MatchedTo_Score"] > 0),
+    / sum(df_foci["Barcode_MatchedTo_Score"] >= 0),
     " percent perfect overall",
 )
 print(f"{len(df_foci.loc[df_foci['Barcode_MatchedTo_Score'] == 1])} count perfect foci")
+print(
+    sum(df_foci["Barcode_MatchedTo_Score"] >= 1-1/numcycles)
+    * 100.0
+    / sum(df_foci["Barcode_MatchedTo_Score"] >= 0),
+    " percent perfect and off by one",
+)
+
+# Count the matches (duplicates in list1 are counted individually)
+matchin7_count = sum(1 for s in df_foci['Barcode_BarcodeCalled'] if s[:7] in [x[:7] for x in bc_df["Barcode"]])
+print (matchin7_count/len(df_foci) *100, " percent perfect match in first 7 cycles")
+
 sns.displot(df_foci["Barcode_MatchedTo_Score"], kde=False)
 plt.title("Barcode Match Score Distribution")
 plt.tight_layout()
@@ -341,6 +358,14 @@ print(
 
 print("% Reads with >4 repeat X calls")
 print(100*len([x for x in readlist if 'XXXXX' in x])/len(readlist))
+print("% Reads with >4 repeat A calls")
+print(100*len([x for x in readlist if 'AAAAA' in x])/len(readlist))
+print("% Reads with >4 repeat C calls")
+print(100*len([x for x in readlist if 'CCCCC' in x])/len(readlist))
+print("% Reads with >4 repeat G calls")
+print(100*len([x for x in readlist if 'GGGGG' in x])/len(readlist))
+print("% Reads with >4 repeat T calls")
+print(100*len([x for x in readlist if 'TTTTT' in x])/len(readlist))
 
 print("% Reads that are all unassigned (X) calls")
 print(100*len([x for x in readlist if set(x)=={'X'}])/len(readlist))
@@ -527,7 +552,7 @@ def returnbadcycle(query, target):
 
 
 thresh = 1 - 1 / numcycles
-df_onemismatch = df_foci.query("1 > Barcode_MatchedTo_Score > .85").reset_index(
+df_onemismatch = df_foci.query(f"1 > Barcode_MatchedTo_Score >= {thresh}").reset_index(
     drop=True
 )
 
@@ -540,7 +565,7 @@ if len(df_onemismatch) > 0:
     )
     sns.catplot(
         data=df_onemismatch, col="Metadata_Well", x="BadCycle", kind="count", col_wrap=3
-    )  # row='Metadata_Plate'
+    )  
     plt.suptitle("Distribution of Mismatch Cycles (Near-Perfect Matches)")
     plt.tight_layout()
     plt.savefig(
@@ -550,7 +575,91 @@ if len(df_onemismatch) > 0:
     )
     plt.show()
 else:
-    print("No near-perfect mismatches found (all scores are either 1.0 or <= 0.85)")
+    print(f"No near-perfect mismatches found (all scores are either 1.0 or < {thresh})")
+
+# %
+def plot_chan_combos(df_full, cols,title, numcycles):
+    channels = ['488', '568', '647']
+    df = df_full.copy()
+    for cycle in [f"{i:02d}" for i in range(1, numcycles)]:
+        bool_df = df[[x for x in cols if f'Cycle{cycle}' in x]] > 0
+
+        # We zip the boolean values with the channel names and join the True ones with an underscore
+        df[f'Pattern_Cycle{cycle}'] = bool_df.apply(
+            lambda row: '_'.join([ch for ch, is_positive in zip(channels, row) if is_positive]), 
+            axis=1
+        )
+
+        # Replace empty strings with 'None'
+        df[f'Pattern_Cycle{cycle}'] = df[f'Pattern_Cycle{cycle}'].replace('', 'None')
+
+    pattern_cols = [col for col in df.columns if 'Pattern_Cycle' in col]
+
+    df_melted = df.melt(
+        value_vars=pattern_cols, 
+        var_name='Cycle_Col', 
+        value_name='Pattern'
+    )
+
+    # Clean up the string so the x-axis just shows the cycle number (e.g., '01', '02')
+    df_melted['Cycle'] = df_melted['Cycle_Col'].str.replace('Pattern_Cycle', '')
+
+    # Calculate the counts by grouping by the Cycle and the Pattern
+    df_counts = df_melted.groupby(['Cycle', 'Pattern']).size().reset_index(name='Count')
+
+    plt.figure(figsize=(12, 6))
+
+    ax = sns.lineplot(
+        data=df_counts, 
+        x='Cycle', 
+        y='Count', 
+        hue='Pattern',     # This creates a separate line for each channel combination
+        marker='o',        # Adds dots at each cycle point
+        linewidth=2.5
+    )
+    plt.xlabel('Cycle', fontsize=12)
+    plt.ylabel('Foci Count', fontsize=12)
+    # Use legend for without adding the kit legends
+    #plt.legend(title='Channel Combination', bbox_to_anchor=(1.01, 1), loc='upper left')
+    plt.title(title)
+
+    handles, labels = ax.get_legend_handles_labels()
+    color_map = {label: handle.get_color() for handle, label in zip(handles, labels)}
+
+    def get_color(pattern):
+        return color_map.get(pattern, 'black')
+
+    # Position the main legend
+    main_legend = plt.legend(title='Channel Combination', bbox_to_anchor=(1.02, 1), loc='upper left')
+    ax.add_artist(main_legend) # We must use add_artist() so the next legends don't overwrite this one
+
+    nova_6000_lines = [
+        mlines.Line2D([], [], color=get_color('568_647'), marker='o', lw=2, label='A = 568+647'),
+        mlines.Line2D([], [], color=get_color('568'), marker='o', lw=2, label='T = 568'),
+        mlines.Line2D([], [], color=get_color('647'), marker='o', lw=2, label='C = 647'),
+        mlines.Line2D([], [], color=get_color('None'), marker='o', lw=2, label='G = None')
+    ]
+    nova_6000_legend = ax.legend(handles=nova_6000_lines, title='Novaseq 6000', 
+                                bbox_to_anchor=(1.02, 0.5), loc='upper left')
+    ax.add_artist(nova_6000_legend)
+
+    nova_x_lines = [
+        mlines.Line2D([], [], color=get_color('488_647'), marker='o', lw=2, label='A = 488+647'),
+        mlines.Line2D([], [], color=get_color('488_568'), marker='o', lw=2, label='C = 488+568'),
+        mlines.Line2D([], [], color=get_color('568'), marker='o', lw=2, label='T = 568'),
+        mlines.Line2D([], [], color=get_color('None'), marker='o', lw=2, label='G = None')
+    ]
+    ax.legend(handles=nova_x_lines, title='Novaseq X', 
+            bbox_to_anchor=(1.02, 0.25), loc='upper left')
+
+    plt.tight_layout()
+    plt.show()
+if int_cols:
+    plot_chan_combos(df_foci, int_cols, 'Integrated Intensity', numcycles)
+
+# %%
+if median_cols:
+    plot_chan_combos(df_foci, median_cols,'Median Intensity', numcycles)
 
 # %%
 perfect_df = df_foci[df_foci["Barcode_MatchedTo_Score"] == 1]

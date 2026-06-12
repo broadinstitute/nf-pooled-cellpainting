@@ -59,7 +59,7 @@ process QC_BARCODEALIGN {
         ${rows_param} \\
         ${columns_param}
 
-    jupyter nbconvert --to html ${prefix}_qc_barcode_align.ipynb
+    jupyter nbconvert --to html --no-input ${prefix}_qc_barcode_align.ipynb
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
