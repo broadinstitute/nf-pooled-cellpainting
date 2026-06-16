@@ -60,6 +60,8 @@ workflow POOLED_CELLPAINTING {
         params.painting_segcheck_cppipe,
         params.range_skip,
         params.outdir,
+        params.acquisition_geometry_rows,
+        params.acquisition_geometry_columns,
         params.fiji_stitchcrop_script,
         params.painting_round_or_square,
         params.painting_quarter_if_round,

@@ -7,6 +7,7 @@ include { CELLPROFILER_ILLUMCALC                                      } from '..
 include { QC_MONTAGEILLUM as QC_MONTAGEILLUM_PAINTING                 } from '../../../modules/local/qc/montageillum'
 include { QC_MONTAGEILLUM as QC_MONTAGE_SEGCHECK                      } from '../../../modules/local/qc/montageillum'
 include { QC_MONTAGEILLUM as QC_MONTAGE_STITCHCROP_PAINTING           } from '../../../modules/local/qc/montageillum'
+include { QC_PAINTINGALIGN                                            } from '../../../modules/local/qc/paintingalign'
 include { CELLPROFILER_ILLUMAPPLY as CELLPROFILER_ILLUMAPPLY_PAINTING } from '../../../modules/local/cellprofiler/illumapply'
 include { CELLPROFILER_SEGCHECK                                       } from '../../../modules/local/cellprofiler/segcheck'
 include { FIJI_STITCHCROP                                             } from '../../../modules/local/fiji/stitchcrop'
@@ -19,6 +20,8 @@ workflow CELLPAINTING {
     painting_segcheck_cppipe // file: CellProfiler pipeline for segmentation check
     range_skip // val: range of QC segcheck images to skip
     outdir
+    acquisition_geometry_rows
+    acquisition_geometry_columns
     fiji_stitchcrop_script
     painting_round_or_square
     painting_quarter_if_round
@@ -164,6 +167,52 @@ workflow CELLPAINTING {
         skip: 1,
         storeDir: "${outdir}/workspace/load_data_csv/",
     )
+
+    // QC of multicycle painting alignment
+    // First, collect cycle information from the samplesheet to infer num_cycles
+    ch_plate_cycles = ch_samplesheet_cp
+        .map { meta, _image ->
+            def plate_key = [
+                batch: meta.batch,
+                plate: meta.plate,
+            ]
+            [plate_key, meta.cycle]
+        }
+        .groupTuple()
+        .map { plate_key, cycles ->
+            def num_cycles = cycles.unique().max()
+            [plate_key, num_cycles]
+        }
+    // Group CSV files by plate for QC analysis, keeping well-CSV correspondence
+    ch_qc_painting_input = CELLPROFILER_ILLUMAPPLY_PAINTING.out.corrected_images
+        .map { meta, _images, csv_files ->
+            def plate_key = [
+                batch: meta.batch,
+                plate: meta.plate,
+            ]
+            // Find the PaintingIllumApplication_Image.csv file
+            def image_csv = csv_files.find { file -> file.name.contains('Image.csv') }
+            [plate_key, meta.well, image_csv]
+        }
+        .groupTuple()
+        .combine(ch_plate_cycles, by: 0)
+        .map { plate_key, wells, csv_files, num_cycles ->
+            def qc_meta = plate_key + [
+                arm: "painting",
+                id: "${plate_key.batch}_${plate_key.plate}",
+            ]
+            // Remove duplicate wells since we now have site-level data
+            def unique_wells = wells.unique()
+            [qc_meta, unique_wells, csv_files, num_cycles]
+        }
+
+    QC_PAINTINGALIGN(
+        ch_qc_painting_input,
+        file("${projectDir}/bin/qc_painting_align.py"),
+        acquisition_geometry_rows,
+        acquisition_geometry_columns,
+    )
+    ch_versions = ch_versions.mix(QC_PAINTINGALIGN.out.versions)
 
     // Reshape CELLPROFILER_ILLUMAPPLY_PAINTING output for SEGCHECK
     // Group by well (not site) so range_skip can select every nth image from the well
