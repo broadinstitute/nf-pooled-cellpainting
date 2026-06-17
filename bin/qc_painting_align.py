@@ -192,6 +192,7 @@ if imperwell is None:
 
 # %%
 # Only create position mapping if geometry is provided
+"""
 pos_df = None
 
 if rows and columns: #TODO rows and columns now required for circular too. need to update.
@@ -239,7 +240,7 @@ else:
 
 if pos_df is not None:
     print(f"Position mapping created for {len(pos_df)} sites (starting at site {min_site})")
-
+"""
 # %% [markdown]
 # ## Prepare Data for Analysis
 
@@ -311,6 +312,7 @@ for well in temp["Metadata_Well"].unique():
 # Plot size of shift by location, ignoring shifts >200
 
 # %%
+"""
 if pos_df is not None:
     temp = (
         df_shift.loc[df_shift["value"] > value]
@@ -339,7 +341,7 @@ if pos_df is not None:
         print(f"No sites with shifts >{value} and <200 pixels")
 else:
     print("Skipping spatial plot - no geometry provided")
-
+"""
 # %% [markdown]
 # ## Correlation Analysis - ORIGINAL NCC ALIGNMENT METHOD
 #
@@ -453,6 +455,7 @@ if MI_cols:
 # Plot size of shift by location, ignoring shifts >200
 
 # %%
+"""
 if MI_cols and pos_df is not None:
     temp = (
         df_shift_MI.loc[df_shift_MI["value"] > value]
@@ -481,7 +484,7 @@ if MI_cols and pos_df is not None:
         print(f"No sites with shifts >{value} and <200 pixels")
 else:
     print("Skipping spatial plot - no geometry provided")
-
+"""
 # %% [markdown]
 # ## Correlation Analysis - MI ALIGNMENT METHOD
 #
@@ -540,7 +543,7 @@ if MI_cols:
 # %
 if OL_cols and MI_cols:
     g = sns.catplot(
-        data=df_corr_MI,
+        data=df_image,
         y=[x for x in OL_cols if 'MI' in x][0],
         x="Metadata_Well",
         )
