@@ -478,8 +478,8 @@ def make_plot(df):
 
         # Grab just this column
         temp_df = df[[col]].copy()
-        temp_df.columns = ['ARI_Value'] # Standardize the column name
-        temp_df['Cycle'] = cycle_num    # Add the category label
+        temp_df.columns = ['Overlap_Recall'] # Standardize the column name
+        temp_df['Cycle'] = cycle_num.replace('Cycle','')
         temp_df['Well'] = df['Metadata_Well']
         
         records.append(temp_df)
@@ -488,26 +488,29 @@ def make_plot(df):
 
     plt.figure(figsize=(12, 6))
 
-    sns.stripplot(
+    g = sns.catplot(
         data=plot_df,
+        kind='strip',
         x='Cycle',
-        y='ARI_Value',
+        y='Overlap_Recall',
         alpha=0.7,
         col="Well",
         col_wrap=3,
         legend=False      # Legend is redundant since the X-axis already labels the cycles
     )
 
-    min_val = plot_df['ARI_Value'].min()
-    plt.axhline(y=min_val, color='blue', linestyle='--', linewidth=1.5,
+    min_val = plot_df['Overlap_Recall'].min()
+    for ax in g.axes.flat:
+        ax.axhline(y=min_val, color='blue', linestyle='--', linewidth=1.5,
                 label=f'Global Minimum ({min_val:.3f})')
-    plt.axhline(y=0.8, color='red', linestyle='--', linewidth=1.5,
-                label=f'QC Threshold (0.8)')
-    plt.legend(loc='lower right')
+        ax.axhline(y=0.8, color='red', linestyle='--', linewidth=1.5,
+                label='QC Threshold (0.8)')
 
-    # Lock Y-axis to 0-1
-    plt.ylim(0, 1)
-    plt.ylabel('Overlap Recall')
+    # Add a single legend to the whole figure
+    handles, labels = g.axes.flat[0].get_legend_handles_labels()
+    g.figure.legend(handles, labels, loc='center right', bbox_to_anchor=(1.15, 0.5))
+
+    plt.ylim(0, 1.05)
 
     plt.tight_layout()
     plt.show()
