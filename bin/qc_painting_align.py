@@ -397,7 +397,7 @@ if OL_cols:
     )
     g.refline(y=.8, color="red")
     g.set(ylim=(0, 1))
-    g.set(title='Correlation of Thresholded Images')
+    g.set(title='Overlap of Thresholded Images')
     plt.show()
 
 # %% [markdown]
@@ -549,5 +549,5 @@ if OL_cols and MI_cols:
         )
     g.refline(y=.8, color="red")
     g.set(ylim=(0, 1))
-    g.set(title='Correlation of Thresholded Images')
+    g.set(title='Overlap of Thresholded Images AFTER MI alignment')
     plt.show()

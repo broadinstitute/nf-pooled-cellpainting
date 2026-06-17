@@ -1,6 +1,6 @@
 process CELLPROFILER_ILLUMAPPLY {
     tag "${meta.id}"
-    label 'cellprofiler_basic'
+    label 'cellprofiler_large'
 
     container "${workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container
         ? 'oras://community.wave.seqera.io/library/cellprofiler:4.2.8--7c1bd3a82764de92'
