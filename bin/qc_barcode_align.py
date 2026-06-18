@@ -207,65 +207,6 @@ if imperwell is None:
     imperwell = max_site - min_site + 1
     print(f"Auto-detected imperwell: {imperwell}")
 
-# %% [markdown]
-# ## Create Position Mapping for Spatial Plots
-#
-# This cell creates a mapping from site number to (x, y) position.
-# Supports both square and circular acquisition patterns.
-# Position mapping is created after data loading to detect the site numbering convention.
-
-# %%
-# Only create position mapping if geometry is provided
-"""
-pos_df = None
-
-if rows and columns: #TODO rows and columns now required for circular too. need to update.
-    # Square/rectangular acquisition
-    print(f"Creating square position mapping: {rows}x{columns}")
-    pos_data = []
-    for site in range(rows * columns):
-        row = site // columns
-        col = site % columns
-        # Use min_site offset to match data's site numbering convention
-        pos_data.append({"Metadata_Site": site + min_site, "x_loc": col, "y_loc": row})
-    pos_df = pd.DataFrame(pos_data)
-
-elif row_widths:
-    # Circular acquisition (from original notebook)
-    print(f"Creating circular position mapping with {len(row_widths)} rows")
-    max_width = max(row_widths)
-    pos_dict = {}
-    count = 0
-    # creates dict of (xpos,ypos) = imnumber
-    for row in range(len(row_widths)):
-        row_width = row_widths[row]
-        left_pos = int((max_width - row_width) / 2)
-        for col in range(row_width):
-            if row % 2 == 0:
-                # Use min_site offset to match data's site numbering convention
-                pos_dict[(int(left_pos + col), row)] = count + min_site
-                count += 1
-            else:
-                right_pos = left_pos + row_width - 1
-                # Use min_site offset to match data's site numbering convention
-                pos_dict[(int(right_pos - col), row)] = count + min_site
-                count += 1
-    # make dict into df
-    pos_df = (
-        pd.DataFrame.from_dict(pos_dict, orient="index")
-        .reset_index()
-        .rename(columns={"index": "loc", 0: "Metadata_Site"})
-    )
-    pos_df[["x_loc", "y_loc"]] = pd.DataFrame(
-        pos_df["loc"].tolist(), index=pos_df.index
-    )
-else:
-    print("No geometry provided - spatial plot will be skipped")
-
-if pos_df is not None:
-    print(f"Position mapping created for {len(pos_df)} sites (starting at site {min_site})")
-"""
-
 # %%
 if (df_image[orig_cols] > 0.95).any().any():
     corr = (df_image[orig_cols] > 0.95).any()
@@ -347,48 +288,6 @@ for well in temp["Metadata_Well"].unique():
     print(
         f"{well} has {len(temp.loc[temp['Metadata_Well'] == well])} site with shift more than {value} (out of {imperwell})"
     )
-
-# %% [markdown]
-# ### Spatial distribution of large shifts
-#
-# Plot size of shift by location, ignoring shifts >200
-
-# %%
-"""
-if pos_df is not None:
-    temp = (
-        df_shift.loc[df_shift["value"] > value]
-        .groupby(["Metadata_Plate", "Metadata_Well", "Metadata_Site"])
-        .max()
-        .reset_index()
-        .merge(pos_df)
-    )
-    temp = temp.loc[temp["value"] < 200]
-
-    if len(temp) > 0:
-        g = sns.relplot(
-            data=temp,
-            x="x_loc",
-            y="y_loc",
-            hue="value",  # hue_norm=(0,200),
-            col="Metadata_Well",
-            col_wrap=3,
-            palette="viridis",
-            marker="s",
-            s=150,
-        )
-        print(g._legend_data)
-        plt.savefig(
-            Path(output_dir) / "alignment_shifts_spatial.png",
-            dpi=150,
-            bbox_inches="tight",
-        )
-        plt.show()
-    else:
-        print(f"No sites with shifts >{value} and <200 pixels")
-else:
-    print("Skipping spatial plot - no geometry provided")
-"""
 
 # %% [markdown]
 # ## Correlation Analysis - ORIGINAL NCC ALIGNMENT METHOD
@@ -576,48 +475,6 @@ if MI_cols:
         print(
             f"{well} has {len(temp.loc[temp['Metadata_Well'] == well])} site with shift more than {value} (out of {imperwell})"
         )
-
-# %% [markdown]
-# ### Spatial distribution of large shifts
-#
-# Plot size of shift by location, ignoring shifts >200
-
-# %%
-"""
-if MI_cols and pos_df is not None:
-    temp = (
-        df_shift_MI.loc[df_shift_MI["value"] > value]
-        .groupby(["Metadata_Plate", "Metadata_Well", "Metadata_Site"])
-        .max()
-        .reset_index()
-        .merge(pos_df)
-    )
-    temp = temp.loc[temp["value"] < 200]
-
-    if len(temp) > 0:
-        g = sns.relplot(
-            data=temp,
-            x="x_loc",
-            y="y_loc",
-            hue="value",  # hue_norm=(0,200),
-            col="Metadata_Well",
-            col_wrap=3,
-            palette="viridis",
-            marker="s",
-            s=150,
-        )
-        print(g._legend_data)
-        plt.savefig(
-            Path(output_dir) / "alignment_shifts_spatial_MI.png",
-            dpi=150,
-            bbox_inches="tight",
-        )
-        plt.show()
-    else:
-        print(f"No sites with shifts >{value} and <200 pixels")
-else:
-    print("Skipping spatial plot - no geometry provided")
-"""
 
 # %% [markdown]
 # ## Correlation Analysis - MI ALIGNMENT METHOD
