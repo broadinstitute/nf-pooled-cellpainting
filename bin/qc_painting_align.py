@@ -265,7 +265,7 @@ print(f"  All correlations: {len(df_corr)} rows")
 # ### Pixels shifted to align the second round (no axis limits)
 
 # %%
-sns.catplot(
+g = sns.catplot(
     data=df_shift,
     x="value",
     y="variable",
@@ -273,6 +273,8 @@ sns.catplot(
     col="Metadata_Well",
     col_wrap=4,
 )
+for ax in g.axes.flat:
+    ax.tick_params(labelbottom=True)
 plt.show()
 
 # %% [markdown]
@@ -287,6 +289,8 @@ g = sns.catplot(
     col="Metadata_Well",
     col_wrap=4,
 )
+for ax in g.axes.flat:
+    ax.tick_params(labelbottom=True)
 g.set(xlim=(-200, 200))
 plt.show()
 
@@ -385,6 +389,10 @@ print(
 )
 
 df_shift.loc[df_shift["value"] > 100].sort_values(by="value", ascending=False).head(20)
+
+# %% [markdown]
+# ### Overlap of Thresholded Images
+# #### (Handles well edge better than correlation)
 
 # %%
 # Alignment quality using thresholding

@@ -242,7 +242,7 @@ print(f"  Cycle01 correlations: {len(df_corr_crop)} rows")
 # ### Pixels shifted to align each cycle to Cycle01 (no axis limits)
 
 # %%
-sns.catplot(
+g = sns.catplot(
     data=df_shift,
     x="value",
     y="variable",
@@ -250,6 +250,8 @@ sns.catplot(
     col="Metadata_Well",
     col_wrap=4,
 )
+for ax in g.axes.flat:
+    ax.tick_params(labelbottom=True)
 plt.savefig(
     Path(output_dir) / "alignment_shifts_no_limits.png", dpi=150, bbox_inches="tight"
 )
@@ -268,6 +270,8 @@ g = sns.catplot(
     col_wrap=4,
 )
 g.set(xlim=(-200, 200))
+for ax in g.axes.flat:
+    ax.tick_params(labelbottom=True)
 plt.savefig(
     Path(output_dir) / "alignment_shifts_xlim.png", dpi=150, bbox_inches="tight"
 )

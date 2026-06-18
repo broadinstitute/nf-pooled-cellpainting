@@ -284,8 +284,8 @@ if use_cache and cache_file.exists():
     df_foci = pd.read_parquet(cache_file)
     print(f"Loaded {len(df_foci)} barcode foci from cache")
 else:
-    print(f"Loading data from: {csvfolder}")
-    df_foci = merge_csvs(csvfolder, filename, column_list)
+    print(f"Loading data from: {input_dir}")
+    df_foci = merge_csvs(input_dir, filename, column_list)
     print(f"Loaded {len(df_foci)} barcode foci")
 
     # Cache for future use
