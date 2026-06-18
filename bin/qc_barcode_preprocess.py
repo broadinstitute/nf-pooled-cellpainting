@@ -265,10 +265,12 @@ column_list = [
     "Barcode_MatchedTo_Score",
 ]
 
-csvfolder = input_dir
 cache_file = Path(output_dir) / "cached_barcode_foci.parquet"
-folderlist = os.listdir(csvfolder)
-test_file = os.path.join(csvfolder, folderlist[0], filename)
+allfolders = os.listdir(input_dir)
+# Filter for input_* folders if they exist
+input_folders = [f for f in allfolders if f.startswith('input_') and os.path.isdir(os.path.join(input_dir, f))]
+folderlist = input_folders if input_folders else allfolders
+test_file = os.path.join(input_dir, folderlist[0], filename)
 test_df = pd.read_csv(test_file, nrows=0)
 thresh_cols = [x for x in test_df.columns if '_Threshold_' in x]
 if thresh_cols: # used for 2/3 color 
