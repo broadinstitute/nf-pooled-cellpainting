@@ -136,20 +136,7 @@ cache_file = Path(output_dir) / "cached_alignment_data.parquet"
 channel_name = "DNA"  # default
 folderlist = os.listdir(csvfolder)
 test_file = os.path.join(csvfolder, folderlist[0], "PaintingIllumApplication_Image.csv")
-if os.path.isfile(test_file):
-    # Read just the header to check column names
-    test_df = pd.read_csv(test_file, nrows=0)
-    if not [x for x in test_df.columns if 'Align' in x]:
-        print("No alignment occurred in pipeline. Hopefully single-cycle of phenotypic acquisition")
-        sys.exit()
-    corr_cols = [x for x in test_df.columns if "Correlation_Correlation" in x and channel_name in x]
-    OL_cols = [x for x in test_df.columns if "Overlap_Recall" in x and channel_name in x]
-    MI_cols = [x for x in test_df.columns if 'MI' in x and channel_name in x]
-    shift_cols = [x for x in test_df.columns if 'Align_' in x and 'shift' in x and channel_name in x]
-
-# Build column lists using detected channel name
-id_list = ["Metadata_Well", "Metadata_Plate", "Metadata_Site"]
-column_list = list(set(corr_cols + OL_cols + shift_cols + MI_cols + id_list))
+# Can't pull columns to load from single sample file because not all images go through all of pipeline
 
 
 # Load data with caching support
@@ -160,13 +147,23 @@ if use_cache and cache_file.exists():
 else:
     print(f"Loading data from: {csvfolder}")
     df_image = merge_csvs(
-        csvfolder, "PaintingIllumApplication_Image.csv", column_list=column_list, backup_list=None, filter_string=None
+        csvfolder, "PaintingIllumApplication_Image.csv", backup_list=None, filter_string=None
     )
+    if not [x for x in df_image.columns if 'Align' in x]:
+        print("No alignment occurred in pipeline. Hopefully single-cycle of phenotypic acquisition")
+        sys.exit()
+    corr_cols = [x for x in df_image.columns if "Correlation_Correlation" in x and channel_name in x]
+    OL_cols = [x for x in df_image.columns if "Overlap_Recall" in x and channel_name in x]
+    MI_cols = [x for x in df_image.columns if 'MI' in x and channel_name in x]
+    shift_cols = [x for x in df_image.columns if 'Align_' in x and 'shift' in x and channel_name in x]
+
+    # Build column lists using detected channel name
+    id_list = ["Metadata_Well", "Metadata_Plate", "Metadata_Site"]
+    column_list = list(set(corr_cols + OL_cols + shift_cols + MI_cols + id_list))
 
     print(f"Loaded {len(df_image)} rows")
 
     # Cache for future use
-    # Note: Only columns specified in column_list are loaded and cached
     print(f"Caching data to: {cache_file}")
     df_image.to_parquet(cache_file, compression="gzip", index=False)
     print("Cache saved")
@@ -404,7 +401,7 @@ if OL_cols:
     x="Metadata_Well",
     )
     g.refline(y=.8, color="red")
-    g.set(ylim=(0, 1))
+    g.set(ylim=(0, 1.05))
     g.set(title='Overlap of Thresholded Images')
     plt.show()
 
@@ -508,7 +505,7 @@ if MI_cols:
         x="Metadata_Well",
     )
     g.refline(y=corr_threshold, color="red")
-    g.set(ylim=(0, None))
+    g.set(ylim=(0, 1.05))
     plt.show()
 
 # %% [markdown]
@@ -556,6 +553,6 @@ if OL_cols and MI_cols:
         x="Metadata_Well",
         )
     g.refline(y=.8, color="red")
-    g.set(ylim=(0, 1))
+    g.set(ylim=(0, 1.05))
     g.set(title='Overlap of Thresholded Images AFTER MI alignment')
     plt.show()
