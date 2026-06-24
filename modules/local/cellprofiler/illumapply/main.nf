@@ -13,6 +13,7 @@ process CELLPROFILER_ILLUMAPPLY {
 
     output:
     tuple val(meta), path("*.tiff"), path("*.csv"), emit: corrected_images
+    tuple val(meta), path("*.png"), emit: qc_images, optional: true
     path "load_data.csv", emit: load_data_csv
     path "versions.yml", emit: versions
 
