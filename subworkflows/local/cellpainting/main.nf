@@ -5,6 +5,7 @@
 */
 include { CELLPROFILER_ILLUMCALC                                      } from '../../../modules/local/cellprofiler/illumcalc'
 include { QC_MONTAGEILLUM as QC_MONTAGEILLUM_PAINTING                 } from '../../../modules/local/qc/montageillum'
+include { QC_MONTAGEILLUM as QC_MONTAGE_ILLUMAPPLY_PAINTING           } from '../../../modules/local/qc/montageillum'
 include { QC_MONTAGEILLUM as QC_MONTAGE_SEGCHECK                      } from '../../../modules/local/qc/montageillum'
 include { QC_MONTAGEILLUM as QC_MONTAGE_STITCHCROP_PAINTING           } from '../../../modules/local/qc/montageillum'
 include { QC_PAINTINGALIGN                                            } from '../../../modules/local/qc/paintingalign'
@@ -167,6 +168,22 @@ workflow CELLPAINTING {
         skip: 1,
         storeDir: "${outdir}/workspace/load_data_csv/",
     )
+
+    // QC montage of any PNG QC images output by illumapply (optional)
+    ch_illumapply_qc = CELLPROFILER_ILLUMAPPLY_PAINTING.out.qc_images
+        .map { meta, png_files ->
+            [meta.subMap(['batch', 'plate']) + [arm: "painting"], png_files]
+        }
+        .groupTuple()
+        .map { meta, png_files_list ->
+            [meta, png_files_list.flatten().sort { it -> it.name }]
+        }
+
+    QC_MONTAGE_ALIGNFAIL_PAINTING(
+        ch_illumapply_qc,
+        ".*\\.png\$",
+    )
+    ch_versions = ch_versions.mix(QC_MONTAGE_ALIGNFAIL_PAINTING.out.versions)
 
     // QC of multicycle painting alignment
     // First, collect cycle information from the samplesheet to infer num_cycles
