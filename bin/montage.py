@@ -45,7 +45,7 @@ def natural_sort_key(s: str) -> List:
     ]
 
 
-def load_image(file_path: Path, apply_sqrt: bool = False) -> Image.Image:
+def load_image(file_path: Path, apply_sqrt: bool = False):
     """
     Load an image file and convert to PIL Image.
 
@@ -54,7 +54,7 @@ def load_image(file_path: Path, apply_sqrt: bool = False) -> Image.Image:
         apply_sqrt: Apply sqrt transform (for illumination functions)
 
     Returns:
-        PIL Image object
+        Tuple of (PIL Image, (min_val, max_val)) for .npy files, or (PIL Image, None) for others.
     """
     if file_path.suffix == ".npy":
         # Load numpy array
@@ -64,17 +64,20 @@ def load_image(file_path: Path, apply_sqrt: bool = False) -> Image.Image:
         if apply_sqrt:
             arr = np.sqrt(np.maximum(arr, 0))  # Ensure non-negative before sqrt
 
+        min_val, max_val = float(arr.min()), float(arr.max())
+
         # Normalize to 0-255 range
-        if arr.max() > arr.min():
-            arr = (arr - arr.min()) / (arr.max() - arr.min())
+        if max_val > min_val:
+            arr = (arr - min_val) / (max_val - min_val)
         arr = (arr * 255).astype(np.uint8)
 
-        # Convert to PIL Image
-        return Image.fromarray(arr)
+        img = Image.fromarray(arr)
+        img = img.resize((img.width // 4, img.height // 4), Image.LANCZOS)
+        return img, (min_val, max_val)
 
     else:
         # Load regular image file
-        return Image.open(file_path)
+        return Image.open(file_path), None
 
 
 def extract_pattern_groups(files: List[Path]) -> Dict[str, List[Tuple[str, Path]]]:
@@ -150,9 +153,9 @@ def determine_grid_layout(n_items: int, aspect_ratio: float = 1.5) -> Tuple[int,
 def create_montage(
     images: List[Tuple[str, Image.Image]],
     grid: Optional[Tuple[int, int]] = None,
-    padding: int = 10,
+    padding: int = 5,
     background_color: tuple = (255, 255, 255),
-    label_height: int = 40,
+    label_height: int = 90,
 ) -> Image.Image:
     """
     Create a montage from a list of images.
@@ -193,15 +196,15 @@ def create_montage(
 
     # Try to load a font for labels (fallback to default)
     try:
-        font = ImageFont.truetype("/System/Library/Fonts/Helvetica.ttc", 24)
+        font = ImageFont.truetype("/System/Library/Fonts/Helvetica.ttc", 36)
     except:
         try:
             # Try a common Linux font path
             font = ImageFont.truetype(
-                "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 24
+                "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 36
             )
         except:
-            font = ImageFont.load_default()
+            font = ImageFont.load_default(size=36)
 
     # Place images
     for idx, (label, img) in enumerate(images):
@@ -360,9 +363,14 @@ def main(
 
     # Load images
     images = []
+    all_max_vals = []
     for label, file_path in items:
         try:
-            img = load_image(file_path, apply_sqrt=apply_sqrt)
+            img, stats = load_image(file_path, apply_sqrt=apply_sqrt)
+            if stats is not None:
+                min_val, max_val = stats
+                all_max_vals.append(max_val)
+                label = f"{label}\nmax={max_val:.2g}"
             images.append((label, img))
             print(f"  Loaded: {file_path.name} -> {label}")
         except Exception as e:
@@ -375,6 +383,31 @@ def main(
     # Create montage
     print(f"\nCreating montage with grid {grid if grid else 'auto'}...")
     montage = create_montage(images, grid=grid)
+
+    # Append footer with global max if .npy files were loaded
+    if all_max_vals:
+        global_max = max(all_max_vals)
+        footer_text = f"Max of all max values: {global_max:.4g}"
+        if global_max > 4:
+            footer_text += "  WARNING: HIGH VALUE"
+        footer_height = 100
+        footer = Image.new("RGB", (montage.width, footer_height), (255, 255, 255))
+        draw = ImageDraw.Draw(footer)
+        try:
+            font = ImageFont.truetype("/System/Library/Fonts/Helvetica.ttc", 36)
+        except:
+            try:
+                font = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 36)
+            except:
+                font = ImageFont.load_default(size=36)
+        bbox = draw.textbbox((0, 0), footer_text, font=font)
+        text_w = bbox[2] - bbox[0]
+        text_h = bbox[3] - bbox[1]
+        draw.text(((montage.width - text_w) // 2, (footer_height - text_h) // 2), footer_text, fill=(0, 0, 0), font=font)
+        combined = Image.new("RGB", (montage.width, montage.height + footer_height), (255, 255, 255))
+        combined.paste(montage, (0, 0))
+        combined.paste(footer, (0, montage.height))
+        montage = combined
 
     # Save
     output_file.parent.mkdir(parents=True, exist_ok=True)
