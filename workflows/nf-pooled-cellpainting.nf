@@ -224,13 +224,12 @@ workflow POOLED_CELLPAINTING {
             file(params.callbarcodes_plugin),
         )
         ch_versions = ch_versions.mix(CELLPROFILER_COMBINEDANALYSIS.out.versions)
-        // Merge load_data CSVs across all samples
-        CELLPROFILER_COMBINEDANALYSIS.out.load_data_csv.collectFile(
-            name: "combined_analysis.load_data.csv",
-            keepHeader: true,
-            skip: 1,
-            storeDir: "${params.outdir}/workspace/load_data_csv/",
-        )
+        // Merge load_data CSVs per plate
+        CELLPROFILER_COMBINEDANALYSIS.out.load_data_csv.collectFile(keepHeader: true, skip: 1) { meta, csv ->
+            def dir = file("${params.outdir}/workspace/load_data_csv/${meta.batch}/${meta.plate}")
+            dir.mkdirs()
+            ["${dir}/combined_analysis.load_data.csv", csv.text]
+        }
     } else {
         log.info "Skipping combined analysis: Both qc_painting_passed (${params.qc_painting_passed}) and qc_barcoding_passed (${params.qc_barcoding_passed}) must be true. Review QC montages for both arms and set both parameters to true to proceed."
     }

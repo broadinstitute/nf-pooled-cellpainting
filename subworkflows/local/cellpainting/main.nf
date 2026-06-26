@@ -68,13 +68,12 @@ workflow CELLPAINTING {
         painting_illumcalc_cppipe,
         false,
     )
-    // Merge load_data CSVs across all samples
-    CELLPROFILER_ILLUMCALC.out.load_data_csv.collectFile(
-        name: "painting-illumcalc.load_data.csv",
-        keepHeader: true,
-        skip: 1,
-        storeDir: "${outdir}/workspace/load_data_csv/",
-    )
+    // Merge load_data CSVs per plate
+    CELLPROFILER_ILLUMCALC.out.load_data_csv.collectFile(keepHeader: true, skip: 1) { meta, csv ->
+        def dir = file("${outdir}/workspace/load_data_csv/${meta.batch}/${meta.plate}")
+        dir.mkdirs()
+        ["${dir}/painting-illumcalc.load_data.csv", csv.text]
+    }
 
     ch_versions = ch_versions.mix(CELLPROFILER_ILLUMCALC.out.versions)
 
@@ -157,13 +156,12 @@ workflow CELLPAINTING {
         false,
     )
     ch_versions = ch_versions.mix(CELLPROFILER_ILLUMAPPLY_PAINTING.out.versions)
-    // Merge load_data CSVs across all samples
-    CELLPROFILER_ILLUMAPPLY_PAINTING.out.load_data_csv.collectFile(
-        name: "painting-illumapply.load_data.csv",
-        keepHeader: true,
-        skip: 1,
-        storeDir: "${outdir}/workspace/load_data_csv/",
-    )
+    // Merge load_data CSVs per plate
+    CELLPROFILER_ILLUMAPPLY_PAINTING.out.load_data_csv.collectFile(keepHeader: true, skip: 1) { meta, csv ->
+        def dir = file("${outdir}/workspace/load_data_csv/${meta.batch}/${meta.plate}")
+        dir.mkdirs()
+        ["${dir}/painting-illumapply.load_data.csv", csv.text]
+    }
 
     // Reshape CELLPROFILER_ILLUMAPPLY_PAINTING output for SEGCHECK
     // Group by well (not site) so range_skip can select every nth image from the well
@@ -202,13 +200,12 @@ workflow CELLPAINTING {
         range_skip,
     )
     ch_versions = ch_versions.mix(CELLPROFILER_SEGCHECK.out.versions)
-    // Merge load_data CSVs across all samples
-    CELLPROFILER_SEGCHECK.out.load_data_csv.collectFile(
-        name: "painting-segcheck.load_data.csv",
-        keepHeader: true,
-        skip: 1,
-        storeDir: "${outdir}/workspace/load_data_csv/",
-    )
+    // Merge load_data CSVs per plate
+    CELLPROFILER_SEGCHECK.out.load_data_csv.collectFile(keepHeader: true, skip: 1) { meta, csv ->
+        def dir = file("${outdir}/workspace/load_data_csv/${meta.batch}/${meta.plate}")
+        dir.mkdirs()
+        ["${dir}/painting-segcheck.load_data.csv", csv.text]
+    }
 
     // Reshape CELLPROFILER_SEGCHECK output for QC montage
     ch_segcheck_qc = CELLPROFILER_SEGCHECK.out.segcheck_res

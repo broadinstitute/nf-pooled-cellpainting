@@ -16,7 +16,7 @@ process CELLPROFILER_COMBINEDANALYSIS {
     tuple val(meta), path("*.png"), emit: overlay_images, optional: true
     tuple val(meta), path("*.csv"), emit: csv_stats
     tuple val(meta), path("segmentation_masks/*.tiff"), emit: segmentation_masks, optional: true
-    path "load_data.csv", emit: load_data_csv
+    tuple val(meta), path("load_data.csv"), emit: load_data_csv
     path "versions.yml", emit: versions
 
     when:

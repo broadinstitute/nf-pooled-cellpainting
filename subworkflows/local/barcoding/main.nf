@@ -74,13 +74,12 @@ workflow BARCODING {
         true,
     )
     ch_versions = ch_versions.mix(CELLPROFILER_ILLUMCALC.out.versions)
-    // Merge load_data CSVs across all samples
-    CELLPROFILER_ILLUMCALC.out.load_data_csv.collectFile(
-        name: "barcoding-illumcalc.load_data.csv",
-        keepHeader: true,
-        skip: 1,
-        storeDir: "${outdir}/workspace/load_data_csv/",
-    )
+    // Merge load_data CSVs per plate
+    CELLPROFILER_ILLUMCALC.out.load_data_csv.collectFile(keepHeader: true, skip: 1) { meta, csv ->
+        def dir = file("${outdir}/workspace/load_data_csv/${meta.batch}/${meta.plate}")
+        dir.mkdirs()
+        ["${dir}/barcoding-illumcalc.load_data.csv", csv.text]
+    }
 
     //// QC illumination correction profiles ////
     ch_illumination_corrections_qc = CELLPROFILER_ILLUMCALC.out.illumination_corrections
@@ -175,13 +174,12 @@ workflow BARCODING {
         true,
     )
     ch_versions = ch_versions.mix(CELLPROFILER_ILLUMAPPLY_BARCODING.out.versions)
-    // Merge load_data CSVs across all samples
-    CELLPROFILER_ILLUMAPPLY_BARCODING.out.load_data_csv.collectFile(
-        name: "barcoding-illumapply.load_data.csv",
-        keepHeader: true,
-        skip: 1,
-        storeDir: "${outdir}/workspace/load_data_csv/",
-    )
+    // Merge load_data CSVs per plate
+    CELLPROFILER_ILLUMAPPLY_BARCODING.out.load_data_csv.collectFile(keepHeader: true, skip: 1) { meta, csv ->
+        def dir = file("${outdir}/workspace/load_data_csv/${meta.batch}/${meta.plate}")
+        dir.mkdirs()
+        ["${dir}/barcoding-illumapply.load_data.csv", csv.text]
+    }
 
     // QC of barcode alignment
     // First, collect cycle information from the samplesheet to infer num_cycles
@@ -279,13 +277,12 @@ workflow BARCODING {
         channel.fromPath([callbarcodes_plugin, compensatecolors_plugin]).collect(),
     )
     ch_versions = ch_versions.mix(CELLPROFILER_PREPROCESS.out.versions)
-    // Merge load_data CSVs across all samples
-    CELLPROFILER_PREPROCESS.out.load_data_csv.collectFile(
-        name: "barcoding-preprocess.load_data.csv",
-        keepHeader: true,
-        skip: 1,
-        storeDir: "${outdir}/workspace/load_data_csv/",
-    )
+    // Merge load_data CSVs per plate
+    CELLPROFILER_PREPROCESS.out.load_data_csv.collectFile(keepHeader: true, skip: 1) { meta, csv ->
+        def dir = file("${outdir}/workspace/load_data_csv/${meta.batch}/${meta.plate}")
+        dir.mkdirs()
+        ["${dir}/barcoding-preprocess.load_data.csv", csv.text]
+    }
 
     //// QC: Barcode preprocessing ////
     // Group preprocessing stats by plate and collect wells
