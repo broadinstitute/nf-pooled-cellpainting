@@ -275,7 +275,7 @@ test_df = pd.read_csv(test_file, nrows=0)
 thresh_cols = [x for x in test_df.columns if '_Threshold_' in x]
 int_cols = []
 median_cols = []
-if thresh_cols: # used for 2/3 color 
+if thresh_cols: # used for 2/3 color
     median_cols = [x for x in thresh_cols if '_MedianIntensity_' in x]
     int_cols = [x for x in thresh_cols if '_IntegratedIntensity_' in x]
     column_list = column_list + median_cols + int_cols
@@ -466,7 +466,7 @@ if len(df_onemismatch) > 0:
     )
     sns.catplot(
         data=df_onemismatch, col="Metadata_Well", x="BadCycle", kind="count", col_wrap=3
-    )  
+    )
     plt.suptitle("Distribution of Mismatch Cycles (Near-Perfect Matches)")
     plt.tight_layout()
     plt.savefig(
@@ -487,7 +487,7 @@ def plot_chan_combos(df_full, cols,title, numcycles):
 
         # We zip the boolean values with the channel names and join the True ones with an underscore
         df[f'Pattern_Cycle{cycle}'] = bool_df.apply(
-            lambda row: '_'.join([ch for ch, is_positive in zip(channels, row) if is_positive]), 
+            lambda row: '_'.join([ch for ch, is_positive in zip(channels, row) if is_positive]),
             axis=1
         )
 
@@ -497,8 +497,8 @@ def plot_chan_combos(df_full, cols,title, numcycles):
     pattern_cols = [col for col in df.columns if 'Pattern_Cycle' in col]
 
     df_melted = df.melt(
-        value_vars=pattern_cols, 
-        var_name='Cycle_Col', 
+        value_vars=pattern_cols,
+        var_name='Cycle_Col',
         value_name='Pattern'
     )
 
@@ -511,9 +511,9 @@ def plot_chan_combos(df_full, cols,title, numcycles):
     plt.figure(figsize=(12, 6))
 
     ax = sns.lineplot(
-        data=df_counts, 
-        x='Cycle', 
-        y='Count', 
+        data=df_counts,
+        x='Cycle',
+        y='Count',
         hue='Pattern',     # This creates a separate line for each channel combination
         marker='o',        # Adds dots at each cycle point
         linewidth=2.5
@@ -540,7 +540,7 @@ def plot_chan_combos(df_full, cols,title, numcycles):
         mlines.Line2D([], [], color=get_color('647'), marker='o', lw=2, label='C = 647'),
         mlines.Line2D([], [], color=get_color('None'), marker='o', lw=2, label='G = None')
     ]
-    nova_6000_legend = ax.legend(handles=nova_6000_lines, title='Novaseq 6000', 
+    nova_6000_legend = ax.legend(handles=nova_6000_lines, title='Novaseq 6000',
                                 bbox_to_anchor=(1.02, 0.5), loc='upper left')
     ax.add_artist(nova_6000_legend)
 
@@ -550,7 +550,7 @@ def plot_chan_combos(df_full, cols,title, numcycles):
         mlines.Line2D([], [], color=get_color('568'), marker='o', lw=2, label='T = 568'),
         mlines.Line2D([], [], color=get_color('None'), marker='o', lw=2, label='G = None')
     ]
-    ax.legend(handles=nova_x_lines, title='Novaseq X', 
+    ax.legend(handles=nova_x_lines, title='Novaseq X',
             bbox_to_anchor=(1.02, 0.25), loc='upper left')
 
     plt.tight_layout()

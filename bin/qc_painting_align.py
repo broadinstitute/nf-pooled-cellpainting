@@ -115,7 +115,7 @@ def merge_csvs(csvfolder, filename, column_list=None, backup_list=None, filter_s
                         os.path.join(csvfolder, eachfolder, filename),
                         index_col=False,
                         usecols=backup_list,
-                    )                    
+                    )
             count += 1
             if count % 500 == 0:
                 print(count, datetime.datetime.ctime(datetime.datetime.now()))

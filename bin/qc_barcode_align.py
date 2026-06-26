@@ -388,7 +388,7 @@ def make_plot(df):
         temp_df.columns = ['Overlap_Recall'] # Standardize the column name
         temp_df['Cycle'] = cycle_num.replace('Cycle','')
         temp_df['Well'] = df['Metadata_Well']
-        
+
         records.append(temp_df)
     # Combine into a single long DataFrame
     plot_df = pd.concat(records, ignore_index=True)
