@@ -88,8 +88,8 @@ with open('metadata.json','w') as f:
     stub:
     // For barcoding (has_cycles=true): create files with _Cycle pattern that downstream regex expects
     // For painting (has_cycles=false): create painting-style files
-    def stub_files = has_cycles ?
-        """
+    def stub_files = has_cycles
+        ? """
         touch load_data.csv
         touch Plate_${meta.plate}_Well_${meta.well}_Site_${meta.site ?: 1}_Cycle01_DNA.tiff
         touch Plate_${meta.plate}_Well_${meta.well}_Site_${meta.site ?: 1}_Cycle01_A.tiff
@@ -98,8 +98,8 @@ with open('metadata.json','w') as f:
         touch BarcodingIllumApplication_Experiment.csv
         touch BarcodingIllumApplication_Image.csv
         touch BarcodingIllumApplication_Nuclei.csv
-        """ :
         """
+        : """
         touch load_data.csv
         touch Plate_${meta.plate}_Well_${meta.well}_Site_${meta.site ?: 1}_CorrPhalloidin.tiff
         touch PaintingIllumApplication_Cells.csv

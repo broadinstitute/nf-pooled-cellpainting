@@ -9,7 +9,8 @@ process CELLPROFILER_PREPROCESS {
     input:
     tuple val(meta), path(aligned_images, stageAs: "images/"), val(image_metas)
     path preprocess_cppipe
-    path barcodes    // stage to root to prevent collision with image file staging
+    path barcodes
+    // stage to root to prevent collision with image file staging
     path plugins, stageAs: "plugins/"
 
     output:
