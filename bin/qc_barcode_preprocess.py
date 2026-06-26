@@ -273,6 +273,8 @@ folderlist = input_folders if input_folders else allfolders
 test_file = os.path.join(input_dir, folderlist[0], filename)
 test_df = pd.read_csv(test_file, nrows=0)
 thresh_cols = [x for x in test_df.columns if '_Threshold_' in x]
+int_cols = []
+median_cols = []
 if thresh_cols: # used for 2/3 color 
     median_cols = [x for x in thresh_cols if '_MedianIntensity_' in x]
     int_cols = [x for x in thresh_cols if '_IntegratedIntensity_' in x]
