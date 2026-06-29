@@ -150,31 +150,7 @@ if os.path.isfile(test_file):
     else:
         print(f"Could not detect channel naming convention, defaulting to {channel_name}")
 
-    orig_cols = [x for x in test_df.columns if "Correlation_Correlation" in x and "Orig" in x]
-    MI_cols = [x for x in test_df.columns if "MI" in x and channel_name in x]
-    print (f"Detected {len(MI_cols)} MI columns for channel {channel_name}")
-    debris_cols = [x for x in test_df.columns if "Count_Debris" in x]
-    print (f"Detected {len(debris_cols)} debris columns")
-    OL_cols = [x for x in test_df.columns if "Overlap_Recall" in x]
-    print (f"Detected {len(OL_cols)} Overlap_Recall columns")
-
-# Build column lists using detected channel name
-shift_list = []
-corr_list = []
-for cycle in range(1, numcycles + 1):
-    if cycle != 1:
-        shift_list.append(f"Align_Xshift_Cycle{cycle:02d}_{channel_name}")
-        shift_list.append(f"Align_Yshift_Cycle{cycle:02d}_{channel_name}")
-    for cycle2 in range(cycle + 1, numcycles + 1):
-        corr_list.append(
-            f"Correlation_Correlation_Cycle{cycle:02d}_{channel_name}_Cycle{cycle2:02d}_{channel_name}"
-        )
-shift_list_MI = [x for x in MI_cols if "Align_Xshift_Cycle" in x or "Align_Yshift_Cycle" in x]
-corr_list_MI = [x for x in MI_cols if "Correlation_Correlation_Cycle" in x]
-
 id_list = ["Metadata_Well", "Metadata_Plate", "Metadata_Site"]
-column_list = list(set(id_list + shift_list + corr_list + shift_list_MI + corr_list_MI + debris_cols + orig_cols + OL_cols))
-
 
 # Load data with caching support
 if use_cache and cache_file.exists():
@@ -184,13 +160,26 @@ if use_cache and cache_file.exists():
 else:
     print(f"Loading data from: {csvfolder}")
     df_image = merge_csvs(
-        csvfolder, "BarcodingApplication_Image.csv", column_list=column_list, backup_list=None, filter_string=None
+        csvfolder, "BarcodingApplication_Image.csv", backup_list=None, filter_string=None
     )
+
+    # have to define column lists after load because not all image sets have all columns
+    shift_list = [x for x in df_image.columns if "Align_Xshift_Cycle" in x and "MI" not in x and channel_name in x]
+    shift_list.append([x for x in df_image.columns if "Align_Yshift_Cycle" in x and "MI" not in x and channel_name in x])
+    corr_list = [x for x in df_image.columns if "Correlation_Correlation_Cycle" in x and "MI" not in x and x.count(channel_name) == 2]
+    orig_cols = [x for x in df_image.columns if "Correlation_Correlation" in x and "Orig" in x]
+    MI_cols = [x for x in df_image.columns if "MI" in x and channel_name in x]
+    print (f"Detected {len(MI_cols)} MI columns for channel {channel_name}")
+    debris_cols = [x for x in df_image.columns if "Count_Debris" in x]
+    print (f"Detected {len(debris_cols)} debris columns")
+    OL_cols = [x for x in df_image.columns if "Overlap_Recall" in x]
+    print (f"Detected {len(OL_cols)} Overlap_Recall columns")
+    shift_list_MI = [x for x in MI_cols if "Align_Xshift_Cycle" in x or "Align_Yshift_Cycle" in x]
+    corr_list_MI = [x for x in MI_cols if "Correlation_Correlation_Cycle" in x]
 
     print(f"Loaded {len(df_image)} rows")
 
     # Cache for future use
-    # Note: Only columns specified in column_list are loaded and cached
     print(f"Caching data to: {cache_file}")
     df_image.to_parquet(cache_file, compression="gzip", index=False)
     print("Cache saved")
