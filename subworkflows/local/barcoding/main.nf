@@ -57,7 +57,7 @@ workflow BARCODING {
             def group_key = meta.subMap(['batch', 'plate', 'cycle']) + [id: group_id]
 
             // Preserve full metadata for each image
-            def image_meta = meta + [filename: image.name]
+            def image_meta = meta + [filename: image.name, original_path: image.toString(), original_filename: image.name]
 
             [group_key, image_meta, image]
         }
@@ -78,7 +78,12 @@ workflow BARCODING {
     CELLPROFILER_ILLUMCALC.out.load_data_csv.collectFile(keepHeader: true, skip: 1) { meta, csv ->
         def dir = file("${outdir}/workspace/load_data_csv/${meta.batch}/${meta.plate}")
         dir.mkdirs()
-        ["${dir}/barcoding-illumcalc.load_data.csv", csv.text]
+        ["${dir}/barcoding-illumcalc.load_data.csv", csv.text.replaceFirst(/(?m)^(.*)$/) { line ->
+            line[0]
+                .replace('FinalFileName_', '__FINAL__')
+                .replace('FileName_', 'StagedFileName_')
+                .replace('__FINAL__', 'FileName_')
+        }]
     }
 
     //// QC illumination correction profiles ////
@@ -123,6 +128,8 @@ workflow BARCODING {
             // Preserve full metadata for each image (including site)
             def image_meta = meta.clone()
             image_meta.filename = image.name
+            image_meta.original_path = image.toString()
+            image_meta.original_filename = image.name
 
             [group_key + [id: group_id], image_meta, image]
         }
@@ -178,7 +185,12 @@ workflow BARCODING {
     CELLPROFILER_ILLUMAPPLY_BARCODING.out.load_data_csv.collectFile(keepHeader: true, skip: 1) { meta, csv ->
         def dir = file("${outdir}/workspace/load_data_csv/${meta.batch}/${meta.plate}")
         dir.mkdirs()
-        ["${dir}/barcoding-illumapply.load_data.csv", csv.text]
+        ["${dir}/barcoding-illumapply.load_data.csv", csv.text.replaceFirst(/(?m)^(.*)$/) { line ->
+            line[0]
+                .replace('FinalFileName_', '__FINAL__')
+                .replace('FileName_', 'StagedFileName_')
+                .replace('__FINAL__', 'FileName_')
+        }]
     }
 
     // QC of barcode alignment
@@ -256,12 +268,13 @@ workflow BARCODING {
                 def cycle = cycle_channel_match ? cycle_channel_match[0][1] as Integer : null
                 def channel = cycle_channel_match ? cycle_channel_match[0][2] : 'UNKNOWN'
 
-                // Clone metadata and add filename + cycle + channel + site
+                // Clone metadata and add filename + cycle + channel + site + published path
                 site_meta + [
                     filename: img.name,
                     cycle: cycle,
                     channel: channel,
                     site: site,
+                    original_path: "${outdir}/images/${site_meta.batch}/images_aligned/${site_meta.arm}/${site_meta.plate}/${site_meta.plate}-${site_meta.well}/${img.name}",
                 ]
             }
 
@@ -281,7 +294,12 @@ workflow BARCODING {
     CELLPROFILER_PREPROCESS.out.load_data_csv.collectFile(keepHeader: true, skip: 1) { meta, csv ->
         def dir = file("${outdir}/workspace/load_data_csv/${meta.batch}/${meta.plate}")
         dir.mkdirs()
-        ["${dir}/barcoding-preprocess.load_data.csv", csv.text]
+        ["${dir}/barcoding-preprocess.load_data.csv", csv.text.replaceFirst(/(?m)^(.*)$/) { line ->
+            line[0]
+                .replace('FinalFileName_', '__FINAL__')
+                .replace('FileName_', 'StagedFileName_')
+                .replace('__FINAL__', 'FileName_')
+        }]
     }
 
     //// QC: Barcode preprocessing ////

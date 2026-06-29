@@ -1,5 +1,3 @@
-include { toJson } from 'plugin/nf-boost'
-
 process CELLPROFILER_ILLUMCALC {
     tag "${meta.id}"
     label 'cellprofiler_basic'
@@ -24,7 +22,7 @@ process CELLPROFILER_ILLUMCALC {
     script:
     // Serialize image metadata for load_data.csv generation
     // Base64 encode to reduce log verbosity
-    def metadata_json_content = toJson(image_metas)
+    def metadata_json_content = groovy.json.JsonOutput.toJson(image_metas)
     def metadata_base64 = metadata_json_content.bytes.encodeBase64().toString()
     def staged_list_base64 = images.toString().bytes.encodeBase64().toString()
 
@@ -66,6 +64,7 @@ with open('metadata.json','w') as f:
         --metadata-json metadata.json \\
         --channels "${channels}" \\
         --cycle-metadata-name "${params.cycle_metadata_name}" \\
+        --outdir "${params.outdir}" \\
         ${has_cycles ? '--has-cycles' : ''}
 
     # Check if illumination_cppipe ends with .template

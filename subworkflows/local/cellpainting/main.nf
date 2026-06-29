@@ -52,7 +52,7 @@ workflow CELLPAINTING {
             def group_key = meta.subMap(['batch', 'plate']) + [id: group_id]
 
             // Preserve full metadata for each image
-            def image_meta = meta + [filename: image.name]
+            def image_meta = meta + [filename: image.name, original_path: image.toString(), original_filename: image.name]
             [group_key, image_meta, image]
         }
         .groupTuple()
@@ -72,7 +72,12 @@ workflow CELLPAINTING {
     CELLPROFILER_ILLUMCALC.out.load_data_csv.collectFile(keepHeader: true, skip: 1) { meta, csv ->
         def dir = file("${outdir}/workspace/load_data_csv/${meta.batch}/${meta.plate}")
         dir.mkdirs()
-        ["${dir}/painting-illumcalc.load_data.csv", csv.text]
+        ["${dir}/painting-illumcalc.load_data.csv", csv.text.replaceFirst(/(?m)^(.*)$/) { line ->
+            line[0]
+                .replace('FinalFileName_', '__FINAL__')
+                .replace('FileName_', 'StagedFileName_')
+                .replace('__FINAL__', 'FileName_')
+        }]
     }
 
     ch_versions = ch_versions.mix(CELLPROFILER_ILLUMCALC.out.versions)
@@ -102,7 +107,7 @@ workflow CELLPAINTING {
             def site_key = meta.subMap(['batch', 'plate', 'well', 'site', 'arm']) + [id: site_id]
 
             // Preserve full metadata for each image
-            def image_meta = meta + [filename: image.name]
+            def image_meta = meta + [filename: image.name, original_path: image.toString(), original_filename: image.name]
 
             [site_key, image_meta, image]
         }
@@ -160,7 +165,12 @@ workflow CELLPAINTING {
     CELLPROFILER_ILLUMAPPLY_PAINTING.out.load_data_csv.collectFile(keepHeader: true, skip: 1) { meta, csv ->
         def dir = file("${outdir}/workspace/load_data_csv/${meta.batch}/${meta.plate}")
         dir.mkdirs()
-        ["${dir}/painting-illumapply.load_data.csv", csv.text]
+        ["${dir}/painting-illumapply.load_data.csv", csv.text.replaceFirst(/(?m)^(.*)$/) { line ->
+            line[0]
+                .replace('FinalFileName_', '__FINAL__')
+                .replace('FileName_', 'StagedFileName_')
+                .replace('__FINAL__', 'FileName_')
+        }]
     }
 
     // Reshape CELLPROFILER_ILLUMAPPLY_PAINTING output for SEGCHECK
@@ -180,8 +190,12 @@ workflow CELLPAINTING {
             def image_metas = images.collect { img ->
                 // Extract channel from corrected image filename: Plate_X_Well_Y_Site_Z_CorrCHANNEL.tiff
                 def channel = img.name.replaceAll(/.*_Corr(.+?)\.tiff?$/, '$1')
-                // Clone metadata and add filename + channel
-                meta + [filename: img.name, channel: channel]
+                // Clone metadata and add filename + channel + published path
+                meta + [
+                    filename: img.name,
+                    channel: channel,
+                    original_path: "${outdir}/images/${meta.batch}/images_corrected/${meta.arm}/${meta.plate}/${meta.plate}-${meta.well}-${meta.site}/${img.name}",
+                ]
             }
             [well_key, meta.site, images, image_metas]
         }
@@ -204,7 +218,12 @@ workflow CELLPAINTING {
     CELLPROFILER_SEGCHECK.out.load_data_csv.collectFile(keepHeader: true, skip: 1) { meta, csv ->
         def dir = file("${outdir}/workspace/load_data_csv/${meta.batch}/${meta.plate}")
         dir.mkdirs()
-        ["${dir}/painting-segcheck.load_data.csv", csv.text]
+        ["${dir}/painting-segcheck.load_data.csv", csv.text.replaceFirst(/(?m)^(.*)$/) { line ->
+            line[0]
+                .replace('FinalFileName_', '__FINAL__')
+                .replace('FileName_', 'StagedFileName_')
+                .replace('__FINAL__', 'FileName_')
+        }]
     }
 
     // Reshape CELLPROFILER_SEGCHECK output for QC montage

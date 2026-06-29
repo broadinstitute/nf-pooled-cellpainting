@@ -151,11 +151,13 @@ workflow POOLED_CELLPAINTING {
                     def img = images_list[i]
                     def current_meta = meta_list[i]
                     // Get the specific meta for this image
+                    def arm = current_meta.arm_source == 'cellpainting' ? 'painting' : 'barcoding'
                     def img_meta = [
                         well: common_meta.well,
                         site: common_meta.site,
                         filename: img.name,
                         type: current_meta.arm_source,
+                        original_path: "${params.outdir}/images/${common_meta.batch}/images_corrected_cropped/${arm}/${common_meta.plate}/${common_meta.plate}-${common_meta.well}/${img.name}",
                     ]
 
                     // Add channel and cycle information based on arm_source
@@ -228,7 +230,12 @@ workflow POOLED_CELLPAINTING {
         CELLPROFILER_COMBINEDANALYSIS.out.load_data_csv.collectFile(keepHeader: true, skip: 1) { meta, csv ->
             def dir = file("${params.outdir}/workspace/load_data_csv/${meta.batch}/${meta.plate}")
             dir.mkdirs()
-            ["${dir}/combined_analysis.load_data.csv", csv.text]
+            ["${dir}/combined_analysis.load_data.csv", csv.text.replaceFirst(/(?m)^(.*)$/) { line ->
+                line[0]
+                    .replace('FinalFileName_', '__FINAL__')
+                    .replace('FileName_', 'StagedFileName_')
+                    .replace('__FINAL__', 'FileName_')
+            }]
         }
     } else {
         log.info "Skipping combined analysis: Both qc_painting_passed (${params.qc_painting_passed}) and qc_barcoding_passed (${params.qc_barcoding_passed}) must be true. Review QC montages for both arms and set both parameters to true to proceed."
