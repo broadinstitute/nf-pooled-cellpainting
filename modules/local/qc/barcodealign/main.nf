@@ -15,7 +15,7 @@ process QC_BARCODEALIGN {
     output:
     tuple val(meta), path("*_qc_barcode_align.ipynb"), emit: notebook
     tuple val(meta), path("*.html"), emit: html_report
-    path "*.png", emit: png_reports
+    path "*.png", emit: png_reports, optional: true
     path "versions.yml", emit: versions
 
     when:
