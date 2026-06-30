@@ -289,12 +289,13 @@ workflow POOLED_CELLPAINTING {
     )
 
     MULTIQC(
-        ch_multiqc_files.collect(),
-        ch_multiqc_config.toList(),
-        ch_multiqc_custom_config.toList(),
-        ch_multiqc_logo.toList(),
-        [],
-        [],
+        ch_multiqc_files.collect()
+            .map { files ->
+                def config_list = [file("${projectDir}/assets/multiqc_config.yml")]
+                if (params.multiqc_config) { config_list << file(params.multiqc_config) }
+                def logo_list = params.multiqc_logo ? [file(params.multiqc_logo)] : []
+                [[id: 'multiqc'], files, config_list, logo_list, [], []]
+            }
     )
 
     emit:
