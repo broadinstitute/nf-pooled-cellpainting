@@ -51,6 +51,13 @@ workflow PIPELINE_INITIALISATION {
         workflow,
         validate_params,
         null,
+        params.help ?: false,
+        false,
+        params.show_hidden ?: false,
+        '',
+        '',
+        "nextflow run broadinstitute/nf-pooled-cellpainting --input samplesheet.csv --outdir results -profile docker",
+        null,
     )
 
     //
