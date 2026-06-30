@@ -317,7 +317,7 @@ def completionEmail(summary_params, email, email_on_fail, plaintext_email, outdi
             ['sendmail', '-t'].execute() << sendmail_html
             log.info("-${colors.purple}[${workflow.manifest.name}]${colors.green} Sent summary e-mail to ${email_address} (sendmail)-")
         }
-        catch (msg: Exception) {
+        catch (Exception msg) {
             log.debug(msg.toString())
             log.debug("Trying with mail instead of sendmail")
             // Catch failures and try with plaintext

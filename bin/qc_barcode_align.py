@@ -162,27 +162,25 @@ else:
     df_image = merge_csvs(
         csvfolder, "BarcodingApplication_Image.csv", backup_list=None, filter_string=None
     )
-
-    # have to define column lists after load because not all image sets have all columns
-    shift_list = [x for x in df_image.columns if "Align_Xshift_Cycle" in x and "MI" not in x and channel_name in x]
-    shift_list.append([x for x in df_image.columns if "Align_Yshift_Cycle" in x and "MI" not in x and channel_name in x])
-    corr_list = [x for x in df_image.columns if "Correlation_Correlation_Cycle" in x and "MI" not in x and x.count(channel_name) == 2]
-    orig_cols = [x for x in df_image.columns if "Correlation_Correlation" in x and "Orig" in x]
-    MI_cols = [x for x in df_image.columns if "MI" in x and channel_name in x]
-    print (f"Detected {len(MI_cols)} MI columns for channel {channel_name}")
-    debris_cols = [x for x in df_image.columns if "Count_Debris" in x]
-    print (f"Detected {len(debris_cols)} debris columns")
-    OL_cols = [x for x in df_image.columns if "Overlap_Recall" in x]
-    print (f"Detected {len(OL_cols)} Overlap_Recall columns")
-    shift_list_MI = [x for x in MI_cols if "Align_Xshift_Cycle" in x or "Align_Yshift_Cycle" in x]
-    corr_list_MI = [x for x in MI_cols if "Correlation_Correlation_Cycle" in x]
-
     print(f"Loaded {len(df_image)} rows")
-
     # Cache for future use
     print(f"Caching data to: {cache_file}")
     df_image.to_parquet(cache_file, compression="gzip", index=False)
     print("Cache saved")
+
+# have to define column lists after load because not all image sets have all columns
+shift_list = [x for x in df_image.columns if "Align_Xshift_Cycle" in x and "MI" not in x and channel_name in x]
+shift_list += [x for x in df_image.columns if "Align_Yshift_Cycle" in x and "MI" not in x and channel_name in x]
+corr_list = [x for x in df_image.columns if "Correlation_Correlation_Cycle" in x and "MI" not in x and x.count(channel_name) == 2]
+orig_cols = [x for x in df_image.columns if "Correlation_Correlation" in x and "Orig" in x]
+MI_cols = [x for x in df_image.columns if "MI" in x and channel_name in x]
+print (f"Detected {len(MI_cols)} MI columns for channel {channel_name}")
+debris_cols = [x for x in df_image.columns if "Count_Debris" in x]
+print (f"Detected {len(debris_cols)} debris columns")
+OL_cols = [x for x in df_image.columns if "Overlap_Recall" in x]
+print (f"Detected {len(OL_cols)} Overlap_Recall columns")
+shift_list_MI = [x for x in MI_cols if "Align_Xshift_Cycle" in x or "Align_Yshift_Cycle" in x]
+corr_list_MI = [x for x in MI_cols if "Correlation_Correlation_Cycle" in x]
 
 # Detect site numbering convention (0-based or 1-based)
 min_site = df_image["Metadata_Site"].min()
@@ -241,9 +239,6 @@ g = sns.catplot(
 )
 for ax in g.axes.flat:
     ax.tick_params(labelbottom=True)
-plt.savefig(
-    Path(output_dir) / "alignment_shifts_no_limits.png", dpi=150, bbox_inches="tight"
-)
 plt.show()
 
 # %% [markdown]
@@ -261,9 +256,6 @@ g = sns.catplot(
 g.set(xlim=(-200, 200))
 for ax in g.axes.flat:
     ax.tick_params(labelbottom=True)
-plt.savefig(
-    Path(output_dir) / "alignment_shifts_xlim.png", dpi=150, bbox_inches="tight"
-)
 plt.show()
 
 # %% [markdown]
@@ -300,9 +292,6 @@ g = sns.catplot(
 )
 g.refline(x=corr_threshold, color="red")
 g.set(xlim=(0, None))
-plt.savefig(
-    Path(output_dir) / "alignment_correlations_all.png", dpi=150, bbox_inches="tight"
-)
 plt.show()
 
 # %% [markdown]
@@ -321,11 +310,6 @@ g = sns.catplot(
 )
 g.refline(x=corr_threshold, color="red")
 g.set(xlim=(0, None))
-plt.savefig(
-    Path(output_dir) / "alignment_correlations_cycle01.png",
-    dpi=150,
-    bbox_inches="tight",
-)
 plt.show()
 
 # %% [markdown]
@@ -396,11 +380,16 @@ def make_plot(df):
     )
 
     min_val = plot_df['Overlap_Recall'].min()
-    for ax in g.axes.flat:
+    for well_name, ax in g.axes_dict.items():
+        local_min = plot_df[plot_df['Well'] == well_name]['Overlap_Recall'].min()
+        ax.axhline(y=local_min, color='lightblue', linestyle='--', linewidth=1.5,
+                label=f'Well Minimum ({local_min:.3f})')
         ax.axhline(y=min_val, color='blue', linestyle='--', linewidth=1.5,
                 label=f'Global Minimum ({min_val:.3f})')
-        ax.axhline(y=0.8, color='red', linestyle='--', linewidth=1.5,
+        ax.axhline(y=0.8, color='pink', linestyle='--', linewidth=1.5,
                 label='QC Threshold (0.8)')
+        ax.axhline(y=0.65, color='red', linestyle='--', linewidth=1.5,
+                label='QC Threshold (0.65)')
 
     # Add a single legend to the whole figure
     handles, labels = g.axes.flat[0].get_legend_handles_labels()
@@ -428,9 +417,6 @@ if MI_cols:
         col="Metadata_Well",
         col_wrap=4,
     )
-    plt.savefig(
-        Path(output_dir) / "alignment_shifts_no_limits_MI.png", dpi=150, bbox_inches="tight"
-    )
     plt.show()
 
 # %% [markdown]
@@ -447,9 +433,6 @@ if MI_cols:
         col_wrap=4,
     )
     g.set(xlim=(-200, 200))
-    plt.savefig(
-        Path(output_dir) / "alignment_shifts_xlim_MI.png", dpi=150, bbox_inches="tight"
-    )
     plt.show()
 
 # %% [markdown]
@@ -488,9 +471,6 @@ if MI_cols:
     )
     g.refline(x=corr_threshold, color="red")
     g.set(xlim=(0, None))
-    plt.savefig(
-        Path(output_dir) / "alignment_correlations_all_MI.png", dpi=150, bbox_inches="tight"
-    )
     plt.show()
 
 # %% [markdown]
@@ -510,11 +490,6 @@ if MI_cols:
     )
     g.refline(x=corr_threshold, color="red")
     g.set(xlim=(0, None))
-    plt.savefig(
-        Path(output_dir) / "alignment_correlations_cycle01_MI.png",
-        dpi=150,
-        bbox_inches="tight",
-    )
     plt.show()
 
 # %% [markdown]

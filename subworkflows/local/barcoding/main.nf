@@ -4,7 +4,8 @@
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
 include { CELLPROFILER_ILLUMCALC } from '../../../modules/local/cellprofiler/illumcalc'
-include { QC_MONTAGEILLUM as QC_MONTAGEILLUM_BARCODING } from '../../../modules/local/qc/montageillum'
+include { QC_MONTAGEILLUM as QC_MONTAGEILLUM_BARCODING        } from '../../../modules/local/qc/montageillum'
+include { QC_MONTAGEILLUM as QC_MONTAGE_ALIGNFAIL_BARCODING  } from '../../../modules/local/qc/montageillum'
 include { QC_MONTAGEILLUM as QC_MONTAGE_STITCHCROP_BARCODING } from '../../../modules/local/qc/montageillum'
 include { CELLPROFILER_ILLUMAPPLY as CELLPROFILER_ILLUMAPPLY_BARCODING } from '../../../modules/local/cellprofiler/illumapply'
 include { CELLPROFILER_PREPROCESS } from '../../../modules/local/cellprofiler/preprocess'
@@ -182,6 +183,22 @@ workflow BARCODING {
         skip: 1,
         storeDir: "${outdir}/workspace/load_data_csv/",
     )
+
+    // QC montage of any PNG QC images output by illumapply (optional)
+    ch_illumapply_qc = CELLPROFILER_ILLUMAPPLY_BARCODING.out.qc_images
+        .map { meta, png_files ->
+            [meta.subMap(['batch', 'plate']) + [arm: "barcoding"], png_files]
+        }
+        .groupTuple()
+        .map { meta, png_files_list ->
+            [meta, png_files_list.flatten().sort { it -> it.name }]
+        }
+
+    QC_MONTAGE_ALIGNFAIL_BARCODING(
+        ch_illumapply_qc,
+        ".*\\.png\$",
+    )
+    ch_versions = ch_versions.mix(QC_MONTAGE_ALIGNFAIL_BARCODING.out.versions)
 
     // QC of barcode alignment
     // First, collect cycle information from the samplesheet to infer num_cycles

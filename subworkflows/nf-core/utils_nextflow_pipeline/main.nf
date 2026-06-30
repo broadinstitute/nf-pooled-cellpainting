@@ -91,12 +91,12 @@ def checkCondaChannels() {
         def config = parser.load("conda config --show channels".execute().text)
         channels = config.channels
     }
-    catch (e: NullPointerException) {
+    catch (NullPointerException e) {
         log.debug(e)
         log.warn("Could not verify conda channel configuration.")
         return null
     }
-    catch (e: IOException) {
+    catch (IOException e) {
         log.debug(e)
         log.warn("Could not verify conda channel configuration.")
         return null
