@@ -1,7 +1,7 @@
 {
     "nf-pooled-cellpainting - full pipeline - test profile - stub": {
         "content": [
-            31,
+            32,
             [
                 "images",
                 "images/Batch1",
@@ -181,6 +181,12 @@
                 "images/Batch1/images_segmentation/painting/Plate1/Plate1-B1/SegmentationCheck_Image_B1.csv",
                 "images/Batch1/images_segmentation/painting/Plate1/Plate1-B1/SegmentationCheck_Nuclei_B1.csv",
                 "images/Batch1/images_segmentation/painting/Plate1/Plate1-B1/SegmentationCheck_PreCells_B1.csv",
+                "multiqc",
+                "multiqc/multiqc_data",
+                "multiqc/multiqc_data/.stub",
+                "multiqc/multiqc_plots",
+                "multiqc/multiqc_plots/.stub",
+                "multiqc/multiqc_report.html",
                 "pipeline_info",
                 "pipeline_info/nf-pooled-cellpainting_software_mqc_versions.yml",
                 "workspace",
@@ -199,7 +205,6 @@
                 "workspace/qc_reports/2_alignment/Plate1",
                 "workspace/qc_reports/2_alignment/Plate1/Batch1_Plate1_qc_painting_align.html",
                 "workspace/qc_reports/2_alignment/Plate1/Batch1_Plate1_qc_painting_align.ipynb",
-                "workspace/qc_reports/2_alignment/Plate1/failed_overlap_pngs",
                 "workspace/qc_reports/3_segmentation",
                 "workspace/qc_reports/3_segmentation/Plate1",
                 "workspace/qc_reports/3_segmentation/Plate1/montage.png",
@@ -360,6 +365,8 @@
                 "SegmentationCheck_Image_B1.csv:md5,d41d8cd98f00b204e9800998ecf8427e",
                 "SegmentationCheck_Nuclei_B1.csv:md5,d41d8cd98f00b204e9800998ecf8427e",
                 "SegmentationCheck_PreCells_B1.csv:md5,d41d8cd98f00b204e9800998ecf8427e",
+                ".stub:md5,d41d8cd98f00b204e9800998ecf8427e",
+                ".stub:md5,d41d8cd98f00b204e9800998ecf8427e",
                 "barcoding-illumapply.load_data.csv:md5,d41d8cd98f00b204e9800998ecf8427e",
                 "barcoding-illumcalc.load_data.csv:md5,d41d8cd98f00b204e9800998ecf8427e",
                 "barcoding-preprocess.load_data.csv:md5,d41d8cd98f00b204e9800998ecf8427e",
@@ -383,11 +390,11 @@
             "nf-test": "0.9.3",
             "nextflow": "25.10.2"
         },
-        "timestamp": "2026-06-26T12:30:30.167049"
+        "timestamp": "2026-06-30T15:42:39.268384"
     },
     "nf-pooled-cellpainting - full pipeline - test profile - stub - barcoding qc false": {
         "content": [
-            35,
+            36,
             [
                 "images",
                 "images/Batch1",
@@ -600,6 +607,12 @@
                 "images/Batch1/images_segmentation/painting/Plate1/Plate1-B1/SegmentationCheck_Image_B1.csv",
                 "images/Batch1/images_segmentation/painting/Plate1/Plate1-B1/SegmentationCheck_Nuclei_B1.csv",
                 "images/Batch1/images_segmentation/painting/Plate1/Plate1-B1/SegmentationCheck_PreCells_B1.csv",
+                "multiqc",
+                "multiqc/multiqc_data",
+                "multiqc/multiqc_data/.stub",
+                "multiqc/multiqc_plots",
+                "multiqc/multiqc_plots/.stub",
+                "multiqc/multiqc_report.html",
                 "pipeline_info",
                 "pipeline_info/nf-pooled-cellpainting_software_mqc_versions.yml",
                 "workspace",
@@ -618,7 +631,6 @@
                 "workspace/qc_reports/2_alignment/Plate1",
                 "workspace/qc_reports/2_alignment/Plate1/Batch1_Plate1_qc_painting_align.html",
                 "workspace/qc_reports/2_alignment/Plate1/Batch1_Plate1_qc_painting_align.ipynb",
-                "workspace/qc_reports/2_alignment/Plate1/failed_overlap_pngs",
                 "workspace/qc_reports/3_segmentation",
                 "workspace/qc_reports/3_segmentation/Plate1",
                 "workspace/qc_reports/3_segmentation/Plate1/montage.png",
@@ -797,6 +809,8 @@
                 "SegmentationCheck_Image_B1.csv:md5,d41d8cd98f00b204e9800998ecf8427e",
                 "SegmentationCheck_Nuclei_B1.csv:md5,d41d8cd98f00b204e9800998ecf8427e",
                 "SegmentationCheck_PreCells_B1.csv:md5,d41d8cd98f00b204e9800998ecf8427e",
+                ".stub:md5,d41d8cd98f00b204e9800998ecf8427e",
+                ".stub:md5,d41d8cd98f00b204e9800998ecf8427e",
                 "barcoding-illumapply.load_data.csv:md5,d41d8cd98f00b204e9800998ecf8427e",
                 "barcoding-illumcalc.load_data.csv:md5,d41d8cd98f00b204e9800998ecf8427e",
                 "barcoding-preprocess.load_data.csv:md5,d41d8cd98f00b204e9800998ecf8427e",
@@ -821,7 +835,7 @@
             "nf-test": "0.9.3",
             "nextflow": "25.10.2"
         },
-        "timestamp": "2026-06-26T12:48:23.981443"
+        "timestamp": "2026-06-30T15:44:21.50448"
     },
     "nf-pooled-cellpainting - full pipeline - test profile - qc passed": {
         "content": [
@@ -2111,7 +2125,6 @@
                 "workspace/qc_reports/2_alignment/Plate1",
                 "workspace/qc_reports/2_alignment/Plate1/Batch1_Plate1_qc_painting_align.html",
                 "workspace/qc_reports/2_alignment/Plate1/Batch1_Plate1_qc_painting_align.ipynb",
-                "workspace/qc_reports/2_alignment/Plate1/failed_overlap_pngs",
                 "workspace/qc_reports/3_segmentation",
                 "workspace/qc_reports/3_segmentation/Plate1",
                 "workspace/qc_reports/3_segmentation/Plate1/painting.Batch1_Plate1.montage.png",
@@ -2125,10 +2138,6 @@
                 "workspace/qc_reports/6_alignment/Plate1",
                 "workspace/qc_reports/6_alignment/Plate1/Batch1_Plate1_qc_barcode_align.html",
                 "workspace/qc_reports/6_alignment/Plate1/Batch1_Plate1_qc_barcode_align.ipynb",
-                "workspace/qc_reports/6_alignment/Plate1/alignment_correlations_all.png",
-                "workspace/qc_reports/6_alignment/Plate1/alignment_correlations_cycle01.png",
-                "workspace/qc_reports/6_alignment/Plate1/alignment_shifts_no_limits.png",
-                "workspace/qc_reports/6_alignment/Plate1/alignment_shifts_xlim.png",
                 "workspace/qc_reports/7_preprocessing",
                 "workspace/qc_reports/7_preprocessing/Plate1",
                 "workspace/qc_reports/7_preprocessing/Plate1/Batch1_Plate1_qc_barcode_preprocess.html",
@@ -2147,11 +2156,11 @@
             "nf-test": "0.9.3",
             "nextflow": "25.10.2"
         },
-        "timestamp": "2026-06-26T12:45:28.437987"
+        "timestamp": "2026-06-30T15:41:48.04743"
     },
     "nf-pooled-cellpainting - full pipeline - test profile - stub - both qc false": {
         "content": [
-            31,
+            32,
             [
                 "images",
                 "images/Batch1",
@@ -2331,6 +2340,12 @@
                 "images/Batch1/images_segmentation/painting/Plate1/Plate1-B1/SegmentationCheck_Image_B1.csv",
                 "images/Batch1/images_segmentation/painting/Plate1/Plate1-B1/SegmentationCheck_Nuclei_B1.csv",
                 "images/Batch1/images_segmentation/painting/Plate1/Plate1-B1/SegmentationCheck_PreCells_B1.csv",
+                "multiqc",
+                "multiqc/multiqc_data",
+                "multiqc/multiqc_data/.stub",
+                "multiqc/multiqc_plots",
+                "multiqc/multiqc_plots/.stub",
+                "multiqc/multiqc_report.html",
                 "pipeline_info",
                 "pipeline_info/nf-pooled-cellpainting_software_mqc_versions.yml",
                 "workspace",
@@ -2349,7 +2364,6 @@
                 "workspace/qc_reports/2_alignment/Plate1",
                 "workspace/qc_reports/2_alignment/Plate1/Batch1_Plate1_qc_painting_align.html",
                 "workspace/qc_reports/2_alignment/Plate1/Batch1_Plate1_qc_painting_align.ipynb",
-                "workspace/qc_reports/2_alignment/Plate1/failed_overlap_pngs",
                 "workspace/qc_reports/3_segmentation",
                 "workspace/qc_reports/3_segmentation/Plate1",
                 "workspace/qc_reports/3_segmentation/Plate1/montage.png",
@@ -2510,6 +2524,8 @@
                 "SegmentationCheck_Image_B1.csv:md5,d41d8cd98f00b204e9800998ecf8427e",
                 "SegmentationCheck_Nuclei_B1.csv:md5,d41d8cd98f00b204e9800998ecf8427e",
                 "SegmentationCheck_PreCells_B1.csv:md5,d41d8cd98f00b204e9800998ecf8427e",
+                ".stub:md5,d41d8cd98f00b204e9800998ecf8427e",
+                ".stub:md5,d41d8cd98f00b204e9800998ecf8427e",
                 "barcoding-illumapply.load_data.csv:md5,d41d8cd98f00b204e9800998ecf8427e",
                 "barcoding-illumcalc.load_data.csv:md5,d41d8cd98f00b204e9800998ecf8427e",
                 "barcoding-preprocess.load_data.csv:md5,d41d8cd98f00b204e9800998ecf8427e",
@@ -2533,11 +2549,11 @@
             "nf-test": "0.9.3",
             "nextflow": "25.10.2"
         },
-        "timestamp": "2026-06-26T12:49:17.789956"
+        "timestamp": "2026-06-30T15:45:09.536534"
     },
     "nf-pooled-cellpainting - full pipeline - test profile - stub - painting qc false": {
         "content": [
-            35,
+            36,
             [
                 "images",
                 "images/Batch1",
@@ -2753,6 +2769,12 @@
                 "images/Batch1/images_segmentation/painting/Plate1/Plate1-B1/SegmentationCheck_Image_B1.csv",
                 "images/Batch1/images_segmentation/painting/Plate1/Plate1-B1/SegmentationCheck_Nuclei_B1.csv",
                 "images/Batch1/images_segmentation/painting/Plate1/Plate1-B1/SegmentationCheck_PreCells_B1.csv",
+                "multiqc",
+                "multiqc/multiqc_data",
+                "multiqc/multiqc_data/.stub",
+                "multiqc/multiqc_plots",
+                "multiqc/multiqc_plots/.stub",
+                "multiqc/multiqc_report.html",
                 "pipeline_info",
                 "pipeline_info/nf-pooled-cellpainting_software_mqc_versions.yml",
                 "workspace",
@@ -2771,7 +2793,6 @@
                 "workspace/qc_reports/2_alignment/Plate1",
                 "workspace/qc_reports/2_alignment/Plate1/Batch1_Plate1_qc_painting_align.html",
                 "workspace/qc_reports/2_alignment/Plate1/Batch1_Plate1_qc_painting_align.ipynb",
-                "workspace/qc_reports/2_alignment/Plate1/failed_overlap_pngs",
                 "workspace/qc_reports/3_segmentation",
                 "workspace/qc_reports/3_segmentation/Plate1",
                 "workspace/qc_reports/3_segmentation/Plate1/montage.png",
@@ -2953,6 +2974,8 @@
                 "SegmentationCheck_Image_B1.csv:md5,d41d8cd98f00b204e9800998ecf8427e",
                 "SegmentationCheck_Nuclei_B1.csv:md5,d41d8cd98f00b204e9800998ecf8427e",
                 "SegmentationCheck_PreCells_B1.csv:md5,d41d8cd98f00b204e9800998ecf8427e",
+                ".stub:md5,d41d8cd98f00b204e9800998ecf8427e",
+                ".stub:md5,d41d8cd98f00b204e9800998ecf8427e",
                 "barcoding-illumapply.load_data.csv:md5,d41d8cd98f00b204e9800998ecf8427e",
                 "barcoding-illumcalc.load_data.csv:md5,d41d8cd98f00b204e9800998ecf8427e",
                 "barcoding-preprocess.load_data.csv:md5,d41d8cd98f00b204e9800998ecf8427e",
@@ -2977,6 +3000,6 @@
             "nf-test": "0.9.3",
             "nextflow": "25.10.2"
         },
-        "timestamp": "2026-06-26T12:47:25.887089"
+        "timestamp": "2026-06-30T15:43:28.824975"
     }
 }
