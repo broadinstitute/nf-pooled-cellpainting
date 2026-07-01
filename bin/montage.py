@@ -365,6 +365,7 @@ def main(
     images = []
     all_max_vals = []
     all_min_vals = []
+    dup_detect = False
     for label, file_path in items:
         try:
             img, stats = load_image(file_path, apply_sqrt=apply_sqrt)
