@@ -113,8 +113,12 @@ def extract_pattern_groups(files: List[Path]) -> Dict[str, List[Tuple[str, Path]
         # Check for site-based patterns (segmentation images)
         site_match = re.search(r"Site[_\s]?(\d+)", name)
         if site_match:
-            site = f"Site{site_match.group(1)}"
-            patterns.setdefault("site", []).append((site, file_path))
+            site_num = site_match.group(1)
+            well_match = re.search(r"([A-Z]\d+)", name)
+            well = well_match.group(1) if well_match else ""
+            label = f"{well}\nSite{site_num}" if well else f"Site{site_num}"
+            sort_key = (well, int(site_num))
+            patterns.setdefault("site", []).append((sort_key, label, file_path))
             continue
 
         # Default: use filename stem
@@ -352,8 +356,8 @@ def main(
         print(f"Organizing {len(items)} channels in a row")
 
     elif "site" in pattern_groups:
-        # Site-based layout
-        items = sorted(pattern_groups["site"], key=lambda x: natural_sort_key(x[0]))
+        # Site-based layout — sort by well then site number, label includes both
+        items = [(label, fp) for _, label, fp in sorted(pattern_groups["site"], key=lambda x: x[0])]
         print(f"Organizing {len(items)} sites")
 
     else:
