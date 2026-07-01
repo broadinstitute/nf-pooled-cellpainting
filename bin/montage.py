@@ -114,7 +114,7 @@ def extract_pattern_groups(files: List[Path]) -> Dict[str, List[Tuple[str, Path]
         site_match = re.search(r"Site[_\s]?(\d+)", name)
         if site_match:
             site_num = site_match.group(1)
-            well_match = re.search(r"([A-Z]\d+)", name)
+            well_match = re.search(r"(?:^|[-_])([A-P]\d{1,2})(?:[-_])", name)
             well = well_match.group(1) if well_match else ""
             label = f"{well}\nSite{site_num}" if well else f"Site{site_num}"
             sort_key = (well, int(site_num))
