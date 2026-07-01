@@ -364,13 +364,18 @@ def main(
     # Load images
     images = []
     all_max_vals = []
+    all_min_vals = []
     for label, file_path in items:
         try:
             img, stats = load_image(file_path, apply_sqrt=apply_sqrt)
             if stats is not None:
                 min_val, max_val = stats
                 all_max_vals.append(max_val)
+                all_min_vals.append(min_val)
                 label = f"{label}\nmax={max_val:.2g}"
+            for prev_label, prev_img in images:
+                if np.array_equal(np.array(img), np.array(prev_img)):
+                    dup_detect = True
             images.append((label, img))
             print(f"  Loaded: {file_path.name} -> {label}")
         except Exception as e:
@@ -389,7 +394,13 @@ def main(
         global_max = max(all_max_vals)
         footer_text = f"Max of all max values: {global_max:.4g}"
         if global_max > 4:
-            footer_text += "  WARNING: HIGH VALUE"
+            footer_text += "  WARNING: HIGH VALUE. POTENTIAL PROBLEM"
+        if any(val == 1 for val in all_max_vals):
+            footer_text += "  ERROR: ILLUMS IMPROPERLY MADE!!! ILLUM WITH MAX=1 DETECTED"
+        if any(val != 1 for val in all_min_vals):
+            footer_text += "  ERROR: ILLUMS IMPROPERLY MADE!!! ILLUM WITH MIN!=1 DETECTED"
+        if dup_detect:
+            footer_text += "  ERROR: DUPLICATED ILLUMS DETECTED!!!"
         footer_height = 100
         footer = Image.new("RGB", (montage.width, footer_height), (255, 255, 255))
         draw = ImageDraw.Draw(footer)
