@@ -323,9 +323,13 @@ print(
     " percent perfect and off by one",
 )
 
-# Count the matches (duplicates in list1 are counted individually)
+# Count the matches (duplicates in list are counted individually)
 matchin7_count = sum(1 for s in df_foci['Barcode_BarcodeCalled'] if s[:7] in [x[:7] for x in bc_df["Barcode"]])
 print (matchin7_count/len(df_foci) *100, " percent perfect match in first 7 cycles")
+
+# Count the matches (duplicates in list are counted individually)
+matchinEND5_count = sum(1 for s in df_foci['Barcode_BarcodeCalled'] if s[-5:] in [x[-5:] for x in bc_df["Barcode"]])
+print (matchinEND5_count/len(df_foci) *100, " percent perfect match in last 5 cycles")
 
 sns.displot(df_foci["Barcode_MatchedTo_Score"], kde=False)
 plt.title("Barcode Match Score Distribution")
@@ -482,7 +486,7 @@ else:
 def plot_chan_combos(df_full, cols,title, numcycles):
     channels = ['488', '568', '647']
     df = df_full.copy()
-    for cycle in [f"{i:02d}" for i in range(1, numcycles)]:
+    for cycle in [f"{i:02d}" for i in range(1, numcycles+1)]:
         bool_df = df[[x for x in cols if f'Cycle{cycle}' in x]] > 0
 
         # We zip the boolean values with the channel names and join the True ones with an underscore
