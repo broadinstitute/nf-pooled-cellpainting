@@ -2,10 +2,11 @@
 
 ## Running the Pipeline with CLI
 
-Once your inputs are ready, run the pipeline pointing to your files:
+Once your inputs are ready, run the pipeline pointing to your files. At the minimum, you need to specify the following:
 
 ```bash
-nextflow run broadinstitute/nf-pooled-cellpainting \
+cd broadinstitute/nf-pooled-cellpainting # or your repository clone
+nextflow run . \
     --input samplesheet.csv \
     --barcodes barcodes.csv \
     --outdir results \
@@ -17,6 +18,83 @@ nextflow run broadinstitute/nf-pooled-cellpainting \
     --barcoding_preprocess_cppipe your_barcoding_preprocess_cppipe.cppipe \
     --combinedanalysis_cppipe your_combinedanalysis_cppipe.cppipe \
     -profile docker
+```
+
+Note that there are many configurable parameters to this workflow. The minimal specification above uses the default values for all of the parameters not passed which is unlikely to be appropriate for your custom data. Instead, there are two alternative approaches. You can pass in all of the parameters that you want to be non-default directly into the run command. It might look something like this:
+
+```bash
+cd broadinstitute/nf-pooled-cellpainting # or your repository clone
+nextflow run . \
+    --input samplesheet.csv \
+    --barcodes barcodes.csv \
+    --outdir results \
+    --painting_illumcalc_cppipe your_painting_illumcalc_cppipe.cppipe \
+    --painting_illumapply_cppipe your_painting_illumapply_cppipe.cppipe \
+    --painting_segcheck_cppipe your_painting_segcheck_cppipe.cppipe \
+    --barcoding_illumcalc_cppipe your_barcoding_illumcalc_cppipe.cppipe \
+    --barcoding_illumapply_cppipe your_barcoding_illumapply_cppipe.cppipe \
+    --barcoding_preprocess_cppipe your_barcoding_preprocess_cppipe.cppipe \
+    --combinedanalysis_cppipe your_combinedanalysis_cppipe.cppipe \
+    --range_skip 4 \
+    --painting_quarter_if_round false \
+    --barcoding_quarter_if_round false \
+    --painting_imperwell 80 --barcoding_imperwell 21 \
+    --painting_rows 10 --barcoding_columns 5 \
+    --painting_columns 10 --barcoding_columns 5 \
+    --tileperside 5 --final_tile_size 2500 \
+    --first_site_index 0 --phenix true \
+    -profile docker
+```
+
+Alternatively, you can create a configuration file with your specific parameters and pass that configuration into the run command as a profile.
+
+```bash
+cd broadinstitute/nf-pooled-cellpainting # or your repository clone
+nextflow run . -profile docker,experiment
+```
+
+Note that you will also need to append your config to the end of the `profiles` section in your `nextflow.config` file:
+
+```json
+profiles{
+    ...
+    experiment {
+        includeConfig 'conf/experiment.config'
+    }
+}
+
+Example `conf/experiment.config`:
+
+```json
+params {
+    config_profile_name         = 'experiment'
+    config_profile_description  = 'For a specific experiment'
+
+    input                       = "path/to/samplesheet.csv"
+    outdir                      = "path/to/output"
+    barcodes                    = "path/to/Barcodes.csv"
+    painting_illumcalc_cppipe   = "path/to/painting_illumcalc_cppipe.template"
+    painting_illumapply_cppipe  = "path/to/painting_illumapply.cppipe"
+    painting_segcheck_cppipe    = "path/to/painting_segcheck.cppipe"
+    barcoding_illumcalc_cppipe  = "path/to/barcoding_illumcalc_cppipe.template"
+    barcoding_illumapply_cppipe = "path/to/barcoding_illumapply.cppipe"
+    barcoding_preprocess_cppipe = "path/to/barcoding_preprocess.cppipe"
+    combinedanalysis_cppipe     = "path/to/combined_analysis.cppipe"
+
+    range_skip = 4
+    painting_quarter_if_round = false
+    barcoding_quarter_if_round = false
+    painting_imperwell = 80
+    barcoding_imperwell = 21
+    painting_rows = 10
+    barcoding_columns = 5
+    painting_columns = 10
+    barcoding_columns = 5
+    tileperside = 5
+    final_tile_size = 2500
+    first_site_index = 0
+    phenix = true
+}
 ```
 
 ## Running the Pipeline with Seqera Platform
