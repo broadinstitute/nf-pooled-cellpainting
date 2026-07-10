@@ -219,6 +219,7 @@ QC reports are numbered to reflect the pipeline execution order, making it easy 
 | Directory | Description | Files |
 |-----------|-------------|-------|
 | `1_illumination_painting/` | Painting illumination correction montages | `*.png` montages |
+| `2_alignment_painting/` | Alignment for multicycle painting | `*.html`, `*.ipynb` |
 | `3_segmentation/` | Segmentation QC with overlays | `*.png` montages |
 | `4_stitching_painting/` | Painting stitching QC | `*.png` montages |
 | `5_illumination_barcoding/` | Barcoding illumination correction montages | `*.png` montages |

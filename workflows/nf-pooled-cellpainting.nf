@@ -3,15 +3,15 @@
     IMPORT MODULES / SUBWORKFLOWS / FUNCTIONS
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
-include { CELLPAINTING                  } from '../subworkflows/local/cellpainting'
-include { BARCODING                     } from '../subworkflows/local/barcoding'
+include { CELLPAINTING } from '../subworkflows/local/cellpainting'
+include { BARCODING } from '../subworkflows/local/barcoding'
 include { CELLPROFILER_COMBINEDANALYSIS } from '../modules/local/cellprofiler/combinedanalysis/main'
-include { MULTIQC                       } from '../modules/nf-core/multiqc/main'
+include { MULTIQC } from '../modules/nf-core/multiqc/main'
 
-include { paramsSummaryMap              } from 'plugin/nf-schema'
-include { paramsSummaryMultiqc          } from '../subworkflows/nf-core/utils_nfcore_pipeline'
-include { softwareVersionsToYAML        } from '../subworkflows/nf-core/utils_nfcore_pipeline'
-include { methodsDescriptionText        } from '../subworkflows/local/utils_nfcore_nf-pooled-cellpainting_pipeline'
+include { paramsSummaryMap } from 'plugin/nf-schema'
+include { paramsSummaryMultiqc } from '../subworkflows/nf-core/utils_nfcore_pipeline'
+include { softwareVersionsToYAML } from '../subworkflows/nf-core/utils_nfcore_pipeline'
+include { methodsDescriptionText } from '../subworkflows/local/utils_nfcore_nf-pooled-cellpainting_pipeline'
 
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -60,6 +60,8 @@ workflow POOLED_CELLPAINTING {
         params.painting_segcheck_cppipe,
         params.range_skip,
         params.outdir,
+        params.acquisition_geometry_rows,
+        params.acquisition_geometry_columns,
         params.fiji_stitchcrop_script,
         params.painting_round_or_square,
         params.painting_quarter_if_round,
@@ -231,8 +233,9 @@ workflow POOLED_CELLPAINTING {
             skip: 1,
             storeDir: "${params.outdir}/workspace/load_data_csv/",
         )
-    } else {
-        log.info "Skipping combined analysis: Both qc_painting_passed (${params.qc_painting_passed}) and qc_barcoding_passed (${params.qc_barcoding_passed}) must be true. Review QC montages for both arms and set both parameters to true to proceed."
+    }
+    else {
+        log.info("Skipping combined analysis: Both qc_painting_passed (${params.qc_painting_passed}) and qc_barcoding_passed (${params.qc_barcoding_passed}) must be true. Review QC montages for both arms and set both parameters to true to proceed.")
     }
 
 
@@ -286,15 +289,16 @@ workflow POOLED_CELLPAINTING {
     )
 
     MULTIQC(
-        ch_multiqc_files.collect(),
-        ch_multiqc_config.toList(),
-        ch_multiqc_custom_config.toList(),
-        ch_multiqc_logo.toList(),
-        [],
-        [],
+        ch_multiqc_files.collect()
+            .map { files ->
+                def config_list = [file("${projectDir}/assets/multiqc_config.yml")]
+                if (params.multiqc_config) { config_list << file(params.multiqc_config) }
+                def logo_list = params.multiqc_logo ? [file(params.multiqc_logo)] : []
+                [[id: 'multiqc'], files, config_list, logo_list, [], []]
+            }
     )
 
     emit:
     multiqc_report = MULTIQC.out.report.toList() // channel: /path/to/multiqc_report.html
-    versions       = ch_versions // channel: [ path(versions.yml) ]
+    versions = ch_versions // channel: [ path(versions.yml) ]
 }
