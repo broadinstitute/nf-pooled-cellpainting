@@ -1,6 +1,6 @@
 process CELLPROFILER_ILLUMAPPLY {
     tag "${meta.id}"
-    label 'cellprofiler_basic'
+    label 'cellprofiler_large'
 
     container "${workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container
         ? 'oras://community.wave.seqera.io/library/cellprofiler:4.2.8--7c1bd3a82764de92'
@@ -13,6 +13,7 @@ process CELLPROFILER_ILLUMAPPLY {
 
     output:
     tuple val(meta), path("*.tiff"), path("*.csv"), emit: corrected_images
+    tuple val(meta), path("*.png"), emit: qc_images, optional: true
     tuple val(meta), path("load_data.csv"), emit: load_data_csv
     path "versions.yml", emit: versions
 
@@ -88,8 +89,8 @@ with open('metadata.json','w') as f:
     stub:
     // For barcoding (has_cycles=true): create files with _Cycle pattern that downstream regex expects
     // For painting (has_cycles=false): create painting-style files
-    def stub_files = has_cycles ?
-        """
+    def stub_files = has_cycles
+        ? """
         touch load_data.csv
         touch Plate_${meta.plate}_Well_${meta.well}_Site_${meta.site ?: 1}_Cycle01_DNA.tiff
         touch Plate_${meta.plate}_Well_${meta.well}_Site_${meta.site ?: 1}_Cycle01_A.tiff
@@ -98,8 +99,8 @@ with open('metadata.json','w') as f:
         touch BarcodingIllumApplication_Experiment.csv
         touch BarcodingIllumApplication_Image.csv
         touch BarcodingIllumApplication_Nuclei.csv
-        """ :
         """
+        : """
         touch load_data.csv
         touch Plate_${meta.plate}_Well_${meta.well}_Site_${meta.site ?: 1}_CorrPhalloidin.tiff
         touch PaintingIllumApplication_Cells.csv

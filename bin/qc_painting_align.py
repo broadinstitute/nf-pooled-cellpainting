@@ -12,10 +12,10 @@
 # ---
 
 # %% [markdown]
-# # Pipeline 6 QC: Barcode Alignment Analysis
+# # Pipeline 2 QC: Multicycle Painting Alignment Analysis
 #
-# Analyzes alignment quality between barcoding cycles by examining pixel shifts
-# and correlation scores from Pipeline 6 outputs.
+# Analyzes alignment quality between painting cycles by examining pixel shifts
+# and correlation scores from Pipeline 2 outputs.
 
 # %% [markdown]
 # ## Setup and Configuration
@@ -28,6 +28,7 @@ import pandas as pd
 import seaborn as sns
 import datetime
 import matplotlib.pyplot as plt
+import sys
 
 # %matplotlib inline
 
@@ -38,8 +39,6 @@ import matplotlib.pyplot as plt
 # When running interactively, edit these defaults directly
 
 # Analysis parameters
-numcycles = 3
-imperwell = None  # Will be auto-detected from data if None
 shift_threshold = 50.0
 corr_threshold = 0.9
 
@@ -52,6 +51,7 @@ output_dir = "../data/Source1/workspace/qc_reports/6_alignment/Plate1"
 # For circular: set row_widths as comma-separated list
 rows = 2
 columns = 2
+imperwell = None
 row_widths = None  # Example: [5, 11, 17, 19, 23, 25, 27, 29, ...]
 
 # Cache control
@@ -70,7 +70,6 @@ use_cache = True
 Path(output_dir).mkdir(parents=True, exist_ok=True)
 
 print("Configuration:")
-print(f"  numcycles: {numcycles}")
 print(f"  imperwell: {imperwell if imperwell is not None else 'auto-detect'}")
 print(f"  shift_threshold: {shift_threshold}")
 print(f"  corr_threshold: {corr_threshold}")
@@ -134,23 +133,11 @@ def merge_csvs(csvfolder, filename, column_list=None, backup_list=None, filter_s
 csvfolder = input_dir
 cache_file = Path(output_dir) / "cached_alignment_data.parquet"
 
-# Detect channel naming convention (DNA vs DAPI) by checking first available CSV
-channel_name = "DAPI"  # default
+channel_name = "DNA"  # default
 folderlist = os.listdir(csvfolder)
-test_file = os.path.join(csvfolder, folderlist[0], "BarcodingApplication_Image.csv")
-if os.path.isfile(test_file):
-    # Read just the header to check column names
-    test_df = pd.read_csv(test_file, nrows=0)
-    if "Align_Xshift_Cycle02_DNA" in test_df.columns:
-        channel_name = "DNA"
-        print("Detected channel naming convention: DNA")
-    elif "Align_Xshift_Cycle02_DAPI" in test_df.columns:
-        channel_name = "DAPI"
-        print("Detected channel naming convention: DAPI")
-    else:
-        print(f"Could not detect channel naming convention, defaulting to {channel_name}")
+test_file = os.path.join(csvfolder, folderlist[0], "PaintingIllumApplication_Image.csv")
+# Can't pull columns to load from single sample file because not all images go through all of pipeline
 
-id_list = ["Metadata_Well", "Metadata_Plate", "Metadata_Site"]
 
 # Load data with caching support
 if use_cache and cache_file.exists():
@@ -160,27 +147,26 @@ if use_cache and cache_file.exists():
 else:
     print(f"Loading data from: {csvfolder}")
     df_image = merge_csvs(
-        csvfolder, "BarcodingApplication_Image.csv", backup_list=None, filter_string=None
+        csvfolder, "PaintingIllumApplication_Image.csv", backup_list=None, filter_string=None
     )
+    if not [x for x in df_image.columns if 'Align' in x]:
+        print("No alignment occurred in pipeline. Hopefully single-cycle of phenotypic acquisition")
+        sys.exit()
+    corr_cols = [x for x in df_image.columns if "Correlation_Correlation" in x and channel_name in x]
+    OL_cols = [x for x in df_image.columns if "Overlap_Recall" in x and channel_name in x]
+    MI_cols = [x for x in df_image.columns if 'MI' in x and channel_name in x]
+    shift_cols = [x for x in df_image.columns if 'Align_' in x and 'shift' in x and channel_name in x]
+
+    # Build column lists using detected channel name
+    id_list = ["Metadata_Well", "Metadata_Plate", "Metadata_Site"]
+    column_list = list(set(corr_cols + OL_cols + shift_cols + MI_cols + id_list))
+
     print(f"Loaded {len(df_image)} rows")
+
     # Cache for future use
     print(f"Caching data to: {cache_file}")
     df_image.to_parquet(cache_file, compression="gzip", index=False)
     print("Cache saved")
-
-# have to define column lists after load because not all image sets have all columns
-shift_list = [x for x in df_image.columns if "Align_Xshift_Cycle" in x and "MI" not in x and channel_name in x]
-shift_list += [x for x in df_image.columns if "Align_Yshift_Cycle" in x and "MI" not in x and channel_name in x]
-corr_list = [x for x in df_image.columns if "Correlation_Correlation_Cycle" in x and "MI" not in x and x.count(channel_name) == 2]
-orig_cols = [x for x in df_image.columns if "Correlation_Correlation" in x and "Orig" in x]
-MI_cols = [x for x in df_image.columns if "MI" in x and channel_name in x]
-print (f"Detected {len(MI_cols)} MI columns for channel {channel_name}")
-debris_cols = [x for x in df_image.columns if "Count_Debris" in x]
-print (f"Detected {len(debris_cols)} debris columns")
-OL_cols = [x for x in df_image.columns if "Overlap_Recall" in x]
-print (f"Detected {len(OL_cols)} Overlap_Recall columns")
-shift_list_MI = [x for x in MI_cols if "Align_Xshift_Cycle" in x or "Align_Yshift_Cycle" in x]
-corr_list_MI = [x for x in MI_cols if "Correlation_Correlation_Cycle" in x]
 
 # Detect site numbering convention (0-based or 1-based)
 min_site = df_image["Metadata_Site"].min()
@@ -194,39 +180,86 @@ if imperwell is None:
     imperwell = max_site - min_site + 1
     print(f"Auto-detected imperwell: {imperwell}")
 
-# %%
-if (df_image[orig_cols] > 0.95).any().any():
-    corr = (df_image[orig_cols] > 0.95).any()
-    print("Some input images are very highly correlated. Check the following for accidental duplication:")
-    print(corr[corr].index.tolist())
+# %% [markdown]
+# ## Create Position Mapping for Spatial Plots
+#
+# This cell creates a mapping from site number to (x, y) position.
+# Supports both square and circular acquisition patterns.
+# Position mapping is created after data loading to detect the site numbering convention.
 
+# %%
+# Only create position mapping if geometry is provided
+"""
+pos_df = None
+
+if rows and columns: #TODO rows and columns now required for circular too. need to update.
+    # Square/rectangular acquisition
+    print(f"Creating square position mapping: {rows}x{columns}")
+    pos_data = []
+    for site in range(rows * columns):
+        row = site // columns
+        col = site % columns
+        # Use min_site offset to match data's site numbering convention
+        pos_data.append({"Metadata_Site": site + min_site, "x_loc": col, "y_loc": row})
+    pos_df = pd.DataFrame(pos_data)
+
+elif row_widths:
+    # Circular acquisition (from original notebook)
+    print(f"Creating circular position mapping with {len(row_widths)} rows")
+    max_width = max(row_widths)
+    pos_dict = {}
+    count = 0
+    # creates dict of (xpos,ypos) = imnumber
+    for row in range(len(row_widths)):
+        row_width = row_widths[row]
+        left_pos = int((max_width - row_width) / 2)
+        for col in range(row_width):
+            if row % 2 == 0:
+                # Use min_site offset to match data's site numbering convention
+                pos_dict[(int(left_pos + col), row)] = count + min_site
+                count += 1
+            else:
+                right_pos = left_pos + row_width - 1
+                # Use min_site offset to match data's site numbering convention
+                pos_dict[(int(right_pos - col), row)] = count + min_site
+                count += 1
+    # make dict into df
+    pos_df = (
+        pd.DataFrame.from_dict(pos_dict, orient="index")
+        .reset_index()
+        .rename(columns={"index": "loc", 0: "Metadata_Site"})
+    )
+    pos_df[["x_loc", "y_loc"]] = pd.DataFrame(
+        pos_df["loc"].tolist(), index=pos_df.index
+    )
+else:
+    print("No geometry provided - spatial plot will be skipped")
+
+if pos_df is not None:
+    print(f"Position mapping created for {len(pos_df)} sites (starting at site {min_site})")
+"""
 # %% [markdown]
 # ## Prepare Data for Analysis
 
 # %%
-df_shift = df_image[shift_list + id_list]
+df_shift = df_image[[x for x in shift_cols if 'MI' not in x] + id_list]
 df_shift = pd.melt(df_shift, id_vars=id_list)
-df_corr = df_image[corr_list + id_list]
+df_corr = df_image[[x for x in corr_cols if 'MI' not in x] + id_list]
 df_corr = pd.melt(df_corr, id_vars=id_list)
-df_corr_crop = df_image[[x for x in corr_list if "Correlation_Cycle01" in x] + id_list]
-df_corr_crop = pd.melt(df_corr_crop, id_vars=id_list)
 if MI_cols:
-    df_shift_MI = df_image[shift_list_MI + id_list]
-    df_shift_MI = pd.melt(df_shift_MI, id_vars=id_list)
-    df_corr_MI = df_image[corr_list_MI + id_list]
-    df_corr_MI = pd.melt(df_corr_MI, id_vars=id_list)
-    df_corr_crop_MI = df_image[[x for x in corr_list_MI if "Correlation_Cycle01" in x] + id_list]
-    df_corr_crop_MI = pd.melt(df_corr_crop_MI, id_vars=id_list)
+    df_shift_MI = df_image[[x for x in shift_cols if 'MI' in x] + id_list]
+    df_shift_MI = pd.melt(df_shift_MI, id_vars=id_list).dropna()
+    df_corr_MI = df_image[[x for x in corr_cols if 'MI' in x] + id_list]
+    df_corr_MI = pd.melt(df_corr_MI, id_vars=id_list).dropna()
 
 print("Prepared data:")
 print(f"  Shifts: {len(df_shift)} rows")
 print(f"  All correlations: {len(df_corr)} rows")
-print(f"  Cycle01 correlations: {len(df_corr_crop)} rows")
 
 # %% [markdown]
 # ## Pixel Shifts Analysis - ORIGINAL NCC ALIGNMENT METHOD
 #
-# ### Pixels shifted to align each cycle to Cycle01 (no axis limits)
+# ### Pixels shifted to align the second round (no axis limits)
 
 # %%
 g = sns.catplot(
@@ -242,7 +275,7 @@ for ax in g.axes.flat:
 plt.show()
 
 # %% [markdown]
-# ### Pixels shifted to align each cycle to Cycle01 (x axis limited to a range)
+# ### Pixels shifted to align the second round (x axis limited to a range)
 
 # %%
 g = sns.catplot(
@@ -253,9 +286,9 @@ g = sns.catplot(
     col="Metadata_Well",
     col_wrap=4,
 )
-g.set(xlim=(-200, 200))
 for ax in g.axes.flat:
     ax.tick_params(labelbottom=True)
+g.set(xlim=(-200, 200))
 plt.show()
 
 # %% [markdown]
@@ -275,65 +308,73 @@ for well in temp["Metadata_Well"].unique():
     )
 
 # %% [markdown]
+# ### Spatial distribution of large shifts
+#
+# Plot size of shift by location, ignoring shifts >200
+
+# %%
+"""
+if pos_df is not None:
+    temp = (
+        df_shift.loc[df_shift["value"] > value]
+        .groupby(["Metadata_Plate", "Metadata_Well", "Metadata_Site"])
+        .max()
+        .reset_index()
+        .merge(pos_df)
+    )
+    temp = temp.loc[temp["value"] < 200]
+
+    if len(temp) > 0:
+        g = sns.relplot(
+            data=temp,
+            x="x_loc",
+            y="y_loc",
+            hue="value",  # hue_norm=(0,200),
+            col="Metadata_Well",
+            col_wrap=3,
+            palette="viridis",
+            marker="s",
+            s=150,
+        )
+        print(g._legend_data)
+        plt.show()
+    else:
+        print(f"No sites with shifts >{value} and <200 pixels")
+else:
+    print("Skipping spatial plot - no geometry provided")
+"""
+# %% [markdown]
 # ## Correlation Analysis - ORIGINAL NCC ALIGNMENT METHOD
 #
-# ### DAPI correlations after alignment (all pairwise comparisons)
+# ### DNA correlations after alignment
 #
 # Need all points to be better than red line
 
 # %%
 g = sns.catplot(
     data=df_corr,
-    x="value",
-    y="variable",
-    orient="h",
-    col="Metadata_Well",
-    col_wrap=4,
+    y="value",
+    x="Metadata_Well",
 )
-g.refline(x=corr_threshold, color="red")
-g.set(xlim=(0, None))
-plt.show()
-
-# %% [markdown]
-# ### DAPI correlations after alignment (only correlations to Cycle01) - ORIGINAL NCC ALIGNMENT METHOD
-#
-# Need all points to be better than red line
-
-# %%
-g = sns.catplot(
-    data=df_corr_crop,
-    x="value",
-    y="variable",
-    orient="h",
-    col="Metadata_Well",
-    col_wrap=4,
-)
-g.refline(x=corr_threshold, color="red")
-g.set(xlim=(0, None))
+g.refline(y=corr_threshold, color="red")
+g.set(ylim=(0, None))
 plt.show()
 
 # %% [markdown]
 # ### Summary: Correlation statistics
 
 # %%
-print("For correlations to Cycle01")
 print(
-    f"{len(df_corr_crop.groupby(['Metadata_Plate', 'Metadata_Well', 'Metadata_Site']))} total sites"
+    f"{len(df_corr.groupby(['Metadata_Plate', 'Metadata_Well', 'Metadata_Site']))} total sites"
 )
 print(
-    f"{len(df_corr_crop.loc[df_corr_crop['value'] < 0.9])} sites with correlation <.9"
+    f"{len(df_corr.loc[df_corr['value'] < 0.9])} sites with correlation <.9"
 )
 print(
-    f"{len(df_corr_crop.loc[df_corr_crop['value'] < 0.8])} sites with correlation <.8"
+    f"{len(df_corr.loc[df_corr['value'] < 0.8])} sites with correlation <.8"
 )
 # Print Awful alignment scores after alignment
-df_corr_crop.sort_values(by="value").head(20)
-
-# %%
-# Print mediocre alignment score after alignment
-df_corr_crop.loc[df_corr_crop["value"] < 0.5].sort_values(
-    by="value", ascending=False
-).head(20)
+df_corr.loc[df_corr['value'] < 0.5].sort_values(by="value").head(20)
 
 # %% [markdown]
 # ### Summary: Large pixel shifts - ORIGINAL NCC ALIGNMENT METHOD
@@ -346,66 +387,28 @@ print(
 
 df_shift.loc[df_shift["value"] > 100].sort_values(by="value", ascending=False).head(20)
 
+# %% [markdown]
+# ### Overlap of Thresholded Images
+# #### (Handles well edge better than correlation)
+
 # %%
 # Alignment quality using thresholding
 # Handles well edge much better than image correlation
-def make_plot(df):
-    records = []
-    for col in [x for x in df.columns if 'Metadata' not in x]:
-        # Extract the cycle number (e.g., 'Cycle02')
-        cycle_match = re.search(r'(Cycle\d+)', col, flags=re.IGNORECASE)
-        cycle_num = cycle_match.group(1) if cycle_match else "Unknown"
-
-        # Grab just this column
-        temp_df = df[[col]].copy()
-        temp_df.columns = ['Overlap_Recall'] # Standardize the column name
-        temp_df['Cycle'] = cycle_num.replace('Cycle','')
-        temp_df['Well'] = df['Metadata_Well']
-
-        records.append(temp_df)
-    # Combine into a single long DataFrame
-    plot_df = pd.concat(records, ignore_index=True)
-
-    plt.figure(figsize=(12, 6))
-
-    g = sns.catplot(
-        data=plot_df,
-        kind='strip',
-        x='Cycle',
-        y='Overlap_Recall',
-        alpha=0.7,
-        col="Well",
-        col_wrap=3,
-        legend=False      # Legend is redundant since the X-axis already labels the cycles
-    )
-
-    min_val = plot_df['Overlap_Recall'].min()
-    for well_name, ax in g.axes_dict.items():
-        local_min = plot_df[plot_df['Well'] == well_name]['Overlap_Recall'].min()
-        ax.axhline(y=local_min, color='lightblue', linestyle='--', linewidth=1.5,
-                label=f'Well Minimum ({local_min:.3f})')
-        ax.axhline(y=min_val, color='blue', linestyle='--', linewidth=1.5,
-                label=f'Global Minimum ({min_val:.3f})')
-        ax.axhline(y=0.8, color='pink', linestyle='--', linewidth=1.5,
-                label='QC Threshold (0.8)')
-        ax.axhline(y=0.65, color='red', linestyle='--', linewidth=1.5,
-                label='QC Threshold (0.65)')
-
-    # Add a single legend to the whole figure
-    handles, labels = g.axes.flat[0].get_legend_handles_labels()
-    g.figure.legend(handles, labels, loc='center right', bbox_to_anchor=(1.15, 0.5))
-
-    plt.ylim(0, 1.05)
-
-    plt.tight_layout()
-    plt.show()
 if OL_cols:
-    make_plot(df_image[[x for x in OL_cols if 'MI' not in x]+['Metadata_Well']])
+    g = sns.catplot(
+    data=df_image,
+    y=[x for x in OL_cols if 'MI' not in x][0],
+    x="Metadata_Well",
+    )
+    g.refline(y=.8, color="red")
+    g.set(ylim=(0, 1.05))
+    g.set(title='Overlap of Thresholded Images')
+    plt.show()
 
 # %% [markdown]
 # ## Pixel Shifts Analysis - MI ALIGNMENT METHOD
-#
-# ### Pixels shifted to align each cycle to Cycle01 (no axis limits)
+# If NCC alignment fails
+# ### Pixels shifted to align second cycle (no axis limits)
 
 # %%
 if MI_cols:
@@ -420,7 +423,7 @@ if MI_cols:
     plt.show()
 
 # %% [markdown]
-# ### Pixels shifted to align each cycle to Cycle01 (x axis limited to a range)
+# ### Pixels shifted to align second cycle (x axis limited to a range)
 
 # %%
 if MI_cols:
@@ -433,7 +436,6 @@ if MI_cols:
         col_wrap=4,
     )
     g.set(xlim=(-200, 200))
-    plt.show()
 
 # %% [markdown]
 # ### Summary: Sites with large shifts
@@ -453,9 +455,45 @@ if MI_cols:
         )
 
 # %% [markdown]
+# ### Spatial distribution of large shifts
+#
+# Plot size of shift by location, ignoring shifts >200
+
+# %%
+"""
+if MI_cols and pos_df is not None:
+    temp = (
+        df_shift_MI.loc[df_shift_MI["value"] > value]
+        .groupby(["Metadata_Plate", "Metadata_Well", "Metadata_Site"])
+        .max()
+        .reset_index()
+        .merge(pos_df)
+    )
+    temp = temp.loc[temp["value"] < 200]
+
+    if len(temp) > 0:
+        g = sns.relplot(
+            data=temp,
+            x="x_loc",
+            y="y_loc",
+            hue="value",  # hue_norm=(0,200),
+            col="Metadata_Well",
+            col_wrap=3,
+            palette="viridis",
+            marker="s",
+            s=150,
+        )
+        print(g._legend_data)
+        plt.show()
+    else:
+        print(f"No sites with shifts >{value} and <200 pixels")
+else:
+    print("Skipping spatial plot - no geometry provided")
+"""
+# %% [markdown]
 # ## Correlation Analysis - MI ALIGNMENT METHOD
 #
-# ### DAPI correlations after alignment (all pairwise comparisons)
+# ### DNA correlations after alignment (all pairwise comparisons)
 #
 # Need all points to be better than red line
 
@@ -463,33 +501,11 @@ if MI_cols:
 if MI_cols:
     g = sns.catplot(
         data=df_corr_MI,
-        x="value",
-        y="variable",
-        orient="h",
-        col="Metadata_Well",
-        col_wrap=4,
+        y="value",
+        x="Metadata_Well",
     )
-    g.refline(x=corr_threshold, color="red")
-    g.set(xlim=(0, None))
-    plt.show()
-
-# %% [markdown]
-# ### DAPI correlations after alignment (only correlations to Cycle01) - MI ALIGNMENT METHOD
-#
-# Need all points to be better than red line
-
-# %%
-if MI_cols:
-    g = sns.catplot(
-    data=df_corr_crop_MI,
-    x="value",
-    y="variable",
-    orient="h",
-    col="Metadata_Well",
-    col_wrap=4,
-    )
-    g.refline(x=corr_threshold, color="red")
-    g.set(xlim=(0, None))
+    g.refline(y=corr_threshold, color="red")
+    g.set(ylim=(0, 1.05))
     plt.show()
 
 # %% [markdown]
@@ -499,21 +515,21 @@ if MI_cols:
 if MI_cols:
     print("For correlations to Cycle01")
     print(
-        f"{len(df_corr_crop_MI.groupby(['Metadata_Plate', 'Metadata_Well', 'Metadata_Site']))} total sites"
+        f"{len(df_corr_MI.groupby(['Metadata_Plate', 'Metadata_Well', 'Metadata_Site']))} total sites"
     )
     print(
-        f"{len(df_corr_crop_MI.loc[df_corr_crop_MI['value'] < 0.9])} sites with correlation <.9"
+        f"{len(df_corr_MI.loc[df_corr_MI['value'] < 0.9])} sites with correlation <.9"
     )
     print(
-        f"{len(df_corr_crop_MI.loc[df_corr_crop_MI['value'] < 0.8])} sites with correlation <.8"
+        f"{len(df_corr_MI.loc[df_corr_MI['value'] < 0.8])} sites with correlation <.8"
     )
     # Print Awful alignment scores after alignment
-    df_corr_crop_MI.sort_values(by="value").head(20)
+    df_corr_MI.loc[df_corr_MI['value'] < 0.8].sort_values(by="value").head(20)
 
 # %%
 # Print mediocre alignment score after alignment
 if MI_cols:
-    df_corr_crop_MI.loc[df_corr_crop_MI["value"] < 0.5].sort_values(
+    df_corr_MI.loc[df_corr_MI["value"] < 0.5].sort_values(
         by="value", ascending=False
     ).head(20)
 
@@ -531,4 +547,12 @@ if MI_cols:
 
 # %
 if OL_cols and MI_cols:
-    make_plot(df_image[[x for x in OL_cols if 'MI' in x]+['Metadata_Well']])
+    g = sns.catplot(
+        data=df_image,
+        y=[x for x in OL_cols if 'MI' in x][0],
+        x="Metadata_Well",
+        )
+    g.refline(y=.8, color="red")
+    g.set(ylim=(0, 1.05))
+    g.set(title='Overlap of Thresholded Images AFTER MI alignment')
+    plt.show()

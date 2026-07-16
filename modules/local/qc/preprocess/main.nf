@@ -40,7 +40,7 @@ process QC_PREPROCESS {
         ${rows_param} \\
         ${columns_param}
 
-    jupyter nbconvert --to html ${prefix}_qc_barcode_preprocess.ipynb
+    jupyter nbconvert --to html --no-input ${prefix}_qc_barcode_preprocess.ipynb
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
