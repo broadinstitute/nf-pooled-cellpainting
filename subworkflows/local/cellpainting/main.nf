@@ -76,12 +76,15 @@ workflow CELLPAINTING {
     CELLPROFILER_ILLUMCALC.out.load_data_csv.collectFile(keepHeader: true, skip: 1) { meta, csv ->
         def dir = file("${outdir}/workspace/load_data_csv/${meta.batch}/${meta.plate}")
         dir.mkdirs()
-        ["${dir}/painting-illumcalc.load_data.csv", csv.text.replaceFirst(/(?m)^(.*)$/) { line ->
-            line[0]
-                .replace('FinalFileName_', '__FINAL__')
-                .replace('FileName_', 'StagedFileName_')
-                .replace('__FINAL__', 'FileName_')
-        }]
+        [
+            "${dir}/painting-illumcalc.load_data.csv",
+            csv.text.replaceFirst(/(?m)^(.*)$/) { line ->
+                line[0]
+                    .replace('FinalFileName_', '__FINAL__')
+                    .replace('FileName_', 'StagedFileName_')
+                    .replace('__FINAL__', 'FileName_')
+            },
+        ]
     }
 
     ch_versions = ch_versions.mix(CELLPROFILER_ILLUMCALC.out.versions)
@@ -169,12 +172,15 @@ workflow CELLPAINTING {
     CELLPROFILER_ILLUMAPPLY_PAINTING.out.load_data_csv.collectFile(keepHeader: true, skip: 1) { meta, csv ->
         def dir = file("${outdir}/workspace/load_data_csv/${meta.batch}/${meta.plate}")
         dir.mkdirs()
-        ["${dir}/painting-illumapply.load_data.csv", csv.text.replaceFirst(/(?m)^(.*)$/) { line ->
-            line[0]
-                .replace('FinalFileName_', '__FINAL__')
-                .replace('FileName_', 'StagedFileName_')
-                .replace('__FINAL__', 'FileName_')
-        }]
+        [
+            "${dir}/painting-illumapply.load_data.csv",
+            csv.text.replaceFirst(/(?m)^(.*)$/) { line ->
+                line[0]
+                    .replace('FinalFileName_', '__FINAL__')
+                    .replace('FileName_', 'StagedFileName_')
+                    .replace('__FINAL__', 'FileName_')
+            },
+        ]
     }
 
     // QC montage of any PNG QC images output by illumapply (optional)
@@ -284,12 +290,15 @@ workflow CELLPAINTING {
     CELLPROFILER_SEGCHECK.out.load_data_csv.collectFile(keepHeader: true, skip: 1) { meta, csv ->
         def dir = file("${outdir}/workspace/load_data_csv/${meta.batch}/${meta.plate}")
         dir.mkdirs()
-        ["${dir}/painting-segcheck.load_data.csv", csv.text.replaceFirst(/(?m)^(.*)$/) { line ->
-            line[0]
-                .replace('FinalFileName_', '__FINAL__')
-                .replace('FileName_', 'StagedFileName_')
-                .replace('__FINAL__', 'FileName_')
-        }]
+        [
+            "${dir}/painting-segcheck.load_data.csv",
+            csv.text.replaceFirst(/(?m)^(.*)$/) { line ->
+                line[0]
+                    .replace('FinalFileName_', '__FINAL__')
+                    .replace('FileName_', 'StagedFileName_')
+                    .replace('__FINAL__', 'FileName_')
+            },
+        ]
     }
 
     // Reshape CELLPROFILER_SEGCHECK output for QC montage

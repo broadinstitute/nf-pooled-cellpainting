@@ -79,12 +79,15 @@ workflow BARCODING {
     CELLPROFILER_ILLUMCALC.out.load_data_csv.collectFile(keepHeader: true, skip: 1) { meta, csv ->
         def dir = file("${outdir}/workspace/load_data_csv/${meta.batch}/${meta.plate}")
         dir.mkdirs()
-        ["${dir}/barcoding-illumcalc.load_data.csv", csv.text.replaceFirst(/(?m)^(.*)$/) { line ->
-            line[0]
-                .replace('FinalFileName_', '__FINAL__')
-                .replace('FileName_', 'StagedFileName_')
-                .replace('__FINAL__', 'FileName_')
-        }]
+        [
+            "${dir}/barcoding-illumcalc.load_data.csv",
+            csv.text.replaceFirst(/(?m)^(.*)$/) { line ->
+                line[0]
+                    .replace('FinalFileName_', '__FINAL__')
+                    .replace('FileName_', 'StagedFileName_')
+                    .replace('__FINAL__', 'FileName_')
+            },
+        ]
     }
 
     //// QC illumination correction profiles ////
@@ -186,12 +189,15 @@ workflow BARCODING {
     CELLPROFILER_ILLUMAPPLY_BARCODING.out.load_data_csv.collectFile(keepHeader: true, skip: 1) { meta, csv ->
         def dir = file("${outdir}/workspace/load_data_csv/${meta.batch}/${meta.plate}")
         dir.mkdirs()
-        ["${dir}/barcoding-illumapply.load_data.csv", csv.text.replaceFirst(/(?m)^(.*)$/) { line ->
-            line[0]
-                .replace('FinalFileName_', '__FINAL__')
-                .replace('FileName_', 'StagedFileName_')
-                .replace('__FINAL__', 'FileName_')
-        }]
+        [
+            "${dir}/barcoding-illumapply.load_data.csv",
+            csv.text.replaceFirst(/(?m)^(.*)$/) { line ->
+                line[0]
+                    .replace('FinalFileName_', '__FINAL__')
+                    .replace('FileName_', 'StagedFileName_')
+                    .replace('__FINAL__', 'FileName_')
+            },
+        ]
     }
 
     // QC montage of any PNG QC images output by illumapply (optional)
@@ -311,12 +317,15 @@ workflow BARCODING {
     CELLPROFILER_PREPROCESS.out.load_data_csv.collectFile(keepHeader: true, skip: 1) { meta, csv ->
         def dir = file("${outdir}/workspace/load_data_csv/${meta.batch}/${meta.plate}")
         dir.mkdirs()
-        ["${dir}/barcoding-preprocess.load_data.csv", csv.text.replaceFirst(/(?m)^(.*)$/) { line ->
-            line[0]
-                .replace('FinalFileName_', '__FINAL__')
-                .replace('FileName_', 'StagedFileName_')
-                .replace('__FINAL__', 'FileName_')
-        }]
+        [
+            "${dir}/barcoding-preprocess.load_data.csv",
+            csv.text.replaceFirst(/(?m)^(.*)$/) { line ->
+                line[0]
+                    .replace('FinalFileName_', '__FINAL__')
+                    .replace('FileName_', 'StagedFileName_')
+                    .replace('__FINAL__', 'FileName_')
+            },
+        ]
     }
 
     //// QC: Barcode preprocessing ////

@@ -198,8 +198,8 @@ workflow POOLED_CELLPAINTING {
 
                 // Detect unique cycles from barcoding images
                 def unique_cycles = image_metas
-                    .findAll { it.cycle != null }
-                    .collect { it.cycle }
+                    .findAll { image_meta -> image_meta.cycle != null }
+                    .collect { image_meta -> image_meta.cycle }
                     .unique()
                     .sort()
 
@@ -233,13 +233,17 @@ workflow POOLED_CELLPAINTING {
         CELLPROFILER_COMBINEDANALYSIS.out.load_data_csv.collectFile(keepHeader: true, skip: 1) { meta, csv ->
             def dir = file("${params.outdir}/workspace/load_data_csv/${meta.batch}/${meta.plate}")
             dir.mkdirs()
-            ["${dir}/combined_analysis.load_data.csv", csv.text.replaceFirst(/(?m)^(.*)$/) { line ->
-                line[0]
-                    .replace('FinalFileName_', '__FINAL__')
-                    .replace('FileName_', 'StagedFileName_')
-                    .replace('__FINAL__', 'FileName_')
-            }]
+            [
+                "${dir}/combined_analysis.load_data.csv",
+                csv.text.replaceFirst(/(?m)^(.*)$/) { line ->
+                    line[0]
+                        .replace('FinalFileName_', '__FINAL__')
+                        .replace('FileName_', 'StagedFileName_')
+                        .replace('__FINAL__', 'FileName_')
+                },
+            ]
         }
+    }
     else {
         log.info("Skipping combined analysis: Both qc_painting_passed (${params.qc_painting_passed}) and qc_barcoding_passed (${params.qc_barcoding_passed}) must be true. Review QC montages for both arms and set both parameters to true to proceed.")
     }
@@ -260,17 +264,6 @@ workflow POOLED_CELLPAINTING {
     //
     // MODULE: MultiQC
     //
-    ch_multiqc_config = channel.fromPath(
-        "${projectDir}/assets/multiqc_config.yml",
-        checkIfExists: true
-    )
-    ch_multiqc_custom_config = params.multiqc_config
-        ? channel.fromPath(params.multiqc_config, checkIfExists: true)
-        : channel.empty()
-    ch_multiqc_logo = params.multiqc_logo
-        ? channel.fromPath(params.multiqc_logo, checkIfExists: true)
-        : channel.empty()
-
     summary_params = paramsSummaryMap(
         workflow,
         parameters_schema: "nextflow_schema.json"
@@ -295,13 +288,14 @@ workflow POOLED_CELLPAINTING {
     )
 
     MULTIQC(
-        ch_multiqc_files.collect()
-            .map { files ->
-                def config_list = [file("${projectDir}/assets/multiqc_config.yml")]
-                if (params.multiqc_config) { config_list << file(params.multiqc_config) }
-                def logo_list = params.multiqc_logo ? [file(params.multiqc_logo)] : []
-                [[id: 'multiqc'], files, config_list, logo_list, [], []]
+        ch_multiqc_files.collect().map { files ->
+            def config_list = [file("${projectDir}/assets/multiqc_config.yml")]
+            if (params.multiqc_config) {
+                config_list << file(params.multiqc_config)
             }
+            def logo_list = params.multiqc_logo ? [file(params.multiqc_logo)] : []
+            [[id: 'multiqc'], files, config_list, logo_list, [], []]
+        }
     )
 
     emit:
