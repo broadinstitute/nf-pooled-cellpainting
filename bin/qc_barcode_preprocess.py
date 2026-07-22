@@ -567,6 +567,25 @@ if median_cols:
     plot_chan_combos(df_foci, median_cols,'Median Intensity', numcycles)
 
 # %%
+if int_cols:
+    if numcycles <=12:
+        plotrows = 3
+    else:
+        plotrows = 4
+    for channelcombo in [("568","647"),("488","647"),("488","568")]:
+        fig, axes = plt.subplots(plotrows, 4, sharex=True, sharey=True, figsize=(16,plotrows*4))
+        fig.suptitle(f'Intensity Comparison: {channelcombo[0]} vs {channelcombo[1]}', fontsize=20, fontweight='bold')
+        axes=axes.flatten()
+        for cycle in range(numcycles):
+            sub_data = df_foci.query(f"(Intensity_IntegratedIntensity_Threshold_{channelcombo[0]}_Cycle{cycle+1:02} > 0) | (Intensity_IntegratedIntensity_Threshold_{channelcombo[1]}_Cycle{cycle+1:02} > 0)")
+            sns.histplot(ax=axes[cycle], data=sub_data,x=f'Intensity_IntegratedIntensity_Threshold_{channelcombo[0]}_Cycle{cycle+1:02}',y=f'Intensity_IntegratedIntensity_Threshold_{channelcombo[1]}_Cycle{cycle+1:02}',
+                        )
+            axes[cycle].set_title(f'Cycle{cycle+1:02}')
+            axes[cycle].set(xlabel=channelcombo[0], ylabel=channelcombo[1])
+        plt.tight_layout(rect=[0, 0, 1, 0.96])
+        plt.show()
+
+# %%
 perfect_df = df_foci[df_foci["Barcode_MatchedTo_Score"] == 1]
 
 print(f"The number of unique genes in the library is {len(bc_df[gene_col].unique())}")
