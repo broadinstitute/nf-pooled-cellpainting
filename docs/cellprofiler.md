@@ -167,8 +167,8 @@ cellprofiler -c -r \\
 Default URLs are configured in `nextflow.config`:
 
 ```groovy
-callbarcodes_plugin = "https://raw.githubusercontent.com/CellProfiler/CellProfiler-plugins/refs/heads/master/active_plugins/callbarcodes.py"
-compensatecolors_plugin = "https://raw.githubusercontent.com/CellProfiler/CellProfiler-plugins/refs/heads/master/active_plugins/compensatecolors.py"
+callbarcodes_plugin = "https://raw.githubusercontent.com/CellProfiler/CellProfiler-plugins/ad3d9c031b97a31f6300372baa378f75ecb44426/active_plugins/callbarcodes.py"
+compensatecolors_plugin = "https://raw.githubusercontent.com/CellProfiler/CellProfiler-plugins/da969556d1d5095e5737601f483c7d55da374f75/active_plugins/compensatecolors.py"
 ```
 
 ## Output Organization
