@@ -345,12 +345,12 @@
             "properties": {
                 "callbarcodes_plugin": {
                     "type": "string",
-                    "default": "https://raw.githubusercontent.com/CellProfiler/CellProfiler-plugins/refs/heads/master/active_plugins/callbarcodes.py",
+                    "default": "https://raw.githubusercontent.com/CellProfiler/CellProfiler-plugins/ad3d9c031b97a31f6300372baa378f75ecb44426/active_plugins/callbarcodes.py",
                     "description": "Cellprofiler plugin for calling barcodes."
                 },
                 "compensatecolors_plugin": {
                     "type": "string",
-                    "default": "https://raw.githubusercontent.com/CellProfiler/CellProfiler-plugins/refs/heads/master/active_plugins/compensatecolors.py",
+                    "default": "https://raw.githubusercontent.com/CellProfiler/CellProfiler-plugins/da969556d1d5095e5737601f483c7d55da374f75/active_plugins/compensatecolors.py",
                     "description": "Cellprofiler plugin for compensating colors."
                 }
             },
