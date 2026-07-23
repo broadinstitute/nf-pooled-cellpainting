@@ -191,12 +191,14 @@
                 "pipeline_info/nf-pooled-cellpainting_software_mqc_versions.yml",
                 "workspace",
                 "workspace/load_data_csv",
-                "workspace/load_data_csv/barcoding-illumapply.load_data.csv",
-                "workspace/load_data_csv/barcoding-illumcalc.load_data.csv",
-                "workspace/load_data_csv/barcoding-preprocess.load_data.csv",
-                "workspace/load_data_csv/painting-illumapply.load_data.csv",
-                "workspace/load_data_csv/painting-illumcalc.load_data.csv",
-                "workspace/load_data_csv/painting-segcheck.load_data.csv",
+                "workspace/load_data_csv/Batch1",
+                "workspace/load_data_csv/Batch1/Plate1",
+                "workspace/load_data_csv/Batch1/Plate1/barcoding-illumapply.load_data.csv",
+                "workspace/load_data_csv/Batch1/Plate1/barcoding-illumcalc.load_data.csv",
+                "workspace/load_data_csv/Batch1/Plate1/barcoding-preprocess.load_data.csv",
+                "workspace/load_data_csv/Batch1/Plate1/painting-illumapply.load_data.csv",
+                "workspace/load_data_csv/Batch1/Plate1/painting-illumcalc.load_data.csv",
+                "workspace/load_data_csv/Batch1/Plate1/painting-segcheck.load_data.csv",
                 "workspace/qc_reports",
                 "workspace/qc_reports/1_illumination_painting",
                 "workspace/qc_reports/1_illumination_painting/Plate1",
@@ -390,7 +392,7 @@
             "nf-test": "0.9.3",
             "nextflow": "25.10.2"
         },
-        "timestamp": "2026-06-30T15:42:39.268384"
+        "timestamp": "2026-07-22T12:19:43.277501"
     },
     "nf-pooled-cellpainting - full pipeline - test profile - stub - barcoding qc false": {
         "content": [
@@ -617,12 +619,14 @@
                 "pipeline_info/nf-pooled-cellpainting_software_mqc_versions.yml",
                 "workspace",
                 "workspace/load_data_csv",
-                "workspace/load_data_csv/barcoding-illumapply.load_data.csv",
-                "workspace/load_data_csv/barcoding-illumcalc.load_data.csv",
-                "workspace/load_data_csv/barcoding-preprocess.load_data.csv",
-                "workspace/load_data_csv/painting-illumapply.load_data.csv",
-                "workspace/load_data_csv/painting-illumcalc.load_data.csv",
-                "workspace/load_data_csv/painting-segcheck.load_data.csv",
+                "workspace/load_data_csv/Batch1",
+                "workspace/load_data_csv/Batch1/Plate1",
+                "workspace/load_data_csv/Batch1/Plate1/barcoding-illumapply.load_data.csv",
+                "workspace/load_data_csv/Batch1/Plate1/barcoding-illumcalc.load_data.csv",
+                "workspace/load_data_csv/Batch1/Plate1/barcoding-preprocess.load_data.csv",
+                "workspace/load_data_csv/Batch1/Plate1/painting-illumapply.load_data.csv",
+                "workspace/load_data_csv/Batch1/Plate1/painting-illumcalc.load_data.csv",
+                "workspace/load_data_csv/Batch1/Plate1/painting-segcheck.load_data.csv",
                 "workspace/qc_reports",
                 "workspace/qc_reports/1_illumination_painting",
                 "workspace/qc_reports/1_illumination_painting/Plate1",
@@ -835,7 +839,7 @@
             "nf-test": "0.9.3",
             "nextflow": "25.10.2"
         },
-        "timestamp": "2026-06-30T15:44:21.50448"
+        "timestamp": "2026-07-22T12:21:20.380578"
     },
     "nf-pooled-cellpainting - full pipeline - test profile - qc passed": {
         "content": [
@@ -2350,12 +2354,14 @@
                 "pipeline_info/nf-pooled-cellpainting_software_mqc_versions.yml",
                 "workspace",
                 "workspace/load_data_csv",
-                "workspace/load_data_csv/barcoding-illumapply.load_data.csv",
-                "workspace/load_data_csv/barcoding-illumcalc.load_data.csv",
-                "workspace/load_data_csv/barcoding-preprocess.load_data.csv",
-                "workspace/load_data_csv/painting-illumapply.load_data.csv",
-                "workspace/load_data_csv/painting-illumcalc.load_data.csv",
-                "workspace/load_data_csv/painting-segcheck.load_data.csv",
+                "workspace/load_data_csv/Batch1",
+                "workspace/load_data_csv/Batch1/Plate1",
+                "workspace/load_data_csv/Batch1/Plate1/barcoding-illumapply.load_data.csv",
+                "workspace/load_data_csv/Batch1/Plate1/barcoding-illumcalc.load_data.csv",
+                "workspace/load_data_csv/Batch1/Plate1/barcoding-preprocess.load_data.csv",
+                "workspace/load_data_csv/Batch1/Plate1/painting-illumapply.load_data.csv",
+                "workspace/load_data_csv/Batch1/Plate1/painting-illumcalc.load_data.csv",
+                "workspace/load_data_csv/Batch1/Plate1/painting-segcheck.load_data.csv",
                 "workspace/qc_reports",
                 "workspace/qc_reports/1_illumination_painting",
                 "workspace/qc_reports/1_illumination_painting/Plate1",
@@ -2549,7 +2555,7 @@
             "nf-test": "0.9.3",
             "nextflow": "25.10.2"
         },
-        "timestamp": "2026-06-30T15:45:09.536534"
+        "timestamp": "2026-07-22T12:22:09.09794"
     },
     "nf-pooled-cellpainting - full pipeline - test profile - stub - painting qc false": {
         "content": [
@@ -2779,12 +2785,14 @@
                 "pipeline_info/nf-pooled-cellpainting_software_mqc_versions.yml",
                 "workspace",
                 "workspace/load_data_csv",
-                "workspace/load_data_csv/barcoding-illumapply.load_data.csv",
-                "workspace/load_data_csv/barcoding-illumcalc.load_data.csv",
-                "workspace/load_data_csv/barcoding-preprocess.load_data.csv",
-                "workspace/load_data_csv/painting-illumapply.load_data.csv",
-                "workspace/load_data_csv/painting-illumcalc.load_data.csv",
-                "workspace/load_data_csv/painting-segcheck.load_data.csv",
+                "workspace/load_data_csv/Batch1",
+                "workspace/load_data_csv/Batch1/Plate1",
+                "workspace/load_data_csv/Batch1/Plate1/barcoding-illumapply.load_data.csv",
+                "workspace/load_data_csv/Batch1/Plate1/barcoding-illumcalc.load_data.csv",
+                "workspace/load_data_csv/Batch1/Plate1/barcoding-preprocess.load_data.csv",
+                "workspace/load_data_csv/Batch1/Plate1/painting-illumapply.load_data.csv",
+                "workspace/load_data_csv/Batch1/Plate1/painting-illumcalc.load_data.csv",
+                "workspace/load_data_csv/Batch1/Plate1/painting-segcheck.load_data.csv",
                 "workspace/qc_reports",
                 "workspace/qc_reports/1_illumination_painting",
                 "workspace/qc_reports/1_illumination_painting/Plate1",
@@ -3000,6 +3008,6 @@
             "nf-test": "0.9.3",
             "nextflow": "25.10.2"
         },
-        "timestamp": "2026-06-30T15:43:28.824975"
+        "timestamp": "2026-07-22T12:20:31.699451"
     }
 }
