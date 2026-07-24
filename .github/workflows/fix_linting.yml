@@ -3,13 +3,23 @@ on:
   issue_comment:
     types: [created]
 
+# The checkout/push uses the explicit bot token, so GITHUB_TOKEN only needs
+# comment write access for the reaction/feedback steps.
+permissions:
+  issues: write
+  pull-requests: write
+
 jobs:
   fix-linting:
-    # Only run if comment is on a PR with the main repo, and if it contains the magic keywords
+    # Only run if comment is on a PR with the main repo, and if it contains the magic keywords.
+    # The author_association gate is required: this job checks out untrusted PR code and runs
+    # pre-commit (which executes hooks defined *by that PR*) while holding a push token, so it
+    # must never be triggerable by a comment from an outside contributor.
     if: >
       contains(github.event.comment.html_url, '/pull/') &&
       contains(github.event.comment.body, '@nf-core-bot fix linting') &&
-      github.repository == 'broadinstitute/nf-pooled-cellpainting'
+      github.repository == 'broadinstitute/nf-pooled-cellpainting' &&
+      contains(fromJSON('["OWNER", "MEMBER", "COLLABORATOR"]'), github.event.comment.author_association)
     runs-on: ubuntu-latest
     steps:
       # Use the @nf-core-bot token to check out so we can push later
