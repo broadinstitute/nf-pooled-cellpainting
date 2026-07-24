@@ -46,7 +46,7 @@
                             "batch": "Batch1",
                             "plate": "Plate1"
                         },
-                        "painting.Batch1_Plate1.montage.png:md5,3412c3d2c26b0cc501b5e156d4d9805c"
+                        "painting.Batch1_Plate1.montage.png:md5,34164010985319e479129b98ffa7a721"
                     ]
                 ],
                 "1": [
@@ -59,7 +59,7 @@
                             "batch": "Batch1",
                             "plate": "Plate1"
                         },
-                        "painting.Batch1_Plate1.montage.png:md5,3412c3d2c26b0cc501b5e156d4d9805c"
+                        "painting.Batch1_Plate1.montage.png:md5,34164010985319e479129b98ffa7a721"
                     ]
                 ],
                 "versions": [
@@ -68,10 +68,10 @@
             }
         ],
         "meta": {
-            "nf-test": "0.9.2",
-            "nextflow": "25.04.8"
+            "nf-test": "0.9.3",
+            "nextflow": "25.10.2"
         },
-        "timestamp": "2025-10-19T21:52:19.367159"
+        "timestamp": "2026-07-24T20:28:06.640747748"
     },
     "generate montage - segcheck": {
         "content": [
@@ -83,7 +83,7 @@
                             "batch": "Batch1",
                             "plate": "Plate1"
                         },
-                        "painting.Batch1_Plate1.montage.png:md5,e0e4d805768e213fe34c95b9c293b37f"
+                        "painting.Batch1_Plate1.montage.png:md5,78ceeee6c9d6899b99d0fc31a7ac767e"
                     ]
                 ],
                 "1": [
@@ -96,7 +96,7 @@
                             "batch": "Batch1",
                             "plate": "Plate1"
                         },
-                        "painting.Batch1_Plate1.montage.png:md5,e0e4d805768e213fe34c95b9c293b37f"
+                        "painting.Batch1_Plate1.montage.png:md5,78ceeee6c9d6899b99d0fc31a7ac767e"
                     ]
                 ],
                 "versions": [
@@ -105,10 +105,10 @@
             }
         ],
         "meta": {
-            "nf-test": "0.9.2",
-            "nextflow": "25.04.8"
+            "nf-test": "0.9.3",
+            "nextflow": "25.10.2"
         },
-        "timestamp": "2025-10-19T21:52:33.440684"
+        "timestamp": "2026-07-24T20:28:23.899547671"
     },
     "generate montage - barcoding illumination": {
         "content": [
@@ -120,7 +120,7 @@
                             "batch": "Batch1",
                             "plate": "Plate1"
                         },
-                        "barcoding.Batch1_Plate1.montage.png:md5,9c6bfb7d17286d549ad36543eaf1ae75"
+                        "barcoding.Batch1_Plate1.montage.png:md5,5375f22b5a9869c83f3d964b66880d3e"
                     ]
                 ],
                 "1": [
@@ -133,7 +133,7 @@
                             "batch": "Batch1",
                             "plate": "Plate1"
                         },
-                        "barcoding.Batch1_Plate1.montage.png:md5,9c6bfb7d17286d549ad36543eaf1ae75"
+                        "barcoding.Batch1_Plate1.montage.png:md5,5375f22b5a9869c83f3d964b66880d3e"
                     ]
                 ],
                 "versions": [
@@ -142,9 +142,9 @@
             }
         ],
         "meta": {
-            "nf-test": "0.9.2",
-            "nextflow": "25.04.8"
+            "nf-test": "0.9.3",
+            "nextflow": "25.10.2"
         },
-        "timestamp": "2025-10-19T21:52:27.346277"
+        "timestamp": "2026-07-24T20:28:15.468502885"
     }
 }
