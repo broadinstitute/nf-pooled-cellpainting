@@ -22,7 +22,6 @@ process QC_PREPROCESS {
 
     script:
     def prefix = task.ext.prefix ?: "${meta.id}"
-    def wells_list = wells.collect { well -> "'${well}'" }.join(' ')
     def rows_param = rows ? "-p rows ${rows}" : ""
     def columns_param = columns ? "-p columns ${columns}" : ""
     """

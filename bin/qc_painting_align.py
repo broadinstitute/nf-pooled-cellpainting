@@ -28,7 +28,6 @@ import pandas as pd
 import seaborn as sns
 import datetime
 import matplotlib.pyplot as plt
-import sys
 
 # %matplotlib inline
 
@@ -149,24 +148,25 @@ else:
     df_image = merge_csvs(
         csvfolder, "PaintingIllumApplication_Image.csv", backup_list=None, filter_string=None
     )
-    if not [x for x in df_image.columns if 'Align' in x]:
-        print("No alignment occurred in pipeline. Hopefully single-cycle of phenotypic acquisition")
-        sys.exit()
-    corr_cols = [x for x in df_image.columns if "Correlation_Correlation" in x and channel_name in x]
-    OL_cols = [x for x in df_image.columns if "Overlap_Recall" in x and channel_name in x]
-    MI_cols = [x for x in df_image.columns if 'MI' in x and channel_name in x]
-    shift_cols = [x for x in df_image.columns if 'Align_' in x and 'shift' in x and channel_name in x]
-
-    # Build column lists using detected channel name
-    id_list = ["Metadata_Well", "Metadata_Plate", "Metadata_Site"]
-    column_list = list(set(corr_cols + OL_cols + shift_cols + MI_cols + id_list))
-
     print(f"Loaded {len(df_image)} rows")
 
     # Cache for future use
     print(f"Caching data to: {cache_file}")
     df_image.to_parquet(cache_file, compression="gzip", index=False)
     print("Cache saved")
+
+# Detect alignment columns and build column lists using detected channel name.
+id_list = ["Metadata_Well", "Metadata_Plate", "Metadata_Site"]
+has_alignment_data = bool([x for x in df_image.columns if 'Align' in x])
+if not has_alignment_data:
+    print(
+        "Couldn't find any alignment columns in output data. Check your CellProfiler pipeline!"
+    )
+
+corr_cols = [x for x in df_image.columns if "Correlation_Correlation" in x and channel_name in x]
+OL_cols = [x for x in df_image.columns if "Overlap_Recall" in x and channel_name in x]
+MI_cols = [x for x in df_image.columns if 'MI' in x and channel_name in x]
+shift_cols = [x for x in df_image.columns if 'Align_' in x and 'shift' in x and channel_name in x]
 
 # Detect site numbering convention (0-based or 1-based)
 min_site = df_image["Metadata_Site"].min()
@@ -242,19 +242,22 @@ if pos_df is not None:
 # ## Prepare Data for Analysis
 
 # %%
-df_shift = df_image[[x for x in shift_cols if 'MI' not in x] + id_list]
-df_shift = pd.melt(df_shift, id_vars=id_list)
-df_corr = df_image[[x for x in corr_cols if 'MI' not in x] + id_list]
-df_corr = pd.melt(df_corr, id_vars=id_list)
-if MI_cols:
-    df_shift_MI = df_image[[x for x in shift_cols if 'MI' in x] + id_list]
-    df_shift_MI = pd.melt(df_shift_MI, id_vars=id_list).dropna()
-    df_corr_MI = df_image[[x for x in corr_cols if 'MI' in x] + id_list]
-    df_corr_MI = pd.melt(df_corr_MI, id_vars=id_list).dropna()
+if has_alignment_data:
+    df_shift = df_image[[x for x in shift_cols if 'MI' not in x] + id_list]
+    df_shift = pd.melt(df_shift, id_vars=id_list)
+    df_corr = df_image[[x for x in corr_cols if 'MI' not in x] + id_list]
+    df_corr = pd.melt(df_corr, id_vars=id_list)
+    if MI_cols:
+        df_shift_MI = df_image[[x for x in shift_cols if 'MI' in x] + id_list]
+        df_shift_MI = pd.melt(df_shift_MI, id_vars=id_list).dropna()
+        df_corr_MI = df_image[[x for x in corr_cols if 'MI' in x] + id_list]
+        df_corr_MI = pd.melt(df_corr_MI, id_vars=id_list).dropna()
 
-print("Prepared data:")
-print(f"  Shifts: {len(df_shift)} rows")
-print(f"  All correlations: {len(df_corr)} rows")
+    print("Prepared data:")
+    print(f"  Shifts: {len(df_shift)} rows")
+    print(f"  All correlations: {len(df_corr)} rows")
+else:
+    print("Skipping data preparation - no alignment columns present.")
 
 # %% [markdown]
 # ## Pixel Shifts Analysis - ORIGINAL NCC ALIGNMENT METHOD
@@ -262,50 +265,53 @@ print(f"  All correlations: {len(df_corr)} rows")
 # ### Pixels shifted to align the second round (no axis limits)
 
 # %%
-g = sns.catplot(
-    data=df_shift,
-    x="value",
-    y="variable",
-    orient="h",
-    col="Metadata_Well",
-    col_wrap=4,
-)
-for ax in g.axes.flat:
-    ax.tick_params(labelbottom=True)
-plt.show()
+if has_alignment_data:
+    g = sns.catplot(
+        data=df_shift,
+        x="value",
+        y="variable",
+        orient="h",
+        col="Metadata_Well",
+        col_wrap=4,
+    )
+    for ax in g.axes.flat:
+        ax.tick_params(labelbottom=True)
+    plt.show()
 
 # %% [markdown]
 # ### Pixels shifted to align the second round (x axis limited to a range)
 
 # %%
-g = sns.catplot(
-    data=df_shift,
-    x="value",
-    y="variable",
-    orient="h",
-    col="Metadata_Well",
-    col_wrap=4,
-)
-for ax in g.axes.flat:
-    ax.tick_params(labelbottom=True)
-g.set(xlim=(-200, 200))
-plt.show()
+if has_alignment_data:
+    g = sns.catplot(
+        data=df_shift,
+        x="value",
+        y="variable",
+        orient="h",
+        col="Metadata_Well",
+        col_wrap=4,
+    )
+    for ax in g.axes.flat:
+        ax.tick_params(labelbottom=True)
+    g.set(xlim=(-200, 200))
+    plt.show()
 
 # %% [markdown]
 # ### Summary: Sites with large shifts
 
 # %%
-value = shift_threshold
-temp = (
-    df_shift.loc[df_shift["value"] > value]
-    .groupby(["Metadata_Plate", "Metadata_Well", "Metadata_Site"])
-    .count()
-    .reset_index()
-)
-for well in temp["Metadata_Well"].unique():
-    print(
-        f"{well} has {len(temp.loc[temp['Metadata_Well'] == well])} site with shift more than {value} (out of {imperwell})"
+if has_alignment_data:
+    value = shift_threshold
+    temp = (
+        df_shift.loc[df_shift["value"] > value]
+        .groupby(["Metadata_Plate", "Metadata_Well", "Metadata_Site"])
+        .count()
+        .reset_index()
     )
+    for well in temp["Metadata_Well"].unique():
+        print(
+            f"{well} has {len(temp.loc[temp['Metadata_Well'] == well])} site with shift more than {value} (out of {imperwell})"
+        )
 
 # %% [markdown]
 # ### Spatial distribution of large shifts
@@ -351,41 +357,44 @@ else:
 # Need all points to be better than red line
 
 # %%
-g = sns.catplot(
-    data=df_corr,
-    y="value",
-    x="Metadata_Well",
-)
-g.refline(y=corr_threshold, color="red")
-g.set(ylim=(0, None))
-plt.show()
+if has_alignment_data:
+    g = sns.catplot(
+        data=df_corr,
+        y="value",
+        x="Metadata_Well",
+    )
+    g.refline(y=corr_threshold, color="red")
+    g.set(ylim=(0, None))
+    plt.show()
 
 # %% [markdown]
 # ### Summary: Correlation statistics
 
 # %%
-print(
-    f"{len(df_corr.groupby(['Metadata_Plate', 'Metadata_Well', 'Metadata_Site']))} total sites"
-)
-print(
-    f"{len(df_corr.loc[df_corr['value'] < 0.9])} sites with correlation <.9"
-)
-print(
-    f"{len(df_corr.loc[df_corr['value'] < 0.8])} sites with correlation <.8"
-)
-# Print Awful alignment scores after alignment
-df_corr.loc[df_corr['value'] < 0.5].sort_values(by="value").head(20)
+if has_alignment_data:
+    print(
+        f"{len(df_corr.groupby(['Metadata_Plate', 'Metadata_Well', 'Metadata_Site']))} total sites"
+    )
+    print(
+        f"{len(df_corr.loc[df_corr['value'] < 0.9])} sites with correlation <.9"
+    )
+    print(
+        f"{len(df_corr.loc[df_corr['value'] < 0.8])} sites with correlation <.8"
+    )
+    # Print Awful alignment scores after alignment
+    df_corr.loc[df_corr['value'] < 0.5].sort_values(by="value").head(20)
 
 # %% [markdown]
 # ### Summary: Large pixel shifts - ORIGINAL NCC ALIGNMENT METHOD
 
 # %%
-# Print huge pixel shifts
-print(
-    f"{len(df_shift.loc[df_shift['value'] > 100])} images shifted with huge pixel shifts"
-)
+if has_alignment_data:
+    # Print huge pixel shifts
+    print(
+        f"{len(df_shift.loc[df_shift['value'] > 100])} images shifted with huge pixel shifts"
+    )
 
-df_shift.loc[df_shift["value"] > 100].sort_values(by="value", ascending=False).head(20)
+    df_shift.loc[df_shift["value"] > 100].sort_values(by="value", ascending=False).head(20)
 
 # %% [markdown]
 # ### Overlap of Thresholded Images

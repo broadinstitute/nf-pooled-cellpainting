@@ -13,7 +13,7 @@ process CELLPROFILER_ILLUMCALC {
 
     output:
     tuple val(meta), path("*.npy"), emit: illumination_corrections
-    path "load_data.csv", emit: load_data_csv
+    tuple val(meta), path("load_data.csv"), emit: load_data_csv
     path "versions.yml", emit: versions
 
     when:
@@ -64,6 +64,7 @@ with open('metadata.json','w') as f:
         --metadata-json metadata.json \\
         --channels "${channels}" \\
         --cycle-metadata-name "${params.cycle_metadata_name}" \\
+        --outdir "${params.outdir}" \\
         ${has_cycles ? '--has-cycles' : ''}
 
     # Check if illumination_cppipe ends with .template

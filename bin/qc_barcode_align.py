@@ -134,22 +134,6 @@ def merge_csvs(csvfolder, filename, column_list=None, backup_list=None, filter_s
 csvfolder = input_dir
 cache_file = Path(output_dir) / "cached_alignment_data.parquet"
 
-# Detect channel naming convention (DNA vs DAPI) by checking first available CSV
-channel_name = "DAPI"  # default
-folderlist = os.listdir(csvfolder)
-test_file = os.path.join(csvfolder, folderlist[0], "BarcodingApplication_Image.csv")
-if os.path.isfile(test_file):
-    # Read just the header to check column names
-    test_df = pd.read_csv(test_file, nrows=0)
-    if "Align_Xshift_Cycle02_DNA" in test_df.columns:
-        channel_name = "DNA"
-        print("Detected channel naming convention: DNA")
-    elif "Align_Xshift_Cycle02_DAPI" in test_df.columns:
-        channel_name = "DAPI"
-        print("Detected channel naming convention: DAPI")
-    else:
-        print(f"Could not detect channel naming convention, defaulting to {channel_name}")
-
 id_list = ["Metadata_Well", "Metadata_Plate", "Metadata_Site"]
 
 # Load data with caching support
@@ -167,6 +151,18 @@ else:
     print(f"Caching data to: {cache_file}")
     df_image.to_parquet(cache_file, compression="gzip", index=False)
     print("Cache saved")
+
+# Detect channel naming convention (DNA vs DAPI) from the loaded data.
+# Done here (after loading) so it works whether df_image came from cache or a fresh merge.
+channel_name = "DAPI"  # default
+if "Align_Xshift_Cycle02_DNA" in df_image.columns:
+    channel_name = "DNA"
+    print("Detected channel naming convention: DNA")
+elif "Align_Xshift_Cycle02_DAPI" in df_image.columns:
+    channel_name = "DAPI"
+    print("Detected channel naming convention: DAPI")
+else:
+    print(f"Could not detect channel naming convention, defaulting to {channel_name}")
 
 # have to define column lists after load because not all image sets have all columns
 shift_list = [x for x in df_image.columns if "Align_Xshift_Cycle" in x and "MI" not in x and channel_name in x]
