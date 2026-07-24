@@ -274,11 +274,11 @@ test_file = os.path.join(input_dir, folderlist[0], filename)
 test_df = pd.read_csv(test_file, nrows=0)
 thresh_cols = [x for x in test_df.columns if '_Threshold_' in x]
 int_cols = []
-median_cols = []
+upquart_cols = []
 if thresh_cols: # used for 2/3 color
-    median_cols = [x for x in thresh_cols if '_MedianIntensity_' in x]
+    upquart_cols = [x for x in thresh_cols if '_UpperQuartile_' in x]
     int_cols = [x for x in thresh_cols if '_IntegratedIntensity_' in x]
-    column_list = column_list + median_cols + int_cols
+    column_list = column_list + upquart_cols + int_cols
 
 # Load data with caching support
 if use_cache and cache_file.exists():
@@ -581,8 +581,8 @@ if int_cols:
     plot_chan_combos(df_foci, int_cols, 'Integrated Intensity', numcycles)
 
 # %%
-if median_cols:
-    plot_chan_combos(df_foci, median_cols,'Median Intensity', numcycles)
+if upquart_cols:
+    plot_chan_combos(df_foci, upquart_cols,'Upper Quartile', numcycles)
 
 # %%
 if int_cols:
@@ -598,13 +598,13 @@ if int_cols:
             sub_data = df_foci.query(f"(Intensity_IntegratedIntensity_Threshold_{channelcombo[0]}_Cycle{cycle+1:02} > 0) | (Intensity_IntegratedIntensity_Threshold_{channelcombo[1]}_Cycle{cycle+1:02} > 0)")
             sns.histplot(ax=axes[cycle], data=sub_data,x=f'Intensity_IntegratedIntensity_Threshold_{channelcombo[0]}_Cycle{cycle+1:02}',y=f'Intensity_IntegratedIntensity_Threshold_{channelcombo[1]}_Cycle{cycle+1:02}',
                         )
-            axes[cycle].set_title(f'Cycle{cycle+1:02}')
+            axes[cycle].set_title(f'Cycle{cycle+1:02} IntegratedIntensity')
             axes[cycle].set(xlabel=channelcombo[0], ylabel=channelcombo[1])
         plt.tight_layout(rect=[0, 0, 1, 0.96])
         plt.show()
 
 # %%
-if int_cols:
+if upquart_cols:
     if numcycles <=12:
         plotrows = 3
     else:
@@ -614,10 +614,10 @@ if int_cols:
         fig.suptitle(f'Intensity Comparison: {channelcombo[0]} vs {channelcombo[1]}', fontsize=20, fontweight='bold')
         axes=axes.flatten()
         for cycle in range(numcycles):
-            sub_data = df_foci.query(f"(Intensity_IntegratedIntensity_Threshold_{channelcombo[0]}_Cycle{cycle+1:02} > 0) | (Intensity_IntegratedIntensity_Threshold_{channelcombo[1]}_Cycle{cycle+1:02} > 0)")
-            sns.histplot(ax=axes[cycle], data=sub_data,x=f'Intensity_IntegratedIntensity_Threshold_{channelcombo[0]}_Cycle{cycle+1:02}',y=f'Intensity_IntegratedIntensity_Threshold_{channelcombo[1]}_Cycle{cycle+1:02}',
+            sub_data = df_foci.query(f"(Intensity_UpperQuartile_Threshold_{channelcombo[0]}_Cycle{cycle+1:02} > 0) | (Intensity_UpperQuartile_Threshold_{channelcombo[1]}_Cycle{cycle+1:02} > 0)")
+            sns.histplot(ax=axes[cycle], data=sub_data,x=f'Intensity_UpperQuartile_Threshold_{channelcombo[0]}_Cycle{cycle+1:02}',y=f'Intensity_UpperQuartile_Threshold_{channelcombo[1]}_Cycle{cycle+1:02}',
                         )
-            axes[cycle].set_title(f'Cycle{cycle+1:02}')
+            axes[cycle].set_title(f'Cycle{cycle+1:02} UpperQuartile')
             axes[cycle].set(xlabel=channelcombo[0], ylabel=channelcombo[1])
         plt.tight_layout(rect=[0, 0, 1, 0.96])
         plt.show()
