@@ -451,7 +451,12 @@ plt.savefig(
 plt.show()
 
 # %%
-df_parsed['Difference'] = df_parsed.loc[df_parsed['Nucleotide']!='X'].sortby(['Cycle','Nucleotide'])['Frequency'] - df_library['Frequency'].sortby(['Cycle','Nucleotide'])
+merged = df_parsed.loc[df_parsed['Nucleotide']!='X'].merge(df_library[['Cycle', 'Nucleotide', 'Frequency']], 
+                         on=['Cycle', 'Nucleotide'], 
+                         how='left', 
+                         suffixes=('', '_lib'))
+df_parsed.loc['Difference'] = merged['Frequency'] - merged['Frequency_lib']
+
 g = sns.lineplot(x="Cycle", y="Difference", hue="Nucleotide", data=df_parsed)
 handles, labels = g.get_legend_handles_labels()
 g.legend(handles=handles[0:], labels=labels[0:])
