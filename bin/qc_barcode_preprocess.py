@@ -276,7 +276,7 @@ thresh_cols = [x for x in test_df.columns if '_Threshold_' in x]
 int_cols = []
 upquart_cols = []
 if thresh_cols: # used for 2/3 color
-    upquart_cols = [x for x in thresh_cols if '_UpperQuartile_' in x]
+    upquart_cols = [x for x in thresh_cols if '_UpperQuartileIntensity_' in x]
     int_cols = [x for x in thresh_cols if '_IntegratedIntensity_' in x]
     column_list = column_list + upquart_cols + int_cols
 
@@ -614,8 +614,8 @@ if upquart_cols:
         fig.suptitle(f'Intensity Comparison: {channelcombo[0]} vs {channelcombo[1]}', fontsize=20, fontweight='bold')
         axes=axes.flatten()
         for cycle in range(numcycles):
-            sub_data = df_foci.query(f"(Intensity_UpperQuartile_Threshold_{channelcombo[0]}_Cycle{cycle+1:02} > 0) | (Intensity_UpperQuartile_Threshold_{channelcombo[1]}_Cycle{cycle+1:02} > 0)")
-            sns.histplot(ax=axes[cycle], data=sub_data,x=f'Intensity_UpperQuartile_Threshold_{channelcombo[0]}_Cycle{cycle+1:02}',y=f'Intensity_UpperQuartile_Threshold_{channelcombo[1]}_Cycle{cycle+1:02}',
+            sub_data = df_foci.query(f"(Intensity_UpperQuartileIntensity_Threshold_{channelcombo[0]}_Cycle{cycle+1:02} > 0) | (Intensity_UpperQuartileIntensity_Threshold_{channelcombo[1]}_Cycle{cycle+1:02} > 0)")
+            sns.histplot(ax=axes[cycle], data=sub_data,x=f'Intensity_UpperQuartileIntensity_Threshold_{channelcombo[0]}_Cycle{cycle+1:02}',y=f'Intensity_UpperQuartileIntensity_Threshold_{channelcombo[1]}_Cycle{cycle+1:02}',
                         )
             axes[cycle].set_title(f'Cycle{cycle+1:02} UpperQuartile')
             axes[cycle].set(xlabel=channelcombo[0], ylabel=channelcombo[1])
