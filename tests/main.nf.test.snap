@@ -2114,13 +2114,15 @@
                 "workspace/analysis/Batch1/Plate1-B1-4/segmentation_masks/Plate_Plate1_Well_B1_Site_4_Cytoplasm_Objects.tiff",
                 "workspace/analysis/Batch1/Plate1-B1-4/segmentation_masks/Plate_Plate1_Well_B1_Site_4_Nuclei_Objects.tiff",
                 "workspace/load_data_csv",
-                "workspace/load_data_csv/barcoding-illumapply.load_data.csv",
-                "workspace/load_data_csv/barcoding-illumcalc.load_data.csv",
-                "workspace/load_data_csv/barcoding-preprocess.load_data.csv",
-                "workspace/load_data_csv/combined_analysis.load_data.csv",
-                "workspace/load_data_csv/painting-illumapply.load_data.csv",
-                "workspace/load_data_csv/painting-illumcalc.load_data.csv",
-                "workspace/load_data_csv/painting-segcheck.load_data.csv",
+                "workspace/load_data_csv/Batch1",
+                "workspace/load_data_csv/Batch1/Plate1",
+                "workspace/load_data_csv/Batch1/Plate1/barcoding-illumapply.load_data.csv",
+                "workspace/load_data_csv/Batch1/Plate1/barcoding-illumcalc.load_data.csv",
+                "workspace/load_data_csv/Batch1/Plate1/barcoding-preprocess.load_data.csv",
+                "workspace/load_data_csv/Batch1/Plate1/combined_analysis.load_data.csv",
+                "workspace/load_data_csv/Batch1/Plate1/painting-illumapply.load_data.csv",
+                "workspace/load_data_csv/Batch1/Plate1/painting-illumcalc.load_data.csv",
+                "workspace/load_data_csv/Batch1/Plate1/painting-segcheck.load_data.csv",
                 "workspace/qc_reports",
                 "workspace/qc_reports/1_illumination_painting",
                 "workspace/qc_reports/1_illumination_painting/Plate1",
@@ -2160,7 +2162,7 @@
             "nf-test": "0.9.3",
             "nextflow": "25.10.2"
         },
-        "timestamp": "2026-06-30T15:41:48.04743"
+        "timestamp": "2026-07-24T18:59:41.488782708"
     },
     "nf-pooled-cellpainting - full pipeline - test profile - stub - both qc false": {
         "content": [
