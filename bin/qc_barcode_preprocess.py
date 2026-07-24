@@ -451,9 +451,9 @@ plt.savefig(
 plt.show()
 
 # %%
-merged = df_parsed.loc[df_parsed['Nucleotide']!='X'].merge(df_library[['Cycle', 'Nucleotide', 'Frequency']], 
-                         on=['Cycle', 'Nucleotide'], 
-                         how='left', 
+merged = df_parsed.loc[df_parsed['Nucleotide']!='X'].merge(df_library[['Cycle', 'Nucleotide', 'Frequency']],
+                         on=['Cycle', 'Nucleotide'],
+                         how='left',
                          suffixes=('', '_lib'))
 merged['Difference'] = merged['Frequency'] - merged['Frequency_lib']
 
