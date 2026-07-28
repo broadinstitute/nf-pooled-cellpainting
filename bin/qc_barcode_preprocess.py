@@ -514,7 +514,7 @@ match_type_dict = {"A>C":"(Missed:647, Added:568)", "A>G":"(Missed:488+647)", "A
 
 alphabetical_column_order = [f"{x}>{y}" for x in ["A", "C", "G", "T"] for y in ["A", "C", "G", "T", "X"] if x!= y ]
 
-functional_column_order = ["T>C", "G>T", "G>C", "G>A", "C>T", "T>G", "A>G", "C>G", 
+functional_column_order = ["T>C", "G>T", "G>C", "G>A", "C>T", "T>G", "A>G", "C>G",
                            "A>C", "C>A", "A>T", "T>A", "G>X", "C>X", "A>X", "T>X"]
 
 if len(df_onemismatch) > 0:
