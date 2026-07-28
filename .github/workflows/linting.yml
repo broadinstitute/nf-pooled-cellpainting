@@ -6,6 +6,11 @@ on:
   release:
     types: [published]
 
+# Least privilege: this workflow runs pre-commit hooks defined by the pull
+# request, so its token must not be able to write to the repository.
+permissions:
+  contents: read
+
 jobs:
   pre-commit:
     runs-on: ubuntu-latest
