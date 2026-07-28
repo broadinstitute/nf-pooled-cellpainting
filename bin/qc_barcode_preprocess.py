@@ -500,7 +500,47 @@ if len(df_onemismatch) > 0:
 else:
     print(f"No near-perfect mismatches found (all scores are either 1.0 or < {thresh})")
 
-# %
+def returnmismatch(query, target):
+    if pd.isna(query) or pd.isna(target):
+        return None
+    for x in range(len(query)):
+        if query[x] != target[x]:
+            return f"{target[x]}>{query[x]}"
+
+match_type_dict = {"A>C":"(Missed:647, Added:568)", "A>G":"(Missed:488+647)", "A>T":"(Missed:488+647, Added:568)","A>X":"(488+647 to one of\n488 OR 647 OR 568+647 OR 488+588+647)",
+                       "C>A":"(Missed:568, Added:647)", "C>G":"(Missed:488+568)", "C>T":"(Missed:488)","C>X":"(488+568 to one of\n488 OR 647 OR 568+647 OR 488+588+647)",
+                       "G>A":"(Added:488+647)", "G>C":"(Added:488+568)", "G>T":"(Added:568)","G>X":"(None to one of\n488 OR 647 OR 568+647 OR 488+588+647)",
+                       "T>A":"(Missed:568, Added:488+647)", "T>C":"(Added:488)", "T>G":"(Missed:568)","T>X":"(568 to one of\n488 OR 647 OR 568+647 OR 488+588+647)",}
+
+alphabetical_column_order = [f"{x}>{y}" for x in ["A", "C", "G", "T"] for y in ["A", "C", "G", "T", "X"] if x!= y ]
+
+functional_column_order = ["T>C", "G>T", "G>C", "G>A", "C>T", "T>G", "A>G", "C>G",
+                           "A>C", "C>A", "A>T", "T>A", "G>X", "C>X", "A>X", "T>X"]
+
+if len(df_onemismatch) > 0:
+    df_onemismatch["ErrorType"] = df_onemismatch.apply(
+            lambda x: returnmismatch(
+                x["Barcode_BarcodeCalled"], x["Barcode_MatchedTo_Barcode"]
+            ),
+            axis=1,
+        )
+    g = sns.catplot(
+        data=df_onemismatch, x="BadCycle", kind="count", col_wrap=4, col="ErrorType",
+        col_order= functional_column_order
+    )
+    for ax in g.axes.flat:
+        current_title =ax.get_title()[-3:]
+        ax.set_title(f"{current_title} {match_type_dict[current_title]}")
+    plt.suptitle("Distribution of Mismatch Cycles (Near-Perfect Matches)",y=1.01)
+    plt.savefig(
+        Path(output_dir) / "mismatch_cycle_distribution_by_mistake_type.png",
+        dpi=150,
+        bbox_inches="tight",
+    )
+    plt.show()
+
+
+# %%
 def plot_chan_combos(df_full, cols,title, numcycles):
     channels = ['488', '568', '647']
     df = df_full.copy()
