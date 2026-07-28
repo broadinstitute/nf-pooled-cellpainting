@@ -97,6 +97,8 @@ jobs:
     env:
       NXF_ANSI_LOG: false
       TOTAL_SHARDS: ${{ needs.nf-test-changes.outputs.total_shards }}
+      # Consumed by setup-nextflow inside .github/actions/nf-test.
+      NXF_VER: ${{ matrix.NXF_VER }}
       # Needed by setup-nextflow/setup-nf-test and by Nextflow plugin
       # downloads during the test run. Read-only via `permissions:` above.
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -109,7 +111,7 @@ jobs:
       - name: Run nf-test
         id: run_nf_test
         uses: ./.github/actions/nf-test
-        continue-on-error: ${{ matrix.NXF_VER == '25.04.8' }}
+        continue-on-error: ${{ matrix.NXF_VER == 'latest-everything' }}
         env:
           NFT_WORKDIR: ${{ env.NFT_WORKDIR }}
         with:
