@@ -16,8 +16,12 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
+# Least privilege: this workflow runs pipeline code from the pull request,
+# so its token must not be able to write to the repository.
+permissions:
+  contents: read
+
 env:
-  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   NFT_VER: "0.9.5"
   NFT_WORKDIR: ".nf-test"
   NXF_ANSI_LOG: false
@@ -34,6 +38,10 @@ jobs:
       total_shards: ${{ steps.set-shards.outputs.total_shards }}
       # Skip slow tests on PRs (run on releases and manual dispatch)
       tags: ${{ steps.set-tags.outputs.tags }}
+    env:
+      # Authenticates release-asset downloads in setup-nf-test against the
+      # shared unauthenticated rate limit. Read-only via `permissions:` above.
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
       - name: Clean Workspace # Purge the workspace in case it's running on a self-hosted runner
         run: |
@@ -89,6 +97,11 @@ jobs:
     env:
       NXF_ANSI_LOG: false
       TOTAL_SHARDS: ${{ needs.nf-test-changes.outputs.total_shards }}
+      # Consumed by setup-nextflow inside .github/actions/nf-test.
+      NXF_VER: ${{ matrix.NXF_VER }}
+      # Needed by setup-nextflow/setup-nf-test and by Nextflow plugin
+      # downloads during the test run. Read-only via `permissions:` above.
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
@@ -98,7 +111,7 @@ jobs:
       - name: Run nf-test
         id: run_nf_test
         uses: ./.github/actions/nf-test
-        continue-on-error: ${{ matrix.NXF_VER == '25.04.8' }}
+        continue-on-error: ${{ matrix.NXF_VER == 'latest-everything' }}
         env:
           NFT_WORKDIR: ${{ env.NFT_WORKDIR }}
         with:
