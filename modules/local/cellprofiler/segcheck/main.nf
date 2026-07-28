@@ -13,7 +13,7 @@ process CELLPROFILER_SEGCHECK {
 
     output:
     tuple val(meta), path("*.csv"), path("*.png"), emit: segcheck_res
-    path "load_data.csv", emit: load_data_csv
+    tuple val(meta), path("load_data.csv"), emit: load_data_csv
     path "versions.yml", emit: versions
 
     when:

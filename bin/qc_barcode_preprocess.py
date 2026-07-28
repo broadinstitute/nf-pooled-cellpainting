@@ -189,8 +189,8 @@ for cycle in range(1, numcycles + 1):
             "Frequency": float(BarcodeCat.count("T")) / float(len(BarcodeCat)),
         }
     )
-df_parsed = pd.DataFrame(dflist)
-g = sns.lineplot(x="Cycle", y="Frequency", hue="Nucleotide", data=df_parsed)
+df_library = pd.DataFrame(dflist)
+g = sns.lineplot(x="Cycle", y="Frequency", hue="Nucleotide", data=df_library)
 g.set_ylim([0.1, 0.5])
 handles, labels = g.get_legend_handles_labels()
 g.legend(handles=handles[0:], labels=labels[0:])
@@ -274,11 +274,11 @@ test_file = os.path.join(input_dir, folderlist[0], filename)
 test_df = pd.read_csv(test_file, nrows=0)
 thresh_cols = [x for x in test_df.columns if '_Threshold_' in x]
 int_cols = []
-median_cols = []
+upquart_cols = []
 if thresh_cols: # used for 2/3 color
-    median_cols = [x for x in thresh_cols if '_MedianIntensity_' in x]
+    upquart_cols = [x for x in thresh_cols if '_UpperQuartileIntensity_' in x]
     int_cols = [x for x in thresh_cols if '_IntegratedIntensity_' in x]
-    column_list = column_list + median_cols + int_cols
+    column_list = column_list + upquart_cols + int_cols
 
 # Load data with caching support
 if use_cache and cache_file.exists():
@@ -326,10 +326,14 @@ print(
 # Count the matches (duplicates in list are counted individually)
 matchin7_count = sum(1 for s in df_foci['Barcode_BarcodeCalled'] if s[:7] in [x[:7] for x in bc_df["Barcode"]])
 print (matchin7_count/len(df_foci) *100, " percent perfect match in first 7 cycles")
+matchin7_count = sum(1 for s in df_foci['Barcode_BarcodeCalled'] if s[:5] in [x[:5] for x in bc_df["Barcode"]])
+print (matchin7_count/len(df_foci) *100, " percent perfect match in first 5 cycles")
 
 # Count the matches (duplicates in list are counted individually)
 matchinEND5_count = sum(1 for s in df_foci['Barcode_BarcodeCalled'] if s[-5:] in [x[-5:] for x in bc_df["Barcode"]])
 print (matchinEND5_count/len(df_foci) *100, " percent perfect match in last 5 cycles")
+matchinEND5_count = sum(1 for s in df_foci['Barcode_BarcodeCalled'] if s[-7:] in [x[-7:] for x in bc_df["Barcode"]])
+print (matchinEND5_count/len(df_foci) *100, " percent perfect match in last 7 cycles")
 
 sns.displot(df_foci["Barcode_MatchedTo_Score"], kde=False)
 plt.title("Barcode Match Score Distribution")
@@ -446,6 +450,20 @@ plt.savefig(
 )
 plt.show()
 
+# %%
+merged = df_parsed.loc[df_parsed['Nucleotide']!='X'].merge(df_library[['Cycle', 'Nucleotide', 'Frequency']],
+                         on=['Cycle', 'Nucleotide'],
+                         how='left',
+                         suffixes=('', '_lib'))
+merged['Difference'] = merged['Frequency'] - merged['Frequency_lib']
+
+g = sns.lineplot(x="Cycle", y="Difference", hue="Nucleotide", data=merged)
+handles, labels = g.get_legend_handles_labels()
+g.legend(handles=handles[0:], labels=labels[0:])
+g.set_xticks(list(range(1, numcycles + 1)))
+plt.title("Difference from Expected Nucleotide Frequency by Cycle\nObserved - Expected")
+plt.tight_layout()
+plt.show()
 
 # %%
 def returnbadcycle(query, target):
@@ -563,8 +581,46 @@ if int_cols:
     plot_chan_combos(df_foci, int_cols, 'Integrated Intensity', numcycles)
 
 # %%
-if median_cols:
-    plot_chan_combos(df_foci, median_cols,'Median Intensity', numcycles)
+if upquart_cols:
+    plot_chan_combos(df_foci, upquart_cols,'Upper Quartile', numcycles)
+
+# %%
+if int_cols:
+    if numcycles <=12:
+        plotrows = 3
+    else:
+        plotrows = 4
+    for channelcombo in [("568","647"),("488","647"),("488","568")]:
+        fig, axes = plt.subplots(plotrows, 4, sharex=True, sharey=True, figsize=(16,plotrows*4))
+        fig.suptitle(f'Intensity Comparison: {channelcombo[0]} vs {channelcombo[1]}', fontsize=20, fontweight='bold')
+        axes=axes.flatten()
+        for cycle in range(numcycles):
+            sub_data = df_foci.query(f"(Intensity_IntegratedIntensity_Threshold_{channelcombo[0]}_Cycle{cycle+1:02} > 0) | (Intensity_IntegratedIntensity_Threshold_{channelcombo[1]}_Cycle{cycle+1:02} > 0)")
+            sns.histplot(ax=axes[cycle], data=sub_data,x=f'Intensity_IntegratedIntensity_Threshold_{channelcombo[0]}_Cycle{cycle+1:02}',y=f'Intensity_IntegratedIntensity_Threshold_{channelcombo[1]}_Cycle{cycle+1:02}',
+                        )
+            axes[cycle].set_title(f'Cycle{cycle+1:02} IntegratedIntensity')
+            axes[cycle].set(xlabel=channelcombo[0], ylabel=channelcombo[1])
+        plt.tight_layout(rect=[0, 0, 1, 0.96])
+        plt.show()
+
+# %%
+if upquart_cols:
+    if numcycles <=12:
+        plotrows = 3
+    else:
+        plotrows = 4
+    for channelcombo in [("568","647"),("488","647"),("488","568")]:
+        fig, axes = plt.subplots(plotrows, 4, sharex=True, sharey=True, figsize=(16,plotrows*4))
+        fig.suptitle(f'Intensity Comparison: {channelcombo[0]} vs {channelcombo[1]}', fontsize=20, fontweight='bold')
+        axes=axes.flatten()
+        for cycle in range(numcycles):
+            sub_data = df_foci.query(f"(Intensity_UpperQuartileIntensity_Threshold_{channelcombo[0]}_Cycle{cycle+1:02} > 0) | (Intensity_UpperQuartileIntensity_Threshold_{channelcombo[1]}_Cycle{cycle+1:02} > 0)")
+            sns.histplot(ax=axes[cycle], data=sub_data,x=f'Intensity_UpperQuartileIntensity_Threshold_{channelcombo[0]}_Cycle{cycle+1:02}',y=f'Intensity_UpperQuartileIntensity_Threshold_{channelcombo[1]}_Cycle{cycle+1:02}',
+                        )
+            axes[cycle].set_title(f'Cycle{cycle+1:02} UpperQuartile')
+            axes[cycle].set(xlabel=channelcombo[0], ylabel=channelcombo[1])
+        plt.tight_layout(rect=[0, 0, 1, 0.96])
+        plt.show()
 
 # %%
 perfect_df = df_foci[df_foci["Barcode_MatchedTo_Score"] == 1]

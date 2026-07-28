@@ -40,13 +40,31 @@
                     ]
                 ],
                 "3": [
-                    "load_data.csv:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    [
+                        {
+                            "id": "Batch1_Plate1_barcoding_A1",
+                            "batch": "Batch1",
+                            "plate": "Plate1",
+                            "well": "A1",
+                            "arm": "barcoding"
+                        },
+                        "load_data.csv:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
                 ],
                 "4": [
                     "versions.yml:md5,f4b0463411335dba45560870b62c868c"
                 ],
                 "load_data_csv": [
-                    "load_data.csv:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    [
+                        {
+                            "id": "Batch1_Plate1_barcoding_A1",
+                            "batch": "Batch1",
+                            "plate": "Plate1",
+                            "well": "A1",
+                            "arm": "barcoding"
+                        },
+                        "load_data.csv:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
                 ],
                 "overlay": [
                     "test.tiff:md5,d41d8cd98f00b204e9800998ecf8427e"
@@ -92,9 +110,9 @@
         ],
         "meta": {
             "nf-test": "0.9.3",
-            "nextflow": "25.10.0"
+            "nextflow": "25.10.2"
         },
-        "timestamp": "2025-11-18T01:39:18.050986562"
+        "timestamp": "2026-07-24T20:23:11.496859743"
     },
     "cellprofiler - preprocess - barcoding": {
         "content": [

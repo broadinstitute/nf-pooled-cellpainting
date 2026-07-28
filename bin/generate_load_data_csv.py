@@ -528,6 +528,11 @@ def load_metadata_json(metadata_json_path: str) -> Dict:
             # Preserve cycle if present (for multi-cycle images)
             if 'cycle' in entry:
                 metadata_entry['cycle'] = int(entry['cycle'])
+            # Preserve original path fields for durable-location FileName_ columns
+            if 'original_path' in entry and entry['original_path'] is not None:
+                metadata_entry['original_path'] = str(entry['original_path'])
+            if 'original_filename' in entry and entry['original_filename'] is not None:
+                metadata_entry['original_filename'] = str(entry['original_filename'])
             # Preserve channel if present (for single-channel images like segcheck)
             if 'channel' in entry:
                 metadata_entry['channel'] = str(entry['channel'])
@@ -1094,7 +1099,9 @@ def generate_csv_rows(
     has_cycles: bool = False,
     metadata_cycle: Optional[int] = None,
     metadata_json: Dict = None,
-    cycle_metadata_name: str = "Cycle"
+    cycle_metadata_name: str = "Cycle",
+    staged_to_original: Dict = None,
+    npy_original_dir: str = None,
 ) -> List[Dict]:
     """
     Generate CellProfiler load_data.csv rows from grouped file data.
@@ -1172,6 +1179,18 @@ def generate_csv_rows(
         print(f"✓ Metadata columns from image_metadata array: {', '.join(metadata_columns)}", file=sys.stderr)
     else:
         print(f"✓ Metadata columns from JSON fields: {', '.join(metadata_columns)}", file=sys.stderr)
+
+    # Helper: look up original (durable) path for a staged filename
+    def _orig(filename):
+        if not staged_to_original or not filename:
+            return filename
+        return staged_to_original.get(os.path.basename(str(filename)), filename)
+
+    # Helper: construct durable path for an illumination npy file
+    def _npy_orig(filename):
+        if not npy_original_dir or not filename:
+            return filename
+        return f"{npy_original_dir}{filename}"
 
     # Apply subsampling per well if needed
     # Group keys by (plate, well) and collect all sites for each well
@@ -1284,17 +1303,22 @@ def generate_csv_rows(
                     for frame_idx, channel in enumerate(channels_to_use):
                         if use_cycle_prefix:
                             row[f'FileName_Cycle{cycle_str}_Orig{channel}'] = filename
+                            row[f'FinalFileName_Cycle{cycle_str}_Orig{channel}'] = _orig(filename)
                             row[f'Frame_Cycle{cycle_str}_Orig{channel}'] = frame_idx
                         else:
                             row[f'FileName_Orig{channel}'] = filename
+                            row[f'FinalFileName_Orig{channel}'] = _orig(filename)
                             row[f'Frame_Orig{channel}'] = frame_idx
 
                         # Add illumination file if available for this cycle
                         if cycle_num in illum_by_cycle and channel in illum_by_cycle[cycle_num]:
+                            illum_fn = illum_by_cycle[cycle_num][channel]
                             if use_cycle_prefix:
-                                row[f'FileName_Cycle{cycle_str}_Illum{channel}'] = illum_by_cycle[cycle_num][channel]
+                                row[f'FileName_Cycle{cycle_str}_Illum{channel}'] = illum_fn
+                                row[f'FinalFileName_Cycle{cycle_str}_Illum{channel}'] = _npy_orig(illum_fn)
                             else:
-                                row[f'FileName_Illum{channel}'] = illum_by_cycle[cycle_num][channel]
+                                row[f'FileName_Illum{channel}'] = illum_fn
+                                row[f'FinalFileName_Illum{channel}'] = _npy_orig(illum_fn)
 
                     # Validate we have all required illumination files for this cycle
                     if config['include_illum_files']:
@@ -1341,15 +1365,20 @@ def generate_csv_rows(
                     for channel, filename in cycle_info.items():
                         if use_cycle_prefix:
                             row[f'FileName_Cycle{cycle_str}_Orig{channel}'] = filename
+                            row[f'FinalFileName_Cycle{cycle_str}_Orig{channel}'] = _orig(filename)
                         else:
                             row[f'FileName_Orig{channel}'] = filename
+                            row[f'FinalFileName_Orig{channel}'] = _orig(filename)
 
                         # Add illumination file if available for this cycle
                         if cycle_num in illum_by_cycle and channel in illum_by_cycle[cycle_num]:
+                            illum_fn = illum_by_cycle[cycle_num][channel]
                             if use_cycle_prefix:
-                                row[f'FileName_Cycle{cycle_str}_Illum{channel}'] = illum_by_cycle[cycle_num][channel]
+                                row[f'FileName_Cycle{cycle_str}_Illum{channel}'] = illum_fn
+                                row[f'FinalFileName_Cycle{cycle_str}_Illum{channel}'] = _npy_orig(illum_fn)
                             else:
-                                row[f'FileName_Illum{channel}'] = illum_by_cycle[cycle_num][channel]
+                                row[f'FileName_Illum{channel}'] = illum_fn
+                                row[f'FinalFileName_Illum{channel}'] = _npy_orig(illum_fn)
 
                     # Validate we have all required illumination files for this cycle
                     if config['include_illum_files']:
@@ -1397,18 +1426,23 @@ def generate_csv_rows(
                     if use_cycle_columns:
                         cycle_str = f"{metadata_cycle:02d}"
                         row[f'FileName_Cycle{cycle_str}_Orig{channel}'] = filename
+                        row[f'FinalFileName_Cycle{cycle_str}_Orig{channel}'] = _orig(filename)
                         row[f'Frame_Cycle{cycle_str}_Orig{channel}'] = frame_idx
                     else:
                         row[f'FileName_Orig{channel}'] = filename
+                        row[f'FinalFileName_Orig{channel}'] = _orig(filename)
                         row[f'Frame_Orig{channel}'] = frame_idx
 
                     # Add illumination file if available
                     # Match illumination files by channel name (they should use metadata channel names)
                     if channel in file_data['illum']:
+                        illum_fn = file_data['illum'][channel]
                         if use_cycle_columns:
-                            row[f'FileName_Cycle{cycle_str}_Illum{channel}'] = file_data['illum'][channel]
+                            row[f'FileName_Cycle{cycle_str}_Illum{channel}'] = illum_fn
+                            row[f'FinalFileName_Cycle{cycle_str}_Illum{channel}'] = _npy_orig(illum_fn)
                         else:
-                            row[f'FileName_Illum{channel}'] = file_data['illum'][channel]
+                            row[f'FileName_Illum{channel}'] = illum_fn
+                            row[f'FinalFileName_Illum{channel}'] = _npy_orig(illum_fn)
 
                 # Validate we have all required illumination files
                 if config['include_illum_files']:
@@ -1441,19 +1475,25 @@ def generate_csv_rows(
                 # Frame 0 = first channel, Frame 1 = second channel, etc.
                 for frame_idx, channel in enumerate(channels_to_use):
                     # Generate column names with or without cycle prefix
+                    img_fn = file_data['images'][channel]
                     if use_cycle_columns:
                         cycle_str = f"{metadata_cycle:02d}"
-                        row[f'FileName_Cycle{cycle_str}_Orig{channel}'] = file_data['images'][channel]
+                        row[f'FileName_Cycle{cycle_str}_Orig{channel}'] = img_fn
+                        row[f'FinalFileName_Cycle{cycle_str}_Orig{channel}'] = _orig(img_fn)
                     else:
-                        row[f'FileName_Orig{channel}'] = file_data['images'][channel]
+                        row[f'FileName_Orig{channel}'] = img_fn
+                        row[f'FinalFileName_Orig{channel}'] = _orig(img_fn)
 
                     # Add illumination file if available
                     # Match illumination files by channel name (they should use metadata channel names)
                     if channel in file_data['illum']:
+                        illum_fn = file_data['illum'][channel]
                         if use_cycle_columns:
-                            row[f'FileName_Cycle{cycle_str}_Illum{channel}'] = file_data['illum'][channel]
+                            row[f'FileName_Cycle{cycle_str}_Illum{channel}'] = illum_fn
+                            row[f'FinalFileName_Cycle{cycle_str}_Illum{channel}'] = _npy_orig(illum_fn)
                         else:
-                            row[f'FileName_Illum{channel}'] = file_data['illum'][channel]
+                            row[f'FileName_Illum{channel}'] = illum_fn
+                            row[f'FinalFileName_Illum{channel}'] = _npy_orig(illum_fn)
 
                 # Validate we have all required illumination files
                 if config['include_illum_files']:
@@ -1481,6 +1521,7 @@ def generate_csv_rows(
                     for key, filename in sorted(file_data['images'].items()):
                         # Keys are like "Cycle01_A", "Cycle01_DNA", "CorrDNA", "CorrCHN2"
                         row[f'FileName_{key}'] = filename
+                        row[f'FinalFileName_{key}'] = _orig(filename)
                 else:
                     # Check if this is cycle-based (preprocess pipeline)
                     is_cycle_based = any('Cycle' in key for key in file_data['images'].keys())
@@ -1490,10 +1531,12 @@ def generate_csv_rows(
                         for cycle_channel_key, filename in sorted(file_data['images'].items()):
                             # cycle_channel_key is like "Cycle01_A", "Cycle01_C", etc.
                             row[f'FileName_{cycle_channel_key}'] = filename
+                            row[f'FinalFileName_{cycle_channel_key}'] = _orig(filename)
                     else:
                         # For other pipelines: add FileName_{channel} columns
                         for channel, filename in sorted(file_data['images'].items()):
                             row[f'FileName_{channel}'] = filename
+                            row[f'FinalFileName_{channel}'] = _orig(filename)
 
             rows.append(row)
 
@@ -1635,6 +1678,11 @@ def main():
         default='Cycle',
         help='Name for the cycle metadata column (default: "Cycle", e.g., "Metadata_Cycle")'
     )
+    parser.add_argument(
+        '--outdir',
+        default='',
+        help='Pipeline output directory (used to construct durable paths for illumination .npy files)'
+    )
 
     args = parser.parse_args()
 
@@ -1709,6 +1757,26 @@ def main():
             metadata_json
         )
 
+        # Build basename → original-path mapping from image_metadata entries.
+        # Use 'original_filename' (never modified by the module preamble) as the key;
+        # fall back to basename of 'filename' if original_filename is absent.
+        staged_to_original = {}
+        for entry in metadata_json.get('image_metadata', []):
+            orig = entry.get('original_path')
+            if not orig:
+                continue
+            key_name = entry.get('original_filename') or os.path.basename(str(entry.get('filename', '')))
+            if key_name:
+                staged_to_original[key_name] = orig
+
+        # Construct npy illumination original directory if outdir is provided
+        npy_original_dir = None
+        if args.outdir:
+            batch = metadata_json.get('batch', '')
+            plate = metadata_json.get('plate', '')
+            if batch and plate:
+                npy_original_dir = f"{args.outdir}/images/{batch}/illum/{plate}/"
+
         # Generate rows
         print(f"\nStep 2/4: Generating CSV rows...", file=sys.stderr)
         rows = generate_csv_rows(
@@ -1719,7 +1787,9 @@ def main():
             args.has_cycles,
             metadata_cycle,
             metadata_json,
-            args.cycle_metadata_name
+            args.cycle_metadata_name,
+            staged_to_original,
+            npy_original_dir,
         )
 
         # Apply subdirectory staging if requested
