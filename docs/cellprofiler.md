@@ -56,6 +56,20 @@ process CELLPROFILER_ILLUMCALC {
 | `PREPROCESS`       | Barcode calling                  | Per site                   | Preprocessed TIFF, CSV  |
 | `COMBINEDANALYSIS` | Final segmentation               | Per site                   | Masks, overlays, CSV    |
 
+### Container Flavors
+
+`SEGCHECK` and `COMBINEDANALYSIS` support swapping in an alternate CellProfiler image that bundles extra dependencies (e.g. Cellpose), controlled by two params:
+
+- `--cellprofiler_flavor {default,cellpose2,cellpose3}` — selects an image from the `cellprofiler_flavor_containers` map defined in `nextflow.config`. Applies to both `SEGCHECK` and `COMBINEDANALYSIS` together for a given run.
+- `--cellprofiler_container_override <image>` — bypasses `cellprofiler_flavor` entirely and uses the given image directly for both processes.
+
+To add a new flavor (e.g. a different Cellpose version, or another plugin bundle):
+
+1. Add a `name: image` entry to `params.cellprofiler_flavor_containers` in `nextflow.config`.
+2. Add the name to the `cellprofiler_flavor` enum in `nextflow_schema.json`, then run `pixi run build-schema`.
+
+The `cellpose2`/`cellpose3` entries currently ship as placeholders (`TODO_REPLACE_WITH_CELLPOSE*_CELLPROFILER_IMAGE`) — replace them with real, published image references before using those flavors. Only the `default` flavor has a Singularity/oras-native image; other flavors run under Singularity by relying on Nextflow's `singularity_pull_docker_container` option to auto-pull and convert the Docker image.
+
 ## Pipeline Files (.cppipe)
 
 ### Structure

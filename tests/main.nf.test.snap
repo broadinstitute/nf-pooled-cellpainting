@@ -869,7 +869,7 @@
                 "QC_BARCODEALIGN": {
                     "jupytext": "1.18.1",
                     "nbconvert": "7.16.6",
-                    "papermill": "2.6.0 from /opt/conda/lib/python3.13/site-packages/papermill/cli.py (3.13.9)"
+                    "papermill": "2.6.0 from /opt/conda/lib/python3.13/site-packages/papermill/cli.py (3.13.14)"
                 },
                 "QC_MONTAGEILLUM_BARCODING": {
                     "qc_montage": "0.1.0"
@@ -889,12 +889,12 @@
                 "QC_PAINTINGALIGN": {
                     "jupytext": "1.18.1",
                     "nbconvert": "7.16.6",
-                    "papermill": "2.6.0 from /opt/conda/lib/python3.13/site-packages/papermill/cli.py (3.13.9)"
+                    "papermill": "2.6.0 from /opt/conda/lib/python3.13/site-packages/papermill/cli.py (3.13.14)"
                 },
                 "QC_PREPROCESS": {
                     "jupytext": "1.18.1",
                     "nbconvert": "7.16.6",
-                    "papermill": "2.6.0 from /opt/conda/lib/python3.13/site-packages/papermill/cli.py (3.13.9)"
+                    "papermill": "2.6.0 from /opt/conda/lib/python3.13/site-packages/papermill/cli.py (3.13.14)"
                 }
             },
             [
@@ -2162,7 +2162,7 @@
             "nf-test": "0.9.3",
             "nextflow": "25.10.2"
         },
-        "timestamp": "2026-07-24T18:59:41.488782708"
+        "timestamp": "2026-07-28T13:13:54.004141"
     },
     "nf-pooled-cellpainting - full pipeline - test profile - stub - both qc false": {
         "content": [

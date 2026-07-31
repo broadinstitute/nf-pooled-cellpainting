@@ -8,6 +8,7 @@ include { QC_MONTAGEILLUM as QC_MONTAGEILLUM_BARCODING } from '../../../modules/
 include { QC_MONTAGEILLUM as QC_MONTAGE_ALIGNFAIL_BARCODING } from '../../../modules/local/qc/montageillum'
 include { CELLPROFILER_ILLUMAPPLY as CELLPROFILER_ILLUMAPPLY_BARCODING } from '../../../modules/local/cellprofiler/illumapply'
 include { CELLPROFILER_PREPROCESS } from '../../../modules/local/cellprofiler/preprocess'
+include { CELLPROFILER_PLUGINS_UPDATE } from '../../../modules/local/cellprofiler_plugins/update'
 include { QC_PREPROCESS } from '../../../modules/local/qc/preprocess'
 include { QC_BARCODEALIGN } from '../../../modules/local/qc/barcodealign'
 
@@ -26,6 +27,8 @@ workflow BARCODING_NO_STITCH {
     acquisition_geometry_columns
     callbarcodes_plugin
     compensatecolors_plugin
+    update_cellprofiler_plugins
+    cellprofiler_plugins_repo
 
     main:
     ch_versions = channel.empty()
@@ -286,11 +289,26 @@ workflow BARCODING_NO_STITCH {
     }
 
     //// Barcoding preprocessing ////
+    if (update_cellprofiler_plugins) {
+        CELLPROFILER_PLUGINS_UPDATE(cellprofiler_plugins_repo)
+        ch_versions = ch_versions.mix(CELLPROFILER_PLUGINS_UPDATE.out.versions)
+
+        // callbarcodes_plugin/compensatecolors_plugin always take precedence over the
+        // same-named files pulled by the update, so they stay individually pinned/overridable.
+        def plugin_overrides = [file(callbarcodes_plugin), file(compensatecolors_plugin)]
+        def override_names = plugin_overrides.collect { it.name }
+        ch_cellprofiler_plugins = CELLPROFILER_PLUGINS_UPDATE.out.plugin_files
+            .map { cloned_files -> cloned_files.findAll { !(it.name in override_names) } + plugin_overrides }
+    }
+    else {
+        ch_cellprofiler_plugins = channel.fromPath([callbarcodes_plugin, compensatecolors_plugin]).collect()
+    }
+
     CELLPROFILER_PREPROCESS(
         ch_sbs_corr_images,
         barcoding_preprocess_cppipe,
         barcodes,
-        channel.fromPath([callbarcodes_plugin, compensatecolors_plugin]).collect(),
+        ch_cellprofiler_plugins,
     )
     ch_versions = ch_versions.mix(CELLPROFILER_PREPROCESS.out.versions)
     // Merge load_data CSVs per plate

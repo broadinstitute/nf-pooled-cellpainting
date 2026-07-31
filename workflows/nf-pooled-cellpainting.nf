@@ -6,6 +6,7 @@
 include { CELLPAINTING } from '../subworkflows/local/cellpainting'
 include { BARCODING } from '../subworkflows/local/barcoding'
 include { CELLPROFILER_COMBINEDANALYSIS } from '../modules/local/cellprofiler/combinedanalysis/main'
+include { CELLPROFILER_PLUGINS_UPDATE } from '../modules/local/cellprofiler_plugins/update'
 include { MULTIQC } from '../modules/nf-core/multiqc/main'
 
 include { paramsSummaryMap } from 'plugin/nf-schema'
@@ -97,6 +98,8 @@ workflow POOLED_CELLPAINTING {
         params.acquisition_geometry_columns,
         params.callbarcodes_plugin,
         params.compensatecolors_plugin,
+        params.update_cellprofiler_plugins,
+        params.cellprofiler_plugins_repo,
         params.fiji_stitchcrop_script,
         params.barcoding_round_or_square,
         params.barcoding_quarter_if_round,
@@ -221,11 +224,26 @@ workflow POOLED_CELLPAINTING {
             }
             .set { ch_cropped_images }
 
+        if (params.update_cellprofiler_plugins) {
+            CELLPROFILER_PLUGINS_UPDATE(params.cellprofiler_plugins_repo)
+            ch_versions = ch_versions.mix(CELLPROFILER_PLUGINS_UPDATE.out.versions)
+
+            // callbarcodes_plugin/compensatecolors_plugin always take precedence over the
+            // same-named files pulled by the update, so they stay individually pinned/overridable.
+            def plugin_overrides = [file(params.callbarcodes_plugin), file(params.compensatecolors_plugin)]
+            def override_names = plugin_overrides.collect { it.name }
+            ch_combinedanalysis_plugins = CELLPROFILER_PLUGINS_UPDATE.out.plugin_files
+                .map { cloned_files -> cloned_files.findAll { !(it.name in override_names) } + plugin_overrides }
+        }
+        else {
+            ch_combinedanalysis_plugins = file(params.callbarcodes_plugin)
+        }
+
         CELLPROFILER_COMBINEDANALYSIS(
             ch_cropped_images,
             params.combinedanalysis_cppipe,
             barcodes,
-            file(params.callbarcodes_plugin),
+            ch_combinedanalysis_plugins,
         )
         ch_versions = ch_versions.mix(CELLPROFILER_COMBINEDANALYSIS.out.versions)
 

@@ -98,6 +98,17 @@
                 "combinedanalysis_cppipe": {
                     "type": "string",
                     "description": "Cellprofiler pipeline for combined analysis."
+                },
+                "cellprofiler_flavor": {
+                    "type": "string",
+                    "default": "default",
+                    "description": "Cellprofiler container variant to use for segmentation check and combined analysis (e.g. to enable Cellpose support).",
+                    "enum": ["default", "cellpose2", "cellpose3"]
+                },
+                "cellprofiler_container_override": {
+                    "type": "string",
+                    "description": "Fully-qualified container image for segmentation check and combined analysis, bypassing cellprofiler_flavor entirely.",
+                    "hidden": true
                 }
             },
             "required": [
@@ -356,6 +367,16 @@
                     "type": "string",
                     "default": "https://raw.githubusercontent.com/CellProfiler/CellProfiler-plugins/da969556d1d5095e5737601f483c7d55da374f75/active_plugins/compensatecolors.py",
                     "description": "Cellprofiler plugin for compensating colors."
+                },
+                "update_cellprofiler_plugins": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Clone the latest CellProfiler-plugins repository at runtime instead of using the pinned callbarcodes_plugin/compensatecolors_plugin files."
+                },
+                "cellprofiler_plugins_repo": {
+                    "type": "string",
+                    "default": "https://github.com/CellProfiler/CellProfiler-plugins.git",
+                    "description": "Git URL of the CellProfiler-plugins repository to clone when update_cellprofiler_plugins is true."
                 }
             },
             "fa_icon": "fas fa-plug"
