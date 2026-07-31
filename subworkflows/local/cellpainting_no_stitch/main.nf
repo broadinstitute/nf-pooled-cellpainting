@@ -18,6 +18,7 @@ workflow CELLPAINTING_NO_STITCH {
     painting_illumapply_cppipe // file: CellProfiler pipeline for illumination application
     painting_segcheck_cppipe // file: CellProfiler pipeline for segmentation check
     range_skip // val: range of QC segcheck images to skip
+    segcheck_plugins // path(s): Cellprofiler plugin file(s) for segmentation check
     outdir
     acquisition_geometry_rows
     acquisition_geometry_columns
@@ -264,6 +265,7 @@ workflow CELLPAINTING_NO_STITCH {
         ch_sub_corr_images,
         painting_segcheck_cppipe,
         range_skip,
+        segcheck_plugins,
     )
     ch_versions = ch_versions.mix(CELLPROFILER_SEGCHECK.out.versions)
     // Merge load_data CSVs per plate

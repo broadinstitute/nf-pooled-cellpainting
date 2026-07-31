@@ -27,6 +27,8 @@ workflow BARCODING_NO_STITCH {
     acquisition_geometry_columns
     callbarcodes_plugin
     compensatecolors_plugin
+    callbarcodes_plugin_default
+    compensatecolors_plugin_default
     update_cellprofiler_plugins
     cellprofiler_plugins_repo
 
@@ -293,9 +295,15 @@ workflow BARCODING_NO_STITCH {
         CELLPROFILER_PLUGINS_UPDATE(cellprofiler_plugins_repo)
         ch_versions = ch_versions.mix(CELLPROFILER_PLUGINS_UPDATE.out.versions)
 
-        // callbarcodes_plugin/compensatecolors_plugin always take precedence over the
-        // same-named files pulled by the update, so they stay individually pinned/overridable.
-        def plugin_overrides = [file(callbarcodes_plugin), file(compensatecolors_plugin)]
+        // Only override with callbarcodes_plugin/compensatecolors_plugin if the user actually
+        // changed them from their defaults - otherwise let the freshly-cloned versions through.
+        def plugin_overrides = []
+        if (callbarcodes_plugin != callbarcodes_plugin_default) {
+            plugin_overrides << file(callbarcodes_plugin)
+        }
+        if (compensatecolors_plugin != compensatecolors_plugin_default) {
+            plugin_overrides << file(compensatecolors_plugin)
+        }
         def override_names = plugin_overrides.collect { it.name }
         ch_cellprofiler_plugins = CELLPROFILER_PLUGINS_UPDATE.out.plugin_files
             .map { cloned_files -> cloned_files.findAll { !(it.name in override_names) } + plugin_overrides }

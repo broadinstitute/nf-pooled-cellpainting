@@ -168,16 +168,21 @@ Then point the affected processes at it. To apply this to **every** local Nextfl
 process {
     withName: 'QC_PAINTINGALIGN' {
         container = 'nf-pooled-cellpainting-qc:arm64'
+        containerOptions = '--platform=linux/arm64'
     }
     withName: 'QC_BARCODEALIGN' {
         container = 'nf-pooled-cellpainting-qc:arm64'
+        containerOptions = '--platform=linux/arm64'
     }
     withName: 'QC_PREPROCESS' {
         container = 'nf-pooled-cellpainting-qc:arm64'
+        containerOptions = '--platform=linux/arm64'
     }
 }
 ```
 
 Use these short (unqualified) process names, not fully-qualified ones like `POOLED_CELLPAINTING:CELLPAINTING:QC_PAINTINGALIGN` — the fully-qualified path differs by entry point (e.g. the default entry point vs. `-entry NO_STITCH`), so a fully-qualified selector will silently fail to match and the original amd64 container will still be used under whichever entry point it doesn't cover. Short names match the process regardless of which subworkflow chain calls it.
+
+If you're also running with `-profile arm` (the recommended profile for Apple Silicon), its global `docker.runOptions` forces `--platform=linux/amd64` on every container — including this native-arm64 one, which then fails with `Unable to find image ... locally` / `pull access denied` since no amd64 build of it exists. The `containerOptions = '--platform=linux/arm64'` override above is required in that case: Docker uses the *last* `--platform` flag it's given, so this overrides the profile's forced amd64 for just these three processes.
 
 If you'd rather scope this to just this repo, put the same `process` block in a project config file instead (e.g. `conf/LOCAL_TEST2.config`) and pass it with `-c` on the command line.

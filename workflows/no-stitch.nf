@@ -33,6 +33,32 @@ workflow NO_STITCH_POOLED_CELLPAINTING {
     ch_versions = channel.empty()
     ch_multiqc_files = channel.empty()
 
+    // Cellprofiler plugins (shared by segmentation check and combined analysis)
+    if (params.update_cellprofiler_plugins) {
+        CELLPROFILER_PLUGINS_UPDATE(params.cellprofiler_plugins_repo)
+        ch_versions = ch_versions.mix(CELLPROFILER_PLUGINS_UPDATE.out.versions)
+
+        // runcellpose_plugin always takes precedence over the same-named file pulled by the
+        // update. callbarcodes_plugin/compensatecolors_plugin only override if the user actually
+        // changed them from their defaults - otherwise the freshly-cloned versions pass through.
+        def plugin_overrides = [file(params.runcellpose_plugin)]
+        if (params.callbarcodes_plugin != params.callbarcodes_plugin_default) {
+            plugin_overrides << file(params.callbarcodes_plugin)
+        }
+        if (params.compensatecolors_plugin != params.compensatecolors_plugin_default) {
+            plugin_overrides << file(params.compensatecolors_plugin)
+        }
+        def override_names = plugin_overrides.collect { it.name }
+        ch_cellprofiler_plugins = CELLPROFILER_PLUGINS_UPDATE.out.plugin_files
+            .map { cloned_files -> cloned_files.findAll { !(it.name in override_names) } + plugin_overrides }
+    }
+    else {
+        // runcellpose.py is only needed (and only guaranteed to exist) when a Cellpose-enabled flavor is in use.
+        ch_cellprofiler_plugins = params.cellprofiler_flavor == 'default'
+            ? [file(params.callbarcodes_plugin), file(params.compensatecolors_plugin)]
+            : [file(params.callbarcodes_plugin), file(params.compensatecolors_plugin), file(params.runcellpose_plugin)]
+    }
+
     ch_samplesheet_flat = ch_samplesheet.flatMap { meta, image ->
         // Split imaging channels by comma and create a separate entry for each channel
         meta.original_channels = meta.channels
@@ -63,6 +89,7 @@ workflow NO_STITCH_POOLED_CELLPAINTING {
         params.painting_illumapply_cppipe,
         params.painting_segcheck_cppipe,
         params.range_skip,
+        ch_cellprofiler_plugins,
         params.outdir,
         params.acquisition_geometry_rows,
         params.acquisition_geometry_columns,
@@ -84,6 +111,8 @@ workflow NO_STITCH_POOLED_CELLPAINTING {
         params.acquisition_geometry_columns,
         params.callbarcodes_plugin,
         params.compensatecolors_plugin,
+        params.callbarcodes_plugin_default,
+        params.compensatecolors_plugin_default,
         params.update_cellprofiler_plugins,
         params.cellprofiler_plugins_repo,
     )
@@ -195,26 +224,11 @@ workflow NO_STITCH_POOLED_CELLPAINTING {
             }
             .set { ch_precrop_images }
 
-        if (params.update_cellprofiler_plugins) {
-            CELLPROFILER_PLUGINS_UPDATE(params.cellprofiler_plugins_repo)
-            ch_versions = ch_versions.mix(CELLPROFILER_PLUGINS_UPDATE.out.versions)
-
-            // callbarcodes_plugin/compensatecolors_plugin always take precedence over the
-            // same-named files pulled by the update, so they stay individually pinned/overridable.
-            def plugin_overrides = [file(params.callbarcodes_plugin), file(params.compensatecolors_plugin)]
-            def override_names = plugin_overrides.collect { it.name }
-            ch_combinedanalysis_plugins = CELLPROFILER_PLUGINS_UPDATE.out.plugin_files
-                .map { cloned_files -> cloned_files.findAll { !(it.name in override_names) } + plugin_overrides }
-        }
-        else {
-            ch_combinedanalysis_plugins = file(params.callbarcodes_plugin)
-        }
-
         CELLPROFILER_COMBINEDANALYSIS(
             ch_precrop_images,
             params.combinedanalysis_cppipe,
             barcodes,
-            ch_combinedanalysis_plugins,
+            ch_cellprofiler_plugins,
         )
         ch_versions = ch_versions.mix(CELLPROFILER_COMBINEDANALYSIS.out.versions)
 

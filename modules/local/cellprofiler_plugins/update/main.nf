@@ -2,7 +2,11 @@ process CELLPROFILER_PLUGINS_UPDATE {
     tag "${repo}"
     label 'process_single'
 
-    container 'bitnami/git@sha256:c02bdac0976e9edc06f5f4b262686b7c93192431d6eeffb7484ec664467a0c2f'
+    // Referenced by tag, not digest: pinning by digest breaks under -profile arm's forced
+    // --platform=linux/amd64, since Docker refuses to reassign an already-cached digest to a
+    // different platform's manifest ("cannot overwrite digest ..."). Bitnami no longer publishes
+    // versioned tags for this image, so 'latest' is the only stable name available.
+    container 'bitnami/git:latest'
     // Image's default entrypoint prints a banner and breaks Nextflow's script invocation; clear it.
     containerOptions '--entrypoint ""'
 

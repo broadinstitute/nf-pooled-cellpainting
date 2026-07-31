@@ -8,6 +8,10 @@ process CELLPROFILER_COMBINEDANALYSIS {
             ? 'oras://community.wave.seqera.io/library/cellprofiler:4.2.8--7c1bd3a82764de92'
             : params.cellprofiler_flavor_containers[params.cellprofiler_flavor])
     }"
+    // Non-default flavors (e.g. distributed-cellprofiler-based Cellpose images) ship an
+    // ENTRYPOINT meant for their own worker/queue launcher, which breaks Nextflow's direct
+    // command invocation - clear it. The default image's conda-activation entrypoint must stay.
+    containerOptions "${(params.cellprofiler_flavor != 'default' || params.cellprofiler_container_override) ? '--entrypoint \"\"' : ''}"
 
     input:
     tuple val(meta), path(cropped_images, stageAs: "images/"), val(image_metas)
@@ -37,7 +41,10 @@ process CELLPROFILER_COMBINEDANALYSIS {
     export MPLCONFIGDIR=\${PWD}/.matplotlib
     export HOME=\${PWD}
     export XDG_CACHE_HOME=\${PWD}/.cache
-    mkdir -p \${MPLCONFIGDIR} \${XDG_CACHE_HOME}
+    # Cellpose's numba JIT tries to cache compiled code next to the installed package files,
+    # which aren't writable when the container runs as the host UID/GID; redirect to a writable dir.
+    export NUMBA_CACHE_DIR=\${PWD}/.numba_cache
+    mkdir -p \${MPLCONFIGDIR} \${XDG_CACHE_HOME} \${NUMBA_CACHE_DIR}
 
     # Create metadata JSON file from base64 (reduces log verbosity)
     echo '${metadata_base64}' | base64 -d > metadata.json
