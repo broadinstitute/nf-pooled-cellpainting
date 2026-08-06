@@ -58,17 +58,17 @@ process CELLPROFILER_ILLUMCALC {
 
 ### Container Flavors
 
-`SEGCHECK` and `COMBINEDANALYSIS` support swapping in an alternate CellProfiler image that bundles extra dependencies (e.g. Cellpose), controlled by two params:
+`SEGCHECK` and `COMBINEDANALYSIS` support swapping in an alternate CellProfiler image that bundles extra dependencies for alternative segmentation methods (e.g. Cellpose), controlled by two params:
 
 - `--cellprofiler_flavor {default,cellpose2,cellpose3}` — selects an image from the `cellprofiler_flavor_containers` map defined in `nextflow.config`. Applies to both `SEGCHECK` and `COMBINEDANALYSIS` together for a given run.
 - `--cellprofiler_container_override <image>` — bypasses `cellprofiler_flavor` entirely and uses the given image directly for both processes.
+
+To ensure that the container has the appropriate version of CellProfiler-plugins, run with `--update_cellprofiler_plugins true` for the current version of the [CellProfiler-plugins repository](https://github.com/CellProfiler/CellProfiler-plugins) or point to a specific RunCellpose plugin commit with `--runcellpose_plugin`.
 
 To add a new flavor (e.g. a different Cellpose version, or another plugin bundle):
 
 1. Add a `name: image` entry to `params.cellprofiler_flavor_containers` in `nextflow.config`.
 2. Add the name to the `cellprofiler_flavor` enum in `nextflow_schema.json`, then run `pixi run build-schema`.
-
-The `cellpose2`/`cellpose3` entries currently ship as placeholders (`TODO_REPLACE_WITH_CELLPOSE*_CELLPROFILER_IMAGE`) — replace them with real, published image references before using those flavors. Only the `default` flavor has a Singularity/oras-native image; other flavors run under Singularity by relying on Nextflow's `singularity_pull_docker_container` option to auto-pull and convert the Docker image.
 
 ## Pipeline Files (.cppipe)
 
@@ -183,7 +183,10 @@ Default URLs are configured in `nextflow.config`:
 ```groovy
 callbarcodes_plugin = "https://raw.githubusercontent.com/CellProfiler/CellProfiler-plugins/ad3d9c031b97a31f6300372baa378f75ecb44426/active_plugins/callbarcodes.py"
 compensatecolors_plugin = "https://raw.githubusercontent.com/CellProfiler/CellProfiler-plugins/da969556d1d5095e5737601f483c7d55da374f75/active_plugins/compensatecolors.py"
+runcellpose_plugin = "https://raw.githubusercontent.com/CellProfiler/CellProfiler-plugins/0f1de5696e933f417f50a48eb40233dc490f98a0/active_plugins/runcellpose.py"
 ```
+
+`runcellpose_plugin` is only staged into `SEGCHECK`/`COMBINEDANALYSIS` when `cellprofiler_flavor` is not `default` (i.e. a Cellpose-enabled container is in use) - the `default` flavor's image doesn't have Cellpose installed, so the plugin would fail to import there.
 
 ## Output Organization
 

@@ -8,10 +8,6 @@ process CELLPROFILER_COMBINEDANALYSIS {
             ? 'oras://community.wave.seqera.io/library/cellprofiler:4.2.8--7c1bd3a82764de92'
             : params.cellprofiler_flavor_containers[params.cellprofiler_flavor])
     }"
-    // Non-default flavors (e.g. distributed-cellprofiler-based Cellpose images) ship an
-    // ENTRYPOINT meant for their own worker/queue launcher, which breaks Nextflow's direct
-    // command invocation - clear it. The default image's conda-activation entrypoint must stay.
-    containerOptions "${(params.cellprofiler_flavor != 'default' || params.cellprofiler_container_override) ? '--entrypoint \"\"' : ''}"
 
     input:
     tuple val(meta), path(cropped_images, stageAs: "images/"), val(image_metas)

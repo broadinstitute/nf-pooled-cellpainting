@@ -8,10 +8,6 @@ process CELLPROFILER_SEGCHECK {
             ? 'oras://community.wave.seqera.io/library/cellprofiler:4.2.8--7c1bd3a82764de92'
             : params.cellprofiler_flavor_containers[params.cellprofiler_flavor])
     }"
-    // Non-default flavors (e.g. distributed-cellprofiler-based Cellpose images) ship an
-    // ENTRYPOINT meant for their own worker/queue launcher, which breaks Nextflow's direct
-    // command invocation - clear it. The default image's conda-activation entrypoint must stay.
-    containerOptions "${(params.cellprofiler_flavor != 'default' || params.cellprofiler_container_override) ? '--entrypoint \"\"' : ''}"
 
     input:
     tuple val(meta), path(corr_images, stageAs: "images/"), val(image_metas)
@@ -51,10 +47,15 @@ process CELLPROFILER_SEGCHECK {
     cp -L ${segcheck_cppipe} segcheck_patched.cppipe
     sed -i 's/Base image location:None|/Base image location:Default Input Folder|/g' segcheck_patched.cppipe
 
+    # Set writable cache directories for CellProfiler and dependencies (the container runs as the
+    # host UID/GID, so the default homedir-based paths aren't writable).
+    export MPLCONFIGDIR="\${PWD}/.matplotlib"
+    export HOME="\${PWD}"
+    export XDG_CACHE_HOME="\${PWD}/.cache"
     # Cellpose's numba JIT tries to cache compiled code next to the installed package files,
     # which aren't writable when the container runs as the host UID/GID; redirect to a writable dir.
     export NUMBA_CACHE_DIR="\${PWD}/.numba_cache"
-    mkdir -p "\$NUMBA_CACHE_DIR"
+    mkdir -p "\$MPLCONFIGDIR" "\$XDG_CACHE_HOME" "\$NUMBA_CACHE_DIR"
 
     cellprofiler -c -r \\
         ${task.ext.args ?: ''} \\

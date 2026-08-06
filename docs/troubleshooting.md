@@ -73,6 +73,14 @@ df[['Metadata_Plate', 'Metadata_Well', 'Metadata_Site']].drop_duplicates()
 
 **Solution**: You cannot process two separate subsets of wells/images from a single plate in independent runs because there are some files that are created on a per-plate basis (e.g. illum .npy files). Therefore the output of one workflow trigger will overwrite the output of the other and since files are overwritten, Nextflow starts the workflow over upon resumption. To get around this, you must use different "Plate" metadata in your samplesheet (e.g. Plate1_subset1 in one samplesheet and Plate1_subset2 in the other samplesheet instead of just Plate1 in both samplesheets).
 
+## -resume reuses a result you didn't expect
+
+**Symptom**: You change an input (a `.cppipe` file, `--cellprofiler_flavor`, `--cellprofiler_container_override`, etc.) and re-run with `-resume`, but a process you expected to re-execute (e.g. `CELLPROFILER_SEGCHECK`) is reported as cached instead.
+
+**Cause**: `-resume` matches each task against its *entire* `work/` directory history by content hash (inputs + resolved container + script) - not just against the single run immediately before it. If you already ran that exact combination of inputs at some earlier point (even hours before, even under different `--cellprofiler_flavor`/`--cellprofiler_container_override` values that happen to resolve to the same underlying image), Nextflow will correctly find and reuse that old result. This is expected Nextflow behavior, not a bug in this pipeline - but it's easy to mistake for "resume ignored my change," especially since `cellprofiler_flavor_containers` in `nextflow.config` and a manually-supplied `cellprofiler_container_override` can resolve to the exact same image string without looking the same on the command line.
+
+**Solution**: If a cache hit looks wrong, check `.nextflow.log*` (rotated on every run) or `.nextflow/history` for earlier invocations that might have used the same effective inputs. To force re-execution regardless of cache, pass `-resume false` (equivalent to omitting `-resume`) or delete the specific `work/<hash>` directory reported in the log for that task.
+
 ## Local run fails to pull Docker on a Mac
 
 **Symptom**: You are running a local run on a Mac and get an error like:
