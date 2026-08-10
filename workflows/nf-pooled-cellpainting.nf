@@ -159,8 +159,12 @@ workflow POOLED_CELLPAINTING {
                 BARCODING.out.cropped_images.map { meta, images -> [meta + [arm_source: 'barcoding'], images] }
             )
             .flatMap { meta, images ->
-                // Flatten images and associate each image file with its metadata (including arm_source)
-                images.collect { img -> [meta, img] }
+                // Flatten images and associate each image file with its metadata (including arm_source).
+                // Wrap-then-flatten guards against Nextflow emitting a bare Path (not a List) when a
+                // glob output matches exactly one file -- Path implements Iterable<Path> over its
+                // filesystem name components, so calling .collect directly on it silently iterates
+                // path segments instead of images.
+                [images].flatten().collect { img -> [meta, img] }
             }
             .map { meta, image ->
                 // Create SIMPLE STRING grouping key for proper groupTuple operation
