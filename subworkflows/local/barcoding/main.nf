@@ -415,6 +415,7 @@ workflow BARCODING {
     FIJI_STITCHCROP(
         ch_preprocess_by_well,
         fiji_stitchcrop_script,
+        file("${projectDir}/assets/stitchcrop/well_site_layouts.json"),
         barcoding_round_or_square,
         barcoding_quarter_if_round,
         barcoding_overlap_pct,
