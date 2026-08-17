@@ -7,6 +7,7 @@ process FIJI_STITCHCROP {
     input:
     tuple val(meta), path(corrected_images, stageAs: 'images/')
     path stitch_script
+    path well_site_layouts_json
     val round_or_square
     val quarter_if_round
     val overlap_pct
@@ -69,6 +70,7 @@ process FIJI_STITCHCROP {
     export CHANNAME="${channame}"
     export PHENIX="${phenix}"
     export FIRST_SITE_INDEX="${first_site_index}"
+    export WELL_SITE_LAYOUTS_JSON="${well_site_layouts_json}"
 
     # Run Fiji in headless mode
     /opt/fiji/Fiji.app/ImageJ-linux64 \\

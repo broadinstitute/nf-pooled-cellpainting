@@ -35,6 +35,12 @@ input:
       pattern: "*.py"
       ontologies:
         - edam: http://edamontology.org/format_3996
+  - well_site_layouts_json:
+      type: file
+      description: Shared site-position layouts for round-well acquisitions (assets/stitchcrop/well_site_layouts.json), also used by the ashlar-based STITCH module
+      pattern: "*.json"
+      ontologies:
+        - edam: http://edamontology.org/format_3464
   - round_or_square:
       type: string
       description: Acquisition pattern shape (round or square)
