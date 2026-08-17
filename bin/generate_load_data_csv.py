@@ -936,7 +936,8 @@ def collect_and_group_files(
 
     print(f"✓ Successfully grouped {len(grouped)} unique (plate, well, site) combinations", file=sys.stderr)
 
-    # Post-process for multi-cycle: assign images to cycles by sorted order
+    # Post-process for multi-cycle: convert MODE A's flat per-site image dict
+    # into the `_files_by_cycle` structure generate_csv_rows() actually reads.
     if metadata_cycles:
         print(f"✓ Processing multi-cycle with cycles: {metadata_cycles}", file=sys.stderr)
         for key in list(grouped.keys()):
@@ -953,6 +954,30 @@ def collect_and_group_files(
             img_paths = [(k, v) for k, v in grouped[key]['images'].items() if not k.startswith('_')]
 
             if not img_paths:
+                continue
+
+            # If MODE A's main loop already labeled each entry with its own
+            # "CycleNN_CHANNEL" key (i.e. every entry had real per-image cycle
+            # AND channel info), parse cycle/channel directly from the key
+            # instead of re-deriving them by sorting paths and zipping them
+            # against a *global*, first-seen channel order (parsed_channels)
+            # below - that positional reconstruction silently assumes every
+            # site's images are staged in the same fixed channel order, which
+            # is not guaranteed and previously caused per-site channel-label
+            # corruption when a site's actual img-folder staging order
+            # differed from the first site's.
+            cycle_channel_keys = [
+                (m.group(1), m.group(2), path)
+                for k, path in img_paths
+                for m in [re.match(r'^Cycle(\d+)_(.+)$', k)]
+                if m
+            ]
+            if len(cycle_channel_keys) == len(img_paths):
+                grouped[key]['images'] = {'_files_by_cycle': {}}
+                grouped[key]['cycles'] = set(metadata_cycles)
+                for cycle_str, channel, path in cycle_channel_keys:
+                    cycle_num = int(cycle_str)
+                    grouped[key]['images']['_files_by_cycle'].setdefault(cycle_num, {})[channel] = path
                 continue
 
             # Sort and assign to cycles by order

@@ -1,0 +1,14 @@
+name: ashlar
+channels:
+  - bioconda
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.11
+  - openjdk
+  - pip
+  - pip:
+    - numpy
+    - pillow
+    - tifffile
+    - ashlar
