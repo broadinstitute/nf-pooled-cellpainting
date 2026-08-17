@@ -362,6 +362,7 @@ workflow CELLPAINTING {
     FIJI_STITCHCROP(
         ch_corrected_images_synced,
         fiji_stitchcrop_script,
+        file("${projectDir}/assets/stitchcrop/well_site_layouts.json"),
         painting_round_or_square,
         painting_quarter_if_round,
         painting_overlap_pct,
