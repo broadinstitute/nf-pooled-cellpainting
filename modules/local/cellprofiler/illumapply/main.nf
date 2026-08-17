@@ -31,14 +31,17 @@ process CELLPROFILER_ILLUMAPPLY {
     # Create metadata JSON file from base64 (reduces log verbosity)
     echo '${metadata_base64}' | base64 -d > metadata.json
     echo '${staged_list_base64}' | base64 -d > staged_list.txt
-    # Replace the metadata with staged paths instead
-    # Groovy arrays are ordered, so this should be safe, but check paths match anyway
+    # Replace the metadata with staged paths instead - matched by basename, not
+    # list position (list order between the Groovy-built metadata and Nextflow's
+    # actual staged-file order are not guaranteed to match - a prior index-based
+    # version of this silently mismatched channel labels for large "well"-mode
+    # illumapply calls bundling hundreds of images in one invocation).
 
     python3 -c "
 import json
 import os
+import sys
 
-# Read metadata to get staging indices
 with open('metadata.json') as f:
     metadata = json.load(f)
 with open('staged_list.txt') as f:
@@ -48,10 +51,19 @@ staged_list = staged_list.split(' ')
 # we need to remove the initial "images" part of the path
 staged_list = [os.path.sep.join(x.split(os.path.sep)[1:]) for x in staged_list]
 
-for x in range(len(metadata)):
-    if metadata[x]['filename']==staged_list[x].split(os.path.sep)[-1]:
+staged_by_basename = {s.split(os.path.sep)[-1]: s for s in staged_list}
 
-        metadata[x]['filename']=staged_list[x]
+missing = []
+for entry in metadata:
+    staged_path = staged_by_basename.get(entry['filename'])
+    if staged_path is None:
+        missing.append(entry['filename'])
+    else:
+        entry['filename'] = staged_path
+
+if missing:
+    print(f'Error: {len(missing)} metadata entries have no matching staged file, e.g. {missing[:10]}', file=sys.stderr)
+    sys.exit(1)
 
 with open('metadata.json','w') as f:
     json.dump(metadata,f)

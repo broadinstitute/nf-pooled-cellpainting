@@ -1,0 +1,91 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/nf-core/modules/master/modules/meta-schema.json
+name: "align_intraarm"
+description: Align cycle N to cycle 1 (within one arm) on full stitched well images using phase cross-correlation
+keywords:
+  - microscopy
+  - image processing
+  - registration
+  - alignment
+  - barcoding
+  - multicycle
+tools:
+  - "align_intraarm":
+      description: "Pipeline-local Python within-arm, cross-cycle alignment script (bin/align_intraarm.py)"
+      homepage: "https://github.com/broadinstitute/nf-pooled-cellpainting"
+      documentation: "https://github.com/broadinstitute/nf-pooled-cellpainting"
+      licence: ["MIT"]
+
+input:
+  - - meta:
+        type: map
+        description: |
+          Groovy Map containing sample information
+          e.g. `[ id:'sample1', batch:'Batch1', plate:'Plate1', well:'A1' ]`
+    - stitched_images:
+        type: file
+        description: Full-well stitched TIFF images across all cycles (barcoding always; painting only when painting_multicycle is true, otherwise a single implicit cycle passed through unchanged)
+        pattern: "*.{tif,tiff}"
+        ontologies:
+          - edam: http://edamontology.org/format_3547
+    - image_metas:
+        type: list
+        description: Per-image metadata (well/site/filename/cycle/channel) matching stitched_images
+  - channame:
+      type: string
+      description: Reference channel substring used to identify the registration channel within each cycle
+  - shift_threshold:
+      type: float
+      description: Recorded in the alignment_stats CSV for later QC review; not enforced by this module
+  - corr_threshold:
+      type: float
+      description: Recorded in the alignment_stats CSV for later QC review; not enforced by this module
+
+output:
+  - aligned_images:
+      - meta:
+          type: map
+          description: |
+            Groovy Map containing sample information
+            e.g. `[ id:'sample1', batch:'Batch1', plate:'Plate1', well:'A1' ]`
+      - "*.tiff":
+          type: file
+          description: Within-arm, cross-cycle-aligned full-well images (or unchanged pass-through when only one cycle is present)
+          pattern: "*.{tif,tiff}"
+          ontologies:
+            - edam: http://edamontology.org/format_3547
+  - alignment_stats:
+      - meta:
+          type: map
+          description: |
+            Groovy Map containing sample information
+            e.g. `[ id:'sample1', batch:'Batch1', plate:'Plate1', well:'A1' ]`
+      - "*.csv":
+          type: file
+          description: Optional per-cycle shift/error alignment quality metrics (absent when only one cycle is present)
+          pattern: "*.csv"
+          ontologies:
+            - edam: http://edamontology.org/format_3752
+  - qc_overlay:
+      - meta:
+          type: map
+          description: |
+            Groovy Map containing sample information
+            e.g. `[ id:'sample1', batch:'Batch1', plate:'Plate1', well:'A1' ]`
+      - "*.png":
+          type: file
+          description: Optional per-cycle 10x-downsampled pink (reference cycle)/green (aligned cycle) QC overlay for visual sanity-checking (absent when only one cycle is present)
+          pattern: "*.png"
+          ontologies:
+            - edam: http://edamontology.org/format_3603
+  - versions:
+      - versions.yml:
+          type: file
+          description: File containing software versions
+          pattern: "versions.yml"
+          ontologies:
+            - edam: http://edamontology.org/format_3750
+
+authors:
+  - "@ErinWeisbart"
+maintainers:
+  - "@ErinWeisbart"

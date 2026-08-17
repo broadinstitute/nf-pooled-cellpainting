@@ -1,0 +1,192 @@
+{
+    "align_intraarm - painting - stub": {
+        "content": [
+            {
+                "0": [
+                    [
+                        {
+                            "batch": "Batch1",
+                            "plate": "Plate1",
+                            "arm": "painting",
+                            "well": "A1",
+                            "id": "Batch1_Plate1_painting_A1"
+                        },
+                        [
+                            "Batch1_Plate1_painting_A1_CorrDNA.tiff:md5,d41d8cd98f00b204e9800998ecf8427e",
+                            "Batch1_Plate1_painting_A1_CorrER.tiff:md5,d41d8cd98f00b204e9800998ecf8427e"
+                        ]
+                    ]
+                ],
+                "1": [
+                    [
+                        {
+                            "batch": "Batch1",
+                            "plate": "Plate1",
+                            "arm": "painting",
+                            "well": "A1",
+                            "id": "Batch1_Plate1_painting_A1"
+                        },
+                        "AlignIntraArm_stats.csv:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "2": [
+                    [
+                        {
+                            "batch": "Batch1",
+                            "plate": "Plate1",
+                            "arm": "painting",
+                            "well": "A1",
+                            "id": "Batch1_Plate1_painting_A1"
+                        },
+                        "AlignIntraArm_QC_Cycle02.png:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "3": [
+                    "versions.yml:md5,871768c9468c553cff478c849ca70450"
+                ],
+                "aligned_images": [
+                    [
+                        {
+                            "batch": "Batch1",
+                            "plate": "Plate1",
+                            "arm": "painting",
+                            "well": "A1",
+                            "id": "Batch1_Plate1_painting_A1"
+                        },
+                        [
+                            "Batch1_Plate1_painting_A1_CorrDNA.tiff:md5,d41d8cd98f00b204e9800998ecf8427e",
+                            "Batch1_Plate1_painting_A1_CorrER.tiff:md5,d41d8cd98f00b204e9800998ecf8427e"
+                        ]
+                    ]
+                ],
+                "alignment_stats": [
+                    [
+                        {
+                            "batch": "Batch1",
+                            "plate": "Plate1",
+                            "arm": "painting",
+                            "well": "A1",
+                            "id": "Batch1_Plate1_painting_A1"
+                        },
+                        "AlignIntraArm_stats.csv:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "qc_overlay": [
+                    [
+                        {
+                            "batch": "Batch1",
+                            "plate": "Plate1",
+                            "arm": "painting",
+                            "well": "A1",
+                            "id": "Batch1_Plate1_painting_A1"
+                        },
+                        "AlignIntraArm_QC_Cycle02.png:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "versions": [
+                    "versions.yml:md5,871768c9468c553cff478c849ca70450"
+                ]
+            }
+        ],
+        "meta": {
+            "nf-test": "0.9.2",
+            "nextflow": "25.10.4"
+        },
+        "timestamp": "2026-08-12T13:46:40.19518"
+    },
+    "align_intraarm - barcoding - stub": {
+        "content": [
+            {
+                "0": [
+                    [
+                        {
+                            "batch": "Batch1",
+                            "plate": "Plate1",
+                            "arm": "barcoding",
+                            "well": "A1",
+                            "id": "Batch1_Plate1_barcoding_A1"
+                        },
+                        [
+                            "Batch1_Plate1_barcoding_A1_Cycle01_A.tiff:md5,d41d8cd98f00b204e9800998ecf8427e",
+                            "Batch1_Plate1_barcoding_A1_Cycle01_DNA.tiff:md5,d41d8cd98f00b204e9800998ecf8427e"
+                        ]
+                    ]
+                ],
+                "1": [
+                    [
+                        {
+                            "batch": "Batch1",
+                            "plate": "Plate1",
+                            "arm": "barcoding",
+                            "well": "A1",
+                            "id": "Batch1_Plate1_barcoding_A1"
+                        },
+                        "AlignIntraArm_stats.csv:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "2": [
+                    [
+                        {
+                            "batch": "Batch1",
+                            "plate": "Plate1",
+                            "arm": "barcoding",
+                            "well": "A1",
+                            "id": "Batch1_Plate1_barcoding_A1"
+                        },
+                        "AlignIntraArm_QC_Cycle02.png:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "3": [
+                    "versions.yml:md5,871768c9468c553cff478c849ca70450"
+                ],
+                "aligned_images": [
+                    [
+                        {
+                            "batch": "Batch1",
+                            "plate": "Plate1",
+                            "arm": "barcoding",
+                            "well": "A1",
+                            "id": "Batch1_Plate1_barcoding_A1"
+                        },
+                        [
+                            "Batch1_Plate1_barcoding_A1_Cycle01_A.tiff:md5,d41d8cd98f00b204e9800998ecf8427e",
+                            "Batch1_Plate1_barcoding_A1_Cycle01_DNA.tiff:md5,d41d8cd98f00b204e9800998ecf8427e"
+                        ]
+                    ]
+                ],
+                "alignment_stats": [
+                    [
+                        {
+                            "batch": "Batch1",
+                            "plate": "Plate1",
+                            "arm": "barcoding",
+                            "well": "A1",
+                            "id": "Batch1_Plate1_barcoding_A1"
+                        },
+                        "AlignIntraArm_stats.csv:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "qc_overlay": [
+                    [
+                        {
+                            "batch": "Batch1",
+                            "plate": "Plate1",
+                            "arm": "barcoding",
+                            "well": "A1",
+                            "id": "Batch1_Plate1_barcoding_A1"
+                        },
+                        "AlignIntraArm_QC_Cycle02.png:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "versions": [
+                    "versions.yml:md5,871768c9468c553cff478c849ca70450"
+                ]
+            }
+        ],
+        "meta": {
+            "nf-test": "0.9.2",
+            "nextflow": "25.10.4"
+        },
+        "timestamp": "2026-08-12T13:46:29.52679"
+    }
+}

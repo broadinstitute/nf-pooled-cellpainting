@@ -1,0 +1,49 @@
+{
+    "crop - painting - stub": {
+        "content": [
+            {
+                "0": [
+                    [
+                        {
+                            "batch": "Batch1",
+                            "plate": "Plate1",
+                            "arm": "painting",
+                            "well": "A1",
+                            "id": "Batch1_Plate1_painting_A1"
+                        },
+                        [
+                            "Plate_Plate1_Well_A1_Site_1_CorrDNA.tiff:md5,d41d8cd98f00b204e9800998ecf8427e",
+                            "Plate_Plate1_Well_A1_Site_1_CorrER.tiff:md5,d41d8cd98f00b204e9800998ecf8427e"
+                        ]
+                    ]
+                ],
+                "1": [
+                    "versions.yml:md5,8d180215d2e9d2676a23d988337f36ec"
+                ],
+                "cropped_images": [
+                    [
+                        {
+                            "batch": "Batch1",
+                            "plate": "Plate1",
+                            "arm": "painting",
+                            "well": "A1",
+                            "id": "Batch1_Plate1_painting_A1"
+                        },
+                        [
+                            "Plate_Plate1_Well_A1_Site_1_CorrDNA.tiff:md5,d41d8cd98f00b204e9800998ecf8427e",
+                            "Plate_Plate1_Well_A1_Site_1_CorrER.tiff:md5,d41d8cd98f00b204e9800998ecf8427e"
+                        ]
+                    ]
+                ],
+                "versions": [
+                    "versions.yml:md5,8d180215d2e9d2676a23d988337f36ec"
+                ]
+            }
+        ],
+        "meta": {
+            "nf-test": "0.9.3",
+            "nextflow": "25.10.2"
+        },
+        "timestamp": "2026-08-13T11:14:34.650237"
+    }
+}
