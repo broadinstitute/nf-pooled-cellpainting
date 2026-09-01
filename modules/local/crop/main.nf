@@ -2,7 +2,7 @@ process CROP {
     tag "${meta.id}"
     label 'crop'
 
-    // TODO: swap for a container with whatever real deps bin/crop.py needs
+    // bin/crop.py only needs numpy + Pillow, both already present in this image
     container "community.wave.seqera.io/library/numpy_python_pip_pillow:74310e9b76ff61b6"
 
     input:
@@ -21,24 +21,18 @@ process CROP {
 
     script:
     def first_site_index = meta.first_site_index ?: 0
-    /*
-     * TODO: user will implement the crop-only invocation of bin/crop.py here.
-     * Suggested CLI shape (adjust to match the real script):
-     *
-     * crop.py \
-     *     --input-dir images/ \
-     *     --output-dir cropped_images/ \
-     *     --tileperside "${tileperside}" \
-     *     --final-tile-size "${final_tile_size}" \
-     *     --compress "${compress}" \
-     *     --phenix "${phenix}" \
-     *     --channame "${channame}" \
-     *     --first-site-index "${first_site_index}"
-     */
     """
     mkdir -p cropped_images
 
-    # TODO: invoke crop.py here
+    crop.py \\
+        --input-dir images/ \\
+        --output-dir cropped_images/ \\
+        --tileperside "${tileperside}" \\
+        --final-tile-size "${final_tile_size}" \\
+        --compress "${compress}" \\
+        --phenix "${phenix}" \\
+        --channame "${channame}" \\
+        --first-site-index "${first_site_index}"
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
@@ -56,8 +50,8 @@ process CROP {
         touch cropped_images/${prefix}_Cycle01_DNA.tiff
         touch cropped_images/${prefix}_Cycle01_A.tiff
     else
-        touch cropped_images/${prefix}_CorrDNA.tiff
-        touch cropped_images/${prefix}_CorrER.tiff
+        touch cropped_images/${prefix}_Cycle01_CorrDNA.tiff
+        touch cropped_images/${prefix}_Cycle01_CorrER.tiff
     fi
 
     cat <<-END_VERSIONS > versions.yml

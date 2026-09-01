@@ -7,9 +7,11 @@ include { CELLPAINTING_PRE_STITCH } from '../subworkflows/local/cellpainting_pre
 include { BARCODING_PRE_STITCH } from '../subworkflows/local/barcoding_pre_stitch'
 include { STITCH_ALIGN_CROP_JOINT } from '../subworkflows/local/stitch_align_crop'
 include { CELLPROFILER_SEGCHECK } from '../modules/local/cellprofiler/segcheck'
-include { CELLPROFILER_PREPROCESS } from '../modules/local/cellprofiler/preprocess'
+include { CELLPROFILER_PREPROCESS as CELLPROFILER_PREPROCESS_STITCHALIGNCROP } from '../modules/local/cellprofiler/preprocess'
 include { CELLPROFILER_COMBINEDANALYSIS } from '../modules/local/cellprofiler/combinedanalysis/main'
 include { CELLPROFILER_PLUGINS_UPDATE } from '../modules/local/cellprofiler_plugins/update'
+include { QC_MONTAGEILLUM as QC_MONTAGE_SEGCHECK } from '../modules/local/qc/montageillum'
+include { QC_PREPROCESS } from '../modules/local/qc/preprocess'
 include { MULTIQC } from '../modules/nf-core/multiqc/main'
 
 include { paramsSummaryMap } from 'plugin/nf-schema'
@@ -188,6 +190,22 @@ workflow STITCH_ALIGN_CROP_POOLED_CELLPAINTING {
         ]
     }
 
+    // Reshape CELLPROFILER_SEGCHECK output for QC montage
+    ch_segcheck_qc = CELLPROFILER_SEGCHECK.out.segcheck_res
+        .map { meta, _csv_files, png_files ->
+            [meta.subMap(['batch', 'plate']) + [arm: "painting"], png_files]
+        }
+        .groupTuple()
+        .map { meta, png_files_list ->
+            [meta, png_files_list.flatten().sort { it -> it.name }]
+        }
+
+    QC_MONTAGE_SEGCHECK(
+        ch_segcheck_qc,
+        ".*\\.png\$",
+    )
+    ch_versions = ch_versions.mix(QC_MONTAGE_SEGCHECK.out.versions)
+
     //// Barcoding: build image_metas for cropped per-site images (already per-site) ////
     ch_sbs_corr_images = STITCH_ALIGN_CROP_JOINT.out.barcoding_cropped_images
         .map { meta, images ->
@@ -206,15 +224,15 @@ workflow STITCH_ALIGN_CROP_POOLED_CELLPAINTING {
             [meta, images, image_metas]
         }
 
-    CELLPROFILER_PREPROCESS(
+    CELLPROFILER_PREPROCESS_STITCHALIGNCROP(
         ch_sbs_corr_images,
         params.barcoding_preprocess_cppipe,
         barcodes,
         ch_cellprofiler_plugins,
     )
-    ch_versions = ch_versions.mix(CELLPROFILER_PREPROCESS.out.versions)
+    ch_versions = ch_versions.mix(CELLPROFILER_PREPROCESS_STITCHALIGNCROP.out.versions)
     // Merge load_data CSVs per plate
-    CELLPROFILER_PREPROCESS.out.load_data_csv.collectFile(keepHeader: true, skip: 1) { meta, csv ->
+    CELLPROFILER_PREPROCESS_STITCHALIGNCROP.out.load_data_csv.collectFile(keepHeader: true, skip: 1) { meta, csv ->
         def dir = file("${params.outdir}/workspace/load_data_csv/${meta.batch}/${meta.plate}")
         dir.mkdirs()
         [
@@ -227,6 +245,40 @@ workflow STITCH_ALIGN_CROP_POOLED_CELLPAINTING {
             },
         ]
     }
+
+    // First, collect cycle information from the samplesheet to infer num_cycles
+    ch_plate_cycles = ch_samplesheet_barcoding
+        .map { meta, _image ->
+            def plate_key = [batch: meta.batch, plate: meta.plate]
+            [plate_key, meta.cycle]
+        }
+        .groupTuple()
+        .map { plate_key, cycles ->
+            [plate_key, cycles.unique().max()]
+        }
+
+    //// QC: Barcode preprocessing (barcode calling) ////
+    ch_preprocess_qc_input = CELLPROFILER_PREPROCESS_STITCHALIGNCROP.out.preprocess_stats
+        .map { meta, csv_files ->
+            def plate_key = [batch: meta.batch, plate: meta.plate]
+            def image_csv = csv_files.find { file -> file.name.contains('BarcodePreprocessing_Foci.csv') }
+            [plate_key, meta.well, image_csv]
+        }
+        .groupTuple()
+        .combine(ch_plate_cycles, by: 0)
+        .map { plate_key, wells, csvs, num_cycles ->
+            def qc_meta = plate_key + [arm: "barcoding", id: "${plate_key.batch}_${plate_key.plate}"]
+            [qc_meta, wells.unique(), csvs, num_cycles]
+        }
+
+    QC_PREPROCESS(
+        ch_preprocess_qc_input,
+        file("${projectDir}/bin/qc_barcode_preprocess.py"),
+        barcodes,
+        params.acquisition_geometry_rows,
+        params.acquisition_geometry_columns,
+    )
+    ch_versions = ch_versions.mix(QC_PREPROCESS.out.versions)
 
     //// Combined analysis of painting and barcoding data ////
     // Only run if BOTH painting and barcoding QC have been marked as pass.

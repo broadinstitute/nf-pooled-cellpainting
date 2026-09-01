@@ -53,6 +53,11 @@ from typing import Dict, List, Optional, Tuple
 import numpy as np
 from PIL import Image
 
+# Full-well stitched mosaics routinely exceed PIL's default decompression-bomb
+# threshold (~89.5 megapixels) - these are legitimate large scientific images,
+# not the malicious images that check guards against.
+Image.MAX_IMAGE_PIXELS = None
+
 SCRIPT_DIR = Path(__file__).resolve().parent
 DEFAULT_WELL_SITE_LAYOUTS_JSON = SCRIPT_DIR.parent / "assets" / "stitchcrop" / "well_site_layouts.json"
 
@@ -262,9 +267,14 @@ def run_ashlar(
     """One ashlar call over every channel staged in work_dir - see module docstring."""
     overlap_frac = float(overlap_pct) / 100.0
     corr_infix = "Corr" if arm == "painting" else ""
-    pattern = f"{{series:{SERIES_DIGITS}}}_{corr_infix}{{channel:1}}.tiff"
+    # Plain concatenation (not an f-string) - same reasoning as out_template below.
+    pattern = "{series:" + str(SERIES_DIGITS) + "}_" + corr_infix + "{channel:1}.tiff"
     fileseries_url = f"fileseries|{work_dir}|pattern={pattern}|overlap={overlap_frac}|width={grid_columns}|height={grid_rows}"
-    out_template = str(out_dir / f"{out_prefix}{corr_infix}{{channel}}.tif")
+    # Plain concatenation (not an f-string) so the literal channel placeholder
+    # ashlar expects in its own -o template doesn't need double-brace escaping -
+    # an escaped f-string placeholder here reads as an unfilled Jinja template
+    # to nf-core lint's template-string check.
+    out_template = str(out_dir / f"{out_prefix}{corr_infix}") + "{channel}.tif"
     cmd = ["ashlar", fileseries_url, "-o", out_template]
     print("Running:", " ".join(cmd))
     subprocess.run(cmd, check=True)

@@ -12,8 +12,8 @@
                             "id": "Batch1_Plate1_painting_A1"
                         },
                         [
-                            "Plate_Plate1_Well_A1_Site_1_CorrDNA.tiff:md5,d41d8cd98f00b204e9800998ecf8427e",
-                            "Plate_Plate1_Well_A1_Site_1_CorrER.tiff:md5,d41d8cd98f00b204e9800998ecf8427e"
+                            "Plate_Plate1_Well_A1_Site_1_Cycle01_CorrDNA.tiff:md5,d41d8cd98f00b204e9800998ecf8427e",
+                            "Plate_Plate1_Well_A1_Site_1_Cycle01_CorrER.tiff:md5,d41d8cd98f00b204e9800998ecf8427e"
                         ]
                     ]
                 ],
@@ -30,8 +30,8 @@
                             "id": "Batch1_Plate1_painting_A1"
                         },
                         [
-                            "Plate_Plate1_Well_A1_Site_1_CorrDNA.tiff:md5,d41d8cd98f00b204e9800998ecf8427e",
-                            "Plate_Plate1_Well_A1_Site_1_CorrER.tiff:md5,d41d8cd98f00b204e9800998ecf8427e"
+                            "Plate_Plate1_Well_A1_Site_1_Cycle01_CorrDNA.tiff:md5,d41d8cd98f00b204e9800998ecf8427e",
+                            "Plate_Plate1_Well_A1_Site_1_Cycle01_CorrER.tiff:md5,d41d8cd98f00b204e9800998ecf8427e"
                         ]
                     ]
                 ],
@@ -44,6 +44,6 @@
             "nf-test": "0.9.3",
             "nextflow": "25.10.2"
         },
-        "timestamp": "2026-08-13T11:14:34.650237"
+        "timestamp": "2026-08-31T12:00:45.19956"
     }
 }
