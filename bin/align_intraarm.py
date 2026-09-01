@@ -36,6 +36,11 @@ from PIL import Image
 from scipy.ndimage import shift as ndi_shift
 from skimage.registration import phase_cross_correlation
 
+# Full-well stitched mosaics routinely exceed PIL's default decompression-bomb
+# threshold (~89.5 megapixels) - these are legitimate large scientific images,
+# not the malicious images that check guards against.
+Image.MAX_IMAGE_PIXELS = None
+
 
 def load_metadata(path: Path) -> List[dict]:
     with open(path) as f:

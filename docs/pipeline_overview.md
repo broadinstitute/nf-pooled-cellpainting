@@ -4,7 +4,7 @@
 
 The pipeline processes data through two parallel arms (the Cell Painting arm and the ISS arm) that operate independently on separate stacks of images before converging for final analysis. A mermaid diagram follows:
 
-:::{mermaid}
+```{mermaid}
 flowchart TD
     subgraph Input
         Samplesheet[Samplesheet]
@@ -59,7 +59,7 @@ flowchart TD
     CP_StitchCrop --> CombinedAnalysis
     BC_StitchCrop --> CombinedAnalysis
     CombinedAnalysis --> MultiQC
-:::
+```
 
 ### Cell Painting Arm (Phenotype)
 

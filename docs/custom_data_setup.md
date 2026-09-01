@@ -81,9 +81,9 @@ You need to provide paths to these files using the corresponding parameters:
 
 - `--combinedanalysis_cppipe`: The final step that merges data. **Crucially**, this pipeline must expect the input object tables from the previous steps.
 
-:::{warning}
+```{warning}
 Ensure your CellProfiler pipelines are compatible with the version of CellProfiler used in the container (currently 4.2.x).
-:::
+```
 
 ## Full Parameters
 

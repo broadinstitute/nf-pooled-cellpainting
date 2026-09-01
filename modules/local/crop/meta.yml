@@ -35,10 +35,10 @@ input:
       description: Whether to compress output images
   - phenix:
       type: boolean
-      description: Whether the first site is centered in the well (Phenix acquisition pattern) or in the upper left corner (non-Phenix)
+      description: Accepted for interface parity with the legacy Fiji script; unused here - tile numbering is a plain column-major grid regardless of acquisition geometry, since cropping happens after stitching
   - channame:
       type: string
-      description: Channel naming convention used when writing cropped tile filenames
+      description: Accepted for interface parity with the legacy Fiji script; unused here - every channel file is cropped independently with the same grid
 
 output:
   - cropped_images:

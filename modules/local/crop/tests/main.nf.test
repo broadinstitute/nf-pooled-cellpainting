@@ -1,9 +1,8 @@
 /*
- * NOTE: bin/crop.py has not been implemented yet (see main.nf TODOs), so this
- * only exercises the stub branch - the real (non-stub) behavior can't be tested
- * until that script exists. Input files are illumination-corrected fixtures
- * reused as stand-ins for a stitched well image - only their existence matters
- * for a stub test, not their content.
+ * NOTE: this only exercises the stub branch. Input files are illumination-corrected
+ * fixtures reused as stand-ins for a stitched well image - only their existence
+ * matters for a stub test, not their content or filename pattern (bin/crop.py's
+ * real Stitched-filename parsing is exercised separately, not via this fixture).
  */
 
 nextflow_process {

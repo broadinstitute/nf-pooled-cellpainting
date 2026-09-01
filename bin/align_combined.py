@@ -40,6 +40,11 @@ from PIL import Image
 from scipy.ndimage import shift as ndi_shift
 from skimage.registration import phase_cross_correlation
 
+# Full-well stitched mosaics routinely exceed PIL's default decompression-bomb
+# threshold (~89.5 megapixels) - these are legitimate large scientific images,
+# not the malicious images that check guards against.
+Image.MAX_IMAGE_PIXELS = None
+
 
 def load_metadata(path: Path) -> List[dict]:
     with open(path) as f:
@@ -131,17 +136,6 @@ def main(args: argparse.Namespace) -> None:
         print("Error: expected both cellpainting and barcoding entries in metadata-json")
         sys.exit(1)
 
-    # Scale every image up front (both arms, all cycles) - this is the step that
-    # matches painting/barcoding physical pixel size to each other.
-    painting_scaled = {
-        e["filename"]: scale_array(load_array(args.painting_images_dir / e["filename"]), args.painting_scalingstring)
-        for e in painting_entries
-    }
-    barcoding_scaled = {
-        e["filename"]: scale_array(load_array(args.barcoding_images_dir / e["filename"]), args.barcoding_scalingstring)
-        for e in barcoding_entries
-    }
-
     # Barcoding cycle 1's reference channel is the fixed anchor for the whole well.
     barcoding_cycles = [e.get("cycle") for e in barcoding_entries if e.get("cycle") is not None]
     barcoding_cycle1 = min(barcoding_cycles) if barcoding_cycles else None
@@ -163,8 +157,15 @@ def main(args: argparse.Namespace) -> None:
         )
         sys.exit(1)
 
-    barcoding_ref_array = barcoding_scaled[barcoding_ref_entry["filename"]]
-    painting_ref_array = painting_scaled[painting_ref_entry["filename"]]
+    # Only the two reference images need to be scaled and held in memory at once,
+    # to compute the single shift applied to every painting image below. Every
+    # other image is streamed through one at a time (loaded, scaled, saved,
+    # discarded) instead of pre-loading the whole well (all cycles x channels,
+    # both arms) into memory simultaneously - for a full-resolution multi-cycle
+    # well, especially with barcoding's ~4x pixel-count upscale, that previously
+    # ballooned to tens of GB and got OOM-killed.
+    barcoding_ref_array = scale_array(load_array(args.barcoding_images_dir / barcoding_ref_entry["filename"]), args.barcoding_scalingstring)
+    painting_ref_array = scale_array(load_array(args.painting_images_dir / painting_ref_entry["filename"]), args.painting_scalingstring)
     barcoding_ref_cropped, painting_ref_cropped = crop_to_common_shape(barcoding_ref_array, painting_ref_array)
 
     # shift = translation required to register painting (moving) with barcoding
@@ -175,15 +176,23 @@ def main(args: argparse.Namespace) -> None:
 
     aligned_painting_ref_array = None
     for entry in painting_entries:
-        arr = painting_scaled[entry["filename"]]
+        if entry is painting_ref_entry:
+            arr = painting_ref_array
+        else:
+            arr = scale_array(load_array(args.painting_images_dir / entry["filename"]), args.painting_scalingstring)
         shifted = ndi_shift(arr, shift, mode="constant", cval=0)
         save_array(shifted, arr.dtype, args.painting_output_dir / entry["filename"])
         if entry is painting_ref_entry:
             aligned_painting_ref_array = shifted
+        del arr, shifted
 
     for entry in barcoding_entries:
-        arr = barcoding_scaled[entry["filename"]]
+        if entry is barcoding_ref_entry:
+            arr = barcoding_ref_array
+        else:
+            arr = scale_array(load_array(args.barcoding_images_dir / entry["filename"]), args.barcoding_scalingstring)
         save_array(arr, arr.dtype, args.barcoding_output_dir / entry["filename"])
+        del arr
 
     overlay_path = args.output_dir / "AlignCombined_QC.png"
     save_overlay(barcoding_ref_array, aligned_painting_ref_array, overlay_path)

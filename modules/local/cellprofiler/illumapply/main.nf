@@ -48,14 +48,32 @@ with open('staged_list.txt') as f:
     staged_list = f.read()
 
 staged_list = staged_list.split(' ')
-# we need to remove the initial "images" part of the path
-staged_list = [os.path.sep.join(x.split(os.path.sep)[1:]) for x in staged_list]
 
-staged_by_basename = {s.split(os.path.sep)[-1]: s for s in staged_list}
+# Two different physical files can share a basename (e.g. Phenix filenames
+# reuse the same ch{N} index across different acquisition 'round'
+# subfolders), so basename alone can't disambiguate them. Nextflow stages
+# each file as a symlink back to its real source path, and every metadata
+# entry already records that same absolute path as original_path - resolve
+# each staged symlink's target and match on that instead, falling back to
+# basename matching only if the staged copy isn't a symlink (e.g. a
+# stageInMode: copy environment), preserving today's behavior there.
+staged_by_realpath = {}
+staged_by_basename = {}
+for s in staged_list:
+    rel = os.path.sep.join(s.split(os.path.sep)[1:])
+    staged_by_basename.setdefault(s.split(os.path.sep)[-1], rel)
+    real = os.path.realpath(s)
+    if real != os.path.abspath(s):
+        staged_by_realpath[real] = rel
 
 missing = []
 for entry in metadata:
-    staged_path = staged_by_basename.get(entry['filename'])
+    staged_path = None
+    original_path = entry.get('original_path')
+    if original_path:
+        staged_path = staged_by_realpath.get(os.path.realpath(original_path))
+    if staged_path is None:
+        staged_path = staged_by_basename.get(entry['filename'])
     if staged_path is None:
         missing.append(entry['filename'])
     else:

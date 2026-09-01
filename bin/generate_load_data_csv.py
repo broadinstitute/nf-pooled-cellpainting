@@ -1367,19 +1367,35 @@ def generate_csv_rows(
             elif files_by_cycle:
                 illum_by_cycle = file_data['illum'].get('_by_cycle', {})
 
-                # CLI --channels overrides JSON (matches the "overriding JSON"
-                # log line emitted by main()); without this the override never
-                # reaches column generation.
-                if metadata_channels:
-                    channels_to_use = metadata_channels
-                elif metadata_json and 'channels' in metadata_json:
-                    channels_to_use = metadata_json['channels']
-                else:
-                    raise ValueError("Channels must be specified in JSON metadata or CLI args")
+                # Unlike PATTERN 1, the FileName/Frame columns below come directly
+                # from each cycle's own {channel: path} dict (cycle_info.items()) -
+                # channels_to_use is only consumed by the optional missing-
+                # illumination-file cross-check further down, so it must only be
+                # required when that check actually runs (config['include_illum_files']).
+                # Pipeline types that don't need illum files (e.g. preprocess) have
+                # no reason to supply --channels or a metadata channels field, and
+                # must not hard-fail just because neither is resolvable.
+                channels_to_use = None
+                if config['include_illum_files']:
+                    # CLI --channels overrides JSON (matches the "overriding JSON"
+                    # log line emitted by main()); without this the override never
+                    # reaches column generation.
+                    if metadata_channels:
+                        channels_to_use = metadata_channels
+                    elif metadata_json and 'channels' in metadata_json:
+                        channels_to_use = metadata_json['channels']
+                    else:
+                        raise ValueError("Channels must be specified in JSON metadata or CLI args")
 
                 # Check if we have multiple cycles - if only one, don't use cycle prefix
                 num_cycles = len(files_by_cycle)
                 use_cycle_prefix = num_cycles > 1
+
+                # "Orig" only exists to disambiguate from a companion Illum{channel}
+                # column in the same row (illumapply) - pipeline types with no Illum
+                # columns (preprocess) have nothing to disambiguate from, so the
+                # prefix is dropped entirely there.
+                orig_infix = "Orig" if config['include_illum_files'] else ""
 
                 # Sort cycles to ensure consistent column order
                 for cycle_num in sorted(files_by_cycle.keys()):
@@ -1389,11 +1405,11 @@ def generate_csv_rows(
                     # Add FileName and Frame for each channel in this cycle
                     for channel, filename in cycle_info.items():
                         if use_cycle_prefix:
-                            row[f'FileName_Cycle{cycle_str}_Orig{channel}'] = filename
-                            row[f'FinalFileName_Cycle{cycle_str}_Orig{channel}'] = _orig(filename)
+                            row[f'FileName_Cycle{cycle_str}_{orig_infix}{channel}'] = filename
+                            row[f'FinalFileName_Cycle{cycle_str}_{orig_infix}{channel}'] = _orig(filename)
                         else:
-                            row[f'FileName_Orig{channel}'] = filename
-                            row[f'FinalFileName_Orig{channel}'] = _orig(filename)
+                            row[f'FileName_{orig_infix}{channel}'] = filename
+                            row[f'FinalFileName_{orig_infix}{channel}'] = _orig(filename)
 
                         # Add illumination file if available for this cycle
                         if cycle_num in illum_by_cycle and channel in illum_by_cycle[cycle_num]:
