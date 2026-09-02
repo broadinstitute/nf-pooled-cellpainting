@@ -97,6 +97,9 @@ with open('metadata.json','w') as f:
         --channels "${channels}" \\
         --cycle-metadata-name "${params.cycle_metadata_name}" \\
         --outdir "${params.outdir}" \\
+        --include-illum-files \\
+        --cycle-aware \\
+        --orig-channel-columns \\
         ${has_cycles ? '--has-cycles' : ''}
 
     # Patch Base image location to use Default Input Folder (staged images)

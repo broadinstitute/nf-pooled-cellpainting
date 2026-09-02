@@ -6,22 +6,10 @@ This script generates load_data.csv files for different CellProfiler pipeline st
 It automatically detects the pipeline type based on input files and generates the
 appropriate CSV structure.
 
-Metadata columns are created based on fields present in the JSON metadata file:
-
-Mode 1: image_metadata array (one CSV row per array entry)
-- JSON has 'image_metadata' array → CSV has Metadata_Plate, Metadata_Well, Metadata_Site
-- Well/site values come from array entries, not parsed from filenames
-- Files are matched to array entries by parsing well/site from filenames
-- Example: {"plate": "P1", "image_metadata": [{"well": "A1", "site": 0}, ...]}
-
-Mode 2: Single well/site (one CSV row)
-- JSON has 'plate', 'well', 'site' → CSV has all three columns
-- Example: {"plate": "P1", "well": "A1", "site": 0}
-
-Mode 3: Plate-level only (well/site parsed from filenames)
-- JSON has 'plate' only → CSV has Metadata_Plate only
-- Well/site parsed from filenames for grouping but not in CSV columns
-- Example: {"plate": "P1"}
+Every caller provides an 'image_metadata' array in its JSON - one CSV row is
+generated per (plate, well, site) group, with Metadata_Plate/Metadata_Well/
+Metadata_Site columns and well/site values taken directly from the array
+entries, never parsed from filenames.
 """
 
 import argparse
@@ -34,314 +22,17 @@ import sys
 from typing import Dict, List, Tuple, Optional
 
 
-# Pipeline configuration - defines the CSV structure for each pipeline step
-PIPELINE_CONFIGS = {
-    'illumcalc': {
-        'description': 'Illumination calculation - uses original multi-channel images',
-        'file_pattern': r'.*\.(?:tiff?|nd2)$',
-        'metadata_cols': None,  # Dynamic based on has_cycles
-        'metadata_cols_base': ['Metadata_Plate', 'Metadata_Well', 'Metadata_Site'],
-        'metadata_cols_with_cycles': ['Metadata_Plate', 'Metadata_Well', 'Metadata_Site'],  # Cycle column name will be added dynamically
-        'include_illum_files': False,
-        'supports_subdirs': False,
-        'cycle_aware': False,
-        'parse_function': 'parse_original_image'
-    },
-    'illumapply': {
-        'description': 'Illumination correction - uses original images + illumination functions',
-        'file_pattern': r'.*\.(?:tiff?|nd2)$',
-        'metadata_cols': ['Metadata_Plate', 'Metadata_Well', 'Metadata_Site'],
-        'include_illum_files': True,
-        'supports_subdirs': True,
-        'cycle_aware': True,
-        'parse_function': 'parse_original_image'
-    },
-    'segcheck': {
-        'description': 'Segmentation check - uses corrected images',
-        'file_pattern': r'Plate_.*_Well_.*_Site_.*_Corr.*\.(?:tiff?|nd2)$',
-        'metadata_cols': ['Metadata_Plate', 'Metadata_Site', 'Metadata_Well', 'Metadata_Well_Value'],
-        'include_illum_files': False,
-        'parse_function': 'parse_corrected_image'
-    },
-    'analysis': {
-        'description': 'Full analysis - uses corrected images',
-        'file_pattern': r'Plate_.*_Well_.*_Site_.*_Corr.*\.(?:tiff?|nd2)$',
-        'metadata_cols': ['Metadata_Plate', 'Metadata_Well', 'Metadata_Site'],
-        'include_illum_files': False,
-        'parse_function': 'parse_corrected_image'
-    },
-    'preprocess': {
-        'description': 'Barcoding preprocessing - uses cycle-based corrected images',
-        'file_pattern': r'Plate_.*_Well_.*_Site_.*_Cycle\d+_(DNA|DAPI|A488|A568|A647|[ACGT])\.(?:tiff?|nd2)$',
-        'metadata_cols': ['Metadata_Plate', 'Metadata_Site', 'Metadata_Well', 'Metadata_Well_Value'],
-        'include_illum_files': False,
-        'parse_function': 'parse_preprocess_image'
-    },
-    'combined': {
-        'description': 'Combined analysis - uses both cropped cell painting and barcoding images',
-        'file_pattern': r'(Corr\w+_Plate_.*_Well_.*_Site_.*\.(?:tiff?|nd2)|Cycle\d{2}_\w+_Plate_.*_Well_.*_Site_.*\.(?:tiff?|nd2)|Plate_.*_Well_.*_Site_.*_Corr.*\.(?:tiff?|nd2)|Plate_.*_Well_.*_Site_.*_Cycle\d{2}_\w+\.(?:tiff?|nd2)|Plate\d+-[A-Z]\d+_Corr.*_Site_\d+\.(?:tiff?|nd2)|Plate\d+-[A-Z]\d+_Cycle\d+_\w+_Site_\d+\.(?:tiff?|nd2))$',
-        'metadata_cols': ['Metadata_Plate', 'Metadata_Site', 'Metadata_Well', 'Metadata_Well_Value'],
-        'include_illum_files': False,
-        'parse_function': 'parse_combined_image'
-    }
+# Default file-discovery regex per pipeline type, used to filter --images-dir
+# when globbing for candidate files. Override with --file-pattern. All other
+# per-pipeline behavior is controlled by explicit CLI flags (--include-illum-files,
+# --cycle-aware, --orig-channel-columns), not by this or any other pipeline_type lookup.
+FILE_PATTERNS = {
+    'illumcalc': r'.*\.(?:tiff?|nd2)$',
+    'illumapply': r'.*\.(?:tiff?|nd2)$',
+    'segcheck': r'Plate_.*_Well_.*_Site_.*_Corr.*\.(?:tiff?|nd2)$',
+    'preprocess': r'Plate_.*_Well_.*_Site_.*_Cycle\d+_(DNA|DAPI|A488|A568|A647|[ACGT])\.(?:tiff?|nd2)$',
+    'combined': r'(Corr\w+_Plate_.*_Well_.*_Site_.*\.(?:tiff?|nd2)|Cycle\d{2}_\w+_Plate_.*_Well_.*_Site_.*\.(?:tiff?|nd2)|Plate_.*_Well_.*_Site_.*_Corr.*\.(?:tiff?|nd2)|Plate_.*_Well_.*_Site_.*_Cycle\d{2}_\w+\.(?:tiff?|nd2)|Plate\d+-[A-Z]\d+_Corr.*_Site_\d+\.(?:tiff?|nd2)|Plate\d+-[A-Z]\d+_Cycle\d+_\w+_Site_\d+\.(?:tiff?|nd2))$',
 }
-
-
-def parse_original_image(filename: str) -> Optional[Dict]:
-    """
-    Parse original image filename to extract ONLY channel information.
-
-    We check for multichannel patterns first, and then for a single-channel pattern.
-
-    IMPORTANT: This function ONLY parses channel info from filenames.
-    Metadata (plate, well, site, cycle) MUST come from JSON - NOT from filenames.
-
-    Expected filename patterns:
-    - Non-cycle: WellA1_PointA1_0000_ChannelCHN1,CHN2,CHN3_Seq0000.ome.tiff
-    - With cycle: WellA1_PointA1_0000_ChannelCHN1,CHN2,CHN3_Cycle03_Seq0000.ome.tiff
-
-    Args:
-        filename: Image filename to parse
-
-    Returns:
-        Dict with:
-        - 'channels': List of channel names (e.g., ['DNA', 'Phalloidin', 'CHN2']), OR False if channel name is not in the file name.
-        - 'frames': Dict mapping channel name to frame index (0-indexed)
-        Returns None if filename doesn't match expected pattern
-
-    Note: The channel list can be comma-separated in the filename (multi-channel OME-TIFF)
-    """
-    # Try pattern with cycle first (to detect cycle presence, but don't extract it)
-    # Regex breakdown: Well[A-Z]\d+_Point[A-Z]\d+_\d+_Channel([^_]+)_Cycle\d+_Seq\d+\.(?:ome\.tiff?|nd2)
-    #   - Well[A-Z]\d+: WellA1, WellB2, etc. (not captured - metadata from JSON)
-    #   - Point[A-Z]\d+: PointA1, PointB2, etc. (not captured - site comes from JSON)
-    #   - \d+: Numeric sequence (not captured)
-    #   - Channel([^_]+): Captures channel names (e.g., "DNA,Phalloidin,CHN2")
-    #   - Cycle\d+: Cycle number (not captured - cycle from JSON)
-    #   - Seq\d+: Sequence number (not captured)
-    possible_multichannel_patterns = {
-        "multichannel_with_cycle" : r'Well[A-Z]\d+_Point[A-Z]\d+_\d+_Channel([^_]+)_Cycle\d+_Seq\d+\.(?:ome\.tiff?|nd2)',
-        "multichannel_without_cycle" : r'Well[A-Z]\d+_Point[A-Z]\d+_\d+_Channel([^_]+)_Seq\d+\.(?:ome\.tiff?|nd2)'
-    }
-
-    for _, pattern in possible_multichannel_patterns.items():
-        match = re.search(pattern, filename)
-        if match:
-            channels_str = match.group(1)
-            # Parse channels - could be comma-separated (e.g., "DNA,Phalloidin,CHN2")
-            channels = [ch.strip() for ch in channels_str.split(',')]
-            # Build frame mapping - each channel gets its sequential frame number
-            frames = {ch: idx for idx, ch in enumerate(channels)}
-
-            return {
-                'channels': channels,
-                'frames': frames
-            }
-
-    single_channel_pattern = r'r[0-9]{2}c[0-9]{2}f[0-9]{2}p[0-9]{2}-ch[0-9]{1,2}.*\.tiff'
-    #We have single channel images where channel is indicated with a number; frame must be zero
-    #We don't know channel names at this point, they must come from the sample sheet, so we'll pass False
-    match = re.match(single_channel_pattern, filename)
-    if match:
-        return {
-                'channel': False,
-                'frames': 0
-            }
-
-    return None
-
-
-def parse_corrected_image(filename: str) -> Optional[Dict]:
-    """
-    Parse corrected (illumination-corrected) image filename to extract ONLY channel information.
-
-    IMPORTANT: This function ONLY parses channel info from filenames.
-    Metadata (plate, well, site) MUST come from JSON - NOT from filenames.
-
-    Expected filename pattern:
-    - Plate_{plate}_Well_{well}_Site_{site}_Corr{channel}.tiff
-    - Example: Plate_Plate1_Well_A1_Site_1_CorrDNA.tiff
-
-    Args:
-        filename: Corrected image filename to parse
-
-    Returns:
-        Dict with:
-        - 'channel': Channel name (e.g., 'DNA', 'Phalloidin')
-        Returns None if filename doesn't match expected pattern
-
-    Note: These are single-channel TIFF files produced after illumination correction
-    """
-    # Regex breakdown: Plate_.+?_Well_.+?_Site_\d+_Corr(.+?)\.(?:tiff?|nd2)
-    #   - Plate_.+?: Plate identifier (not captured - comes from JSON)
-    #   - Well_.+?: Well identifier (not captured - comes from JSON)
-    #   - Site_\d+: Site number (not captured - comes from JSON)
-    #   - Corr(.+?): Captures channel name after "Corr" prefix (e.g., "DNA", "Phalloidin")
-    #   - \.(?:tiff?|nd2): File extension (.tif, .tiff, or .nd2)
-    pattern = r'Plate_.+?_Well_.+?_Site_\d+_Corr(.+?)\.(?:tiff?|nd2)'
-    match = re.match(pattern, filename)
-
-    if match:
-        return {
-            'channel': match.group(1)
-        }
-    return None
-
-
-def parse_preprocess_image(filename: str) -> Optional[Dict]:
-    """
-    Parse barcoding preprocess image filename to extract ONLY cycle and channel information.
-
-    IMPORTANT: This function ONLY parses cycle/channel info from filenames.
-    Metadata (plate, well, site) MUST come from JSON - NOT from filenames.
-
-    Expected filename pattern:
-    - Plate_{plate}_Well_{well}_Site_{site}_Cycle{cycle}_{channel}.tiff
-    - Examples:
-      * Plate_Plate1_Well_A1_Site_1_Cycle01_DNA.tiff (reference image)
-      * Plate_Plate1_Well_A1_Site_1_Cycle02_A.tiff (barcode base A)
-      * Plate_Plate1_Well_A1_Site_1_Cycle03_G.tiff (barcode base G)
-
-    Args:
-        filename: Barcoding preprocess image filename to parse
-
-    Returns:
-        Dict with:
-        - 'cycle': Cycle number as zero-padded string (e.g., "01", "02", "03")
-        - 'channel': Channel name - either A, C, G, T for barcode bases, or DNA for reference
-        Returns None if filename doesn't match expected pattern
-
-    Note: DAPI is automatically normalized to DNA for consistency
-    """
-    # Try standard pattern first (for barcode bases: A, C, G, T)
-    # Regex breakdown: Plate_.+?_Well_.+?_Site_\d+_Cycle(\d+)_([ACGT])\.(?:tiff?|nd2)
-    #   - Plate_.+?: Plate identifier (not captured - comes from JSON)
-    #   - Well_.+?: Well identifier (not captured - comes from JSON)
-    #   - Site_\d+: Site number (not captured - comes from JSON)
-    #   - Cycle(\d+): Captures cycle number (e.g., "01", "02", "03")
-    #   - ([ACGT]): Captures barcode base (A, C, G, or T)
-    pattern = r'Plate_.+?_Well_.+?_Site_\d+_Cycle(\d+)_([ACGT])\.(?:tiff?|nd2)'
-    match = re.match(pattern, filename)
-
-    if match:
-        return {
-            'cycle': match.group(1),  # Keep as string (e.g., "01", "02", "03")
-            'channel': match.group(2)
-        }
-
-    # Try DNA/DAPI pattern (typically for Cycle01 reference image)
-    # Accepts both DNA and DAPI, normalizes to DNA for consistency
-    dna_pattern = r'Plate_.+?_Well_.+?_Site_\d+_Cycle(\d+)_(DNA|DAPI)\.(?:tiff?|nd2)'
-    dna_match = re.match(dna_pattern, filename)
-
-    if dna_match:
-        return {
-            'cycle': dna_match.group(1),
-            'channel': 'DNA'  # Normalize DAPI to DNA for consistency
-        }
-
-    return None
-
-
-def parse_combined_image(filename: str) -> Optional[Dict]:
-    """
-    Parse combined analysis image filenames to extract ONLY cycle and channel information.
-
-    IMPORTANT: This function ONLY parses cycle/channel/type info from filenames.
-    Metadata (plate, well, site) MUST come from JSON - NOT from filenames.
-
-    The combined analysis pipeline uses both barcoding and cell painting images together.
-    This function detects the image type and extracts relevant channel information.
-
-    Expected filename patterns (new standardized format):
-    1. Barcoding images:
-       - Pattern: Plate_PlateID_Well_WellID_Site_#_Cycle##_Channel.tiff
-       - Cycle: 2-digit zero-padded (01, 02, ..., 10, 11, etc.)
-       - Channel: A, C, G, T (barcode bases) or DNA/DAPI (reference)
-       - Example: Plate_Plate1_Well_A1_Site_1_Cycle02_A.tiff
-
-    2. Cell painting images:
-       - Pattern: Plate_PlateID_Well_WellID_Site_#_CorrChannel.tiff
-       - Channel: DNA, Phalloidin, CHN2, etc.
-       - Example: Plate_Plate1_Well_A1_Site_1_CorrDNA.tiff
-
-    Legacy patterns (for backward compatibility):
-    - Barcoding: Plate{plate}-{well}_Cycle{cycle}_{channel}_Site_{site}.tiff
-    - Cell painting: Plate{plate}-{well}_Corr{channel}_Site_{site}.tiff
-
-    Args:
-        filename: Combined analysis image filename to parse
-
-    Returns:
-        Dict with:
-        - 'type': Either 'barcoding' or 'cellpainting'
-        - 'channel': Channel name (always present)
-        - 'cycle': Cycle number as string (only for barcoding images)
-        Returns None if filename doesn't match any expected pattern
-
-    Note: DAPI is automatically normalized to DNA for consistency
-    """
-    # Try new barcoding pattern first (Plate_PlateID_Well_WellID_Site_#_Cycle##_Channel.tiff)
-    # Note: cycle is 2-digit zero-padded (\d{2}) to handle cycles > 9
-    barcode_new_pattern = r'Plate_[A-Za-z0-9]+_Well_[A-Z]\d+_Site_\d+_Cycle(\d{2})_([ACGT]|DNA|DAPI)\.(?:tiff?|nd2)'
-    barcode_new_match = re.match(barcode_new_pattern, filename)
-
-    if barcode_new_match:
-        return {
-            'cycle': barcode_new_match.group(1),
-            'channel': 'DNA' if barcode_new_match.group(2) == 'DAPI' else barcode_new_match.group(2),
-            'type': 'barcoding'
-        }
-
-    # Try new cell painting pattern (Plate_PlateID_Well_WellID_Site_#_CorrChannel.tiff)
-    cp_new_pattern = r'Plate_[A-Za-z0-9]+_Well_[A-Z]\d+_Site_\d+_Corr(.+?)\.(?:tiff?|nd2)'
-    cp_new_match = re.match(cp_new_pattern, filename)
-
-    if cp_new_match:
-        return {
-            'channel': cp_new_match.group(1),
-            'type': 'cellpainting'
-        }
-
-    # Legacy pattern support: barcoding (Plate{plate}-{well}_Cycle{cycle}_{channel}_Site_{site}.tiff)
-    barcode_legacy_pattern = r'Plate\d+-[A-Z]\d+_Cycle(\d+)_([ACGT]|DNA|DAPI)_Site_\d+\.(?:tiff?|nd2)'
-    barcode_legacy_match = re.match(barcode_legacy_pattern, filename)
-
-    if barcode_legacy_match:
-        return {
-            'cycle': barcode_legacy_match.group(1),
-            'channel': 'DNA' if barcode_legacy_match.group(2) == 'DAPI' else barcode_legacy_match.group(2),
-            'type': 'barcoding'
-        }
-
-    # Legacy pattern support: cell painting (Plate{plate}-{well}_Corr{channel}_Site_{site}.tiff)
-    cp_legacy_pattern = r'Plate\d+-[A-Z]\d+_Corr(.+?)_Site_\d+\.(?:tiff?|nd2)'
-    cp_legacy_match = re.match(cp_legacy_pattern, filename)
-
-    if cp_legacy_match:
-        return {
-            'channel': cp_legacy_match.group(1),
-            'type': 'cellpainting'
-        }
-
-    return None
-
-
-def assign_subdirectories(image_list: List[str]) -> Dict[str, str]:
-    """
-    Assign subdirectory names to unique images for staging.
-
-    Args:
-        image_list: List of image filenames
-
-    Returns:
-        Dict mapping filename -> subdirectory (e.g., "image.tif" -> "img1")
-    """
-    unique_images = sorted(set(image_list))
-    return {
-        img: f"img{idx + 1}"
-        for idx, img in enumerate(unique_images)
-    }
 
 
 def load_metadata_json(metadata_json_path: str) -> Dict:
@@ -573,7 +264,9 @@ def load_metadata_json(metadata_json_path: str) -> Dict:
 
 def collect_and_group_files(
     images_dir: str,
-    pipeline_type: str,
+    file_pattern: str,
+    include_illum_files: bool = False,
+    orig_channel_columns: bool = False,
     illum_dir: Optional[str] = None,
     metadata_cycle: Optional[int] = None,
     metadata_cycles: Optional[List[int]] = None,
@@ -584,26 +277,21 @@ def collect_and_group_files(
 
     This function is the core file discovery and grouping logic. It:
     1. Validates that metadata JSON is provided (required - no filename parsing)
-    2. Finds all image files matching the pipeline-specific pattern
+    2. Finds all image files matching file_pattern
     3. Groups files by (plate, well, site) tuple using JSON metadata
-    4. Matches illumination correction files if needed (for illumapply pipeline)
+    4. Matches illumination correction files if needed (when include_illum_files is set)
 
-    IMPORTANT: ALL metadata (plate, well, site, cycle) comes from JSON.
-    Filenames are ONLY parsed for channel/cycle information, NOT metadata.
-
-    Two modes of operation:
-    A. image_metadata array mode (most common):
-       - JSON contains array of {well, site, filename, ...} entries
-       - Each entry represents one image or set of images
-       - Files matched by filename from JSON (NO parsing needed)
-
-    B. Single-location mode:
-       - JSON contains single well/site values
-       - All files in images_dir are grouped under that one location
+    IMPORTANT: ALL metadata (plate, well, site, cycle) comes from JSON's
+    'image_metadata' array. Filenames are ONLY parsed for channel/cycle
+    information in the multi-cycle post-processing fallback below, never for
+    plate/well/site.
 
     Args:
         images_dir: Directory containing images (recursively searched)
-        pipeline_type: Type of pipeline (illumcalc, illumapply, analysis, etc.)
+        file_pattern: Regex filter for candidate image filenames
+        include_illum_files: Whether to collect illumination .npy files (illumapply)
+        orig_channel_columns: Whether images are keyed by metadata channel name
+            (illumcalc/illumapply), enabling the positional multi-cycle fallback below
         illum_dir: Directory containing illumination .npy files (optional)
         metadata_cycle: Single cycle number for cycle-specific processing (optional)
         metadata_cycles: List of cycle numbers for multi-cycle processing (optional)
@@ -649,26 +337,17 @@ def collect_and_group_files(
             "Plate must always come from metadata JSON."
         )
 
-    # Check if we have image_metadata array or direct well/site fields
+    # Every Nextflow caller emits an image_metadata array (load_metadata_json()
+    # normalizes the array-form JSON into one). Single-location mode and its
+    # filename-parsing helpers were removed - all metadata comes from JSON.
     use_image_metadata = 'image_metadata' in metadata_json
-    has_direct_well_site = 'well' in metadata_json and 'site' in metadata_json
-
-    # Require either image_metadata array OR both well and site fields
-    if not use_image_metadata and not has_direct_well_site:
+    if not use_image_metadata:
         raise ValueError(
-            "Metadata JSON must provide either:\n"
-            "  1. 'image_metadata' array with well/site for each image, OR\n"
-            "  2. Both 'well' and 'site' fields for single-location processing\n"
-            "All metadata must come from JSON - filename parsing is not supported."
+            "Metadata JSON must provide an 'image_metadata' array with 'well' and "
+            "'site' for each image. Single-location (well/site) mode is not supported."
         )
 
-    if use_image_metadata:
-        print(f"✓ Using image_metadata array with {len(metadata_json['image_metadata'])} entries", file=sys.stderr)
-    else:
-        print(f"✓ Using well={metadata_json['well']} and site={metadata_json['site']} from JSON metadata", file=sys.stderr)
-
-    config = PIPELINE_CONFIGS[pipeline_type]
-    parse_func = globals()[config['parse_function']]
+    print(f"✓ Using image_metadata array with {len(metadata_json['image_metadata'])} entries", file=sys.stderr)
 
     # Validate input directory exists
     if not os.path.isdir(images_dir):
@@ -684,13 +363,12 @@ def collect_and_group_files(
     # Filter to actual files matching pattern
     image_files = [
         f for f in all_files
-        if os.path.isfile(f) and re.search(config['file_pattern'], os.path.basename(f))
+        if os.path.isfile(f) and re.search(file_pattern, os.path.basename(f))
     ]
 
     if not image_files:
         raise ValueError(
-            f"No image files found matching pattern '{config['file_pattern']}' in {images_dir}\n"
-            f"Expected pattern for {pipeline_type}: {config['description']}"
+            f"No image files found matching pattern '{file_pattern}' in {images_dir}"
         )
 
     print(f"✓ Found {len(image_files)} image files to process", file=sys.stderr)
@@ -698,11 +376,7 @@ def collect_and_group_files(
     # ==================================================================================
     # STEP 2: Group files by (plate, well, site)
     # ==================================================================================
-    # Strategy depends on whether we're using image_metadata array or single-location mode
-
     grouped = {}  # Dict mapping (plate, well, site) -> {'images': {...}, 'illum': {...}}
-    parse_errors = []  # Track files that failed to parse
-    missing_metadata = []  # Track files with missing metadata
     parsed_channels = [] #Track channels we've found
 
     # MODE A: image_metadata array - match files by FILENAME (most common)
@@ -836,104 +510,6 @@ def collect_and_group_files(
 
         print(f"✓ Created {len(grouped)} entries from image_metadata array", file=sys.stderr)
 
-    # MODE B: Single-location mode - all files belong to one (plate, well, site)
-    # ==================================================================================
-    else:
-        # In this mode, the JSON contains single well/site values:
-        # {
-        #     "plate": "Plate1",
-        #     "well": "A1",
-        #     "site": 1,
-        #     "channels": ["DNA", "Phalloidin", "CHN2"]
-        # }
-        # All files in images_dir are grouped under this one location.
-        # We still need to parse filenames for channel/cycle info.
-
-        for img_path in image_files:
-            filename = os.path.basename(img_path)
-            # Calculate relative path from images_dir to preserve subdirectory structure
-            rel_path = os.path.relpath(img_path, images_dir)
-
-            # Parse filename for channel/cycle information (NOT metadata!)
-            try:
-                parsed = parse_func(filename)
-            except Exception as e:
-                parse_errors.append((filename, str(e)))
-                print(f"⚠ Error parsing filename '{filename}': {e}", file=sys.stderr)
-                continue
-
-            if not parsed:
-                parse_errors.append((filename, "Failed to match expected pattern"))
-                print(f"⚠ Skipping '{filename}': does not match expected pattern", file=sys.stderr)
-                continue
-
-            # Get metadata - ALL from JSON (plate, well, site)
-            # Filenames are ONLY parsed for channel/cycle info above
-            plate = metadata_json['plate']
-            well = metadata_json['well']
-            site = metadata_json['site']
-
-            key = (plate, well, site)  # Single key for all files
-
-            if key not in grouped:
-                grouped[key] = {'images': {}, 'illum': {}, 'cycles': set()}
-
-            # Store files based on what was parsed from filename
-            # Different storage strategies for different file types
-            try:
-                if 'channels' in parsed:
-                    # Multi-channel image
-                    if 'cycle' in parsed:
-                        # Cycle detected in filename - store per cycle
-                        cycle_num = parsed['cycle']
-                        grouped[key]['cycles'].add(cycle_num)
-                        if '_files_by_cycle' not in grouped[key]['images']:
-                            grouped[key]['images']['_files_by_cycle'] = {}
-                        grouped[key]['images']['_files_by_cycle'][cycle_num] = {
-                            'file': rel_path,
-                            'parsed': parsed
-                        }
-                    elif metadata_cycles:
-                        # Multi-cycle mode but no cycle in filename - store separately for post-processing
-                        grouped[key]['images'][rel_path] = rel_path
-                    else:
-                        # Single-cycle multi-channel image
-                        grouped[key]['images']['_file'] = rel_path
-                        grouped[key]['images']['_parsed'] = parsed
-                elif pipeline_type == 'combined':
-                    # Combined analysis - store both cell painting and barcoding files
-                    if parsed.get('type') == 'barcoding':
-                        # Barcoding file: Cycle{cycle}_{channel}
-                        cycle = parsed['cycle']
-                        channel = parsed['channel']
-                        cycle_channel_key = f"Cycle{cycle}_{channel}"
-                        grouped[key]['images'][cycle_channel_key] = rel_path
-                    elif parsed.get('type') == 'cellpainting':
-                        # Cell painting corrected file: Corr{channel}
-                        channel = parsed['channel']
-                        corr_key = f"Corr{channel}"
-                        grouped[key]['images'][corr_key] = rel_path
-                elif 'cycle' in parsed:
-                    # Cycle-based image (for preprocess pipeline)
-                    cycle = parsed['cycle']
-                    channel = parsed['channel']
-                    cycle_channel_key = f"Cycle{cycle}_{channel}"
-                    grouped[key]['images'][cycle_channel_key] = rel_path
-                else:
-                    # Single-channel image
-                    channel = parsed['channel']
-                    grouped[key]['images'][channel] = rel_path
-            except KeyError as e:
-                missing_metadata.append((filename, f"Missing channel information: {e}"))
-                print(f"⚠ Error processing '{filename}': Missing channel information: {e}", file=sys.stderr)
-                continue
-
-    # Report parsing summary
-    if parse_errors:
-        print(f"\n⚠ Warning: Failed to parse {len(parse_errors)} file(s)", file=sys.stderr)
-    if missing_metadata:
-        print(f"⚠ Warning: {len(missing_metadata)} file(s) had missing metadata", file=sys.stderr)
-
     print(f"✓ Successfully grouped {len(grouped)} unique (plate, well, site) combinations", file=sys.stderr)
 
     # Post-process for multi-cycle: convert MODE A's flat per-site image dict
@@ -1002,7 +578,7 @@ def collect_and_group_files(
                         'file': img_path
                     }
 
-            elif len(parsed_channels)>0 and len(sorted_paths) == len(metadata_cycles)*len(parsed_channels) and 'illum' in pipeline_type:
+            elif len(parsed_channels)>0 and len(sorted_paths) == len(metadata_cycles)*len(parsed_channels) and orig_channel_columns:
 
                 # Clear and recreate as _files_by_cycle
                 for k, _ in img_paths:
@@ -1028,7 +604,7 @@ def collect_and_group_files(
         print(f"✓ Assigned images to {len(metadata_cycles)} cycles", file=sys.stderr)
 
     # Collect illumination files if needed
-    if config['include_illum_files'] and illum_dir:
+    if include_illum_files and illum_dir:
         if not os.path.isdir(illum_dir):
             raise FileNotFoundError(f"Illumination directory not found: {illum_dir}")
 
@@ -1118,7 +694,9 @@ def collect_and_group_files(
 
 def generate_csv_rows(
     grouped: Dict,
-    pipeline_type: str,
+    include_illum_files: bool = False,
+    cycle_aware: bool = False,
+    orig_channel_columns: bool = False,
     range_skip: int = 1,
     metadata_channels: Optional[List[str]] = None,
     has_cycles: bool = False,
@@ -1138,7 +716,7 @@ def generate_csv_rows(
     - Illumination file columns (FileName_IllumChannelName) if applicable
 
     The exact columns depend on:
-    - Pipeline type (illumcalc, illumapply, analysis, preprocess, combined)
+    - include_illum_files / cycle_aware / orig_channel_columns flags
     - Whether data has cycles (barcoding workflows)
     - What metadata is provided in JSON
 
@@ -1150,7 +728,10 @@ def generate_csv_rows(
 
     Args:
         grouped: Dict from collect_and_group_files() mapping (plate, well, site) to file data
-        pipeline_type: Pipeline type (illumcalc, illumapply, segcheck, analysis, preprocess, combined)
+        include_illum_files: Whether to emit FileName_Illum* columns (illumapply)
+        cycle_aware: Whether to prefix single-file column names with Cycle{NN}_
+        orig_channel_columns: Whether images are keyed by metadata channel name and
+            get Orig-prefixed columns (illumcalc/illumapply)
         range_skip: Subsampling interval - use every Nth site (default: 1 = all sites)
         metadata_channels: Channel names from metadata (overrides JSON if provided)
         has_cycles: Whether data contains cycle information (for barcoding workflows)
@@ -1179,7 +760,6 @@ def generate_csv_rows(
     # Validate metadata JSON
     if not metadata_json:
         raise ValueError("Metadata JSON is required but was not provided")
-    config = PIPELINE_CONFIGS[pipeline_type]
 
     if not grouped:
         raise ValueError("No grouped files to generate CSV rows from")
@@ -1265,10 +845,6 @@ def generate_csv_rows(
             # Conditionally include Metadata_Well if present in JSON
             if has_well:
                 row['Metadata_Well'] = well
-                # Some pipelines (segcheck, preprocess) use Metadata_Well_Value as well
-                config_cols = config.get('metadata_cols', []) or config.get('metadata_cols_base', [])
-                if 'Metadata_Well_Value' in config_cols:
-                    row['Metadata_Well_Value'] = well
 
             # Conditionally include Metadata_Site if present in JSON
             if has_site:
@@ -1346,7 +922,7 @@ def generate_csv_rows(
                                 row[f'FinalFileName_Illum{channel}'] = _npy_orig(illum_fn)
 
                     # Validate we have all required illumination files for this cycle
-                    if config['include_illum_files']:
+                    if include_illum_files:
                         if cycle_num not in illum_by_cycle:
                             print(
                                 f"⚠ Missing illumination files for cycle {cycle_num} "
@@ -1371,12 +947,12 @@ def generate_csv_rows(
                 # from each cycle's own {channel: path} dict (cycle_info.items()) -
                 # channels_to_use is only consumed by the optional missing-
                 # illumination-file cross-check further down, so it must only be
-                # required when that check actually runs (config['include_illum_files']).
+                # required when that check actually runs (include_illum_files).
                 # Pipeline types that don't need illum files (e.g. preprocess) have
                 # no reason to supply --channels or a metadata channels field, and
                 # must not hard-fail just because neither is resolvable.
                 channels_to_use = None
-                if config['include_illum_files']:
+                if include_illum_files:
                     # CLI --channels overrides JSON (matches the "overriding JSON"
                     # log line emitted by main()); without this the override never
                     # reaches column generation.
@@ -1395,7 +971,7 @@ def generate_csv_rows(
                 # column in the same row (illumapply) - pipeline types with no Illum
                 # columns (preprocess) have nothing to disambiguate from, so the
                 # prefix is dropped entirely there.
-                orig_infix = "Orig" if config['include_illum_files'] else ""
+                orig_infix = "Orig" if include_illum_files else ""
 
                 # Sort cycles to ensure consistent column order
                 for cycle_num in sorted(files_by_cycle.keys()):
@@ -1422,7 +998,7 @@ def generate_csv_rows(
                                 row[f'FinalFileName_Illum{channel}'] = _npy_orig(illum_fn)
 
                     # Validate we have all required illumination files for this cycle
-                    if config['include_illum_files']:
+                    if include_illum_files:
                         if cycle_num not in illum_by_cycle:
                             print(
                                 f"⚠ Missing illumination files for cycle {cycle_num} "
@@ -1457,7 +1033,7 @@ def generate_csv_rows(
 
                 # Determine if we need cycle-specific column names
                 # (for illumapply with cycle-aware flag)
-                use_cycle_columns = config.get('cycle_aware', False) and metadata_cycle is not None
+                use_cycle_columns = cycle_aware and metadata_cycle is not None
 
                 # Add FileName and Frame for each channel
                 # All channels point to the same file, differentiated by Frame number
@@ -1486,7 +1062,7 @@ def generate_csv_rows(
                             row[f'FinalFileName_Illum{channel}'] = _npy_orig(illum_fn)
 
                 # Validate we have all required illumination files
-                if config['include_illum_files']:
+                if include_illum_files:
                     missing_illum = [ch for ch in channels_to_use if ch not in file_data['illum']]
                     if missing_illum:
                         print(
@@ -1496,7 +1072,7 @@ def generate_csv_rows(
                         )
 
             # PATTERN 4: Single channel files for illum calc and apply, without cycles
-            elif 'illum' in pipeline_type:
+            elif orig_channel_columns:
                 # CLI --channels overrides JSON (matches the "overriding JSON"
                 # log line emitted by main()); without this the override never
                 # reaches column generation.
@@ -1509,7 +1085,7 @@ def generate_csv_rows(
 
                 # Determine if we need cycle-specific column names
                 # (for illumapply with cycle-aware flag)
-                use_cycle_columns = config.get('cycle_aware', False) and metadata_cycle is not None and has_cycles
+                use_cycle_columns = cycle_aware and metadata_cycle is not None and has_cycles
 
                 # Add FileName and Frame for each channel
                 # All channels point to the same file, differentiated by Frame number
@@ -1537,7 +1113,7 @@ def generate_csv_rows(
                             row[f'FinalFileName_Illum{channel}'] = _npy_orig(illum_fn)
 
                 # Validate we have all required illumination files
-                if config['include_illum_files']:
+                if include_illum_files:
                     missing_illum = [ch for ch in channels_to_use if ch not in file_data['illum']]
                     if missing_illum:
                         print(
@@ -1546,38 +1122,15 @@ def generate_csv_rows(
                             file=sys.stderr
                             )
 
-            # PATTERN 5: Single-channel files or cycle-based files
-            # (e.g., analysis, segcheck, preprocess, combined pipelines)
+            # PATTERN 5: files already keyed by their final column suffix
+            # (segcheck "DNA"/"CorrDNA", preprocess/combined "Cycle01_A", etc.)
             else:
-                # Multiple separate files, one per channel or per cycle/channel combination
-                # Examples:
-                #   - Analysis: Plate_Plate1_Well_A1_Site_1_CorrDNA.tiff, Plate_Plate1_Well_A1_Site_1_CorrPhalloidin.tiff
-                #   - Preprocess: Plate_Plate1_Well_A1_Site_1_Cycle01_DNA.tiff, Plate_Plate1_Well_A1_Site_1_Cycle02_A.tiff
                 if not file_data['images']:
                     raise ValueError(f"No image files for {plate}/{well}/Site{site}")
 
-                # For combined analysis, handle both cell painting and barcoding files
-                if pipeline_type == 'combined':
-                    # Add all files with their appropriate column names
-                    for key, filename in sorted(file_data['images'].items()):
-                        # Keys are like "Cycle01_A", "Cycle01_DNA", "CorrDNA", "CorrCHN2"
-                        row[f'FileName_{key}'] = filename
-                        row[f'FinalFileName_{key}'] = _orig(filename)
-                else:
-                    # Check if this is cycle-based (preprocess pipeline)
-                    is_cycle_based = any('Cycle' in key for key in file_data['images'].keys())
-
-                    if is_cycle_based:
-                        # For preprocess: add FileName_Cycle{cycle}_{channel} columns
-                        for cycle_channel_key, filename in sorted(file_data['images'].items()):
-                            # cycle_channel_key is like "Cycle01_A", "Cycle01_C", etc.
-                            row[f'FileName_{cycle_channel_key}'] = filename
-                            row[f'FinalFileName_{cycle_channel_key}'] = _orig(filename)
-                    else:
-                        # For other pipelines: add FileName_{channel} columns
-                        for channel, filename in sorted(file_data['images'].items()):
-                            row[f'FileName_{channel}'] = filename
-                            row[f'FinalFileName_{channel}'] = _orig(filename)
+                for key, filename in sorted(file_data['images'].items()):
+                    row[f'FileName_{key}'] = filename
+                    row[f'FinalFileName_{key}'] = _orig(filename)
 
             rows.append(row)
 
@@ -1655,8 +1208,28 @@ def main():
     parser.add_argument(
         '--pipeline-type',
         required=True,
-        choices=list(PIPELINE_CONFIGS.keys()),
-        help='Pipeline step type'
+        choices=list(FILE_PATTERNS.keys()),
+        help='Pipeline step type - selects the default --file-pattern and labels log output'
+    )
+    parser.add_argument(
+        '--file-pattern',
+        help='Regex filter for candidate image filenames (default: per --pipeline-type)'
+    )
+    parser.add_argument(
+        '--include-illum-files',
+        action='store_true',
+        help='Collect illumination .npy files and emit FileName_Illum* columns (requires --illum-dir)'
+    )
+    parser.add_argument(
+        '--cycle-aware',
+        action='store_true',
+        help='Prefix single-file column names with Cycle{NN}_ when a cycle is known'
+    )
+    parser.add_argument(
+        '--orig-channel-columns',
+        action='store_true',
+        help='Images are keyed by metadata channel name and get Orig-prefixed columns '
+             '(illumination calculate/apply on raw images)'
     )
     parser.add_argument(
         '--images-dir',
@@ -1679,22 +1252,9 @@ def main():
         help='Subsampling interval - use every Nth site (default: 1 = all sites)'
     )
     parser.add_argument(
-        '--use-subdirs',
-        action='store_true',
-        help='Use subdirectories (img1/, img2/, etc.) for staging images in CSV'
-    )
-    parser.add_argument(
         '--metadata-json',
         required=True,
         help='Path to JSON file with metadata (plate, well, site, cycle, channels). REQUIRED - all metadata must be in JSON.'
-    )
-    parser.add_argument(
-        '--output-file-list',
-        help='Path to output JSON file listing all required files for staging'
-    )
-    parser.add_argument(
-        '--group-by',
-        help='Comma-separated list of metadata keys to group by (e.g., batch,plate,well)'
     )
     parser.add_argument(
         '--has-cycles',
@@ -1728,15 +1288,14 @@ def main():
     args = parser.parse_args()
 
     # Validate arguments
-    config = PIPELINE_CONFIGS[args.pipeline_type]
-    if config['include_illum_files'] and not args.illum_dir:
-        parser.error(f"--illum-dir required for pipeline type '{args.pipeline_type}'")
+    file_pattern = args.file_pattern or FILE_PATTERNS[args.pipeline_type]
+    if args.include_illum_files and not args.illum_dir:
+        parser.error("--illum-dir required when --include-illum-files is set")
 
     print(f"\n{'='*60}", file=sys.stderr)
     print(f"CellProfiler load_data.csv Generator", file=sys.stderr)
     print(f"{'='*60}", file=sys.stderr)
     print(f"Pipeline type: {args.pipeline_type}", file=sys.stderr)
-    print(f"Description: {config['description']}", file=sys.stderr)
     print(f"Images directory: {args.images_dir}", file=sys.stderr)
     if args.illum_dir:
         print(f"Illumination directory: {args.illum_dir}", file=sys.stderr)
@@ -1788,14 +1347,16 @@ def main():
             print(f"✓ Using cycles from JSON metadata: {metadata_cycles}", file=sys.stderr)
 
         # Collect and group files
-        print(f"\nStep 1/4: Collecting and grouping files...", file=sys.stderr)
+        print(f"\nStep 1/3: Collecting and grouping files...", file=sys.stderr)
         grouped = collect_and_group_files(
-            args.images_dir,
-            args.pipeline_type,
-            args.illum_dir,
-            metadata_cycle,
-            metadata_cycles,
-            metadata_json
+            images_dir=args.images_dir,
+            file_pattern=file_pattern,
+            include_illum_files=args.include_illum_files,
+            orig_channel_columns=args.orig_channel_columns,
+            illum_dir=args.illum_dir,
+            metadata_cycle=metadata_cycle,
+            metadata_cycles=metadata_cycles,
+            metadata_json=metadata_json,
         )
 
         # Build basename → original-path mapping from image_metadata entries.
@@ -1819,81 +1380,25 @@ def main():
                 npy_original_dir = f"{args.outdir}/images/{batch}/illum/{plate}/"
 
         # Generate rows
-        print(f"\nStep 2/4: Generating CSV rows...", file=sys.stderr)
+        print(f"\nStep 2/3: Generating CSV rows...", file=sys.stderr)
         rows = generate_csv_rows(
             grouped,
-            args.pipeline_type,
-            args.range_skip,
-            metadata_channels,
-            args.has_cycles,
-            metadata_cycle,
-            metadata_json,
-            args.cycle_metadata_name,
-            staged_to_original,
-            npy_original_dir,
+            include_illum_files=args.include_illum_files,
+            cycle_aware=args.cycle_aware,
+            orig_channel_columns=args.orig_channel_columns,
+            range_skip=args.range_skip,
+            metadata_channels=metadata_channels,
+            has_cycles=args.has_cycles,
+            metadata_cycle=metadata_cycle,
+            metadata_json=metadata_json,
+            cycle_metadata_name=args.cycle_metadata_name,
+            staged_to_original=staged_to_original,
+            npy_original_dir=npy_original_dir,
         )
 
-        # Apply subdirectory staging if requested
-        subdir_map = {}
-        all_images = set()
-
-        # Collect all image filenames from rows (needed for file list output)
-        for row in rows:
-            for key, value in row.items():
-                if key.startswith('FileName_') and value:
-                    # Remove quotes if present
-                    filename = value.strip('"')
-                    if filename and not filename.endswith('.npy'):
-                        all_images.add(filename)
-
-        if args.use_subdirs and config.get('supports_subdirs', False):
-            print(f"\nStep 3/4: Applying subdirectory staging...", file=sys.stderr)
-            subdir_map = assign_subdirectories(list(all_images))
-            print(f"✓ Assigned {len(subdir_map)} images to subdirectories", file=sys.stderr)
-
-            # Update filenames in rows with subdirectory prefix
-            for row in rows:
-                for key in list(row.keys()):
-                    if key.startswith('FileName_') and row[key]:
-                        filename = row[key].strip('"')
-                        if filename in subdir_map:
-                            row[key] = f'"{subdir_map[filename]}/{filename}"'
-        else:
-            print(f"\nStep 3/4: Skipping subdirectory staging (not enabled or not supported)", file=sys.stderr)
-
         # Write CSV
-        print(f"\nStep 4/4: Writing output files...", file=sys.stderr)
-        # Metadata columns are now determined dynamically from the data
-        # We still determine expected columns for validation purposes
-        if args.has_cycles and 'metadata_cols_with_cycles' in config:
-            expected_metadata_cols = config['metadata_cols_with_cycles']
-        elif 'metadata_cols' in config and config['metadata_cols']:
-            expected_metadata_cols = config['metadata_cols']
-        elif 'metadata_cols_base' in config:
-            expected_metadata_cols = config['metadata_cols_base']
-        else:
-            expected_metadata_cols = []
-        write_csv(rows, args.output, expected_metadata_cols)
-
-        # Write file list if requested
-        if args.output_file_list:
-            file_list_data = {
-                'images': sorted(all_images) if args.use_subdirs else [],
-                'subdirs': subdir_map if args.use_subdirs else {},
-                'illumination': []
-            }
-
-            # Collect illumination files from grouped data
-            for file_data in grouped.values():
-                if 'illum' in file_data and file_data['illum']:
-                    file_list_data['illumination'].extend(file_data['illum'].values())
-
-            file_list_data['illumination'] = sorted(set(file_list_data['illumination']))
-
-            with open(args.output_file_list, 'w') as f:
-                json.dump(file_list_data, f, indent=2)
-
-            print(f"✓ Wrote file list to {args.output_file_list}", file=sys.stderr)
+        print(f"\nStep 3/3: Writing output files...", file=sys.stderr)
+        write_csv(rows, args.output)
 
         print(f"\n{'='*60}", file=sys.stderr)
         print(f"✓ SUCCESS: CSV generation completed", file=sys.stderr)
