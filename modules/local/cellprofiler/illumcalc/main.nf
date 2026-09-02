@@ -30,27 +30,56 @@ process CELLPROFILER_ILLUMCALC {
     # Create metadata JSON file from base64 (reduces log verbosity)
     echo '${metadata_base64}' | base64 -d > metadata.json
     echo '${staged_list_base64}' | base64 -d > staged_list.txt
-    # Replace the metadata with staged paths instead
-    # Groovy arrays are ordered, so this should be safe, but check paths match anyway
+    # Replace the metadata with staged paths instead - matched by real source
+    # path, not position (Groovy array order and Nextflow's actual staged-file
+    # order are not guaranteed to match for large plate-wide batches).
 
     python3 -c "
 import json
 import os
+import sys
 
-# Read metadata to get staging indices
 with open('metadata.json') as f:
     metadata = json.load(f)
 with open('staged_list.txt') as f:
     staged_list = f.read()
 
 staged_list = staged_list.split(' ')
-# we need to remove the initial "images" part of the path
-staged_list = [os.path.sep.join(x.split(os.path.sep)[1:]) for x in staged_list]
 
-for x in range(len(metadata)):
-    if metadata[x]['filename']==staged_list[x].split(os.path.sep)[-1]:
+# Two different physical files can share a basename (e.g. Phenix filenames
+# reuse the same ch{N} index across different acquisition 'round'
+# subfolders), so basename alone - or position - can't disambiguate them.
+# Nextflow stages each file as a symlink back to its real source path, and
+# every metadata entry already records that same absolute path as
+# original_path - resolve each staged symlink's target and match on that
+# instead, falling back to basename matching only if the staged copy isn't a
+# symlink (e.g. a stageInMode: copy environment), preserving today's behavior
+# there.
+staged_by_realpath = {}
+staged_by_basename = {}
+for s in staged_list:
+    rel = os.path.sep.join(s.split(os.path.sep)[1:])
+    staged_by_basename.setdefault(s.split(os.path.sep)[-1], rel)
+    real = os.path.realpath(s)
+    if real != os.path.abspath(s):
+        staged_by_realpath[real] = rel
 
-        metadata[x]['filename']=staged_list[x]
+missing = []
+for entry in metadata:
+    staged_path = None
+    original_path = entry.get('original_path')
+    if original_path:
+        staged_path = staged_by_realpath.get(os.path.realpath(original_path))
+    if staged_path is None:
+        staged_path = staged_by_basename.get(entry['filename'])
+    if staged_path is None:
+        missing.append(entry['filename'])
+    else:
+        entry['filename'] = staged_path
+
+if missing:
+    print(f'Error: {len(missing)} metadata entries have no matching staged file, e.g. {missing[:10]}', file=sys.stderr)
+    sys.exit(1)
 
 with open('metadata.json','w') as f:
     json.dump(metadata,f)
@@ -65,6 +94,7 @@ with open('metadata.json','w') as f:
         --channels "${channels}" \\
         --cycle-metadata-name "${params.cycle_metadata_name}" \\
         --outdir "${params.outdir}" \\
+        --orig-channel-columns \\
         ${has_cycles ? '--has-cycles' : ''}
 
     # Check if illumination_cppipe ends with .template

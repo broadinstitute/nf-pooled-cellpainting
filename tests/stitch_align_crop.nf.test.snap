@@ -577,7 +577,7 @@
             "nf-test": "0.9.2",
             "nextflow": "25.10.4"
         },
-        "timestamp": "2026-09-01T15:32:53.997121"
+        "timestamp": "2026-09-02T10:27:32.817339"
     },
     "stitch_align_crop - stub - barcoding qc false": {
         "content": [
@@ -1157,7 +1157,7 @@
             "nf-test": "0.9.2",
             "nextflow": "25.10.4"
         },
-        "timestamp": "2026-09-01T15:30:54.50306"
+        "timestamp": "2026-09-02T10:25:33.933823"
     },
     "stitch_align_crop - stub - qc passed": {
         "content": [
@@ -1861,7 +1861,7 @@
             "nf-test": "0.9.2",
             "nextflow": "25.10.4"
         },
-        "timestamp": "2026-09-01T15:26:41.588336"
+        "timestamp": "2026-09-02T10:21:06.148961"
     },
     "stitch_align_crop - stub - painting qc false": {
         "content": [
@@ -2441,6 +2441,6 @@
             "nf-test": "0.9.2",
             "nextflow": "25.10.4"
         },
-        "timestamp": "2026-09-01T15:28:46.475767"
+        "timestamp": "2026-09-02T10:23:17.415338"
     }
 }

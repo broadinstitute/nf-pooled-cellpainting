@@ -149,10 +149,10 @@
             }
         ],
         "meta": {
-            "nf-test": "0.9.3",
-            "nextflow": "25.10.2"
+            "nf-test": "0.9.2",
+            "nextflow": "25.10.4"
         },
-        "timestamp": "2026-07-24T20:21:53.248490033"
+        "timestamp": "2026-09-01T20:09:18.702418"
     },
     "cellprofiler - combinedanalysis - cropped_images": {
         "content": [
@@ -181,7 +181,7 @@
                 "ResizeConfluent.csv:md5,4c60f3b1f8805e61294a9e966038f042",
                 "ResizeNuclei.csv:md5,6665408dd8a7b4a003e35f479ad8fce3",
                 "Resize_Foci.csv:md5,56a07981e4013e82c3c2a91d2b28ea3a",
-                "load_data.csv:md5,641d69adca3ce92cb90414f6e90ce999"
+                "load_data.csv:md5,7c31e6407750cea6b4da75e237139e84"
             ],
             [
                 [
@@ -192,7 +192,7 @@
                         "well": "A1",
                         "site": 1
                     },
-                    "load_data.csv:md5,641d69adca3ce92cb90414f6e90ce999"
+                    "load_data.csv:md5,7c31e6407750cea6b4da75e237139e84"
                 ]
             ],
             [
@@ -200,9 +200,9 @@
             ]
         ],
         "meta": {
-            "nf-test": "0.9.3",
-            "nextflow": "25.10.2"
+            "nf-test": "0.9.2",
+            "nextflow": "25.10.4"
         },
-        "timestamp": "2026-07-24T20:21:42.364009637"
+        "timestamp": "2026-09-01T20:08:59.994903"
     }
 }
