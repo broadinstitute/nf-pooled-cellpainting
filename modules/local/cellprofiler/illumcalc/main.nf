@@ -7,7 +7,7 @@ process CELLPROFILER_ILLUMCALC {
         : 'community.wave.seqera.io/library/cellprofiler:4.2.8--aff0a99749304a7f'}"
 
     input:
-    tuple val(meta), val(channels), val(cycle), path(images, stageAs: "images/img?/*"), val(image_metas)
+    tuple val(meta), val(channels), val(cycle), path(images, stageAs: "images/img?/*"), val(image_metas), val(staged_names)
     path illumination_cppipe
     val has_cycles
 
@@ -24,77 +24,35 @@ process CELLPROFILER_ILLUMCALC {
     // Base64 encode to reduce log verbosity
     def metadata_json_content = groovy.json.JsonOutput.toJson(image_metas)
     def metadata_base64 = metadata_json_content.bytes.encodeBase64().toString()
-    def staged_list_base64 = images.toString().bytes.encodeBase64().toString()
+    // Trailing newline required: a `while read` loop over a file whose last
+    // line lacks one silently skips that final line.
+    def staged_names_base64 = (staged_names.join('\n') + '\n').bytes.encodeBase64().toString()
 
     """
     # Create metadata JSON file from base64 (reduces log verbosity)
     echo '${metadata_base64}' | base64 -d > metadata.json
-    echo '${staged_list_base64}' | base64 -d > staged_list.txt
-    # Replace the metadata with staged paths instead - matched by real source
-    # path, not position (Groovy array order and Nextflow's actual staged-file
-    # order are not guaranteed to match for large plate-wide batches).
+    echo '${staged_names_base64}' | base64 -d > staged_names.txt
 
-    python3 -c "
-import json
-import os
-import sys
-
-with open('metadata.json') as f:
-    metadata = json.load(f)
-with open('staged_list.txt') as f:
-    staged_list = f.read()
-
-staged_list = staged_list.split(' ')
-
-# Two different physical files can share a basename (e.g. Phenix filenames
-# reuse the same ch{N} index across different acquisition 'round'
-# subfolders), so basename alone - or position - can't disambiguate them.
-# Nextflow stages each file as a symlink back to its real source path, and
-# every metadata entry already records that same absolute path as
-# original_path - resolve each staged symlink's target and match on that
-# instead, falling back to basename matching only if the staged copy isn't a
-# symlink (e.g. a stageInMode: copy environment), preserving today's behavior
-# there.
-staged_by_realpath = {}
-staged_by_basename = {}
-for s in staged_list:
-    rel = os.path.sep.join(s.split(os.path.sep)[1:])
-    staged_by_basename.setdefault(s.split(os.path.sep)[-1], rel)
-    real = os.path.realpath(s)
-    if real != os.path.abspath(s):
-        staged_by_realpath[real] = rel
-
-missing = []
-for entry in metadata:
-    staged_path = None
-    original_path = entry.get('original_path')
-    if original_path:
-        staged_path = staged_by_realpath.get(os.path.realpath(original_path))
-    if staged_path is None:
-        staged_path = staged_by_basename.get(entry['filename'])
-    if staged_path is None:
-        missing.append(entry['filename'])
-    else:
-        entry['filename'] = staged_path
-
-if missing:
-    print(f'Error: {len(missing)} metadata entries have no matching staged file, e.g. {missing[:10]}', file=sys.stderr)
-    sys.exit(1)
-
-with open('metadata.json','w') as f:
-    json.dump(metadata,f)
-"
+    # Nextflow stages each raw file into its own images/imgN/ directory (in
+    # the same order as staged_names, which every image_metadata entry's
+    # `filename` already matches) to avoid basename collisions across
+    # cycles/acquisition rounds - rename each to that disambiguated name so
+    # generate_load_data_csv.py can trust `filename` directly, no matching.
+    i=1
+    while IFS= read -r staged_name; do
+        src=\$(ls "images/img\${i}"/)
+        mv "images/img\${i}/\${src}" "images/\${staged_name}"
+        rmdir "images/img\${i}"
+        i=\$((i + 1))
+    done < staged_names.txt
 
     # Generate load_data.csv
     generate_load_data_csv.py \\
-        --pipeline-type illumcalc \\
         --images-dir ./images \\
         --output load_data.csv \\
         --metadata-json metadata.json \\
-        --channels "${channels}" \\
         --cycle-metadata-name "${params.cycle_metadata_name}" \\
         --outdir "${params.outdir}" \\
-        --orig-channel-columns \\
         ${has_cycles ? '--has-cycles' : ''}
 
     # Check if illumination_cppipe ends with .template
