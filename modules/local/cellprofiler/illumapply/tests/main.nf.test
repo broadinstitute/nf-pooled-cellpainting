@@ -22,10 +22,33 @@ nextflow_process {
                         file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1_sub25/Source1/images/Batch1/images/Plate1/20X_CP_Plate1_20240319_122800_179/WellA1_PointA1_0002_ChannelPhalloAF750,CHN2-AF488,DAPI_Seq0002.ome.tiff"),
                         file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1_sub25/Source1/images/Batch1/images/Plate1/20X_CP_Plate1_20240319_122800_179/WellA1_PointA1_0003_ChannelPhalloAF750,CHN2-AF488,DAPI_Seq0003.ome.tiff")
                     ],
-                    [   [plate:'Plate1', batch:'Batch1', arm:'CP', well:'A1', site:0, channels:['Phalloidin', 'CHN2', 'DNA'], filename:'WellA1_PointA1_0000_ChannelPhalloAF750,CHN2-AF488,DAPI_Seq0000.ome.tiff'],
-                        [plate:'Plate1', batch:'Batch1', arm:'CP', well:'A1', site:1, channels:['Phalloidin', 'CHN2', 'DNA'], filename:'WellA1_PointA1_0001_ChannelPhalloAF750,CHN2-AF488,DAPI_Seq0001.ome.tiff'],
-                        [plate:'Plate1', batch:'Batch1', arm:'CP', well:'A1', site:2, channels:['Phalloidin', 'CHN2', 'DNA'], filename:'WellA1_PointA1_0002_ChannelPhalloAF750,CHN2-AF488,DAPI_Seq0002.ome.tiff'],
-                        [plate:'Plate1', batch:'Batch1', arm:'CP', well:'A1', site:3, channels:['Phalloidin', 'CHN2', 'DNA'], filename:'WellA1_PointA1_0003_ChannelPhalloAF750,CHN2-AF488,DAPI_Seq0003.ome.tiff']],
+                    [
+                        plate: 'Plate1',
+                        batch: 'Batch1',
+                        cycles: [1],
+                        // `filename` is the disambiguated name the module renames each
+                        // staged file to (see stagedImageName/input[4] below).
+                        image_metadata: [
+                            [well:'A1', site:0, arm:'painting', cycle:1, channel:'Phalloidin', frame_index:0, column_prefix:'Orig', filename:'Cycle01_Plate1_A1_Site0_WellA1_PointA1_0000_ChannelPhalloAF750,CHN2-AF488,DAPI_Seq0000.ome.tiff'],
+                            [well:'A1', site:0, arm:'painting', cycle:1, channel:'CHN2', frame_index:1, column_prefix:'Orig', filename:'Cycle01_Plate1_A1_Site0_WellA1_PointA1_0000_ChannelPhalloAF750,CHN2-AF488,DAPI_Seq0000.ome.tiff'],
+                            [well:'A1', site:0, arm:'painting', cycle:1, channel:'DNA', frame_index:2, column_prefix:'Orig', filename:'Cycle01_Plate1_A1_Site0_WellA1_PointA1_0000_ChannelPhalloAF750,CHN2-AF488,DAPI_Seq0000.ome.tiff'],
+                            [well:'A1', site:1, arm:'painting', cycle:1, channel:'Phalloidin', frame_index:0, column_prefix:'Orig', filename:'Cycle01_Plate1_A1_Site1_WellA1_PointA1_0001_ChannelPhalloAF750,CHN2-AF488,DAPI_Seq0001.ome.tiff'],
+                            [well:'A1', site:1, arm:'painting', cycle:1, channel:'CHN2', frame_index:1, column_prefix:'Orig', filename:'Cycle01_Plate1_A1_Site1_WellA1_PointA1_0001_ChannelPhalloAF750,CHN2-AF488,DAPI_Seq0001.ome.tiff'],
+                            [well:'A1', site:1, arm:'painting', cycle:1, channel:'DNA', frame_index:2, column_prefix:'Orig', filename:'Cycle01_Plate1_A1_Site1_WellA1_PointA1_0001_ChannelPhalloAF750,CHN2-AF488,DAPI_Seq0001.ome.tiff'],
+                            [well:'A1', site:2, arm:'painting', cycle:1, channel:'Phalloidin', frame_index:0, column_prefix:'Orig', filename:'Cycle01_Plate1_A1_Site2_WellA1_PointA1_0002_ChannelPhalloAF750,CHN2-AF488,DAPI_Seq0002.ome.tiff'],
+                            [well:'A1', site:2, arm:'painting', cycle:1, channel:'CHN2', frame_index:1, column_prefix:'Orig', filename:'Cycle01_Plate1_A1_Site2_WellA1_PointA1_0002_ChannelPhalloAF750,CHN2-AF488,DAPI_Seq0002.ome.tiff'],
+                            [well:'A1', site:2, arm:'painting', cycle:1, channel:'DNA', frame_index:2, column_prefix:'Orig', filename:'Cycle01_Plate1_A1_Site2_WellA1_PointA1_0002_ChannelPhalloAF750,CHN2-AF488,DAPI_Seq0002.ome.tiff'],
+                            [well:'A1', site:3, arm:'painting', cycle:1, channel:'Phalloidin', frame_index:0, column_prefix:'Orig', filename:'Cycle01_Plate1_A1_Site3_WellA1_PointA1_0003_ChannelPhalloAF750,CHN2-AF488,DAPI_Seq0003.ome.tiff'],
+                            [well:'A1', site:3, arm:'painting', cycle:1, channel:'CHN2', frame_index:1, column_prefix:'Orig', filename:'Cycle01_Plate1_A1_Site3_WellA1_PointA1_0003_ChannelPhalloAF750,CHN2-AF488,DAPI_Seq0003.ome.tiff'],
+                            [well:'A1', site:3, arm:'painting', cycle:1, channel:'DNA', frame_index:2, column_prefix:'Orig', filename:'Cycle01_Plate1_A1_Site3_WellA1_PointA1_0003_ChannelPhalloAF750,CHN2-AF488,DAPI_Seq0003.ome.tiff'],
+                        ],
+                    ],
+                    [
+                        'Cycle01_Plate1_A1_Site0_WellA1_PointA1_0000_ChannelPhalloAF750,CHN2-AF488,DAPI_Seq0000.ome.tiff',
+                        'Cycle01_Plate1_A1_Site1_WellA1_PointA1_0001_ChannelPhalloAF750,CHN2-AF488,DAPI_Seq0001.ome.tiff',
+                        'Cycle01_Plate1_A1_Site2_WellA1_PointA1_0002_ChannelPhalloAF750,CHN2-AF488,DAPI_Seq0002.ome.tiff',
+                        'Cycle01_Plate1_A1_Site3_WellA1_PointA1_0003_ChannelPhalloAF750,CHN2-AF488,DAPI_Seq0003.ome.tiff',
+                    ],
                     [   file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/images/Batch1/illum/Plate1/Plate1_IllumPhalloidin.npy"),
                         file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/images/Batch1/illum/Plate1/Plate1_IllumCHN2.npy"),
                         file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/images/Batch1/illum/Plate1/Plate1_IllumDNA.npy")
@@ -62,10 +85,31 @@ nextflow_process {
                         file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1_sub25/Source1/images/Batch1/images/Plate1/20X_CP_Plate1_20240319_122800_179/WellA1_PointA1_0002_ChannelPhalloAF750,CHN2-AF488,DAPI_Seq0002.ome.tiff"),
                         file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1_sub25/Source1/images/Batch1/images/Plate1/20X_CP_Plate1_20240319_122800_179/WellA1_PointA1_0003_ChannelPhalloAF750,CHN2-AF488,DAPI_Seq0003.ome.tiff")
                     ],
-                    [   [plate:'Plate1', batch:'Batch1', arm:'CP', well:'A1', site:0, channels:['Phalloidin', 'CHN2', 'DNA'], filename:'WellA1_PointA1_0000_ChannelPhalloAF750,CHN2-AF488,DAPI_Seq0000.ome.tiff'],
-                        [plate:'Plate1', batch:'Batch1', arm:'CP', well:'A1', site:1, channels:['Phalloidin', 'CHN2', 'DNA'], filename:'WellA1_PointA1_0001_ChannelPhalloAF750,CHN2-AF488,DAPI_Seq0001.ome.tiff'],
-                        [plate:'Plate1', batch:'Batch1', arm:'CP', well:'A1', site:2, channels:['Phalloidin', 'CHN2', 'DNA'], filename:'WellA1_PointA1_0002_ChannelPhalloAF750,CHN2-AF488,DAPI_Seq0002.ome.tiff'],
-                        [plate:'Plate1', batch:'Batch1', arm:'CP', well:'A1', site:3, channels:['Phalloidin', 'CHN2', 'DNA'], filename:'WellA1_PointA1_0003_ChannelPhalloAF750,CHN2-AF488,DAPI_Seq0003.ome.tiff']],
+                    [
+                        plate: 'Plate1',
+                        batch: 'Batch1',
+                        cycles: [1],
+                        image_metadata: [
+                            [well:'A1', site:0, arm:'painting', cycle:1, channel:'Phalloidin', frame_index:0, column_prefix:'Orig', filename:'Cycle01_Plate1_A1_Site0_WellA1_PointA1_0000_ChannelPhalloAF750,CHN2-AF488,DAPI_Seq0000.ome.tiff'],
+                            [well:'A1', site:0, arm:'painting', cycle:1, channel:'CHN2', frame_index:1, column_prefix:'Orig', filename:'Cycle01_Plate1_A1_Site0_WellA1_PointA1_0000_ChannelPhalloAF750,CHN2-AF488,DAPI_Seq0000.ome.tiff'],
+                            [well:'A1', site:0, arm:'painting', cycle:1, channel:'DNA', frame_index:2, column_prefix:'Orig', filename:'Cycle01_Plate1_A1_Site0_WellA1_PointA1_0000_ChannelPhalloAF750,CHN2-AF488,DAPI_Seq0000.ome.tiff'],
+                            [well:'A1', site:1, arm:'painting', cycle:1, channel:'Phalloidin', frame_index:0, column_prefix:'Orig', filename:'Cycle01_Plate1_A1_Site1_WellA1_PointA1_0001_ChannelPhalloAF750,CHN2-AF488,DAPI_Seq0001.ome.tiff'],
+                            [well:'A1', site:1, arm:'painting', cycle:1, channel:'CHN2', frame_index:1, column_prefix:'Orig', filename:'Cycle01_Plate1_A1_Site1_WellA1_PointA1_0001_ChannelPhalloAF750,CHN2-AF488,DAPI_Seq0001.ome.tiff'],
+                            [well:'A1', site:1, arm:'painting', cycle:1, channel:'DNA', frame_index:2, column_prefix:'Orig', filename:'Cycle01_Plate1_A1_Site1_WellA1_PointA1_0001_ChannelPhalloAF750,CHN2-AF488,DAPI_Seq0001.ome.tiff'],
+                            [well:'A1', site:2, arm:'painting', cycle:1, channel:'Phalloidin', frame_index:0, column_prefix:'Orig', filename:'Cycle01_Plate1_A1_Site2_WellA1_PointA1_0002_ChannelPhalloAF750,CHN2-AF488,DAPI_Seq0002.ome.tiff'],
+                            [well:'A1', site:2, arm:'painting', cycle:1, channel:'CHN2', frame_index:1, column_prefix:'Orig', filename:'Cycle01_Plate1_A1_Site2_WellA1_PointA1_0002_ChannelPhalloAF750,CHN2-AF488,DAPI_Seq0002.ome.tiff'],
+                            [well:'A1', site:2, arm:'painting', cycle:1, channel:'DNA', frame_index:2, column_prefix:'Orig', filename:'Cycle01_Plate1_A1_Site2_WellA1_PointA1_0002_ChannelPhalloAF750,CHN2-AF488,DAPI_Seq0002.ome.tiff'],
+                            [well:'A1', site:3, arm:'painting', cycle:1, channel:'Phalloidin', frame_index:0, column_prefix:'Orig', filename:'Cycle01_Plate1_A1_Site3_WellA1_PointA1_0003_ChannelPhalloAF750,CHN2-AF488,DAPI_Seq0003.ome.tiff'],
+                            [well:'A1', site:3, arm:'painting', cycle:1, channel:'CHN2', frame_index:1, column_prefix:'Orig', filename:'Cycle01_Plate1_A1_Site3_WellA1_PointA1_0003_ChannelPhalloAF750,CHN2-AF488,DAPI_Seq0003.ome.tiff'],
+                            [well:'A1', site:3, arm:'painting', cycle:1, channel:'DNA', frame_index:2, column_prefix:'Orig', filename:'Cycle01_Plate1_A1_Site3_WellA1_PointA1_0003_ChannelPhalloAF750,CHN2-AF488,DAPI_Seq0003.ome.tiff'],
+                        ],
+                    ],
+                    [
+                        'Cycle01_Plate1_A1_Site0_WellA1_PointA1_0000_ChannelPhalloAF750,CHN2-AF488,DAPI_Seq0000.ome.tiff',
+                        'Cycle01_Plate1_A1_Site1_WellA1_PointA1_0001_ChannelPhalloAF750,CHN2-AF488,DAPI_Seq0001.ome.tiff',
+                        'Cycle01_Plate1_A1_Site2_WellA1_PointA1_0002_ChannelPhalloAF750,CHN2-AF488,DAPI_Seq0002.ome.tiff',
+                        'Cycle01_Plate1_A1_Site3_WellA1_PointA1_0003_ChannelPhalloAF750,CHN2-AF488,DAPI_Seq0003.ome.tiff',
+                    ],
                     [   file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/images/Batch1/illum/Plate1/Plate1_IllumPhalloidin.npy"),
                         file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/images/Batch1/illum/Plate1/Plate1_IllumCHN2.npy"),
                         file("s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1-output/Source1/images/Batch1/illum/Plate1/Plate1_IllumDNA.npy")

@@ -6,6 +6,7 @@
 include { CELLPROFILER_ILLUMCALC } from '../../../modules/local/cellprofiler/illumcalc'
 include { QC_MONTAGEILLUM as QC_MONTAGEILLUM_PAINTING } from '../../../modules/local/qc/montageillum'
 include { CELLPROFILER_ILLUMAPPLY as CELLPROFILER_ILLUMAPPLY_PAINTING } from '../../../modules/local/cellprofiler/illumapply'
+include { expandImageChannels; buildLoadDataMetadata } from '../utils_nfcore_nf-pooled-cellpainting_pipeline'
 
 workflow CELLPAINTING_PRE_STITCH {
     take:
@@ -32,15 +33,21 @@ workflow CELLPAINTING_PRE_STITCH {
             def group_id = "${meta.batch}_${meta.plate}"
             def group_key = meta.subMap(['batch', 'plate']) + [id: group_id]
 
-            // Preserve full metadata for each image
-            def image_meta = meta + [filename: image.name, original_path: image.toString(), original_filename: image.name]
-            [group_key, image_meta, image]
+            // One metadata entry per (file, channel) pair - see expandImageChannels().
+            // illumcalc's cppipe selects input images named Orig{channel}.
+            [group_key, expandImageChannels(meta, image, 'Orig'), image]
         }
         .groupTuple()
         .map { meta, images_meta_list, images_list ->
-            def all_channels = images_meta_list.channels.unique().join(", ")
-            // Return tuple: (shared meta, channels, cycles, images, per-image metadata)
-            [meta, all_channels, null, images_list, images_meta_list]
+            def image_metas = images_meta_list.flatten()
+            def all_channels = image_metas.channel.unique().join(",")
+            // Each images_list[i] is staged as images/imgN/ (1-based); this is
+            // the disambiguated name the module renames it to (see
+            // expandImageChannels/stagedImageName) so generate_load_data_csv.py
+            // never has to reverse-engineer which staged copy is which.
+            def staged_names = images_meta_list.collect { it[0].filename }
+            // Return tuple: (shared meta, channels, cycles, images, load_data metadata, staged names)
+            [meta, all_channels, null, images_list, buildLoadDataMetadata(meta, image_metas), staged_names]
         }
 
     // Calculate illumination correction profiles
@@ -90,20 +97,23 @@ workflow CELLPAINTING_PRE_STITCH {
             def site_id = "${meta.batch}_${meta.plate}_${meta.well}_Site${meta.site}"
             def site_key = meta.subMap(['batch', 'plate', 'well', 'site', 'arm']) + [id: site_id]
 
-            // Preserve full metadata for each image
-            def image_meta = meta + [filename: image.name, original_path: image.toString(), original_filename: image.name]
-
-            [site_key, image_meta, image]
+            // illumapply's cppipe selects input images named Orig{channel} /
+            // Cycle{NN}_Orig{channel}; the Cycle prefix is added downstream by
+            // generate_load_data_csv.py when the group spans >1 cycle.
+            [site_key, expandImageChannels(meta, image, 'Orig'), image]
         }
         .groupTuple()
         .map { site_meta, images_meta_list, images_list ->
-            def all_channels = images_meta_list.channels.unique().join(", ")
+            def image_metas = images_meta_list.flatten()
+            def all_channels = image_metas.channel.unique().join(",")
             // Check if images have MULTIPLE cycles (not just a single cycle value)
-            def all_cycles = images_meta_list.collect { m -> m.cycle }.findAll { c -> c != null }.unique().sort()
+            def all_cycles = image_metas.collect { m -> m.cycle }.findAll { c -> c != null }.unique().sort()
             def unique_cycles = all_cycles.size() > 1 ? all_cycles : null
+            // See the illumcalc staged_names comment above for why this exists.
+            def staged_names = images_meta_list.collect { it[0].filename }
 
-            // Return tuple: (shared meta, channels, cycles, images, per-image metadata)
-            [site_meta, all_channels, unique_cycles, images_list, images_meta_list]
+            // Return tuple: (shared meta, channels, cycles, images, load_data metadata, staged names)
+            [site_meta, all_channels, unique_cycles, images_list, buildLoadDataMetadata(site_meta, image_metas), staged_names]
         }
 
     // Group npy files by batch and plate
@@ -124,18 +134,18 @@ workflow CELLPAINTING_PRE_STITCH {
     // Combine images with npy files
     // Each site gets all the npy files for its plate
     ch_illumapply_input = ch_images_by_site
-        .map { site_meta, channels, cycles, images, image_metas ->
+        .map { site_meta, channels, cycles, images, image_metas, staged_names ->
             def plate_key = [
                 batch: site_meta.batch,
                 plate: site_meta.plate,
             ]
             // Store channels in meta for downstream use
             def enriched_meta = site_meta + [channels: channels]
-            [plate_key, enriched_meta, channels, cycles, images, image_metas]
+            [plate_key, enriched_meta, channels, cycles, images, image_metas, staged_names]
         }
         .combine(ch_npy_by_plate, by: 0)
-        .map { _plate_key, enriched_meta, channels, cycles, images, image_metas, npy_files ->
-            [enriched_meta, channels, cycles, images, image_metas, npy_files]
+        .map { _plate_key, enriched_meta, channels, cycles, images, image_metas, staged_names, npy_files ->
+            [enriched_meta, channels, cycles, images, image_metas, staged_names, npy_files]
         }
 
     // Apply illumination correction to images (no QC attached here - alignment/QC

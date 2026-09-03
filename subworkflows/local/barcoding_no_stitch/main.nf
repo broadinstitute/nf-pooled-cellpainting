@@ -11,6 +11,7 @@ include { CELLPROFILER_PREPROCESS } from '../../../modules/local/cellprofiler/pr
 include { CELLPROFILER_PLUGINS_UPDATE } from '../../../modules/local/cellprofiler_plugins/update'
 include { QC_PREPROCESS } from '../../../modules/local/qc/preprocess'
 include { QC_BARCODEALIGN } from '../../../modules/local/qc/barcodealign'
+include { expandImageChannels; buildLoadDataMetadata } from '../utils_nfcore_nf-pooled-cellpainting_pipeline'
 
 workflow BARCODING_NO_STITCH {
     take:
@@ -42,16 +43,21 @@ workflow BARCODING_NO_STITCH {
             def group_id = "${meta.batch}_${meta.plate}_${meta.cycle}"
             def group_key = meta.subMap(['batch', 'plate', 'cycle']) + [id: group_id]
 
-            // Preserve full metadata for each image
-            def image_meta = meta + [filename: image.name, original_path: image.toString(), original_filename: image.name]
-
-            [group_key, image_meta, image]
+            // One metadata entry per (file, channel) pair - see expandImageChannels().
+            // illumcalc's cppipe selects input images named Orig{channel}.
+            [group_key, expandImageChannels(meta, image, 'Orig'), image]
         }
         .groupTuple()
         .map { meta, images_meta_list, images_list ->
-            def all_channels = images_meta_list.channels.unique().join(", ")
-            // Return tuple: (shared meta, channels, cycle, images, per-image metadata)
-            [meta, all_channels, meta.cycle, images_list, images_meta_list]
+            def image_metas = images_meta_list.flatten()
+            def all_channels = image_metas.channel.unique().join(",")
+            // Each images_list[i] is staged as images/imgN/ (1-based); this is
+            // the disambiguated name the module renames it to (see
+            // expandImageChannels/stagedImageName) so generate_load_data_csv.py
+            // never has to reverse-engineer which staged copy is which.
+            def staged_names = images_meta_list.collect { it[0].filename }
+            // Return tuple: (shared meta, channels, cycle, images, load_data metadata, staged names)
+            [meta, all_channels, meta.cycle, images_list, buildLoadDataMetadata(meta, image_metas), staged_names]
         }
 
     CELLPROFILER_ILLUMCALC(
@@ -114,24 +120,24 @@ workflow BARCODING_NO_STITCH {
                 group_id = "${meta.batch}_${meta.plate}_${meta.well}"
             }
 
-            // Preserve full metadata for each image (including site)
-            def image_meta = meta.clone()
-            image_meta.filename = image.name
-            image_meta.original_path = image.toString()
-            image_meta.original_filename = image.name
-
-            [group_key + [id: group_id], image_meta, image]
+            // illumapply's cppipe selects input images named Orig{channel} /
+            // Cycle{NN}_Orig{channel}; the Cycle prefix is added downstream by
+            // generate_load_data_csv.py when the group spans >1 cycle.
+            [group_key + [id: group_id], expandImageChannels(meta, image, 'Orig'), image]
         }
         .groupTuple()
         .map { group_meta, images_meta_list, images_list ->
+            def image_metas = images_meta_list.flatten()
             // Get unique cycles and channels for this group
             // For barcoding, we expect multiple cycles
-            def all_cycles = images_meta_list.collect { m -> m.cycle }.findAll { c -> c != null }.unique().sort()
+            def all_cycles = image_metas.collect { m -> m.cycle }.findAll { c -> c != null }.unique().sort()
             def unique_cycles = all_cycles.size() > 1 ? all_cycles : null
-            def all_channels = images_meta_list.channels.unique().join(", ")
+            def all_channels = image_metas.channel.unique().join(",")
+            // See the illumcalc staged_names comment above for why this exists.
+            def staged_names = images_meta_list.collect { it[0].filename }
 
-            // Return tuple: (shared meta, channels, cycles, images, per-image metadata)
-            [group_meta, all_channels, unique_cycles, images_list, images_meta_list]
+            // Return tuple: (shared meta, channels, cycles, images, load_data metadata, staged names)
+            [group_meta, all_channels, unique_cycles, images_list, buildLoadDataMetadata(group_meta, image_metas), staged_names]
         }
 
     // Group npy files by batch and plate
@@ -152,16 +158,16 @@ workflow BARCODING_NO_STITCH {
     // Combine images with npy files
     // Each site gets all the npy files for its plate
     ch_illumapply_input = ch_images_by_site
-        .map { site_meta, channels, cycles, images, image_metas ->
+        .map { site_meta, channels, cycles, images, image_metas, staged_names ->
             def plate_key = [
                 batch: site_meta.batch,
                 plate: site_meta.plate,
             ]
-            [plate_key, site_meta, channels, cycles, images, image_metas]
+            [plate_key, site_meta, channels, cycles, images, image_metas, staged_names]
         }
         .combine(ch_npy_by_plate, by: 0)
-        .map { _plate_key, site_meta, channels, cycles, images, image_metas, npy_files ->
-            [site_meta, channels, cycles, images, image_metas, npy_files]
+        .map { _plate_key, site_meta, channels, cycles, images, image_metas, staged_names, npy_files ->
+            [site_meta, channels, cycles, images, image_metas, staged_names, npy_files]
         }
 
     CELLPROFILER_ILLUMAPPLY_BARCODING(
@@ -268,25 +274,28 @@ workflow BARCODING_NO_STITCH {
             site_meta.site = site
             site_meta.id = "${group_meta.batch}_${group_meta.plate}_${group_meta.well}_Site${site}"
 
-            // Build image_metas for this site's images
+            // Build image_metas for this site's images. preprocess's cppipe selects
+            // input images named Cycle{NN}_{channel} - bare channel name, cycle
+            // prefix added by generate_load_data_csv.py from the cycles list.
             def image_metas = site_images.collect { img ->
-                // Extract cycle and channel from corrected image filename
-                // Pattern: Plate_X_Well_Y_Site_Z_Cycle01_DNA.tiff
                 def cycle_channel_match = (img.name =~ /.*_Cycle(\d+)_(.+?)\.tiff?$/)
                 def cycle = cycle_channel_match ? cycle_channel_match[0][1] as Integer : null
                 def channel = cycle_channel_match ? cycle_channel_match[0][2] : 'UNKNOWN'
 
-                // Clone metadata and add filename + cycle + channel + site + published path
-                site_meta + [
-                    filename: img.name,
-                    cycle: cycle,
-                    channel: channel,
-                    site: site,
+                [
+                    well         : site_meta.well,
+                    site         : site,
+                    arm          : site_meta.arm,
+                    cycle        : cycle,
+                    channel      : channel,
+                    frame_index  : null,
+                    column_prefix: '',
+                    filename     : img.name,
                     original_path: "${outdir}/images/${site_meta.batch}/images_aligned/${site_meta.arm}/${site_meta.plate}/${site_meta.plate}-${site_meta.well}/${img.name}",
                 ]
             }
 
-            [site_meta, site_images, image_metas]
+            [site_meta, site_images, buildLoadDataMetadata(site_meta, image_metas)]
         }
     }
 

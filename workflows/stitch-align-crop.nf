@@ -18,6 +18,7 @@ include { paramsSummaryMap } from 'plugin/nf-schema'
 include { paramsSummaryMultiqc } from '../subworkflows/nf-core/utils_nfcore_pipeline'
 include { softwareVersionsToYAML } from '../subworkflows/nf-core/utils_nfcore_pipeline'
 include { methodsDescriptionText } from '../subworkflows/local/utils_nfcore_nf-pooled-cellpainting_pipeline'
+include { buildLoadDataMetadata } from '../subworkflows/local/utils_nfcore_nf-pooled-cellpainting_pipeline'
 
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -149,13 +150,21 @@ workflow STITCH_ALIGN_CROP_POOLED_CELLPAINTING {
                 arm: meta.arm,
                 id: "${meta.batch}_${meta.plate}_${meta.well}",
             ]
-            // Build image_metas for cropped images with full metadata + filename + channel
+            // segcheck's cppipe selects input images by bare channel name (DNA,
+            // Phalloidin, CHN2), so column_prefix is empty. No cycle: segcheck
+            // operates on a single painting cycle's cropped images.
             def image_metas = [images].flatten().collect { img ->
                 // Extract channel from cropped image filename: Plate_X_Well_Y_Site_Z_CorrCHANNEL.tiff
                 def channel = img.name.replaceAll(/.*_Corr(.+?)\.tiff?$/, '$1')
-                meta + [
-                    filename: img.name,
-                    channel: channel,
+                [
+                    well         : meta.well,
+                    site         : meta.site,
+                    arm          : meta.arm,
+                    cycle        : null,
+                    channel      : channel,
+                    frame_index  : null,
+                    column_prefix: '',
+                    filename     : img.name,
                     original_path: "${params.outdir}/images/${meta.batch}/images_corrected_cropped/${meta.arm}/${meta.plate}/${meta.plate}-${meta.well}/${img.name}",
                 ]
             }
@@ -165,7 +174,7 @@ workflow STITCH_ALIGN_CROP_POOLED_CELLPAINTING {
         .map { well_meta, _site_list, images_list, image_metas_list ->
             def flat_images = images_list.flatten().sort { img -> img.name }
             def flat_metas = image_metas_list.flatten().sort { m -> m.filename }
-            [well_meta, flat_images, flat_metas]
+            [well_meta, flat_images, buildLoadDataMetadata(well_meta, flat_metas)]
         }
 
     CELLPROFILER_SEGCHECK(
@@ -209,19 +218,27 @@ workflow STITCH_ALIGN_CROP_POOLED_CELLPAINTING {
     //// Barcoding: build image_metas for cropped per-site images (already per-site) ////
     ch_sbs_corr_images = STITCH_ALIGN_CROP_JOINT.out.barcoding_cropped_images
         .map { meta, images ->
+            // preprocess's cppipe selects input images named Cycle{NN}_{channel} -
+            // bare channel name, cycle prefix added by generate_load_data_csv.py
+            // from the cycles list.
             def image_metas = [images].flatten().collect { img ->
                 // Extract cycle and channel from cropped image filename: Plate_X_Well_Y_Site_Z_CycleNN_CHANNEL.tiff
                 def cycle_channel_match = (img.name =~ /.*_Cycle(\d+)_(.+?)\.tiff?$/)
                 def cycle = cycle_channel_match ? cycle_channel_match[0][1] as Integer : null
                 def channel = cycle_channel_match ? cycle_channel_match[0][2] : 'UNKNOWN'
-                meta + [
-                    filename: img.name,
-                    cycle: cycle,
-                    channel: channel,
+                [
+                    well         : meta.well,
+                    site         : meta.site,
+                    arm          : meta.arm,
+                    cycle        : cycle,
+                    channel      : channel,
+                    frame_index  : null,
+                    column_prefix: '',
+                    filename     : img.name,
                     original_path: "${params.outdir}/images/${meta.batch}/images_corrected_cropped/${meta.arm}/${meta.plate}/${meta.plate}-${meta.well}/${img.name}",
                 ]
             }
-            [meta, images, image_metas]
+            [meta, images, buildLoadDataMetadata(meta, image_metas)]
         }
 
     CELLPROFILER_PREPROCESS_STITCHALIGNCROP(
@@ -319,16 +336,23 @@ workflow STITCH_ALIGN_CROP_POOLED_CELLPAINTING {
                 // Use first meta (they should all be identical for common fields like batch, plate, well, site)
                 def common_meta = meta_list[0]
 
-                // Build image metadata for each image, using the preserved arm_source and existing channel info
+                // Build image metadata for each image, using the preserved arm_source and existing channel info.
+                // `arm` uses the samplesheet's painting/barcoding vocabulary, replacing
+                // the ad hoc `type: cellpainting/barcoding` this block used to emit.
+                // combined_analysis.cppipe selects CorrDNA/CorrCHN2/CorrPhalloidin for
+                // painting and Cycle01_DNA/Cycle01_A/... for barcoding.
                 def image_metas = (0..<images_list.size()).collect { i ->
                     def img = images_list[i]
                     def current_meta = meta_list[i]
                     def arm = current_meta.arm_source == 'cellpainting' ? 'painting' : 'barcoding'
                     def img_meta = [
-                        well: common_meta.well,
-                        site: common_meta.site,
-                        filename: img.name,
-                        type: current_meta.arm_source,
+                        well         : common_meta.well,
+                        site         : common_meta.site,
+                        arm          : arm,
+                        cycle        : null,
+                        frame_index  : null,
+                        column_prefix: arm == 'painting' ? 'Corr' : '',
+                        filename     : img.name,
                         original_path: "${params.outdir}/images/${common_meta.batch}/images_corrected_cropped/${arm}/${common_meta.plate}/${common_meta.plate}-${common_meta.well}/${img.name}",
                     ]
 
@@ -361,26 +385,7 @@ workflow STITCH_ALIGN_CROP_POOLED_CELLPAINTING {
                     img_meta
                 }
 
-                // Detect unique cycles from barcoding images
-                def unique_cycles = image_metas
-                    .findAll { image_meta -> image_meta.cycle != null }
-                    .collect { image_meta -> image_meta.cycle }
-                    .unique()
-                    .sort()
-
-                // Prepare metadata structure for combined analysis
-                def metadata_for_json = [
-                    plate: common_meta.plate,
-                    image_metadata: image_metas,
-                ]
-                if (unique_cycles) {
-                    metadata_for_json.cycles = unique_cycles
-                }
-                if (common_meta.batch) {
-                    metadata_for_json.batch = common_meta.batch
-                }
-
-                [common_meta, images_list, metadata_for_json]
+                [common_meta, images_list, buildLoadDataMetadata(common_meta, image_metas)]
             }
             .set { ch_cropped_images }
 
