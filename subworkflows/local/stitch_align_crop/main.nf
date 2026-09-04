@@ -126,8 +126,8 @@ workflow STITCH_ALIGN_CROP_JOINT {
 
     //// Within-arm, cross-cycle alignment on full stitched images ////
     // Barcoding always has multiple cycles (parsed from filenames); painting only
-    // does when its samplesheet's cycle_phenotyping column varies (cycle instead
-    // comes from the "Cycle\d+_" infix bin/stitch.py adds to output filenames -
+    // does when its samplesheet's `cycle` column varies (post-stitch, cycle
+    // instead comes from the "Cycle\d+_" infix bin/stitch.py adds to output filenames -
     // see its stitch_one_channel_set naming). Both arms run through ALIGN_INTRAARM
     // unconditionally - it's a no-op pass-through when only one cycle is present,
     // so painting's normal (single-cycle) case is unaffected.

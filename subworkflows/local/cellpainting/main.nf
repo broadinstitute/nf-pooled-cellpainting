@@ -59,7 +59,9 @@ workflow CELLPAINTING {
 
             // One metadata entry per (file, channel) pair - see expandImageChannels().
             // illumcalc's cppipe selects input images named Orig{channel}.
-            [group_key, expandImageChannels(meta, image, 'Orig'), image]
+            // record_cycle=false: painting channel names (DNA vs DNA2) already
+            // disambiguate rounds, so illumcalc must never see >1 distinct cycle.
+            [group_key, expandImageChannels(meta, image, 'Orig', false), image]
         }
         .groupTuple()
         .map { meta, images_meta_list, images_list ->
@@ -124,7 +126,9 @@ workflow CELLPAINTING {
             // illumapply's cppipe selects input images named Orig{channel} /
             // Cycle{NN}_Orig{channel}; the Cycle prefix is added downstream by
             // generate_load_data_csv.py when the group spans >1 cycle.
-            [site_key, expandImageChannels(meta, image, 'Orig'), image]
+            // record_cycle=false: painting channel names (DNA vs DNA2) already
+            // disambiguate rounds, so illumapply must never see >1 distinct cycle.
+            [site_key, expandImageChannels(meta, image, 'Orig', false), image]
         }
         .groupTuple()
         .map { site_meta, images_meta_list, images_list ->

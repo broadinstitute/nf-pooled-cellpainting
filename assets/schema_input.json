@@ -46,14 +46,8 @@
             "cycle": {
                 "type": "integer",
                 "minimum": 1,
-                "errorMessage": "The imaging round must be a positive integer",
+                "errorMessage": "The imaging round must be a positive integer (the SBS cycle number for barcoding rows, or the phenotyping/imaging round for painting rows - use 1 if there is only one round)",
                 "meta": ["cycle"]
-            },
-            "cycle_phenotyping": {
-                "type": "integer",
-                "minimum": 1,
-                "errorMessage": "If set, the actual imaging cycle for this painting/phenotyping channel (used only for stitching parallelism - distinct from the always-1 `cycle` field required for CellProfiler's load_data.csv compatibility)",
-                "meta": ["cycle_phenotyping"]
             },
             "channels": {
                 "type": "string",
