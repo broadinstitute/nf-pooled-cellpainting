@@ -25,9 +25,9 @@ workflow CELLPAINTING_PRE_STITCH {
     // channel names are already unique per cycle (e.g. DNA vs DNA2), and
     // painting_illumcalc_cppipe/painting_illumapply_cppipe are not built to
     // expect has_cycles-driven behavior. Multi-cycle awareness for STITCH's
-    // task-splitting comes from the separate cycle_phenotyping samplesheet
-    // column, handled entirely below in ch_corrected_images_by_well - it never
-    // reaches illumcalc/illumapply.
+    // task-splitting comes from the samplesheet's `cycle` column, handled
+    // entirely below in ch_corrected_images_by_well - it never reaches
+    // illumcalc/illumapply (expandImageChannels's record_cycle=false).
     ch_illumcalc_input = ch_samplesheet_cp
         .map { meta, image ->
             def group_id = "${meta.batch}_${meta.plate}"
@@ -35,7 +35,7 @@ workflow CELLPAINTING_PRE_STITCH {
 
             // One metadata entry per (file, channel) pair - see expandImageChannels().
             // illumcalc's cppipe selects input images named Orig{channel}.
-            [group_key, expandImageChannels(meta, image, 'Orig'), image]
+            [group_key, expandImageChannels(meta, image, 'Orig', false), image]
         }
         .groupTuple()
         .map { meta, images_meta_list, images_list ->
@@ -100,7 +100,7 @@ workflow CELLPAINTING_PRE_STITCH {
             // illumapply's cppipe selects input images named Orig{channel} /
             // Cycle{NN}_Orig{channel}; the Cycle prefix is added downstream by
             // generate_load_data_csv.py when the group spans >1 cycle.
-            [site_key, expandImageChannels(meta, image, 'Orig'), image]
+            [site_key, expandImageChannels(meta, image, 'Orig', false), image]
         }
         .groupTuple()
         .map { site_meta, images_meta_list, images_list ->
@@ -171,17 +171,18 @@ workflow CELLPAINTING_PRE_STITCH {
         ]
     }
 
-    // cycle_phenotyping is optional/painting-only bookkeeping for STITCH's task
-    // splitting - never fed into illumcalc/illumapply (their has_cycles/column
-    // generation must stay exactly as today). Recovered post-illumapply by
-    // channel name below, since painting filenames never carry a cycle token
-    // themselves. Built directly from the samplesheet - no external file, no flag.
-    // meta.channels is a comma-joined string (one samplesheet row/file can hold
-    // multiple channel frames, e.g. an OME-TIFF), so split it before mapping each
-    // individual channel name to its cycle.
+    // The real per-round `cycle` value is used only for STITCH's task splitting
+    // (parallelism) and cross-round alignment below - never fed into
+    // illumcalc/illumapply (their has_cycles/column generation must stay exactly
+    // as today; see expandImageChannels's record_cycle=false above). Recovered
+    // post-illumapply by channel name, since painting filenames never carry a
+    // cycle token themselves. Built directly from the samplesheet - no external
+    // file, no flag. meta.channels is a comma-joined string (one samplesheet
+    // row/file can hold multiple channel frames, e.g. an OME-TIFF), so split it
+    // before mapping each individual channel name to its cycle.
     ch_channel_to_cycle_by_plate = ch_samplesheet_cp
         .flatMap { meta, _image ->
-            meta.channels.split(',').collect { ch -> [meta.subMap(['batch', 'plate']), [ch.trim(), (meta.cycle_phenotyping ?: 1)]] }
+            meta.channels.split(',').collect { ch -> [meta.subMap(['batch', 'plate']), [ch.trim(), meta.cycle]] }
         }
         .groupTuple()
         .map { plate_key, pairs ->
@@ -189,8 +190,8 @@ workflow CELLPAINTING_PRE_STITCH {
             by_channel.each { channel, entries ->
                 def cycles = entries.collect { it[1] }.unique()
                 if (cycles.size() > 1) {
-                    error("Channel '${channel}' maps to multiple distinct cycle_phenotyping values (${cycles}) for plate ${plate_key} - " +
-                          "channel names must be unique per cycle (e.g. DNA vs DNA2), not reused across cycles with different cycle_phenotyping values")
+                    error("Channel '${channel}' maps to multiple distinct cycle values (${cycles}) for plate ${plate_key} - " +
+                          "channel names must be unique per cycle (e.g. DNA vs DNA2), not reused across cycles with different cycle values")
                 }
             }
             [plate_key, by_channel.collectEntries { channel, entries -> [(channel): entries[0][1]] }]
@@ -198,8 +199,8 @@ workflow CELLPAINTING_PRE_STITCH {
 
     // ILLUMAPPLY outputs are per site (bundling all of that site's cycles/channels
     // together), but STITCH needs one task per (well, cycle) for parallelism -
-    // split each site's output by cycle_phenotyping (recovered from the output
-    // channel name), then regroup by well+cycle.
+    // split each site's output by cycle (recovered from the output channel
+    // name), then regroup by well+cycle.
     ch_corrected_images_by_well = CELLPROFILER_ILLUMAPPLY_PAINTING.out.corrected_images
         .map { meta, images, _csv -> [meta.subMap(['batch', 'plate']), meta, images] }
         .combine(ch_channel_to_cycle_by_plate, by: 0)
@@ -209,7 +210,7 @@ workflow CELLPAINTING_PRE_STITCH {
                 def channel = m ? m[0][1] : null
                 def cycle = channel_to_cycle[channel]
                 if (cycle == null) {
-                    error("Could not resolve cycle_phenotyping for painting image '${img.name}' (channel '${channel}') - " +
+                    error("Could not resolve cycle for painting image '${img.name}' (channel '${channel}') - " +
                           "not found in this plate's samplesheet-derived channel->cycle map")
                 }
                 cycle

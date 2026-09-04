@@ -23,7 +23,7 @@ The samplesheet is a CSV file that maps your image files to their experimental m
 | `well`     | Well identifier                             | String (e.g., `A01`)                 |
 | `channels` | Channel names                               | String (comma-separated if multiple) |
 | `site`     | Site number                                 | Integer                              |
-| `cycle`    | Cycle number (for barcoding)                | Integer (only for barcoding)         |
+| `cycle`    | Imaging round number (required for all rows) | Integer - the SBS cycle for barcoding rows; the phenotyping/imaging round for painting rows (use `1` if single-round) |
 | `n_frames` | Number of frames/channels                   | Integer                              |
 
 ### Example

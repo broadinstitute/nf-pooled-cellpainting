@@ -192,18 +192,27 @@ def stagedImageName(Map meta, image) {
 // set only for multi-frame files - a single-frame file must not get a Frame_
 // column downstream.
 //
-def expandImageChannels(Map meta, image, String column_prefix) {
+def expandImageChannels(Map meta, image, String column_prefix, boolean record_cycle = true) {
     def chans = (meta.channels instanceof List)
         ? meta.channels.collect { it.toString().trim() }
         : meta.channels.toString().split(',').collect { it.trim() }
     def multiframe = chans.size() > 1
+    // stagedImageName always uses the real meta.cycle regardless of record_cycle -
+    // this is what keeps staged filenames collision-free across acquisition
+    // rounds/cycles (see illumcalc/illumapply module comments), independent of
+    // whether that cycle value is recorded in the metadata entry below.
     def staged_name = stagedImageName(meta, image)
     return chans.withIndex().collect { ch, idx ->
         [
             well             : meta.well,
             site             : meta.site,
             arm              : meta.arm,
-            cycle            : meta.cycle,
+            // Painting passes record_cycle=false: its channel names are already
+            // unique per round (DNA vs DNA2), so illumcalc/illumapply must never
+            // see >1 distinct cycle value in their image_metadata - that would flip
+            // generate_load_data_csv.py's use_cycle_prefix and rename FileName_Orig*
+            // columns to Cycle{NN}_Orig*, which painting's .cppipe files don't expect.
+            cycle            : record_cycle ? meta.cycle : null,
             channel          : ch,
             frame_index      : multiframe ? idx : null,
             column_prefix    : column_prefix,
