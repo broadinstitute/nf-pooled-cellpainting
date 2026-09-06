@@ -9,6 +9,8 @@ include { QC_MONTAGEILLUM as QC_MONTAGEILLUM_BARCODING } from '../../../modules/
 // barcoding_no_stitch/main.nf so this entrypoint can publish to its own folder name below -
 // "images_aligned" is misleading here since alignment moved out of illumapply into ALIGN_BARCODING.
 include { CELLPROFILER_ILLUMAPPLY as CELLPROFILER_ILLUMAPPLY_BARCODING_PRESTITCH } from '../../../modules/local/cellprofiler/illumapply'
+include { QC_CHECKDUPLICATEIMAGES as QC_CHECKDUPLICATES_ILLUMCALC_BARCODING } from '../../../modules/local/qc/checkduplicateimages'
+include { QC_CHECKDUPLICATEIMAGES as QC_CHECKDUPLICATES_ILLUMAPPLY_BARCODING_PRESTITCH } from '../../../modules/local/qc/checkduplicateimages'
 include { expandImageChannels; buildLoadDataMetadata } from '../utils_nfcore_nf-pooled-cellpainting_pipeline'
 
 workflow BARCODING_PRE_STITCH {
@@ -82,6 +84,15 @@ workflow BARCODING_PRE_STITCH {
         ".*Cycle.*\\.npy\$",
     )
     ch_versions = ch_versions.mix(QC_MONTAGEILLUM_BARCODING.out.versions)
+
+    // Fail the pipeline if any two illumination-correction .npy files for this
+    // plate are pixel-identical - a safety net against staging/matching bugs
+    // that silently reuse one physical image where a different one should
+    // have been produced.
+    QC_CHECKDUPLICATES_ILLUMCALC_BARCODING(
+        ch_illumination_corrections_qc,
+    )
+    ch_versions = ch_versions.mix(QC_CHECKDUPLICATES_ILLUMCALC_BARCODING.out.versions)
 
     // Group images for ILLUMAPPLY based on parameter setting
     // Two modes:
@@ -178,6 +189,20 @@ workflow BARCODING_PRE_STITCH {
             },
         ]
     }
+
+    // Fail the pipeline if any two corrected .tiff images for this plate are
+    // pixel-identical - see the illumcalc dedup check above for rationale.
+    ch_corrected_images_dedup_qc = CELLPROFILER_ILLUMAPPLY_BARCODING_PRESTITCH.out.corrected_images
+        .map { meta, tiff_files, _csv_files ->
+            [meta.subMap(['batch', 'plate']) + [arm: "barcoding"], tiff_files]
+        }
+        .groupTuple()
+        .map { meta, tiff_files_list -> [meta, tiff_files_list.flatten()] }
+
+    QC_CHECKDUPLICATES_ILLUMAPPLY_BARCODING_PRESTITCH(
+        ch_corrected_images_dedup_qc,
+    )
+    ch_versions = ch_versions.mix(QC_CHECKDUPLICATES_ILLUMAPPLY_BARCODING_PRESTITCH.out.versions)
 
     // ILLUMAPPLY outputs may be per site or per well depending on grouping mode,
     // and always bundle every cycle together. Normalize to per-(site, cycle) first

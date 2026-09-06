@@ -12,6 +12,7 @@ include { CELLPROFILER_COMBINEDANALYSIS } from '../modules/local/cellprofiler/co
 include { CELLPROFILER_PLUGINS_UPDATE } from '../modules/local/cellprofiler_plugins/update'
 include { QC_MONTAGEILLUM as QC_MONTAGE_SEGCHECK } from '../modules/local/qc/montageillum'
 include { QC_PREPROCESS } from '../modules/local/qc/preprocess'
+include { QC_CHECKDUPLICATEIMAGES as QC_CHECKDUPLICATES_PREPROCESS_STITCHALIGNCROP } from '../modules/local/qc/checkduplicateimages'
 include { MULTIQC } from '../modules/nf-core/multiqc/main'
 
 include { paramsSummaryMap } from 'plugin/nf-schema'
@@ -262,6 +263,20 @@ workflow STITCH_ALIGN_CROP_POOLED_CELLPAINTING {
             },
         ]
     }
+
+    // Fail the pipeline if any two preprocessed .tiff images for this plate
+    // are pixel-identical - a safety net against staging/matching bugs that
+    // silently reuse one physical image where a different one should have
+    // been produced.
+    ch_preprocessed_images_dedup_qc = CELLPROFILER_PREPROCESS_STITCHALIGNCROP.out.preprocessed_images
+        .map { meta, tiff_files -> [meta.subMap(['batch', 'plate']) + [arm: "barcoding"], tiff_files] }
+        .groupTuple()
+        .map { meta, tiff_files_list -> [meta, tiff_files_list.flatten()] }
+
+    QC_CHECKDUPLICATES_PREPROCESS_STITCHALIGNCROP(
+        ch_preprocessed_images_dedup_qc,
+    )
+    ch_versions = ch_versions.mix(QC_CHECKDUPLICATES_PREPROCESS_STITCHALIGNCROP.out.versions)
 
     // First, collect cycle information from the samplesheet to infer num_cycles
     ch_plate_cycles = ch_samplesheet_barcoding
