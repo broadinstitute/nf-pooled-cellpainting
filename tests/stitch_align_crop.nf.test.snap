@@ -1,7 +1,7 @@
 {
     "stitch_align_crop - stub - both qc false": {
         "content": [
-            53,
+            58,
             [
                 "images",
                 "images/Batch1",
@@ -299,7 +299,11 @@
                 "workspace/qc_reports",
                 "workspace/qc_reports/1_illumination_painting",
                 "workspace/qc_reports/1_illumination_painting/Plate1",
+                "workspace/qc_reports/1_illumination_painting/Plate1/Batch1_Plate1_duplicate_check.txt",
                 "workspace/qc_reports/1_illumination_painting/Plate1/montage.png",
+                "workspace/qc_reports/2_alignment",
+                "workspace/qc_reports/2_alignment/Plate1",
+                "workspace/qc_reports/2_alignment/Plate1/Batch1_Plate1_duplicate_check.txt",
                 "workspace/qc_reports/3_segmentation",
                 "workspace/qc_reports/3_segmentation/Plate1",
                 "workspace/qc_reports/3_segmentation/Plate1/montage.png",
@@ -308,9 +312,14 @@
                 "workspace/qc_reports/4_stitching_painting/Plate1/montage.png",
                 "workspace/qc_reports/5_illumination_barcoding",
                 "workspace/qc_reports/5_illumination_barcoding/Plate1",
+                "workspace/qc_reports/5_illumination_barcoding/Plate1/Batch1_Plate1_duplicate_check.txt",
                 "workspace/qc_reports/5_illumination_barcoding/Plate1/montage.png",
+                "workspace/qc_reports/6_alignment",
+                "workspace/qc_reports/6_alignment/Plate1",
+                "workspace/qc_reports/6_alignment/Plate1/Batch1_Plate1_duplicate_check.txt",
                 "workspace/qc_reports/7_preprocessing",
                 "workspace/qc_reports/7_preprocessing/Plate1",
+                "workspace/qc_reports/7_preprocessing/Plate1/Batch1_Plate1_duplicate_check.txt",
                 "workspace/qc_reports/7_preprocessing/Plate1/Batch1_Plate1_qc_barcode_preprocess.html",
                 "workspace/qc_reports/7_preprocessing/Plate1/Batch1_Plate1_qc_barcode_preprocess.ipynb",
                 "workspace/qc_reports/7_preprocessing/Plate1/Batch1_Plate1_qc_barcode_preprocess.png",
@@ -545,10 +554,15 @@
                 "painting-illumapply.load_data.csv:md5,d41d8cd98f00b204e9800998ecf8427e",
                 "painting-illumcalc.load_data.csv:md5,d41d8cd98f00b204e9800998ecf8427e",
                 "painting-segcheck.load_data.csv:md5,d41d8cd98f00b204e9800998ecf8427e",
+                "Batch1_Plate1_duplicate_check.txt:md5,d41d8cd98f00b204e9800998ecf8427e",
+                "montage.png:md5,d41d8cd98f00b204e9800998ecf8427e",
+                "Batch1_Plate1_duplicate_check.txt:md5,d41d8cd98f00b204e9800998ecf8427e",
                 "montage.png:md5,d41d8cd98f00b204e9800998ecf8427e",
                 "montage.png:md5,d41d8cd98f00b204e9800998ecf8427e",
+                "Batch1_Plate1_duplicate_check.txt:md5,d41d8cd98f00b204e9800998ecf8427e",
                 "montage.png:md5,d41d8cd98f00b204e9800998ecf8427e",
-                "montage.png:md5,d41d8cd98f00b204e9800998ecf8427e",
+                "Batch1_Plate1_duplicate_check.txt:md5,d41d8cd98f00b204e9800998ecf8427e",
+                "Batch1_Plate1_duplicate_check.txt:md5,d41d8cd98f00b204e9800998ecf8427e",
                 "Batch1_Plate1_qc_barcode_preprocess.html:md5,d41d8cd98f00b204e9800998ecf8427e",
                 "Batch1_Plate1_qc_barcode_preprocess.ipynb:md5,d41d8cd98f00b204e9800998ecf8427e",
                 "Batch1_Plate1_qc_barcode_preprocess.png:md5,d41d8cd98f00b204e9800998ecf8427e",
@@ -574,14 +588,14 @@
             ]
         ],
         "meta": {
-            "nf-test": "0.9.2",
-            "nextflow": "25.10.4"
+            "nf-test": "0.9.3",
+            "nextflow": "25.10.2"
         },
-        "timestamp": "2026-09-02T10:27:32.817339"
+        "timestamp": "2026-09-04T15:56:16.859971"
     },
     "stitch_align_crop - stub - barcoding qc false": {
         "content": [
-            53,
+            58,
             [
                 "images",
                 "images/Batch1",
@@ -879,7 +893,11 @@
                 "workspace/qc_reports",
                 "workspace/qc_reports/1_illumination_painting",
                 "workspace/qc_reports/1_illumination_painting/Plate1",
+                "workspace/qc_reports/1_illumination_painting/Plate1/Batch1_Plate1_duplicate_check.txt",
                 "workspace/qc_reports/1_illumination_painting/Plate1/montage.png",
+                "workspace/qc_reports/2_alignment",
+                "workspace/qc_reports/2_alignment/Plate1",
+                "workspace/qc_reports/2_alignment/Plate1/Batch1_Plate1_duplicate_check.txt",
                 "workspace/qc_reports/3_segmentation",
                 "workspace/qc_reports/3_segmentation/Plate1",
                 "workspace/qc_reports/3_segmentation/Plate1/montage.png",
@@ -888,9 +906,14 @@
                 "workspace/qc_reports/4_stitching_painting/Plate1/montage.png",
                 "workspace/qc_reports/5_illumination_barcoding",
                 "workspace/qc_reports/5_illumination_barcoding/Plate1",
+                "workspace/qc_reports/5_illumination_barcoding/Plate1/Batch1_Plate1_duplicate_check.txt",
                 "workspace/qc_reports/5_illumination_barcoding/Plate1/montage.png",
+                "workspace/qc_reports/6_alignment",
+                "workspace/qc_reports/6_alignment/Plate1",
+                "workspace/qc_reports/6_alignment/Plate1/Batch1_Plate1_duplicate_check.txt",
                 "workspace/qc_reports/7_preprocessing",
                 "workspace/qc_reports/7_preprocessing/Plate1",
+                "workspace/qc_reports/7_preprocessing/Plate1/Batch1_Plate1_duplicate_check.txt",
                 "workspace/qc_reports/7_preprocessing/Plate1/Batch1_Plate1_qc_barcode_preprocess.html",
                 "workspace/qc_reports/7_preprocessing/Plate1/Batch1_Plate1_qc_barcode_preprocess.ipynb",
                 "workspace/qc_reports/7_preprocessing/Plate1/Batch1_Plate1_qc_barcode_preprocess.png",
@@ -1125,10 +1148,15 @@
                 "painting-illumapply.load_data.csv:md5,d41d8cd98f00b204e9800998ecf8427e",
                 "painting-illumcalc.load_data.csv:md5,d41d8cd98f00b204e9800998ecf8427e",
                 "painting-segcheck.load_data.csv:md5,d41d8cd98f00b204e9800998ecf8427e",
+                "Batch1_Plate1_duplicate_check.txt:md5,d41d8cd98f00b204e9800998ecf8427e",
+                "montage.png:md5,d41d8cd98f00b204e9800998ecf8427e",
+                "Batch1_Plate1_duplicate_check.txt:md5,d41d8cd98f00b204e9800998ecf8427e",
                 "montage.png:md5,d41d8cd98f00b204e9800998ecf8427e",
                 "montage.png:md5,d41d8cd98f00b204e9800998ecf8427e",
+                "Batch1_Plate1_duplicate_check.txt:md5,d41d8cd98f00b204e9800998ecf8427e",
                 "montage.png:md5,d41d8cd98f00b204e9800998ecf8427e",
-                "montage.png:md5,d41d8cd98f00b204e9800998ecf8427e",
+                "Batch1_Plate1_duplicate_check.txt:md5,d41d8cd98f00b204e9800998ecf8427e",
+                "Batch1_Plate1_duplicate_check.txt:md5,d41d8cd98f00b204e9800998ecf8427e",
                 "Batch1_Plate1_qc_barcode_preprocess.html:md5,d41d8cd98f00b204e9800998ecf8427e",
                 "Batch1_Plate1_qc_barcode_preprocess.ipynb:md5,d41d8cd98f00b204e9800998ecf8427e",
                 "Batch1_Plate1_qc_barcode_preprocess.png:md5,d41d8cd98f00b204e9800998ecf8427e",
@@ -1154,14 +1182,14 @@
             ]
         ],
         "meta": {
-            "nf-test": "0.9.2",
-            "nextflow": "25.10.4"
+            "nf-test": "0.9.3",
+            "nextflow": "25.10.2"
         },
-        "timestamp": "2026-09-02T10:25:33.933823"
+        "timestamp": "2026-09-04T15:55:04.813006"
     },
     "stitch_align_crop - stub - qc passed": {
         "content": [
-            56,
+            61,
             [
                 "images",
                 "images/Batch1",
@@ -1525,7 +1553,11 @@
                 "workspace/qc_reports",
                 "workspace/qc_reports/1_illumination_painting",
                 "workspace/qc_reports/1_illumination_painting/Plate1",
+                "workspace/qc_reports/1_illumination_painting/Plate1/Batch1_Plate1_duplicate_check.txt",
                 "workspace/qc_reports/1_illumination_painting/Plate1/montage.png",
+                "workspace/qc_reports/2_alignment",
+                "workspace/qc_reports/2_alignment/Plate1",
+                "workspace/qc_reports/2_alignment/Plate1/Batch1_Plate1_duplicate_check.txt",
                 "workspace/qc_reports/3_segmentation",
                 "workspace/qc_reports/3_segmentation/Plate1",
                 "workspace/qc_reports/3_segmentation/Plate1/montage.png",
@@ -1534,9 +1566,14 @@
                 "workspace/qc_reports/4_stitching_painting/Plate1/montage.png",
                 "workspace/qc_reports/5_illumination_barcoding",
                 "workspace/qc_reports/5_illumination_barcoding/Plate1",
+                "workspace/qc_reports/5_illumination_barcoding/Plate1/Batch1_Plate1_duplicate_check.txt",
                 "workspace/qc_reports/5_illumination_barcoding/Plate1/montage.png",
+                "workspace/qc_reports/6_alignment",
+                "workspace/qc_reports/6_alignment/Plate1",
+                "workspace/qc_reports/6_alignment/Plate1/Batch1_Plate1_duplicate_check.txt",
                 "workspace/qc_reports/7_preprocessing",
                 "workspace/qc_reports/7_preprocessing/Plate1",
+                "workspace/qc_reports/7_preprocessing/Plate1/Batch1_Plate1_duplicate_check.txt",
                 "workspace/qc_reports/7_preprocessing/Plate1/Batch1_Plate1_qc_barcode_preprocess.html",
                 "workspace/qc_reports/7_preprocessing/Plate1/Batch1_Plate1_qc_barcode_preprocess.ipynb",
                 "workspace/qc_reports/7_preprocessing/Plate1/Batch1_Plate1_qc_barcode_preprocess.png",
@@ -1829,10 +1866,15 @@
                 "painting-illumapply.load_data.csv:md5,d41d8cd98f00b204e9800998ecf8427e",
                 "painting-illumcalc.load_data.csv:md5,d41d8cd98f00b204e9800998ecf8427e",
                 "painting-segcheck.load_data.csv:md5,d41d8cd98f00b204e9800998ecf8427e",
+                "Batch1_Plate1_duplicate_check.txt:md5,d41d8cd98f00b204e9800998ecf8427e",
+                "montage.png:md5,d41d8cd98f00b204e9800998ecf8427e",
+                "Batch1_Plate1_duplicate_check.txt:md5,d41d8cd98f00b204e9800998ecf8427e",
                 "montage.png:md5,d41d8cd98f00b204e9800998ecf8427e",
                 "montage.png:md5,d41d8cd98f00b204e9800998ecf8427e",
+                "Batch1_Plate1_duplicate_check.txt:md5,d41d8cd98f00b204e9800998ecf8427e",
                 "montage.png:md5,d41d8cd98f00b204e9800998ecf8427e",
-                "montage.png:md5,d41d8cd98f00b204e9800998ecf8427e",
+                "Batch1_Plate1_duplicate_check.txt:md5,d41d8cd98f00b204e9800998ecf8427e",
+                "Batch1_Plate1_duplicate_check.txt:md5,d41d8cd98f00b204e9800998ecf8427e",
                 "Batch1_Plate1_qc_barcode_preprocess.html:md5,d41d8cd98f00b204e9800998ecf8427e",
                 "Batch1_Plate1_qc_barcode_preprocess.ipynb:md5,d41d8cd98f00b204e9800998ecf8427e",
                 "Batch1_Plate1_qc_barcode_preprocess.png:md5,d41d8cd98f00b204e9800998ecf8427e",
@@ -1858,14 +1900,14 @@
             ]
         ],
         "meta": {
-            "nf-test": "0.9.2",
-            "nextflow": "25.10.4"
+            "nf-test": "0.9.3",
+            "nextflow": "25.10.2"
         },
-        "timestamp": "2026-09-02T10:21:06.148961"
+        "timestamp": "2026-09-04T15:52:38.248665"
     },
     "stitch_align_crop - stub - painting qc false": {
         "content": [
-            53,
+            58,
             [
                 "images",
                 "images/Batch1",
@@ -2163,7 +2205,11 @@
                 "workspace/qc_reports",
                 "workspace/qc_reports/1_illumination_painting",
                 "workspace/qc_reports/1_illumination_painting/Plate1",
+                "workspace/qc_reports/1_illumination_painting/Plate1/Batch1_Plate1_duplicate_check.txt",
                 "workspace/qc_reports/1_illumination_painting/Plate1/montage.png",
+                "workspace/qc_reports/2_alignment",
+                "workspace/qc_reports/2_alignment/Plate1",
+                "workspace/qc_reports/2_alignment/Plate1/Batch1_Plate1_duplicate_check.txt",
                 "workspace/qc_reports/3_segmentation",
                 "workspace/qc_reports/3_segmentation/Plate1",
                 "workspace/qc_reports/3_segmentation/Plate1/montage.png",
@@ -2172,9 +2218,14 @@
                 "workspace/qc_reports/4_stitching_painting/Plate1/montage.png",
                 "workspace/qc_reports/5_illumination_barcoding",
                 "workspace/qc_reports/5_illumination_barcoding/Plate1",
+                "workspace/qc_reports/5_illumination_barcoding/Plate1/Batch1_Plate1_duplicate_check.txt",
                 "workspace/qc_reports/5_illumination_barcoding/Plate1/montage.png",
+                "workspace/qc_reports/6_alignment",
+                "workspace/qc_reports/6_alignment/Plate1",
+                "workspace/qc_reports/6_alignment/Plate1/Batch1_Plate1_duplicate_check.txt",
                 "workspace/qc_reports/7_preprocessing",
                 "workspace/qc_reports/7_preprocessing/Plate1",
+                "workspace/qc_reports/7_preprocessing/Plate1/Batch1_Plate1_duplicate_check.txt",
                 "workspace/qc_reports/7_preprocessing/Plate1/Batch1_Plate1_qc_barcode_preprocess.html",
                 "workspace/qc_reports/7_preprocessing/Plate1/Batch1_Plate1_qc_barcode_preprocess.ipynb",
                 "workspace/qc_reports/7_preprocessing/Plate1/Batch1_Plate1_qc_barcode_preprocess.png",
@@ -2409,10 +2460,15 @@
                 "painting-illumapply.load_data.csv:md5,d41d8cd98f00b204e9800998ecf8427e",
                 "painting-illumcalc.load_data.csv:md5,d41d8cd98f00b204e9800998ecf8427e",
                 "painting-segcheck.load_data.csv:md5,d41d8cd98f00b204e9800998ecf8427e",
+                "Batch1_Plate1_duplicate_check.txt:md5,d41d8cd98f00b204e9800998ecf8427e",
+                "montage.png:md5,d41d8cd98f00b204e9800998ecf8427e",
+                "Batch1_Plate1_duplicate_check.txt:md5,d41d8cd98f00b204e9800998ecf8427e",
                 "montage.png:md5,d41d8cd98f00b204e9800998ecf8427e",
                 "montage.png:md5,d41d8cd98f00b204e9800998ecf8427e",
+                "Batch1_Plate1_duplicate_check.txt:md5,d41d8cd98f00b204e9800998ecf8427e",
                 "montage.png:md5,d41d8cd98f00b204e9800998ecf8427e",
-                "montage.png:md5,d41d8cd98f00b204e9800998ecf8427e",
+                "Batch1_Plate1_duplicate_check.txt:md5,d41d8cd98f00b204e9800998ecf8427e",
+                "Batch1_Plate1_duplicate_check.txt:md5,d41d8cd98f00b204e9800998ecf8427e",
                 "Batch1_Plate1_qc_barcode_preprocess.html:md5,d41d8cd98f00b204e9800998ecf8427e",
                 "Batch1_Plate1_qc_barcode_preprocess.ipynb:md5,d41d8cd98f00b204e9800998ecf8427e",
                 "Batch1_Plate1_qc_barcode_preprocess.png:md5,d41d8cd98f00b204e9800998ecf8427e",
@@ -2438,9 +2494,9 @@
             ]
         ],
         "meta": {
-            "nf-test": "0.9.2",
-            "nextflow": "25.10.4"
+            "nf-test": "0.9.3",
+            "nextflow": "25.10.2"
         },
-        "timestamp": "2026-09-02T10:23:17.415338"
+        "timestamp": "2026-09-04T15:53:52.179289"
     }
 }

@@ -13,6 +13,9 @@ include { CELLPROFILER_PLUGINS_UPDATE } from '../../../modules/local/cellprofile
 include { QC_PREPROCESS } from '../../../modules/local/qc/preprocess'
 include { FIJI_STITCHCROP } from '../../../modules/local/fiji/stitchcrop'
 include { QC_BARCODEALIGN } from '../../../modules/local/qc/barcodealign'
+include { QC_CHECKDUPLICATEIMAGES as QC_CHECKDUPLICATES_ILLUMCALC_BARCODING } from '../../../modules/local/qc/checkduplicateimages'
+include { QC_CHECKDUPLICATEIMAGES as QC_CHECKDUPLICATES_ILLUMAPPLY_BARCODING } from '../../../modules/local/qc/checkduplicateimages'
+include { QC_CHECKDUPLICATEIMAGES as QC_CHECKDUPLICATES_PREPROCESS } from '../../../modules/local/qc/checkduplicateimages'
 include { expandImageChannels; buildLoadDataMetadata } from '../utils_nfcore_nf-pooled-cellpainting_pipeline'
 
 workflow BARCODING {
@@ -117,6 +120,15 @@ workflow BARCODING {
     )
     ch_versions = ch_versions.mix(QC_MONTAGEILLUM_BARCODING.out.versions)
 
+    // Fail the pipeline if any two illumination-correction .npy files for this
+    // plate are pixel-identical - a safety net against staging/matching bugs
+    // that silently reuse one physical image where a different one should
+    // have been produced.
+    QC_CHECKDUPLICATES_ILLUMCALC_BARCODING(
+        ch_illumination_corrections_qc,
+    )
+    ch_versions = ch_versions.mix(QC_CHECKDUPLICATES_ILLUMCALC_BARCODING.out.versions)
+
     // Group images for ILLUMAPPLY based on parameter setting
     // Two modes:
     //   - "site": Group by site (current behavior) - each site processed separately
@@ -210,6 +222,20 @@ workflow BARCODING {
             },
         ]
     }
+
+    // Fail the pipeline if any two corrected .tiff images for this plate are
+    // pixel-identical - see the illumcalc dedup check above for rationale.
+    ch_corrected_images_dedup_qc = CELLPROFILER_ILLUMAPPLY_BARCODING.out.corrected_images
+        .map { meta, tiff_files, _csv_files ->
+            [meta.subMap(['batch', 'plate']) + [arm: "barcoding"], tiff_files]
+        }
+        .groupTuple()
+        .map { meta, tiff_files_list -> [meta, tiff_files_list.flatten()] }
+
+    QC_CHECKDUPLICATES_ILLUMAPPLY_BARCODING(
+        ch_corrected_images_dedup_qc,
+    )
+    ch_versions = ch_versions.mix(QC_CHECKDUPLICATES_ILLUMAPPLY_BARCODING.out.versions)
 
     // QC montage of any PNG QC images output by illumapply (optional)
     ch_illumapply_qc = CELLPROFILER_ILLUMAPPLY_BARCODING.out.qc_images
@@ -362,6 +388,18 @@ workflow BARCODING {
             },
         ]
     }
+
+    // Fail the pipeline if any two preprocessed .tiff images for this plate
+    // are pixel-identical - see the illumcalc dedup check above for rationale.
+    ch_preprocessed_images_dedup_qc = CELLPROFILER_PREPROCESS.out.preprocessed_images
+        .map { meta, tiff_files -> [meta.subMap(['batch', 'plate']) + [arm: "barcoding"], tiff_files] }
+        .groupTuple()
+        .map { meta, tiff_files_list -> [meta, tiff_files_list.flatten()] }
+
+    QC_CHECKDUPLICATES_PREPROCESS(
+        ch_preprocessed_images_dedup_qc,
+    )
+    ch_versions = ch_versions.mix(QC_CHECKDUPLICATES_PREPROCESS.out.versions)
 
     //// QC: Barcode preprocessing ////
     // Group preprocessing stats by plate and collect wells

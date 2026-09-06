@@ -9,6 +9,8 @@ include { QC_MONTAGEILLUM as QC_MONTAGE_ALIGNFAIL_PAINTING } from '../../../modu
 include { QC_MONTAGEILLUM as QC_MONTAGE_SEGCHECK } from '../../../modules/local/qc/montageillum'
 include { QC_MONTAGEILLUM as QC_MONTAGE_STITCHCROP_PAINTING } from '../../../modules/local/qc/montageillum'
 include { QC_PAINTINGALIGN } from '../../../modules/local/qc/paintingalign'
+include { QC_CHECKDUPLICATEIMAGES as QC_CHECKDUPLICATES_ILLUMCALC_PAINTING } from '../../../modules/local/qc/checkduplicateimages'
+include { QC_CHECKDUPLICATEIMAGES as QC_CHECKDUPLICATES_ILLUMAPPLY_PAINTING } from '../../../modules/local/qc/checkduplicateimages'
 include { CELLPROFILER_ILLUMAPPLY as CELLPROFILER_ILLUMAPPLY_PAINTING } from '../../../modules/local/cellprofiler/illumapply'
 include { CELLPROFILER_SEGCHECK } from '../../../modules/local/cellprofiler/segcheck'
 include { FIJI_STITCHCROP } from '../../../modules/local/fiji/stitchcrop'
@@ -116,6 +118,15 @@ workflow CELLPAINTING {
     )
     ch_versions = ch_versions.mix(QC_MONTAGEILLUM_PAINTING.out.versions)
 
+    // Fail the pipeline if any two illumination-correction .npy files for this
+    // plate are pixel-identical - a safety net against staging/matching bugs
+    // that silently reuse one physical image where a different one should
+    // have been produced.
+    QC_CHECKDUPLICATES_ILLUMCALC_PAINTING(
+        ch_illumination_corrections_qc,
+    )
+    ch_versions = ch_versions.mix(QC_CHECKDUPLICATES_ILLUMCALC_PAINTING.out.versions)
+
     // Group images by site for ILLUMAPPLY
     // Each site should get all its images
     ch_images_by_site = ch_samplesheet_cp
@@ -197,6 +208,20 @@ workflow CELLPAINTING {
             },
         ]
     }
+
+    // Fail the pipeline if any two corrected .tiff images for this plate are
+    // pixel-identical - see the illumcalc dedup check above for rationale.
+    ch_corrected_images_dedup_qc = CELLPROFILER_ILLUMAPPLY_PAINTING.out.corrected_images
+        .map { meta, tiff_files, _csv_files ->
+            [meta.subMap(['batch', 'plate']) + [arm: "painting"], tiff_files]
+        }
+        .groupTuple()
+        .map { meta, tiff_files_list -> [meta, tiff_files_list.flatten()] }
+
+    QC_CHECKDUPLICATES_ILLUMAPPLY_PAINTING(
+        ch_corrected_images_dedup_qc,
+    )
+    ch_versions = ch_versions.mix(QC_CHECKDUPLICATES_ILLUMAPPLY_PAINTING.out.versions)
 
     // QC montage of any PNG QC images output by illumapply (optional)
     ch_illumapply_qc = CELLPROFILER_ILLUMAPPLY_PAINTING.out.qc_images
