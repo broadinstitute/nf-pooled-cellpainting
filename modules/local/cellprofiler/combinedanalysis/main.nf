@@ -2,9 +2,12 @@ process CELLPROFILER_COMBINEDANALYSIS {
     tag "${meta.id}"
     label 'cellprofiler_large'
 
-    container "${workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container
-        ? 'oras://community.wave.seqera.io/library/cellprofiler:4.2.8--7c1bd3a82764de92'
-        : 'community.wave.seqera.io/library/cellprofiler:4.2.8--aff0a99749304a7f'}"
+    container "${
+        params.cellprofiler_container_override ?:
+        (params.cellprofiler_flavor == 'default' && workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container
+            ? 'oras://community.wave.seqera.io/library/cellprofiler:4.2.8--7c1bd3a82764de92'
+            : params.cellprofiler_flavor_containers[params.cellprofiler_flavor])
+    }"
 
     input:
     tuple val(meta), path(cropped_images, stageAs: "images/"), val(image_metas)
@@ -34,7 +37,10 @@ process CELLPROFILER_COMBINEDANALYSIS {
     export MPLCONFIGDIR=\${PWD}/.matplotlib
     export HOME=\${PWD}
     export XDG_CACHE_HOME=\${PWD}/.cache
-    mkdir -p \${MPLCONFIGDIR} \${XDG_CACHE_HOME}
+    # Cellpose's numba JIT tries to cache compiled code next to the installed package files,
+    # which aren't writable when the container runs as the host UID/GID; redirect to a writable dir.
+    export NUMBA_CACHE_DIR=\${PWD}/.numba_cache
+    mkdir -p \${MPLCONFIGDIR} \${XDG_CACHE_HOME} \${NUMBA_CACHE_DIR}
 
     # Create metadata JSON file from base64 (reduces log verbosity)
     echo '${metadata_base64}' | base64 -d > metadata.json
@@ -45,7 +51,6 @@ process CELLPROFILER_COMBINEDANALYSIS {
     # Generate load_data.csv using the unified script with 'combined' pipeline type
     generate_load_data_csv.py \\
         --metadata-json metadata.json \\
-        --pipeline-type combined \\
         --images-dir ./images \\
         --output load_data.csv \\
         --cycle-metadata-name "${params.cycle_metadata_name}"

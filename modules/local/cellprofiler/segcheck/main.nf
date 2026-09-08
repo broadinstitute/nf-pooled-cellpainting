@@ -2,14 +2,19 @@ process CELLPROFILER_SEGCHECK {
     tag "${meta.id}"
     label 'cellprofiler_basic'
 
-    container "${workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container
-        ? 'oras://community.wave.seqera.io/library/cellprofiler:4.2.8--7c1bd3a82764de92'
-        : 'community.wave.seqera.io/library/cellprofiler:4.2.8--aff0a99749304a7f'}"
+    container "${
+        params.cellprofiler_container_override ?:
+        (params.cellprofiler_flavor == 'default' && workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container
+            ? 'oras://community.wave.seqera.io/library/cellprofiler:4.2.8--7c1bd3a82764de92'
+            : params.cellprofiler_flavor_containers[params.cellprofiler_flavor])
+    }"
 
     input:
     tuple val(meta), path(corr_images, stageAs: "images/"), val(image_metas)
     path segcheck_cppipe
     val range_skip
+    // stage to root to prevent collision with image file staging
+    path plugins, stageAs: "plugins/"
 
     output:
     tuple val(meta), path("*.csv"), path("*.png"), emit: segcheck_res
@@ -31,7 +36,6 @@ process CELLPROFILER_SEGCHECK {
 
     # Generate load_data.csv
     generate_load_data_csv.py \\
-        --pipeline-type segcheck \\
         --images-dir ./images \\
         --output load_data.csv \\
         --metadata-json metadata.json \\
@@ -42,12 +46,23 @@ process CELLPROFILER_SEGCHECK {
     cp -L ${segcheck_cppipe} segcheck_patched.cppipe
     sed -i 's/Base image location:None|/Base image location:Default Input Folder|/g' segcheck_patched.cppipe
 
+    # Set writable cache directories for CellProfiler and dependencies (the container runs as the
+    # host UID/GID, so the default homedir-based paths aren't writable).
+    export MPLCONFIGDIR="\${PWD}/.matplotlib"
+    export HOME="\${PWD}"
+    export XDG_CACHE_HOME="\${PWD}/.cache"
+    # Cellpose's numba JIT tries to cache compiled code next to the installed package files,
+    # which aren't writable when the container runs as the host UID/GID; redirect to a writable dir.
+    export NUMBA_CACHE_DIR="\${PWD}/.numba_cache"
+    mkdir -p "\$MPLCONFIGDIR" "\$XDG_CACHE_HOME" "\$NUMBA_CACHE_DIR"
+
     cellprofiler -c -r \\
         ${task.ext.args ?: ''} \\
         -p segcheck_patched.cppipe \\
         -o . \\
         --data-file=load_data.csv \\
-        --image-directory ./images/
+        --image-directory ./images/ \\
+        --plugins-directory=./plugins/
 
     cat <<-END_VERSIONS > versions.yml
 	"${task.process}":

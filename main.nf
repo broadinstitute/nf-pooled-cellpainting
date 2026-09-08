@@ -14,6 +14,8 @@
 */
 
 include { POOLED_CELLPAINTING } from './workflows/nf-pooled-cellpainting'
+include { NO_STITCH_POOLED_CELLPAINTING } from './workflows/no-stitch'
+include { STITCH_ALIGN_CROP_POOLED_CELLPAINTING } from './workflows/stitch-align-crop'
 include { PIPELINE_INITIALISATION } from './subworkflows/local/utils_nfcore_nf-pooled-cellpainting_pipeline'
 include { PIPELINE_COMPLETION } from './subworkflows/local/utils_nfcore_nf-pooled-cellpainting_pipeline'
 /*
@@ -49,5 +51,77 @@ workflow {
         params.outdir,
         params.monochrome_logs,
         POOLED_CELLPAINTING.out.multiqc_report,
+    )
+}
+
+/*
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    RUN NO-STITCH WORKFLOW (select with -entry NO_STITCH)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+*/
+
+workflow NO_STITCH {
+    //
+    // SUBWORKFLOW: Run initialisation tasks
+    //
+    PIPELINE_INITIALISATION(
+        params.version,
+        params.validate_params,
+        params.monochrome_logs,
+        args,
+        params.outdir,
+        params.input,
+    )
+
+    //
+    // WORKFLOW: Run no-stitch workflow
+    //
+    NO_STITCH_POOLED_CELLPAINTING(
+        PIPELINE_INITIALISATION.out.samplesheet,
+        params.barcodes,
+    )
+    //
+    // SUBWORKFLOW: Run completion tasks
+    //
+    PIPELINE_COMPLETION(
+        params.outdir,
+        params.monochrome_logs,
+        NO_STITCH_POOLED_CELLPAINTING.out.multiqc_report,
+    )
+}
+
+/*
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    RUN STITCH_ALIGN_CROP WORKFLOW (select with -entry STITCH_ALIGN_CROP)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+*/
+
+workflow STITCH_ALIGN_CROP {
+    //
+    // SUBWORKFLOW: Run initialisation tasks
+    //
+    PIPELINE_INITIALISATION(
+        params.version,
+        params.validate_params,
+        params.monochrome_logs,
+        args,
+        params.outdir,
+        params.input,
+    )
+
+    //
+    // WORKFLOW: Run stitch-align-crop workflow
+    //
+    STITCH_ALIGN_CROP_POOLED_CELLPAINTING(
+        PIPELINE_INITIALISATION.out.samplesheet,
+        params.barcodes,
+    )
+    //
+    // SUBWORKFLOW: Run completion tasks
+    //
+    PIPELINE_COMPLETION(
+        params.outdir,
+        params.monochrome_logs,
+        STITCH_ALIGN_CROP_POOLED_CELLPAINTING.out.multiqc_report,
     )
 }

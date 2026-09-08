@@ -1,0 +1,297 @@
+/*
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    IMPORT MODULES / SUBWORKFLOWS / FUNCTIONS
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+*/
+include { CELLPAINTING_NO_STITCH } from '../subworkflows/local/cellpainting_no_stitch'
+include { BARCODING_NO_STITCH } from '../subworkflows/local/barcoding_no_stitch'
+include { CELLPROFILER_COMBINEDANALYSIS } from '../modules/local/cellprofiler/combinedanalysis/main'
+include { CELLPROFILER_PLUGINS_UPDATE } from '../modules/local/cellprofiler_plugins/update'
+include { MULTIQC } from '../modules/nf-core/multiqc/main'
+
+include { paramsSummaryMap } from 'plugin/nf-schema'
+include { paramsSummaryMultiqc } from '../subworkflows/nf-core/utils_nfcore_pipeline'
+include { softwareVersionsToYAML } from '../subworkflows/nf-core/utils_nfcore_pipeline'
+include { methodsDescriptionText } from '../subworkflows/local/utils_nfcore_nf-pooled-cellpainting_pipeline'
+include { buildLoadDataMetadata } from '../subworkflows/local/utils_nfcore_nf-pooled-cellpainting_pipeline'
+
+/*
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    RUN NO-STITCH WORKFLOW
+    Same as POOLED_CELLPAINTING, but skips FIJI_STITCHCROP in both arms.
+    Combined analysis (when both QC flags are passed) runs on the pre-stitch
+    per-site images instead of post-stitch cropped images.
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+*/
+
+workflow NO_STITCH_POOLED_CELLPAINTING {
+    take:
+    ch_samplesheet // channel: samplesheet read in from --input
+    barcodes // file: path to barcodes.csv file
+
+    main:
+
+    ch_versions = channel.empty()
+    ch_multiqc_files = channel.empty()
+
+    // Cellprofiler plugins (shared by segmentation check and combined analysis)
+    if (params.update_cellprofiler_plugins) {
+        CELLPROFILER_PLUGINS_UPDATE(params.cellprofiler_plugins_repo)
+        ch_versions = ch_versions.mix(CELLPROFILER_PLUGINS_UPDATE.out.versions)
+
+        // runcellpose_plugin always takes precedence over the same-named file pulled by the
+        // update. callbarcodes_plugin/compensatecolors_plugin only override if the user actually
+        // changed them from their defaults - otherwise the freshly-cloned versions pass through.
+        def plugin_overrides = [file(params.runcellpose_plugin)]
+        if (params.callbarcodes_plugin != params.callbarcodes_plugin_default) {
+            plugin_overrides << file(params.callbarcodes_plugin)
+        }
+        if (params.compensatecolors_plugin != params.compensatecolors_plugin_default) {
+            plugin_overrides << file(params.compensatecolors_plugin)
+        }
+        def override_names = plugin_overrides.collect { it.name }
+        ch_cellprofiler_plugins = CELLPROFILER_PLUGINS_UPDATE.out.plugin_files
+            .map { cloned_files -> cloned_files.findAll { !(it.name in override_names) } + plugin_overrides }
+    }
+    else {
+        // runcellpose.py is only needed (and only guaranteed to exist) when a Cellpose-enabled flavor is in use.
+        ch_cellprofiler_plugins = params.cellprofiler_flavor == 'default'
+            ? [file(params.callbarcodes_plugin), file(params.compensatecolors_plugin)]
+            : [file(params.callbarcodes_plugin), file(params.compensatecolors_plugin), file(params.runcellpose_plugin)]
+    }
+
+    ch_samplesheet_flat = ch_samplesheet.flatMap { meta, image ->
+        // Split imaging channels by comma and create a separate entry for each channel
+        meta.original_channels = meta.channels
+        meta.remove('original_channels')
+        return [[meta, image]]
+    }
+
+    // Add meta.arm back into each channel
+    ch_samplesheet_painting = ch_samplesheet_flat
+        .filter { meta, _image ->
+            meta.arm == "painting"
+        }
+        .map { meta, image ->
+            [meta + [arm: 'painting'], image]
+        }
+    ch_samplesheet_barcoding = ch_samplesheet_flat
+        .filter { meta, _image ->
+            meta.arm == "barcoding"
+        }
+        .map { meta, image ->
+            [meta + [arm: 'barcoding'], image]
+        }
+
+    // Process painting arm of pipeline (no stitch/crop)
+    CELLPAINTING_NO_STITCH(
+        ch_samplesheet_painting,
+        params.painting_illumcalc_cppipe,
+        params.painting_illumapply_cppipe,
+        params.painting_segcheck_cppipe,
+        params.range_skip,
+        ch_cellprofiler_plugins,
+        params.outdir,
+        params.acquisition_geometry_rows,
+        params.acquisition_geometry_columns,
+    )
+    ch_versions = ch_versions.mix(CELLPAINTING_NO_STITCH.out.versions)
+
+    // Process barcoding arm of pipeline (no stitch/crop)
+    BARCODING_NO_STITCH(
+        ch_samplesheet_barcoding,
+        params.barcoding_illumcalc_cppipe,
+        params.barcoding_illumapply_cppipe,
+        params.barcoding_preprocess_cppipe,
+        barcodes,
+        params.outdir,
+        params.barcoding_illumapply_grouping,
+        params.barcoding_shift_threshold,
+        params.barcoding_corr_threshold,
+        params.acquisition_geometry_rows,
+        params.acquisition_geometry_columns,
+        params.callbarcodes_plugin,
+        params.compensatecolors_plugin,
+        params.callbarcodes_plugin_default,
+        params.compensatecolors_plugin_default,
+        params.update_cellprofiler_plugins,
+        params.cellprofiler_plugins_repo,
+    )
+    ch_versions = ch_versions.mix(BARCODING_NO_STITCH.out.versions)
+
+    //// Combined analysis of painting and barcoding data ////
+    // Only run if BOTH painting and barcoding QC have been marked as pass
+    if (params.qc_painting_passed && params.qc_barcoding_passed) {
+        // Combine pre-stitch per-site images from both arms
+        CELLPAINTING_NO_STITCH.out.precrop_images
+            .map { meta, images -> [meta + [arm_source: 'cellpainting'], images] }
+            .mix(
+                BARCODING_NO_STITCH.out.precrop_images.map { meta, images -> [meta + [arm_source: 'barcoding'], images] }
+            )
+            .flatMap { meta, images ->
+                // Flatten images and associate each image file with its metadata (including arm_source).
+                // Wrap-then-flatten guards against Nextflow emitting a bare Path (not a List) when a
+                // glob output matches exactly one file -- Path implements Iterable<Path> over its
+                // filesystem name components, so calling .collect directly on it silently iterates
+                // path segments instead of images.
+                [images].flatten().collect { img -> [meta, img] }
+            }
+            .map { meta, image ->
+                // Create SIMPLE STRING grouping key for proper groupTuple operation
+                def group_key = "${meta.batch}_${meta.plate}_${meta.well}_${meta.site}"
+                def group_meta = [
+                    batch: meta.batch,
+                    plate: meta.plate,
+                    well: meta.well,
+                    site: meta.site,
+                    id: group_key,
+                    arm_source: meta.arm_source,
+                ]
+                [group_key, group_meta, image]
+            }
+            .groupTuple(by: 0)
+            .map { _group_key, meta_list, images_list ->
+                // Use first meta (they should all be identical for common fields like batch, plate, well, site)
+                def common_meta = meta_list[0]
+
+                // Build image metadata for each image, using the preserved arm_source and existing channel info.
+                // `arm` uses the samplesheet's painting/barcoding vocabulary, replacing
+                // the ad hoc `type: cellpainting/barcoding` this block used to emit.
+                // combined_analysis.cppipe selects CorrDNA/CorrCHN2/CorrPhalloidin for
+                // painting and Cycle01_DNA/Cycle01_A/... for barcoding.
+                def image_metas = (0..<images_list.size()).collect { i ->
+                    def img = images_list[i]
+                    def current_meta = meta_list[i]
+                    def arm = current_meta.arm_source == 'cellpainting' ? 'painting' : 'barcoding'
+                    // Pre-stitch images are published per-site (images_corrected/<arm>/<plate>/<plate>-<well>-<site>/),
+                    // unlike post-stitch images which are published per-well.
+                    def img_meta = [
+                        well         : common_meta.well,
+                        site         : common_meta.site,
+                        arm          : arm,
+                        cycle        : null,
+                        frame_index  : null,
+                        column_prefix: arm == 'painting' ? 'Corr' : '',
+                        filename     : img.name,
+                        original_path: "${params.outdir}/images/${common_meta.batch}/images_corrected/${arm}/${common_meta.plate}/${common_meta.plate}-${common_meta.well}-${common_meta.site}/${img.name}",
+                    ]
+
+                    // Add channel and cycle information based on arm_source
+                    if (current_meta.arm_source == 'barcoding') {
+                        // For barcoding, channels are typically 'DNA' and 'CycleXX'
+                        // We need to infer the channel from the filename or assume a default if not explicitly in meta
+                        // Assuming channel is part of the filename for barcoding as before, or could be passed in meta
+                        def barcode_match = (img.name =~ /Cycle(\d+)_(A488|A568|A647|DNA|DAPI|[ACGT])(?:_Site_\d+)?\.tiff?$/)
+                        if (barcode_match) {
+                            img_meta.cycle = barcode_match[0][1] as Integer
+                            img_meta.channel = barcode_match[0][2]
+                        }
+                        else {
+                            log.warn("Could not parse cycle/channel for barcoding image: ${img.name}")
+                            img_meta.channel = 'unknown'
+                        }
+                    }
+                    else if (current_meta.arm_source == 'cellpainting') {
+                        // For painting, channels are typically defined in the samplesheet (meta.channels)
+                        // We need to infer the channel from the filename as it's not directly in meta for individual image
+                        def cp_match = (img.name =~ /Corr([A-Za-z0-9_]+)\.tiff?$/)
+                        if (cp_match) {
+                            img_meta.channel = cp_match[0][1]
+                        }
+                        else {
+                            log.warn("Could not parse channel for painting image: ${img.name}")
+                            img_meta.channel = 'unknown'
+                        }
+                    }
+                    else {
+                        log.warn("Unknown arm_source for image: ${img.name} (arm: ${current_meta.arm_source})")
+                        img_meta.channel = 'unknown'
+                    }
+                    img_meta
+                }
+
+                [common_meta, images_list, buildLoadDataMetadata(common_meta, image_metas)]
+            }
+            .set { ch_precrop_images }
+
+        CELLPROFILER_COMBINEDANALYSIS(
+            ch_precrop_images,
+            params.combinedanalysis_cppipe,
+            barcodes,
+            ch_cellprofiler_plugins,
+        )
+        ch_versions = ch_versions.mix(CELLPROFILER_COMBINEDANALYSIS.out.versions)
+
+        // Merge load_data CSVs per plate
+        CELLPROFILER_COMBINEDANALYSIS.out.load_data_csv.collectFile(keepHeader: true, skip: 1) { meta, csv ->
+            def dir = file("${params.outdir}/workspace/load_data_csv/${meta.batch}/${meta.plate}")
+            dir.mkdirs()
+            [
+                "${dir}/combined_analysis.load_data.csv",
+                csv.text.replaceFirst(/(?m)^(.*)$/) { line ->
+                    line[0]
+                        .replace('FinalFileName_', '__FINAL__')
+                        .replace('FileName_', 'StagedFileName_')
+                        .replace('__FINAL__', 'FileName_')
+                },
+            ]
+        }
+    }
+    else {
+        log.info("Skipping combined analysis: Both qc_painting_passed (${params.qc_painting_passed}) and qc_barcoding_passed (${params.qc_barcoding_passed}) must be true. Review QC montages for both arms and set both parameters to true to proceed.")
+    }
+
+
+    //
+    // Collate and save software versions
+
+    softwareVersionsToYAML(ch_versions)
+        .collectFile(
+            storeDir: "${params.outdir}/pipeline_info",
+            name: 'nf-pooled-cellpainting_software_' + 'mqc_' + 'versions.yml',
+            newLine: true,
+        )
+        .set { ch_collated_versions }
+
+
+    //
+    // MODULE: MultiQC
+    //
+    summary_params = paramsSummaryMap(
+        workflow,
+        parameters_schema: "nextflow_schema.json"
+    )
+    ch_workflow_summary = channel.value(paramsSummaryMultiqc(summary_params))
+    ch_multiqc_files = ch_multiqc_files.mix(
+        ch_workflow_summary.collectFile(name: 'workflow_summary_mqc.yaml')
+    )
+    ch_multiqc_custom_methods_description = params.multiqc_methods_description
+        ? file(params.multiqc_methods_description, checkIfExists: true)
+        : file("${projectDir}/assets/methods_description_template.yml", checkIfExists: true)
+    ch_methods_description = channel.value(
+        methodsDescriptionText(ch_multiqc_custom_methods_description)
+    )
+
+    ch_multiqc_files = ch_multiqc_files.mix(ch_collated_versions)
+    ch_multiqc_files = ch_multiqc_files.mix(
+        ch_methods_description.collectFile(
+            name: 'methods_description_mqc.yaml',
+            sort: true,
+        )
+    )
+
+    MULTIQC(
+        ch_multiqc_files.collect().map { files ->
+            def config_list = [file("${projectDir}/assets/multiqc_config.yml")]
+            if (params.multiqc_config) {
+                config_list << file(params.multiqc_config)
+            }
+            def logo_list = params.multiqc_logo ? [file(params.multiqc_logo)] : []
+            [[id: 'multiqc'], files, config_list, logo_list, [], []]
+        }
+    )
+
+    emit:
+    multiqc_report = MULTIQC.out.report.toList() // channel: /path/to/multiqc_report.html
+    versions = ch_versions // channel: [ path(versions.yml) ]
+}

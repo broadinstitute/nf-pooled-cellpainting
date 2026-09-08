@@ -9,9 +9,12 @@ include { QC_MONTAGEILLUM as QC_MONTAGE_ALIGNFAIL_PAINTING } from '../../../modu
 include { QC_MONTAGEILLUM as QC_MONTAGE_SEGCHECK } from '../../../modules/local/qc/montageillum'
 include { QC_MONTAGEILLUM as QC_MONTAGE_STITCHCROP_PAINTING } from '../../../modules/local/qc/montageillum'
 include { QC_PAINTINGALIGN } from '../../../modules/local/qc/paintingalign'
+include { QC_CHECKDUPLICATEIMAGES as QC_CHECKDUPLICATES_ILLUMCALC_PAINTING } from '../../../modules/local/qc/checkduplicateimages'
+include { QC_CHECKDUPLICATEIMAGES as QC_CHECKDUPLICATES_ILLUMAPPLY_PAINTING } from '../../../modules/local/qc/checkduplicateimages'
 include { CELLPROFILER_ILLUMAPPLY as CELLPROFILER_ILLUMAPPLY_PAINTING } from '../../../modules/local/cellprofiler/illumapply'
 include { CELLPROFILER_SEGCHECK } from '../../../modules/local/cellprofiler/segcheck'
 include { FIJI_STITCHCROP } from '../../../modules/local/fiji/stitchcrop'
+include { expandImageChannels; buildLoadDataMetadata } from '../utils_nfcore_nf-pooled-cellpainting_pipeline'
 
 workflow CELLPAINTING {
     take:
@@ -20,6 +23,7 @@ workflow CELLPAINTING {
     painting_illumapply_cppipe // file: CellProfiler pipeline for illumination application
     painting_segcheck_cppipe // file: CellProfiler pipeline for segmentation check
     range_skip // val: range of QC segcheck images to skip
+    segcheck_plugins // path(s): Cellprofiler plugin file(s) for segmentation check
     outdir
     acquisition_geometry_rows
     acquisition_geometry_columns
@@ -55,15 +59,23 @@ workflow CELLPAINTING {
             def group_id = "${meta.batch}_${meta.plate}"
             def group_key = meta.subMap(['batch', 'plate']) + [id: group_id]
 
-            // Preserve full metadata for each image
-            def image_meta = meta + [filename: image.name, original_path: image.toString(), original_filename: image.name]
-            [group_key, image_meta, image]
+            // One metadata entry per (file, channel) pair - see expandImageChannels().
+            // illumcalc's cppipe selects input images named Orig{channel}.
+            // record_cycle=false: painting channel names (DNA vs DNA2) already
+            // disambiguate rounds, so illumcalc must never see >1 distinct cycle.
+            [group_key, expandImageChannels(meta, image, 'Orig', false), image]
         }
         .groupTuple()
         .map { meta, images_meta_list, images_list ->
-            def all_channels = images_meta_list.channels.unique().join(", ")
-            // Return tuple: (shared meta, channels, cycles, images, per-image metadata)
-            [meta, all_channels, null, images_list, images_meta_list]
+            def image_metas = images_meta_list.flatten()
+            def all_channels = image_metas.channel.unique().join(",")
+            // Each images_list[i] is staged as images/imgN/ (1-based); this is
+            // the disambiguated name the module renames it to (see
+            // expandImageChannels/stagedImageName) so generate_load_data_csv.py
+            // never has to reverse-engineer which staged copy is which.
+            def staged_names = images_meta_list.collect { it[0].filename }
+            // Return tuple: (shared meta, channels, cycles, images, load_data metadata, staged names)
+            [meta, all_channels, null, images_list, buildLoadDataMetadata(meta, image_metas), staged_names]
         }
 
     // Calculate illumination correction profiles
@@ -106,6 +118,15 @@ workflow CELLPAINTING {
     )
     ch_versions = ch_versions.mix(QC_MONTAGEILLUM_PAINTING.out.versions)
 
+    // Fail the pipeline if any two illumination-correction .npy files for this
+    // plate are pixel-identical - a safety net against staging/matching bugs
+    // that silently reuse one physical image where a different one should
+    // have been produced.
+    QC_CHECKDUPLICATES_ILLUMCALC_PAINTING(
+        ch_illumination_corrections_qc,
+    )
+    ch_versions = ch_versions.mix(QC_CHECKDUPLICATES_ILLUMCALC_PAINTING.out.versions)
+
     // Group images by site for ILLUMAPPLY
     // Each site should get all its images
     ch_images_by_site = ch_samplesheet_cp
@@ -113,20 +134,25 @@ workflow CELLPAINTING {
             def site_id = "${meta.batch}_${meta.plate}_${meta.well}_Site${meta.site}"
             def site_key = meta.subMap(['batch', 'plate', 'well', 'site', 'arm']) + [id: site_id]
 
-            // Preserve full metadata for each image
-            def image_meta = meta + [filename: image.name, original_path: image.toString(), original_filename: image.name]
-
-            [site_key, image_meta, image]
+            // illumapply's cppipe selects input images named Orig{channel} /
+            // Cycle{NN}_Orig{channel}; the Cycle prefix is added downstream by
+            // generate_load_data_csv.py when the group spans >1 cycle.
+            // record_cycle=false: painting channel names (DNA vs DNA2) already
+            // disambiguate rounds, so illumapply must never see >1 distinct cycle.
+            [site_key, expandImageChannels(meta, image, 'Orig', false), image]
         }
         .groupTuple()
         .map { site_meta, images_meta_list, images_list ->
-            def all_channels = images_meta_list.channels.unique().join(", ")
+            def image_metas = images_meta_list.flatten()
+            def all_channels = image_metas.channel.unique().join(",")
             // Check if images have MULTIPLE cycles (not just a single cycle value)
-            def all_cycles = images_meta_list.collect { m -> m.cycle }.findAll { c -> c != null }.unique().sort()
+            def all_cycles = image_metas.collect { m -> m.cycle }.findAll { c -> c != null }.unique().sort()
             def unique_cycles = all_cycles.size() > 1 ? all_cycles : null
+            // See the illumcalc staged_names comment above for why this exists.
+            def staged_names = images_meta_list.collect { it[0].filename }
 
-            // Return tuple: (shared meta, channels, cycles, images, per-image metadata)
-            [site_meta, all_channels, unique_cycles, images_list, images_meta_list]
+            // Return tuple: (shared meta, channels, cycles, images, load_data metadata, staged names)
+            [site_meta, all_channels, unique_cycles, images_list, buildLoadDataMetadata(site_meta, image_metas), staged_names]
         }
 
     // Group npy files by batch and plate
@@ -147,18 +173,18 @@ workflow CELLPAINTING {
     // Combine images with npy files
     // Each site gets all the npy files for its plate
     ch_illumapply_input = ch_images_by_site
-        .map { site_meta, channels, cycles, images, image_metas ->
+        .map { site_meta, channels, cycles, images, image_metas, staged_names ->
             def plate_key = [
                 batch: site_meta.batch,
                 plate: site_meta.plate,
             ]
             // Store channels in meta for downstream use
             def enriched_meta = site_meta + [channels: channels]
-            [plate_key, enriched_meta, channels, cycles, images, image_metas]
+            [plate_key, enriched_meta, channels, cycles, images, image_metas, staged_names]
         }
         .combine(ch_npy_by_plate, by: 0)
-        .map { _plate_key, enriched_meta, channels, cycles, images, image_metas, npy_files ->
-            [enriched_meta, channels, cycles, images, image_metas, npy_files]
+        .map { _plate_key, enriched_meta, channels, cycles, images, image_metas, staged_names, npy_files ->
+            [enriched_meta, channels, cycles, images, image_metas, staged_names, npy_files]
         }
 
     // Apply illumination correction to images
@@ -182,6 +208,20 @@ workflow CELLPAINTING {
             },
         ]
     }
+
+    // Fail the pipeline if any two corrected .tiff images for this plate are
+    // pixel-identical - see the illumcalc dedup check above for rationale.
+    ch_corrected_images_dedup_qc = CELLPROFILER_ILLUMAPPLY_PAINTING.out.corrected_images
+        .map { meta, tiff_files, _csv_files ->
+            [meta.subMap(['batch', 'plate']) + [arm: "painting"], tiff_files]
+        }
+        .groupTuple()
+        .map { meta, tiff_files_list -> [meta, tiff_files_list.flatten()] }
+
+    QC_CHECKDUPLICATES_ILLUMAPPLY_PAINTING(
+        ch_corrected_images_dedup_qc,
+    )
+    ch_versions = ch_versions.mix(QC_CHECKDUPLICATES_ILLUMAPPLY_PAINTING.out.versions)
 
     // QC montage of any PNG QC images output by illumapply (optional)
     ch_illumapply_qc = CELLPROFILER_ILLUMAPPLY_PAINTING.out.qc_images
@@ -254,18 +294,26 @@ workflow CELLPAINTING {
                 batch: meta.batch,
                 plate: meta.plate,
                 well: meta.well,
-                channels: meta.channels,
                 arm: meta.arm,
                 id: "${meta.batch}_${meta.plate}_${meta.well}",
             ]
-            // Build image_metas for corrected images with full metadata + filename + channel
+            // Build image_metas for corrected images. Only the load_data schema
+            // fields are emitted - the inherited `channels` well-string that used
+            // to ride along here was never read and is dropped.
+            // segcheck's cppipe selects input images by bare channel name (DNA,
+            // Phalloidin, CHN2), so column_prefix is empty. No cycle: segcheck
+            // operates on a single painting cycle's corrected images.
             def image_metas = images.collect { img ->
-                // Extract channel from corrected image filename: Plate_X_Well_Y_Site_Z_CorrCHANNEL.tiff
                 def channel = img.name.replaceAll(/.*_Corr(.+?)\.tiff?$/, '$1')
-                // Clone metadata and add filename + channel + published path
-                meta + [
-                    filename: img.name,
-                    channel: channel,
+                [
+                    well         : meta.well,
+                    site         : meta.site,
+                    arm          : meta.arm,
+                    cycle        : null,
+                    channel      : channel,
+                    frame_index  : null,
+                    column_prefix: '',
+                    filename     : img.name,
                     original_path: "${outdir}/images/${meta.batch}/images_corrected/${meta.arm}/${meta.plate}/${meta.plate}-${meta.well}-${meta.site}/${img.name}",
                 ]
             }
@@ -276,7 +324,7 @@ workflow CELLPAINTING {
             // Flatten all site images and metadata into one list for the well
             def flat_images = images_list.flatten().sort { img -> img.name }
             def flat_metas = image_metas_list.flatten().sort { m -> m.filename }
-            [well_meta, flat_images, flat_metas]
+            [well_meta, flat_images, buildLoadDataMetadata(well_meta, flat_metas)]
         }
 
     //// Segmentation quality check ////
@@ -284,6 +332,7 @@ workflow CELLPAINTING {
         ch_sub_corr_images,
         painting_segcheck_cppipe,
         range_skip,
+        segcheck_plugins,
     )
     ch_versions = ch_versions.mix(CELLPROFILER_SEGCHECK.out.versions)
     // Merge load_data CSVs per plate
@@ -360,6 +409,7 @@ workflow CELLPAINTING {
     FIJI_STITCHCROP(
         ch_corrected_images_synced,
         fiji_stitchcrop_script,
+        file("${projectDir}/assets/stitchcrop/well_site_layouts.json"),
         painting_round_or_square,
         painting_quarter_if_round,
         painting_overlap_pct,

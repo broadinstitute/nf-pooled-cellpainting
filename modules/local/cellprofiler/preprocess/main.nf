@@ -39,7 +39,6 @@ process CELLPROFILER_PREPROCESS {
     # Generate load_data.csv
     generate_load_data_csv.py \\
         --metadata-json metadata.json \\
-        --pipeline-type preprocess \\
         --images-dir ./images \\
         --output load_data.csv \\
         --cycle-metadata-name "${params.cycle_metadata_name}"

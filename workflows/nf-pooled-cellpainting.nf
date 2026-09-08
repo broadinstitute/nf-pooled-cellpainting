@@ -6,12 +6,14 @@
 include { CELLPAINTING } from '../subworkflows/local/cellpainting'
 include { BARCODING } from '../subworkflows/local/barcoding'
 include { CELLPROFILER_COMBINEDANALYSIS } from '../modules/local/cellprofiler/combinedanalysis/main'
+include { CELLPROFILER_PLUGINS_UPDATE } from '../modules/local/cellprofiler_plugins/update'
 include { MULTIQC } from '../modules/nf-core/multiqc/main'
 
 include { paramsSummaryMap } from 'plugin/nf-schema'
 include { paramsSummaryMultiqc } from '../subworkflows/nf-core/utils_nfcore_pipeline'
 include { softwareVersionsToYAML } from '../subworkflows/nf-core/utils_nfcore_pipeline'
 include { methodsDescriptionText } from '../subworkflows/local/utils_nfcore_nf-pooled-cellpainting_pipeline'
+include { buildLoadDataMetadata } from '../subworkflows/local/utils_nfcore_nf-pooled-cellpainting_pipeline'
 
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -28,6 +30,32 @@ workflow POOLED_CELLPAINTING {
 
     ch_versions = channel.empty()
     ch_multiqc_files = channel.empty()
+
+    // Cellprofiler plugins (shared by segmentation check and combined analysis)
+    if (params.update_cellprofiler_plugins) {
+        CELLPROFILER_PLUGINS_UPDATE(params.cellprofiler_plugins_repo)
+        ch_versions = ch_versions.mix(CELLPROFILER_PLUGINS_UPDATE.out.versions)
+
+        // runcellpose_plugin always takes precedence over the same-named file pulled by the
+        // update. callbarcodes_plugin/compensatecolors_plugin only override if the user actually
+        // changed them from their defaults - otherwise the freshly-cloned versions pass through.
+        def plugin_overrides = [file(params.runcellpose_plugin)]
+        if (params.callbarcodes_plugin != params.callbarcodes_plugin_default) {
+            plugin_overrides << file(params.callbarcodes_plugin)
+        }
+        if (params.compensatecolors_plugin != params.compensatecolors_plugin_default) {
+            plugin_overrides << file(params.compensatecolors_plugin)
+        }
+        def override_names = plugin_overrides.collect { it.name }
+        ch_cellprofiler_plugins = CELLPROFILER_PLUGINS_UPDATE.out.plugin_files
+            .map { cloned_files -> cloned_files.findAll { !(it.name in override_names) } + plugin_overrides }
+    }
+    else {
+        // runcellpose.py is only needed (and only guaranteed to exist) when a Cellpose-enabled flavor is in use.
+        ch_cellprofiler_plugins = params.cellprofiler_flavor == 'default'
+            ? [file(params.callbarcodes_plugin), file(params.compensatecolors_plugin)]
+            : [file(params.callbarcodes_plugin), file(params.compensatecolors_plugin), file(params.runcellpose_plugin)]
+    }
 
     ch_samplesheet_flat = ch_samplesheet.flatMap { meta, image ->
         // Split imaging channels by comma and create a separate entry for each channel
@@ -59,6 +87,7 @@ workflow POOLED_CELLPAINTING {
         params.painting_illumapply_cppipe,
         params.painting_segcheck_cppipe,
         params.range_skip,
+        ch_cellprofiler_plugins,
         params.outdir,
         params.acquisition_geometry_rows,
         params.acquisition_geometry_columns,
@@ -97,6 +126,10 @@ workflow POOLED_CELLPAINTING {
         params.acquisition_geometry_columns,
         params.callbarcodes_plugin,
         params.compensatecolors_plugin,
+        params.callbarcodes_plugin_default,
+        params.compensatecolors_plugin_default,
+        params.update_cellprofiler_plugins,
+        params.cellprofiler_plugins_repo,
         params.fiji_stitchcrop_script,
         params.barcoding_round_or_square,
         params.barcoding_quarter_if_round,
@@ -127,8 +160,12 @@ workflow POOLED_CELLPAINTING {
                 BARCODING.out.cropped_images.map { meta, images -> [meta + [arm_source: 'barcoding'], images] }
             )
             .flatMap { meta, images ->
-                // Flatten images and associate each image file with its metadata (including arm_source)
-                images.collect { img -> [meta, img] }
+                // Flatten images and associate each image file with its metadata (including arm_source).
+                // Wrap-then-flatten guards against Nextflow emitting a bare Path (not a List) when a
+                // glob output matches exactly one file -- Path implements Iterable<Path> over its
+                // filesystem name components, so calling .collect directly on it silently iterates
+                // path segments instead of images.
+                [images].flatten().collect { img -> [meta, img] }
             }
             .map { meta, image ->
                 // Create SIMPLE STRING grouping key for proper groupTuple operation
@@ -148,17 +185,23 @@ workflow POOLED_CELLPAINTING {
                 // Use first meta (they should all be identical for common fields like batch, plate, well, site)
                 def common_meta = meta_list[0]
 
-                // Build image metadata for each image, using the preserved arm_source and existing channel info
+                // Build image metadata for each image, using the preserved arm_source and existing channel info.
+                // `arm` uses the samplesheet's painting/barcoding vocabulary, replacing
+                // the ad hoc `type: cellpainting/barcoding` this block used to emit.
+                // combined_analysis.cppipe selects CorrDNA/CorrCHN2/CorrPhalloidin for
+                // painting and Cycle01_DNA/Cycle01_A/... for barcoding.
                 def image_metas = (0..<images_list.size()).collect { i ->
                     def img = images_list[i]
                     def current_meta = meta_list[i]
-                    // Get the specific meta for this image
                     def arm = current_meta.arm_source == 'cellpainting' ? 'painting' : 'barcoding'
                     def img_meta = [
-                        well: common_meta.well,
-                        site: common_meta.site,
-                        filename: img.name,
-                        type: current_meta.arm_source,
+                        well         : common_meta.well,
+                        site         : common_meta.site,
+                        arm          : arm,
+                        cycle        : null,
+                        frame_index  : null,
+                        column_prefix: arm == 'painting' ? 'Corr' : '',
+                        filename     : img.name,
                         original_path: "${params.outdir}/images/${common_meta.batch}/images_corrected_cropped/${arm}/${common_meta.plate}/${common_meta.plate}-${common_meta.well}/${img.name}",
                     ]
 
@@ -196,28 +239,7 @@ workflow POOLED_CELLPAINTING {
                     img_meta
                 }
 
-                // Detect unique cycles from barcoding images
-                def unique_cycles = image_metas
-                    .findAll { image_meta -> image_meta.cycle != null }
-                    .collect { image_meta -> image_meta.cycle }
-                    .unique()
-                    .sort()
-
-                // Prepare metadata structure for combined analysis
-                def metadata_for_json = [
-                    plate: common_meta.plate,
-                    image_metadata: image_metas,
-                ]
-                // Add cycles so the CSV generator uses cycle-prefixed column names
-                if (unique_cycles) {
-                    metadata_for_json.cycles = unique_cycles
-                }
-                // Add optional fields if present
-                if (common_meta.batch) {
-                    metadata_for_json.batch = common_meta.batch
-                }
-
-                [common_meta, images_list, metadata_for_json]
+                [common_meta, images_list, buildLoadDataMetadata(common_meta, image_metas)]
             }
             .set { ch_cropped_images }
 
@@ -225,7 +247,7 @@ workflow POOLED_CELLPAINTING {
             ch_cropped_images,
             params.combinedanalysis_cppipe,
             barcodes,
-            file(params.callbarcodes_plugin),
+            ch_cellprofiler_plugins,
         )
         ch_versions = ch_versions.mix(CELLPROFILER_COMBINEDANALYSIS.out.versions)
 
