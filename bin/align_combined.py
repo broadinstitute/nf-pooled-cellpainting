@@ -82,28 +82,33 @@ def scale_array(arr: np.ndarray, scalingstring: str) -> np.ndarray:
     return np.array(im.resize(new_size, Image.LANCZOS))
 
 
-def downsample(arr: np.ndarray, factor: int = 10) -> np.ndarray:
+def downsample(arr: np.ndarray, factor: int = 5) -> np.ndarray:
     """Stride-based Nx downsample - same approach as bin/stitch.py's write_downsampled."""
     return arr[::factor, ::factor]
 
 
 def normalize_to_uint8(arr: np.ndarray) -> np.ndarray:
-    """Simple min-max normalization for QC display purposes only (not for analysis)."""
+    """
+    Normalize for QC display purposes only (not for analysis), scaling to the
+    image's 99th percentile rather than its max so a handful of hot pixels
+    don't wash out the rest of the display.
+    """
     arr = arr.astype(np.float64)
-    lo, hi = arr.min(), arr.max()
+    lo = arr.min()
+    hi = np.percentile(arr, 99)
     if hi > lo:
-        arr = (arr - lo) / (hi - lo)
+        arr = np.clip((arr - lo) / (hi - lo), 0, 1)
     else:
         arr = np.zeros_like(arr)
     return (arr * 255).astype(np.uint8)
 
 
-def save_overlay(reference_arr: np.ndarray, moving_arr: np.ndarray, path: Path, factor: int = 10) -> None:
+def save_overlay(reference_arr: np.ndarray, moving_arr: np.ndarray, path: Path, factor: int = 5) -> None:
     """
     QC overlay so a biologist can eyeball scaling+alignment quality: barcoding
     (reference) in pink/magenta (R+B channels), painting (post-alignment) in green.
     Correctly aligned content reads neutral/white; misalignment shows visible
-    magenta/green fringing. Downsampled 10x, same convention as the pipeline's
+    magenta/green fringing. Downsampled 5x, same convention as the pipeline's
     other QC images.
     """
     ref_small = normalize_to_uint8(downsample(reference_arr, factor))
