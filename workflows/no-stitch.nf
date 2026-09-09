@@ -3,8 +3,8 @@
     IMPORT MODULES / SUBWORKFLOWS / FUNCTIONS
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
-include { CELLPAINTING } from '../subworkflows/local/cellpainting'
-include { BARCODING } from '../subworkflows/local/barcoding'
+include { CELLPAINTING_NO_STITCH } from '../subworkflows/local/cellpainting_no_stitch'
+include { BARCODING_NO_STITCH } from '../subworkflows/local/barcoding_no_stitch'
 include { CELLPROFILER_COMBINEDANALYSIS } from '../modules/local/cellprofiler/combinedanalysis/main'
 include { CELLPROFILER_PLUGINS_UPDATE } from '../modules/local/cellprofiler_plugins/update'
 include { MULTIQC } from '../modules/nf-core/multiqc/main'
@@ -16,11 +16,14 @@ include { methodsDescriptionText } from '../subworkflows/local/utils_nfcore_nf-p
 
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    RUN MAIN WORKFLOW
+    RUN NO-STITCH WORKFLOW
+    Same as POOLED_CELLPAINTING, but skips FIJI_STITCHCROP in both arms.
+    Combined analysis (when both QC flags are passed) runs on the pre-stitch
+    per-site images instead of post-stitch cropped images.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
 
-workflow POOLED_CELLPAINTING {
+workflow NO_STITCH_POOLED_CELLPAINTING {
     take:
     ch_samplesheet // channel: samplesheet read in from --input
     barcodes // file: path to barcodes.csv file
@@ -79,8 +82,8 @@ workflow POOLED_CELLPAINTING {
             [meta + [arm: 'barcoding'], image]
         }
 
-    // Process painting arm of pipeline
-    CELLPAINTING(
+    // Process painting arm of pipeline (no stitch/crop)
+    CELLPAINTING_NO_STITCH(
         ch_samplesheet_painting,
         params.painting_illumcalc_cppipe,
         params.painting_illumapply_cppipe,
@@ -90,28 +93,11 @@ workflow POOLED_CELLPAINTING {
         params.outdir,
         params.acquisition_geometry_rows,
         params.acquisition_geometry_columns,
-        params.fiji_stitchcrop_script,
-        params.painting_round_or_square,
-        params.painting_quarter_if_round,
-        params.painting_overlap_pct,
-        params.painting_scalingstring,
-        params.painting_imperwell,
-        params.painting_rows,
-        params.painting_columns,
-        params.painting_stitchorder,
-        params.tileperside,
-        params.final_tile_size,
-        params.painting_xoffset_tiles,
-        params.painting_yoffset_tiles,
-        params.compress,
-        params.phenix,
-        params.painting_channame,
-        params.qc_painting_passed,
     )
-    ch_versions = ch_versions.mix(CELLPAINTING.out.versions)
+    ch_versions = ch_versions.mix(CELLPAINTING_NO_STITCH.out.versions)
 
-    // Process barcoding arm of pipeline
-    BARCODING(
+    // Process barcoding arm of pipeline (no stitch/crop)
+    BARCODING_NO_STITCH(
         ch_samplesheet_barcoding,
         params.barcoding_illumcalc_cppipe,
         params.barcoding_illumapply_cppipe,
@@ -129,34 +115,17 @@ workflow POOLED_CELLPAINTING {
         params.compensatecolors_plugin_default,
         params.update_cellprofiler_plugins,
         params.cellprofiler_plugins_repo,
-        params.fiji_stitchcrop_script,
-        params.barcoding_round_or_square,
-        params.barcoding_quarter_if_round,
-        params.barcoding_overlap_pct,
-        params.barcoding_scalingstring,
-        params.barcoding_imperwell,
-        params.barcoding_rows,
-        params.barcoding_columns,
-        params.barcoding_stitchorder,
-        params.tileperside,
-        params.final_tile_size,
-        params.barcoding_xoffset_tiles,
-        params.barcoding_yoffset_tiles,
-        params.compress,
-        params.phenix,
-        params.barcoding_channame,
-        params.qc_barcoding_passed,
     )
-    ch_versions = ch_versions.mix(BARCODING.out.versions)
+    ch_versions = ch_versions.mix(BARCODING_NO_STITCH.out.versions)
 
     //// Combined analysis of painting and barcoding data ////
     // Only run if BOTH painting and barcoding QC have been marked as pass
     if (params.qc_painting_passed && params.qc_barcoding_passed) {
-        // Combine cropped images from both arms
-        CELLPAINTING.out.cropped_images
+        // Combine pre-stitch per-site images from both arms
+        CELLPAINTING_NO_STITCH.out.precrop_images
             .map { meta, images -> [meta + [arm_source: 'cellpainting'], images] }
             .mix(
-                BARCODING.out.cropped_images.map { meta, images -> [meta + [arm_source: 'barcoding'], images] }
+                BARCODING_NO_STITCH.out.precrop_images.map { meta, images -> [meta + [arm_source: 'barcoding'], images] }
             )
             .flatMap { meta, images ->
                 // Flatten images and associate each image file with its metadata (including arm_source).
@@ -190,12 +159,14 @@ workflow POOLED_CELLPAINTING {
                     def current_meta = meta_list[i]
                     // Get the specific meta for this image
                     def arm = current_meta.arm_source == 'cellpainting' ? 'painting' : 'barcoding'
+                    // Pre-stitch images are published per-site (images_corrected/<arm>/<plate>/<plate>-<well>-<site>/),
+                    // unlike post-stitch images which are published per-well.
                     def img_meta = [
                         well: common_meta.well,
                         site: common_meta.site,
                         filename: img.name,
                         type: current_meta.arm_source,
-                        original_path: "${params.outdir}/images/${common_meta.batch}/images_corrected_cropped/${arm}/${common_meta.plate}/${common_meta.plate}-${common_meta.well}/${img.name}",
+                        original_path: "${params.outdir}/images/${common_meta.batch}/images_corrected/${arm}/${common_meta.plate}/${common_meta.plate}-${common_meta.well}-${common_meta.site}/${img.name}",
                     ]
 
                     // Add channel and cycle information based on arm_source
@@ -255,10 +226,10 @@ workflow POOLED_CELLPAINTING {
 
                 [common_meta, images_list, metadata_for_json]
             }
-            .set { ch_cropped_images }
+            .set { ch_precrop_images }
 
         CELLPROFILER_COMBINEDANALYSIS(
-            ch_cropped_images,
+            ch_precrop_images,
             params.combinedanalysis_cppipe,
             barcodes,
             ch_cellprofiler_plugins,

@@ -6,15 +6,13 @@
 include { CELLPROFILER_ILLUMCALC } from '../../../modules/local/cellprofiler/illumcalc'
 include { QC_MONTAGEILLUM as QC_MONTAGEILLUM_BARCODING } from '../../../modules/local/qc/montageillum'
 include { QC_MONTAGEILLUM as QC_MONTAGE_ALIGNFAIL_BARCODING } from '../../../modules/local/qc/montageillum'
-include { QC_MONTAGEILLUM as QC_MONTAGE_STITCHCROP_BARCODING } from '../../../modules/local/qc/montageillum'
 include { CELLPROFILER_ILLUMAPPLY as CELLPROFILER_ILLUMAPPLY_BARCODING } from '../../../modules/local/cellprofiler/illumapply'
 include { CELLPROFILER_PREPROCESS } from '../../../modules/local/cellprofiler/preprocess'
 include { CELLPROFILER_PLUGINS_UPDATE } from '../../../modules/local/cellprofiler_plugins/update'
 include { QC_PREPROCESS } from '../../../modules/local/qc/preprocess'
-include { FIJI_STITCHCROP } from '../../../modules/local/fiji/stitchcrop'
 include { QC_BARCODEALIGN } from '../../../modules/local/qc/barcodealign'
 
-workflow BARCODING {
+workflow BARCODING_NO_STITCH {
     take:
     ch_samplesheet_sbs
     barcoding_illumcalc_cppipe
@@ -33,27 +31,9 @@ workflow BARCODING {
     compensatecolors_plugin_default
     update_cellprofiler_plugins
     cellprofiler_plugins_repo
-    fiji_stitchcrop_script
-    barcoding_round_or_square
-    barcoding_quarter_if_round
-    barcoding_overlap_pct
-    barcoding_scalingstring
-    barcoding_imperwell
-    barcoding_rows
-    barcoding_columns
-    barcoding_stitchorder
-    tileperside
-    final_tile_size
-    barcoding_xoffset_tiles
-    barcoding_yoffset_tiles
-    compress
-    phenix
-    barcoding_channame
-    qc_barcoding_passed
 
     main:
     ch_versions = channel.empty()
-    ch_cropped_images = channel.empty()
 
     // Group images by batch, plate, and cycle for illumination calculation
     // All channels for a given cycle are processed together
@@ -387,100 +367,20 @@ workflow BARCODING {
     )
     ch_versions = ch_versions.mix(QC_PREPROCESS.out.versions)
 
-    // STITCH & CROP IMAGES ////
-    // PREPROCESS outputs are per site, but STITCHCROP needs all sites together per well
-    // Re-group by well before stitching
-    ch_preprocess_by_well = CELLPROFILER_PREPROCESS.out.preprocessed_images
+    // NO STITCH/CROP: emit PREPROCESS's per-site images directly ////
+    // Unlike the full pipeline, we skip FIJI_STITCHCROP entirely. The
+    // preprocessed images are already per-site, so no filename-based site
+    // recovery is needed here.
+    ch_precrop_images = CELLPROFILER_PREPROCESS.out.preprocessed_images
         .map { meta, images ->
-            // Create well key (without site)
-            def well_key = [
-                batch: meta.batch,
-                plate: meta.plate,
-                well: meta.well,
-                channels: meta.channels,
-                arm: meta.arm,
-                id: "${meta.batch}_${meta.plate}_${meta.well}",
+            def new_meta = meta.subMap(['batch', 'plate', 'well', 'arm']) + [
+                id: "${meta.batch}_${meta.plate}_${meta.well}_${meta.site}",
+                site: meta.site,
             ]
-            [well_key, meta.site, images]
+            [new_meta, images]
         }
-        .groupTuple()
-        .map { well_meta, site_list, images_list ->
-            // Flatten all site images into one list for the well
-            // Calculate the starting site number from metadata
-            def min_site = site_list.min()
-            def enriched_meta = well_meta + [first_site_index: min_site]
-            [enriched_meta, images_list.flatten()]
-        }
-
-    FIJI_STITCHCROP(
-        ch_preprocess_by_well,
-        fiji_stitchcrop_script,
-        barcoding_round_or_square,
-        barcoding_quarter_if_round,
-        barcoding_overlap_pct,
-        barcoding_scalingstring,
-        barcoding_imperwell,
-        barcoding_rows,
-        barcoding_columns,
-        barcoding_stitchorder,
-        tileperside,
-        final_tile_size,
-        barcoding_xoffset_tiles,
-        barcoding_yoffset_tiles,
-        compress,
-        phenix,
-        barcoding_channame,
-        qc_barcoding_passed,
-    )
-
-    // Split cropped images into individual tuples with site in metadata
-    // FIJI_STITCHCROP outputs multiple files (one per site) but meta doesn't have site
-    // Extract site from filename and create one tuple per site with all its cycle/channel images
-    ch_cropped_images = FIJI_STITCHCROP.out.cropped_images
-        .flatMap { meta, images ->
-            // Group images by site
-            def images_by_site = images.groupBy { img ->
-                def site_match = (img.name =~ /Site_(\d+)/)
-                site_match ? site_match[0][1] as Integer : null
-            }
-
-            // Create one tuple per site with all its cycle/channel images
-            images_by_site.collect { site, site_images ->
-                if (site == null) {
-                    log.error("Could not parse site from barcoding cropped images")
-                    return null
-                }
-
-                // Create new meta with site
-                def new_meta = meta.subMap(['batch', 'plate', 'well', 'cycles', 'arm']) + [
-                    id: "${meta.batch}_${meta.plate}_${meta.well}_${site}",
-                    site: site,
-                ]
-
-                [new_meta, site_images]
-            }
-        }
-        .filter { item -> item != null }
-
-    ch_versions = ch_versions.mix(FIJI_STITCHCROP.out.versions)
-
-    // QC montage for stitchcrop results
-    ch_stitchcrop_qc = FIJI_STITCHCROP.out.downsampled_images
-        .map { meta, tiff_files ->
-            [meta.subMap(['batch', 'plate']) + [arm: "barcoding"], tiff_files]
-        }
-        .groupTuple()
-        .map { meta, tiff_files_list ->
-            [meta, tiff_files_list.flatten()]
-        }
-
-    QC_MONTAGE_STITCHCROP_BARCODING(
-        ch_stitchcrop_qc,
-        ".*\\.tiff\$",
-    )
-    ch_versions = ch_versions.mix(QC_MONTAGE_STITCHCROP_BARCODING.out.versions)
 
     emit:
-    cropped_images = ch_cropped_images // channel: [ val(meta), [ cropped_images ] ]
+    precrop_images = ch_precrop_images // channel: [ val(meta), [ images ] ]
     versions = ch_versions // channel: [ versions.yml ]
 }

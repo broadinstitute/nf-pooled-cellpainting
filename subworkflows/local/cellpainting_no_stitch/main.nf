@@ -7,13 +7,11 @@ include { CELLPROFILER_ILLUMCALC } from '../../../modules/local/cellprofiler/ill
 include { QC_MONTAGEILLUM as QC_MONTAGEILLUM_PAINTING } from '../../../modules/local/qc/montageillum'
 include { QC_MONTAGEILLUM as QC_MONTAGE_ALIGNFAIL_PAINTING } from '../../../modules/local/qc/montageillum'
 include { QC_MONTAGEILLUM as QC_MONTAGE_SEGCHECK } from '../../../modules/local/qc/montageillum'
-include { QC_MONTAGEILLUM as QC_MONTAGE_STITCHCROP_PAINTING } from '../../../modules/local/qc/montageillum'
 include { QC_PAINTINGALIGN } from '../../../modules/local/qc/paintingalign'
 include { CELLPROFILER_ILLUMAPPLY as CELLPROFILER_ILLUMAPPLY_PAINTING } from '../../../modules/local/cellprofiler/illumapply'
 include { CELLPROFILER_SEGCHECK } from '../../../modules/local/cellprofiler/segcheck'
-include { FIJI_STITCHCROP } from '../../../modules/local/fiji/stitchcrop'
 
-workflow CELLPAINTING {
+workflow CELLPAINTING_NO_STITCH {
     take:
     ch_samplesheet_cp // channel: [ val(meta), val(image) ]
     painting_illumcalc_cppipe // file: CellProfiler pipeline for illumination calculation
@@ -24,27 +22,9 @@ workflow CELLPAINTING {
     outdir
     acquisition_geometry_rows
     acquisition_geometry_columns
-    fiji_stitchcrop_script
-    painting_round_or_square
-    painting_quarter_if_round
-    painting_overlap_pct
-    painting_scalingstring
-    painting_imperwell
-    painting_rows
-    painting_columns
-    painting_stitchorder
-    tileperside
-    final_tile_size
-    painting_xoffset_tiles
-    painting_yoffset_tiles
-    compress
-    phenix
-    painting_channame
-    qc_painting_passed
 
     main:
     ch_versions = channel.empty()
-    ch_cropped_images = channel.empty()
 
     //// Calculate illumination correction profiles ////
 
@@ -319,115 +299,27 @@ workflow CELLPAINTING {
     )
     ch_versions = ch_versions.mix(QC_MONTAGE_SEGCHECK.out.versions)
 
-    // STITCH & CROP IMAGES ////
-    // Conditional execution: only run if qc_painting_passed is true
-    // This allows the painting arm to stop at stitching/cropping if QC fails,
-    // while allowing the barcoding arm to proceed independently
-
-    // ILLUMAPPLY outputs are per site, but STITCHCROP needs all sites together per well
-    // Re-group by well before stitching
-    ch_corrected_images_by_well = CELLPROFILER_ILLUMAPPLY_PAINTING.out.corrected_images
-        .map { meta, images, _csv ->
-            // Create well key (without site)
-            def well_key = [
-                batch: meta.batch,
-                plate: meta.plate,
-                well: meta.well,
-                channels: meta.channels,
-                arm: meta.arm,
-                id: "${meta.batch}_${meta.plate}_${meta.well}",
-            ]
-            [well_key, meta.site, images]
-        }
-        .groupTuple()
-        .map { well_meta, site_list, images_list ->
-            // Flatten all site images into one list for the well
-            // Calculate the starting site number from metadata
-            def min_site = site_list.min()
-            def enriched_meta = well_meta + [first_site_index: min_site]
-            [enriched_meta, images_list.flatten().sort { it -> it.name }]
-        }
-
-    // Create synchronization barrier - wait for ALL QC_MONTAGE_SEGCHECK to complete
-    // This ensures all QC is done before attempting to run FIJI_STITCHCROP
+    // NO STITCH/CROP: emit ILLUMAPPLY's per-site corrected images directly ////
+    // Unlike the full pipeline, we skip FIJI_STITCHCROP entirely. The corrected
+    // images from ILLUMAPPLY are already per-site, so no filename-based site
+    // recovery is needed (that's only required post-stitch, since Fiji
+    // recombines and re-splits images).
+    //
+    // Still create a synchronization barrier - wait for ALL QC_MONTAGE_SEGCHECK
+    // to complete before emitting images for downstream (combined) analysis.
     ch_qc_complete = QC_MONTAGE_SEGCHECK.out.versions.collect()
 
-    // Combine corrected images with QC completion signal
-    // This makes each stitching job depend on QC completion, but allows parallel stitching
-    ch_corrected_images_by_well
+    ch_precrop_images = CELLPROFILER_ILLUMAPPLY_PAINTING.out.corrected_images
         .combine(ch_qc_complete)
-        .map { meta, images, _qc_signal -> [meta, images] }
-        .set { ch_corrected_images_synced }
-
-    FIJI_STITCHCROP(
-        ch_corrected_images_synced,
-        fiji_stitchcrop_script,
-        painting_round_or_square,
-        painting_quarter_if_round,
-        painting_overlap_pct,
-        painting_scalingstring,
-        painting_imperwell,
-        painting_rows,
-        painting_columns,
-        painting_stitchorder,
-        tileperside,
-        final_tile_size,
-        painting_xoffset_tiles,
-        painting_yoffset_tiles,
-        compress,
-        phenix,
-        painting_channame,
-        qc_painting_passed,
-    )
-
-    // Split cropped images into individual tuples with site in metadata
-    // FIJI_STITCHCROP outputs multiple files (one per site) but meta doesn't have site
-    // Extract site from filename and create one tuple per site with all channels for that site
-    ch_cropped_images = FIJI_STITCHCROP.out.cropped_images
-        .flatMap { meta, images ->
-            // Group images by site
-            def images_by_site = images.groupBy { img ->
-                def site_match = (img.name =~ /Site_(\d+)/)
-                site_match ? site_match[0][1] as Integer : null
-            }
-
-            // Create one tuple per site with all its channel images
-            images_by_site.collect { site, site_images ->
-                if (site == null) {
-                    log.error("Could not parse site from painting cropped images")
-                    return null
-                }
-
-                // Create new meta with site
-                def new_meta = meta.subMap(['batch', 'plate', 'well', 'channels', 'arm']) + [
-                    id: "${meta.batch}_${meta.plate}_${meta.well}_${site}",
-                    site: site,
-                ]
-
-                [new_meta, site_images]
-            }
+        .map { meta, images, _csv, _qc_signal ->
+            def new_meta = meta.subMap(['batch', 'plate', 'well', 'channels', 'arm']) + [
+                id: "${meta.batch}_${meta.plate}_${meta.well}_${meta.site}",
+                site: meta.site,
+            ]
+            [new_meta, images]
         }
-        .filter { item -> item != null }
-
-    ch_versions = ch_versions.mix(FIJI_STITCHCROP.out.versions)
-
-    // QC montage for stitchcrop results
-    ch_stitchcrop_qc = FIJI_STITCHCROP.out.downsampled_images
-        .map { meta, tiff_files ->
-            [meta.subMap(['batch', 'plate']) + [arm: "painting"], tiff_files]
-        }
-        .groupTuple()
-        .map { meta, tiff_files_list ->
-            [meta, tiff_files_list.flatten().sort { it -> it.name }]
-        }
-
-    QC_MONTAGE_STITCHCROP_PAINTING(
-        ch_stitchcrop_qc,
-        ".*\\.tiff\$",
-    )
-    ch_versions = ch_versions.mix(QC_MONTAGE_STITCHCROP_PAINTING.out.versions)
 
     emit:
-    cropped_images = ch_cropped_images // channel: [ val(meta), [ cropped_images ] ]
+    precrop_images = ch_precrop_images // channel: [ val(meta), [ images ] ]
     versions = ch_versions // channel: [ versions.yml ]
 }
