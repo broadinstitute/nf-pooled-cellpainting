@@ -10,8 +10,8 @@ include { CELLPROFILER_SEGCHECK } from '../modules/local/cellprofiler/segcheck'
 include { CELLPROFILER_PREPROCESS as CELLPROFILER_PREPROCESS_STITCHALIGNCROP } from '../modules/local/cellprofiler/preprocess'
 include { CELLPROFILER_COMBINEDANALYSIS } from '../modules/local/cellprofiler/combinedanalysis/main'
 include { CELLPROFILER_PLUGINS_UPDATE } from '../modules/local/cellprofiler_plugins/update'
-include { QC_MONTAGEILLUM as QC_MONTAGE_SEGCHECK } from '../modules/local/qc/montageillum'
-include { QC_PREPROCESS } from '../modules/local/qc/preprocess'
+include { QC_MONTAGEILLUM as QC_MONTAGE_SEGCHECK_STITCHALIGNCROP } from '../modules/local/qc/montageillum'
+include { QC_PREPROCESS as QC_PREPROCESS_STITCHALIGNCROP } from '../modules/local/qc/preprocess'
 include { QC_CHECKDUPLICATEIMAGES as QC_CHECKDUPLICATES_PREPROCESS_STITCHALIGNCROP } from '../modules/local/qc/checkduplicateimages'
 include { MULTIQC } from '../modules/nf-core/multiqc/main'
 
@@ -210,11 +210,11 @@ workflow STITCH_ALIGN_CROP_POOLED_CELLPAINTING {
             [meta, png_files_list.flatten().sort { it -> it.name }]
         }
 
-    QC_MONTAGE_SEGCHECK(
+    QC_MONTAGE_SEGCHECK_STITCHALIGNCROP(
         ch_segcheck_qc,
         ".*\\.png\$",
     )
-    ch_versions = ch_versions.mix(QC_MONTAGE_SEGCHECK.out.versions)
+    ch_versions = ch_versions.mix(QC_MONTAGE_SEGCHECK_STITCHALIGNCROP.out.versions)
 
     //// Barcoding: build image_metas for cropped per-site images (already per-site) ////
     ch_sbs_corr_images = STITCH_ALIGN_CROP_JOINT.out.barcoding_cropped_images
@@ -303,14 +303,14 @@ workflow STITCH_ALIGN_CROP_POOLED_CELLPAINTING {
             [qc_meta, wells.unique(), csvs, num_cycles]
         }
 
-    QC_PREPROCESS(
+    QC_PREPROCESS_STITCHALIGNCROP(
         ch_preprocess_qc_input,
         file("${projectDir}/bin/qc_barcode_preprocess.py"),
         barcodes,
         params.acquisition_geometry_rows,
         params.acquisition_geometry_columns,
     )
-    ch_versions = ch_versions.mix(QC_PREPROCESS.out.versions)
+    ch_versions = ch_versions.mix(QC_PREPROCESS_STITCHALIGNCROP.out.versions)
 
     //// Combined analysis of painting and barcoding data ////
     // Only run if BOTH painting and barcoding QC have been marked as pass.

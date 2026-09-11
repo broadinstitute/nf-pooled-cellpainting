@@ -6,7 +6,7 @@
 include { CELLPROFILER_ILLUMCALC } from '../../../modules/local/cellprofiler/illumcalc'
 include { QC_MONTAGEILLUM as QC_MONTAGEILLUM_PAINTING } from '../../../modules/local/qc/montageillum'
 include { QC_CHECKDUPLICATEIMAGES as QC_CHECKDUPLICATES_ILLUMCALC_PAINTING } from '../../../modules/local/qc/checkduplicateimages'
-include { QC_CHECKDUPLICATEIMAGES as QC_CHECKDUPLICATES_ILLUMAPPLY_PAINTING } from '../../../modules/local/qc/checkduplicateimages'
+include { QC_CHECKDUPLICATEIMAGES as QC_CHECKDUPLICATES_ILLUMAPPLY_PAINTING_PRESTITCH } from '../../../modules/local/qc/checkduplicateimages'
 include { CELLPROFILER_ILLUMAPPLY as CELLPROFILER_ILLUMAPPLY_PAINTING } from '../../../modules/local/cellprofiler/illumapply'
 include { expandImageChannels; buildLoadDataMetadata } from '../utils_nfcore_nf-pooled-cellpainting_pipeline'
 
@@ -191,10 +191,10 @@ workflow CELLPAINTING_PRE_STITCH {
         .groupTuple()
         .map { meta, tiff_files_list -> [meta, tiff_files_list.flatten()] }
 
-    QC_CHECKDUPLICATES_ILLUMAPPLY_PAINTING(
+    QC_CHECKDUPLICATES_ILLUMAPPLY_PAINTING_PRESTITCH(
         ch_corrected_images_dedup_qc,
     )
-    ch_versions = ch_versions.mix(QC_CHECKDUPLICATES_ILLUMAPPLY_PAINTING.out.versions)
+    ch_versions = ch_versions.mix(QC_CHECKDUPLICATES_ILLUMAPPLY_PAINTING_PRESTITCH.out.versions)
 
     // The real per-round `cycle` value is used only for STITCH's task splitting
     // (parallelism) and cross-round alignment below - never fed into
