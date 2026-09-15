@@ -16,6 +16,7 @@ process CELLPROFILER_PREPROCESS {
     output:
     tuple val(meta), path("*.tiff"), emit: preprocessed_images
     path "overlay/*.tiff", optional: true, emit: overlay
+    tuple val(meta), path("*_FociObjects.npy"), optional: true, emit: foci_objects
     tuple val(meta), path("BarcodePreprocessing*.csv"), emit: preprocess_stats
     tuple val(meta), path("load_data.csv"), emit: load_data_csv
     path "versions.yml", emit: versions
@@ -74,6 +75,7 @@ process CELLPROFILER_PREPROCESS {
     touch load_data.csv
     mkdir -p overlay
     touch overlay/test.tiff
+    touch ${meta.id}_FociObjects.npy
 
     cat <<-END_VERSIONS > versions.yml
 	"${task.process}":

@@ -312,6 +312,12 @@ workflow STITCH_ALIGN_CROP_POOLED_CELLPAINTING {
     )
     ch_versions = ch_versions.mix(QC_PREPROCESS_STITCHALIGNCROP.out.versions)
 
+    // Optional per-site Foci object/label array from barcode preprocessing - made
+    // available to combined analysis below (if present) by joining on the same
+    // batch_plate_well_site key combined analysis already groups its own images by.
+    ch_foci_objects_by_site = CELLPROFILER_PREPROCESS_STITCHALIGNCROP.out.foci_objects
+        .map { meta, npy_file -> ["${meta.batch}_${meta.plate}_${meta.well}_${meta.site}", npy_file] }
+
     //// Combined analysis of painting and barcoding data ////
     // Only run if BOTH painting and barcoding QC have been marked as pass.
     // This is the ONLY qc gate in this entrypoint - stitch/align/crop above always run.
@@ -400,7 +406,30 @@ workflow STITCH_ALIGN_CROP_POOLED_CELLPAINTING {
                     img_meta
                 }
 
-                [common_meta, images_list, buildLoadDataMetadata(common_meta, image_metas)]
+                def group_key = "${common_meta.batch}_${common_meta.plate}_${common_meta.well}_${common_meta.site}"
+                [group_key, common_meta, images_list, image_metas]
+            }
+            .join(ch_foci_objects_by_site, remainder: true)
+            .map { _group_key, common_meta, images_list, image_metas, foci_npy ->
+                // foci_npy is null for sites where preprocessing didn't produce a
+                // Foci object array - make it available to combined analysis (staged
+                // alongside the cropped images, with its own load_data.csv column)
+                // only when it exists.
+                if (foci_npy == null) {
+                    return [common_meta, images_list, buildLoadDataMetadata(common_meta, image_metas)]
+                }
+                def foci_meta = [
+                    well         : common_meta.well,
+                    site         : common_meta.site,
+                    arm          : 'barcoding',
+                    cycle        : null,
+                    frame_index  : null,
+                    column_prefix: '',
+                    channel      : 'FociObjects',
+                    filename     : foci_npy.name,
+                    original_path: "${params.outdir}/images/${common_meta.batch}/images_preprocessed/barcoding/${common_meta.plate}/${common_meta.plate}-${common_meta.well}-${common_meta.site}/${foci_npy.name}",
+                ]
+                [common_meta, images_list + [foci_npy], buildLoadDataMetadata(common_meta, image_metas + [foci_meta])]
             }
             .set { ch_cropped_images }
 

@@ -29,14 +29,7 @@
                             "well": "A1",
                             "arm": "barcoding"
                         },
-                        [
-                            "BarcodePreprocessing_AllFoci.csv:md5,d41d8cd98f00b204e9800998ecf8427e",
-                            "BarcodePreprocessing_BarcodeFoci.csv:md5,d41d8cd98f00b204e9800998ecf8427e",
-                            "BarcodePreprocessing_Experiment.csv:md5,d41d8cd98f00b204e9800998ecf8427e",
-                            "BarcodePreprocessing_Foci.csv:md5,d41d8cd98f00b204e9800998ecf8427e",
-                            "BarcodePreprocessing_Image.csv:md5,d41d8cd98f00b204e9800998ecf8427e",
-                            "BarcodePreprocessing_Nuclei.csv:md5,d41d8cd98f00b204e9800998ecf8427e"
-                        ]
+                        "Batch1_Plate1_barcoding_A1_FociObjects.npy:md5,d41d8cd98f00b204e9800998ecf8427e"
                     ]
                 ],
                 "3": [
@@ -48,11 +41,42 @@
                             "well": "A1",
                             "arm": "barcoding"
                         },
-                        "load_data.csv:md5,d41d8cd98f00b204e9800998ecf8427e"
+                        [
+                            "BarcodePreprocessing_AllFoci.csv:md5,d41d8cd98f00b204e9800998ecf8427e",
+                            "BarcodePreprocessing_BarcodeFoci.csv:md5,d41d8cd98f00b204e9800998ecf8427e",
+                            "BarcodePreprocessing_Experiment.csv:md5,d41d8cd98f00b204e9800998ecf8427e",
+                            "BarcodePreprocessing_Foci.csv:md5,d41d8cd98f00b204e9800998ecf8427e",
+                            "BarcodePreprocessing_Image.csv:md5,d41d8cd98f00b204e9800998ecf8427e",
+                            "BarcodePreprocessing_Nuclei.csv:md5,d41d8cd98f00b204e9800998ecf8427e"
+                        ]
                     ]
                 ],
                 "4": [
+                    [
+                        {
+                            "id": "Batch1_Plate1_barcoding_A1",
+                            "batch": "Batch1",
+                            "plate": "Plate1",
+                            "well": "A1",
+                            "arm": "barcoding"
+                        },
+                        "load_data.csv:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "5": [
                     "versions.yml:md5,f4b0463411335dba45560870b62c868c"
+                ],
+                "foci_objects": [
+                    [
+                        {
+                            "id": "Batch1_Plate1_barcoding_A1",
+                            "batch": "Batch1",
+                            "plate": "Plate1",
+                            "well": "A1",
+                            "arm": "barcoding"
+                        },
+                        "Batch1_Plate1_barcoding_A1_FociObjects.npy:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
                 ],
                 "load_data_csv": [
                     [
@@ -109,10 +133,10 @@
             }
         ],
         "meta": {
-            "nf-test": "0.9.2",
-            "nextflow": "25.10.4"
+            "nf-test": "0.9.3",
+            "nextflow": "25.10.2"
         },
-        "timestamp": "2026-09-01T20:10:00.857132"
+        "timestamp": "2026-09-15T10:49:31.997461"
     },
     "cellprofiler - preprocess - barcoding": {
         "content": [
