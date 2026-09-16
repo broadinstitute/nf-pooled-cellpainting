@@ -326,11 +326,19 @@ workflow STITCH_ALIGN_CROP_POOLED_CELLPAINTING {
         // consumed - those modules are QC/preprocessing side steps, not combined
         // analysis' input; POOLED_CELLPAINTING and NO_STITCH_POOLED_CELLPAINTING both
         // source combined analysis this same way, from the stage feeding the QC gate).
-        STITCH_ALIGN_CROP_JOINT.out.painting_cropped_images
+        // Barcoding images are excluded by default (combinedanalysis_include_barcoding_images) -
+        // this entrypoint's combined_analysis.cppipe only needs painting images plus the
+        // optional FociObjects.npy (joined in below, independent of this flag).
+        def ch_painting_images_for_combinedanalysis = STITCH_ALIGN_CROP_JOINT.out.painting_cropped_images
             .map { meta, images -> [meta + [arm_source: 'cellpainting'], images] }
-            .mix(
+
+        def ch_combinedanalysis_source_images = params.combinedanalysis_include_barcoding_images
+            ? ch_painting_images_for_combinedanalysis.mix(
                 STITCH_ALIGN_CROP_JOINT.out.barcoding_cropped_images.map { meta, images -> [meta + [arm_source: 'barcoding'], images] }
-            )
+              )
+            : ch_painting_images_for_combinedanalysis
+
+        ch_combinedanalysis_source_images
             .flatMap { meta, images ->
                 // Flatten images and associate each image file with its metadata (including arm_source).
                 // Wrap-then-flatten guards against Nextflow emitting a bare Path (not a List) when a
