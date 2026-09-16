@@ -360,8 +360,8 @@ workflow STITCH_ALIGN_CROP_POOLED_CELLPAINTING {
                 // Build image metadata for each image, using the preserved arm_source and existing channel info.
                 // `arm` uses the samplesheet's painting/barcoding vocabulary, replacing
                 // the ad hoc `type: cellpainting/barcoding` this block used to emit.
-                // combined_analysis.cppipe selects CorrDNA/CorrCHN2/CorrPhalloidin for
-                // painting and Cycle01_DNA/Cycle01_A/... for barcoding.
+                // combined_analysis.cppipe selects bare channel names (DNA/CHN2/Phalloidin,
+                // no Corr prefix) for painting and Cycle01_DNA/Cycle01_A/... for barcoding.
                 def image_metas = (0..<images_list.size()).collect { i ->
                     def img = images_list[i]
                     def current_meta = meta_list[i]
@@ -372,7 +372,7 @@ workflow STITCH_ALIGN_CROP_POOLED_CELLPAINTING {
                         arm          : arm,
                         cycle        : null,
                         frame_index  : null,
-                        column_prefix: arm == 'painting' ? 'Corr' : '',
+                        column_prefix: '',
                         filename     : img.name,
                         original_path: "${params.outdir}/images/${common_meta.batch}/images_corrected_cropped/${arm}/${common_meta.plate}/${common_meta.plate}-${common_meta.well}/${img.name}",
                     ]
