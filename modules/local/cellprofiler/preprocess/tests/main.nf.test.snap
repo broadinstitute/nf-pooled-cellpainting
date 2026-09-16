@@ -29,7 +29,7 @@
                             "well": "A1",
                             "arm": "barcoding"
                         },
-                        "Batch1_Plate1_barcoding_A1_FociObjects.npy:md5,d41d8cd98f00b204e9800998ecf8427e"
+                        "Batch1_Plate1_barcoding_A1_FociObjects.tiff:md5,d41d8cd98f00b204e9800998ecf8427e"
                     ]
                 ],
                 "3": [
@@ -75,7 +75,7 @@
                             "well": "A1",
                             "arm": "barcoding"
                         },
-                        "Batch1_Plate1_barcoding_A1_FociObjects.npy:md5,d41d8cd98f00b204e9800998ecf8427e"
+                        "Batch1_Plate1_barcoding_A1_FociObjects.tiff:md5,d41d8cd98f00b204e9800998ecf8427e"
                     ]
                 ],
                 "load_data_csv": [
@@ -136,7 +136,7 @@
             "nf-test": "0.9.3",
             "nextflow": "25.10.2"
         },
-        "timestamp": "2026-09-15T10:49:31.997461"
+        "timestamp": "2026-09-16T14:09:31.565424"
     },
     "cellprofiler - preprocess - barcoding": {
         "content": [

@@ -328,7 +328,7 @@ workflow STITCH_ALIGN_CROP_POOLED_CELLPAINTING {
         // source combined analysis this same way, from the stage feeding the QC gate).
         // Barcoding images are excluded by default (combinedanalysis_include_barcoding_images) -
         // this entrypoint's combined_analysis.cppipe only needs painting images plus the
-        // optional FociObjects.npy (joined in below, independent of this flag).
+        // optional FociObjects.tiff (joined in below, independent of this flag).
         def ch_painting_images_for_combinedanalysis = STITCH_ALIGN_CROP_JOINT.out.painting_cropped_images
             .map { meta, images -> [meta + [arm_source: 'cellpainting'], images] }
 
