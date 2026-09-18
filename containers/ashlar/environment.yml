@@ -8,7 +8,7 @@ dependencies:
   - openjdk
   - pip
   - pip:
-    - numpy
-    - pillow
-    - tifffile
-    - ashlar
+      - numpy
+      - pillow
+      - tifffile
+      - ashlar
