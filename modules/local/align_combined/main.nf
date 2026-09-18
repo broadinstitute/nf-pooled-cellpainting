@@ -2,8 +2,7 @@ process ALIGN_COMBINED {
     tag "${meta.id}"
     label 'align'
 
-    // Built from containers/align/Dockerfile - not yet built/pushed anywhere, placeholder tag
-    container "align:local"
+    container "cellprofiler/nf-pooled-cellpainting:stitch_align_crop_v1"
 
     input:
     tuple val(meta), path(painting_images, stageAs: "images/painting/"), path(barcoding_images, stageAs: "images/barcoding/"), val(image_metas)

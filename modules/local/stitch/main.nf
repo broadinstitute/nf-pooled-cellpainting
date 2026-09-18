@@ -2,8 +2,7 @@ process STITCH {
     tag "${meta.id}"
     label 'stitch'
 
-    // Built from containers/ashlar/Dockerfile - not yet built/pushed anywhere, placeholder tag
-    container "ashlar:local"
+    container "cellprofiler/nf-pooled-cellpainting:stitch_align_crop_v1"
 
     input:
     tuple val(meta), path(corrected_images, stageAs: 'images/')

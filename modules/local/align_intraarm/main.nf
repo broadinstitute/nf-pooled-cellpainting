@@ -2,8 +2,7 @@ process ALIGN_INTRAARM {
     tag "${meta.id}"
     label 'align'
 
-    // Built from containers/align/Dockerfile - not yet built/pushed anywhere, placeholder tag
-    container "align:local"
+    container "cellprofiler/nf-pooled-cellpainting:stitch_align_crop_v1"
 
     input:
     tuple val(meta), path(stitched_images, stageAs: "images/"), val(image_metas)
