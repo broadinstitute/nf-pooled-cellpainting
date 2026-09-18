@@ -2,7 +2,7 @@ process FIJI_STITCHCROP {
     tag "${meta.id}"
     label 'fiji'
 
-    container 'docker.io/cellprofiler/distributed-fiji:fusion-v0.1.0'
+    container 'cellprofiler/nf-pooled-cellpainting:fiji_v1'
 
     input:
     tuple val(meta), path(corrected_images, stageAs: 'images/')
