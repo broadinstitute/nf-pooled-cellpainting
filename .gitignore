@@ -24,3 +24,4 @@ resources
 .nf-test-*.nf
 .pixi/
 .venv/
+.direnv/

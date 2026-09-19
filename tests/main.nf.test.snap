@@ -869,7 +869,7 @@
                 "QC_BARCODEALIGN": {
                     "jupytext": "1.18.1",
                     "nbconvert": "7.16.6",
-                    "papermill": "2.6.0 from /opt/conda/lib/python3.13/site-packages/papermill/cli.py (3.13.14)"
+                    "papermill": "2.6.0"
                 },
                 "QC_MONTAGEILLUM_BARCODING": {
                     "qc_montage": "0.1.0"
@@ -889,12 +889,12 @@
                 "QC_PAINTINGALIGN": {
                     "jupytext": "1.18.1",
                     "nbconvert": "7.16.6",
-                    "papermill": "2.6.0 from /opt/conda/lib/python3.13/site-packages/papermill/cli.py (3.13.14)"
+                    "papermill": "2.6.0"
                 },
                 "QC_PREPROCESS": {
                     "jupytext": "1.18.1",
                     "nbconvert": "7.16.6",
-                    "papermill": "2.6.0 from /opt/conda/lib/python3.13/site-packages/papermill/cli.py (3.13.14)"
+                    "papermill": "2.6.0"
                 }
             },
             [
