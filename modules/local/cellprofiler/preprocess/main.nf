@@ -16,6 +16,7 @@ process CELLPROFILER_PREPROCESS {
     output:
     tuple val(meta), path("*.tiff"), emit: preprocessed_images
     path "overlay/*.tiff", optional: true, emit: overlay
+    tuple val(meta), path("foci_objects/*_FociObjects.tiff"), optional: true, emit: foci_objects
     tuple val(meta), path("BarcodePreprocessing*.csv"), emit: preprocess_stats
     tuple val(meta), path("load_data.csv"), emit: load_data_csv
     path "versions.yml", emit: versions
@@ -39,7 +40,6 @@ process CELLPROFILER_PREPROCESS {
     # Generate load_data.csv
     generate_load_data_csv.py \\
         --metadata-json metadata.json \\
-        --pipeline-type preprocess \\
         --images-dir ./images \\
         --output load_data.csv \\
         --cycle-metadata-name "${params.cycle_metadata_name}"
@@ -55,6 +55,12 @@ process CELLPROFILER_PREPROCESS {
         --data-file=load_data.csv \\
         --image-directory ./images/ \\
         --plugins-directory=./plugins/
+
+    # Move the optional Foci object/label image (if produced) into its own
+    # subdirectory so it doesn't get swept up by the *.tiff glob above -
+    # same reason overlay/*.tiff lives in its own subfolder.
+    mkdir -p foci_objects
+    mv *_FociObjects.tiff foci_objects/ 2>/dev/null || true
 
     cat <<-END_VERSIONS > versions.yml
 	"${task.process}":
@@ -75,6 +81,8 @@ process CELLPROFILER_PREPROCESS {
     touch load_data.csv
     mkdir -p overlay
     touch overlay/test.tiff
+    mkdir -p foci_objects
+    touch foci_objects/${meta.id}_FociObjects.tiff
 
     cat <<-END_VERSIONS > versions.yml
 	"${task.process}":
