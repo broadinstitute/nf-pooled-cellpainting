@@ -2,7 +2,7 @@ process STITCH {
     tag "${meta.id}"
     label 'stitch'
 
-    container "cellprofiler/nf-pooled-cellpainting:stitch_align_crop_v1"
+    container "cellprofiler/nf-pooled-cellpainting:stitch_align_crop_v1@sha256:7211005f00efc14a983f55c09f0f818b370fa85a3ba78fbe380fc2708dc15bb9"
 
     input:
     tuple val(meta), path(corrected_images, stageAs: 'images/')

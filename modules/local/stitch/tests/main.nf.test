@@ -1,7 +1,7 @@
 /*
- * NOTE: this only exercises the stub branch. Real (non-stub) execution needs the
- * containers/ashlar/ image built and pushed somewhere - modules/local/stitch/main.nf's
- * container directive is currently a placeholder tag.
+ * NOTE: this only exercises the stub branch. Real (non-stub) execution uses the
+ * published cellprofiler/nf-pooled-cellpainting:stitch_align_crop_v1 image, built
+ * from containers/stitch_align_crop/Dockerfile.
  */
 
 nextflow_process {
