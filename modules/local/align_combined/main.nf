@@ -2,7 +2,7 @@ process ALIGN_COMBINED {
     tag "${meta.id}"
     label 'align'
 
-    container "cellprofiler/nf-pooled-cellpainting:stitch_align_crop_v1@sha256:7211005f00efc14a983f55c09f0f818b370fa85a3ba78fbe380fc2708dc15bb9"
+    container "cellprofiler/nf-pooled-cellpainting:stitch_align_crop_v2"
 
     input:
     tuple val(meta), path(painting_images, stageAs: "images/painting/"), path(barcoding_images, stageAs: "images/barcoding/"), val(image_metas)
