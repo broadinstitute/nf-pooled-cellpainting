@@ -1,0 +1,112 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/nf-core/modules/master/modules/meta-schema.json
+name: "align_combined"
+description: Scale and align painting to barcoding (cycle 1 reference) on full stitched well images using a Python script
+keywords:
+  - microscopy
+  - image processing
+  - registration
+  - alignment
+  - scaling
+  - cross-arm
+tools:
+  - "align_combined":
+      description: "Pipeline-local Python cross-arm scaling+alignment script (bin/align_combined.py)"
+      homepage: "https://github.com/broadinstitute/nf-pooled-cellpainting"
+      documentation: "https://github.com/broadinstitute/nf-pooled-cellpainting"
+      licence: ["MIT"]
+
+input:
+  - - meta:
+        type: map
+        description: |
+          Groovy Map containing sample information
+          e.g. `[ id:'sample1', batch:'Batch1', plate:'Plate1', well:'A1' ]`
+    - painting_images:
+        type: file
+        description: Full-well stitched, within-arm-aligned painting TIFF images (all cycles), not yet scaled
+        pattern: "*.{tif,tiff}"
+        ontologies:
+          - edam: http://edamontology.org/format_3547
+    - barcoding_images:
+        type: file
+        description: Full-well stitched, within-cycle-aligned barcoding TIFF images (all cycles), not yet scaled
+        pattern: "*.{tif,tiff}"
+        ontologies:
+          - edam: http://edamontology.org/format_3547
+    - image_metas:
+        type: list
+        description: Per-image metadata (arm_source/well/site/filename/channel[/cycle]) matching both image sets
+  - painting_scalingstring:
+      type: float
+      description: Scaling factor applied to painting images to match barcoding's physical pixel size
+  - barcoding_scalingstring:
+      type: float
+      description: Scaling factor applied to barcoding images to match painting's physical pixel size
+  - painting_channame:
+      type: string
+      description: Reference channel substring used to identify painting's registration channel
+  - barcoding_channame:
+      type: string
+      description: Reference channel substring used to identify barcoding's registration channel
+
+output:
+  - painting_aligned_images:
+      - meta:
+          type: map
+          description: |
+            Groovy Map containing sample information
+            e.g. `[ id:'sample1', batch:'Batch1', plate:'Plate1', well:'A1' ]`
+      - "*.tiff":
+          type: file
+          description: Painting images, scaled and registered to barcoding cycle 1's reference channel
+          pattern: "aligned_painting/*.{tif,tiff}"
+          ontologies:
+            - edam: http://edamontology.org/format_3547
+  - barcoding_aligned_images:
+      - meta:
+          type: map
+          description: |
+            Groovy Map containing sample information
+            e.g. `[ id:'sample1', batch:'Batch1', plate:'Plate1', well:'A1' ]`
+      - "*.tiff":
+          type: file
+          description: Barcoding images, scaled only (not shifted - barcoding cycle 1 is the fixed reference frame for the well)
+          pattern: "aligned_barcoding/*.{tif,tiff}"
+          ontologies:
+            - edam: http://edamontology.org/format_3547
+  - alignment_stats:
+      - meta:
+          type: map
+          description: |
+            Groovy Map containing sample information
+            e.g. `[ id:'sample1', batch:'Batch1', plate:'Plate1', well:'A1' ]`
+      - "*.csv":
+          type: file
+          description: Cross-arm shift/error alignment quality metrics
+          pattern: "*.csv"
+          ontologies:
+            - edam: http://edamontology.org/format_3752
+  - qc_overlay:
+      - meta:
+          type: map
+          description: |
+            Groovy Map containing sample information
+            e.g. `[ id:'sample1', batch:'Batch1', plate:'Plate1', well:'A1' ]`
+      - "*.png":
+          type: file
+          description: 10x-downsampled pink (barcoding reference)/green (aligned painting reference) QC overlay for visual sanity-checking of scaling and alignment
+          pattern: "*.png"
+          ontologies:
+            - edam: http://edamontology.org/format_3603
+  - versions:
+      - versions.yml:
+          type: file
+          description: File containing software versions
+          pattern: "versions.yml"
+          ontologies:
+            - edam: http://edamontology.org/format_3750
+
+authors:
+  - "@ErinWeisbart"
+maintainers:
+  - "@ErinWeisbart"

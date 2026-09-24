@@ -36,7 +36,6 @@ process CELLPROFILER_SEGCHECK {
 
     # Generate load_data.csv
     generate_load_data_csv.py \\
-        --pipeline-type segcheck \\
         --images-dir ./images \\
         --output load_data.csv \\
         --metadata-json metadata.json \\

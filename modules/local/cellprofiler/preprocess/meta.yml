@@ -69,6 +69,16 @@ output:
           pattern: "overlay/*.tiff"
           ontologies:
             - edam: http://edamontology.org/format_3591
+  - foci_objects:
+      - meta:
+          type: map
+          description: |
+            Groovy Map containing sample information
+            e.g. `[ id:'sample1', batch:'batch1', plate:'plate1', well:'A01', arm:'barcoding' ]`
+      - "foci_objects/*_FociObjects.tiff":
+          type: file
+          description: Optional per-site object/label image for the "Foci" objects, produced only if the pipeline includes a module that saves it
+          pattern: "foci_objects/*_FociObjects.tiff"
   - preprocess_stats:
       - meta:
           type: map

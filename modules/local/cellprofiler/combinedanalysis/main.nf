@@ -51,7 +51,6 @@ process CELLPROFILER_COMBINEDANALYSIS {
     # Generate load_data.csv using the unified script with 'combined' pipeline type
     generate_load_data_csv.py \\
         --metadata-json metadata.json \\
-        --pipeline-type combined \\
         --images-dir ./images \\
         --output load_data.csv \\
         --cycle-metadata-name "${params.cycle_metadata_name}"

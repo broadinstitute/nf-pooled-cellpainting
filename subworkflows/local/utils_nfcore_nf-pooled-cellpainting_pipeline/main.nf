@@ -162,6 +162,83 @@ def toolBibliographyText() {
     return reference_text
 }
 
+//
+// A disambiguated name to stage a raw image file under - e.g.
+// "Cycle01_Plate1_A1_Site0_WellA1_..._Seq0000.ome.tiff". Different physical
+// files (different cycles/acquisition rounds) can share the same basename;
+// Nextflow's own "images/img?/*" staging keeps them apart on disk, but
+// generate_load_data_csv.py needs each entry's `filename` to already be
+// unique so it never has to reverse-engineer which staged copy is which.
+//
+def stagedImageName(Map meta, image) {
+    def parts = []
+    if (meta.cycle != null) {
+        parts << "Cycle${String.format('%02d', meta.cycle as Integer)}"
+    }
+    parts << meta.plate
+    parts << meta.well
+    parts << "Site${meta.site}"
+    parts << image.name
+    return parts.join('_')
+}
+
+//
+// Expand one samplesheet row (= one physical image file) into one metadata entry
+// per (file, channel) pair, matching bin/generate_load_data_csv.py's schema.
+//
+// meta.channels is a comma-joined string: one row/file may hold multiple channel
+// frames (a multichannel OME-TIFF, see assets/samplesheet.csv) or exactly one
+// channel (Phenix single-channel, see conf/LOCAL_TEST2.config). frame_index is
+// set only for multi-frame files - a single-frame file must not get a Frame_
+// column downstream.
+//
+def expandImageChannels(Map meta, image, String column_prefix, boolean record_cycle = true) {
+    def chans = (meta.channels instanceof List)
+        ? meta.channels.collect { it.toString().trim() }
+        : meta.channels.toString().split(',').collect { it.trim() }
+    def multiframe = chans.size() > 1
+    // stagedImageName always uses the real meta.cycle regardless of record_cycle -
+    // this is what keeps staged filenames collision-free across acquisition
+    // rounds/cycles (see illumcalc/illumapply module comments), independent of
+    // whether that cycle value is recorded in the metadata entry below.
+    def staged_name = stagedImageName(meta, image)
+    return chans.withIndex().collect { ch, idx ->
+        [
+            well             : meta.well,
+            site             : meta.site,
+            arm              : meta.arm,
+            // Painting passes record_cycle=false: its channel names are already
+            // unique per round (DNA vs DNA2), so illumcalc/illumapply must never
+            // see >1 distinct cycle value in their image_metadata - that would flip
+            // generate_load_data_csv.py's use_cycle_prefix and rename FileName_Orig*
+            // columns to Cycle{NN}_Orig*, which painting's .cppipe files don't expect.
+            cycle            : record_cycle ? meta.cycle : null,
+            channel          : ch,
+            frame_index      : multiframe ? idx : null,
+            column_prefix    : column_prefix,
+            filename         : staged_name,
+            original_path    : image.toString(),
+            original_filename: image.name,
+        ]
+    }
+}
+
+//
+// Build the top-level wrapper object every generate_load_data_csv.py caller
+// serializes as its --metadata-json.
+//
+def buildLoadDataMetadata(Map group_meta, List image_metas) {
+    def cycles = image_metas.collect { it.cycle }.findAll { it != null }.unique().sort()
+    def out = [plate: group_meta.plate, image_metadata: image_metas]
+    if (group_meta.batch) {
+        out.batch = group_meta.batch
+    }
+    if (cycles) {
+        out.cycles = cycles
+    }
+    return out
+}
+
 def methodsDescriptionText(mqc_methods_yaml) {
     // Convert  to a named map so can be used as with familiar NXF ${workflow} variable syntax in the MultiQC YML file
     def meta = [:]

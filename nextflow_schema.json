@@ -99,6 +99,11 @@
                     "type": "string",
                     "description": "Cellprofiler pipeline for combined analysis."
                 },
+                "combinedanalysis_include_barcoding_images": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Include barcoding images in STITCH_ALIGN_CROP's combined analysis load_data.csv (in addition to painting images and the optional FociObjects.tiff)."
+                },
                 "cellprofiler_flavor": {
                     "type": "string",
                     "default": "default",
