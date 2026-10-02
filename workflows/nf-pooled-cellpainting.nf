@@ -13,6 +13,7 @@ include { paramsSummaryMap } from 'plugin/nf-schema'
 include { paramsSummaryMultiqc } from '../subworkflows/nf-core/utils_nfcore_pipeline'
 include { softwareVersionsToYAML } from '../subworkflows/nf-core/utils_nfcore_pipeline'
 include { methodsDescriptionText } from '../subworkflows/local/utils_nfcore_nf-pooled-cellpainting_pipeline'
+include { buildLoadDataMetadata } from '../subworkflows/local/utils_nfcore_nf-pooled-cellpainting_pipeline'
 
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -107,6 +108,8 @@ workflow POOLED_CELLPAINTING {
         params.phenix,
         params.painting_channame,
         params.qc_painting_passed,
+        params.distributeillum,
+        params.skipillum,
     )
     ch_versions = ch_versions.mix(CELLPAINTING.out.versions)
 
@@ -146,6 +149,8 @@ workflow POOLED_CELLPAINTING {
         params.phenix,
         params.barcoding_channame,
         params.qc_barcoding_passed,
+        params.distributeillum,
+        params.skipillum,
     )
     ch_versions = ch_versions.mix(BARCODING.out.versions)
 
@@ -181,20 +186,35 @@ workflow POOLED_CELLPAINTING {
             }
             .groupTuple(by: 0)
             .map { _group_key, meta_list, images_list ->
-                // Use first meta (they should all be identical for common fields like batch, plate, well, site)
-                def common_meta = meta_list[0]
+                // groupTuple(by:0) orders items by upstream arrival (process completion
+                // order), which differs between a live run and a -resume run where some
+                // tasks are cache hits - sort meta/image pairs together by filename so the
+                // list order (and thus CELLPROFILER_COMBINEDANALYSIS's input hash) is
+                // reproducible across runs instead of breaking resume.
+                def sorted_pairs = [meta_list, images_list].transpose().sort { it[1].name }
+                def sorted_meta_list = sorted_pairs.collect { it[0] }
+                def sorted_images_list = sorted_pairs.collect { it[1] }
 
-                // Build image metadata for each image, using the preserved arm_source and existing channel info
-                def image_metas = (0..<images_list.size()).collect { i ->
-                    def img = images_list[i]
-                    def current_meta = meta_list[i]
-                    // Get the specific meta for this image
+                // Use first meta (they should all be identical for common fields like batch, plate, well, site)
+                def common_meta = sorted_meta_list[0]
+
+                // Build image metadata for each image, using the preserved arm_source and existing channel info.
+                // `arm` uses the samplesheet's painting/barcoding vocabulary, replacing
+                // the ad hoc `type: cellpainting/barcoding` this block used to emit.
+                // combined_analysis.cppipe selects CorrDNA/CorrCHN2/CorrPhalloidin for
+                // painting and Cycle01_DNA/Cycle01_A/... for barcoding.
+                def image_metas = (0..<sorted_images_list.size()).collect { i ->
+                    def img = sorted_images_list[i]
+                    def current_meta = sorted_meta_list[i]
                     def arm = current_meta.arm_source == 'cellpainting' ? 'painting' : 'barcoding'
                     def img_meta = [
-                        well: common_meta.well,
-                        site: common_meta.site,
-                        filename: img.name,
-                        type: current_meta.arm_source,
+                        well         : common_meta.well,
+                        site         : common_meta.site,
+                        arm          : arm,
+                        cycle        : null,
+                        frame_index  : null,
+                        column_prefix: arm == 'painting' ? 'Corr' : '',
+                        filename     : img.name,
                         original_path: "${params.outdir}/images/${common_meta.batch}/images_corrected_cropped/${arm}/${common_meta.plate}/${common_meta.plate}-${common_meta.well}/${img.name}",
                     ]
 
@@ -232,28 +252,7 @@ workflow POOLED_CELLPAINTING {
                     img_meta
                 }
 
-                // Detect unique cycles from barcoding images
-                def unique_cycles = image_metas
-                    .findAll { image_meta -> image_meta.cycle != null }
-                    .collect { image_meta -> image_meta.cycle }
-                    .unique()
-                    .sort()
-
-                // Prepare metadata structure for combined analysis
-                def metadata_for_json = [
-                    plate: common_meta.plate,
-                    image_metadata: image_metas,
-                ]
-                // Add cycles so the CSV generator uses cycle-prefixed column names
-                if (unique_cycles) {
-                    metadata_for_json.cycles = unique_cycles
-                }
-                // Add optional fields if present
-                if (common_meta.batch) {
-                    metadata_for_json.batch = common_meta.batch
-                }
-
-                [common_meta, images_list, metadata_for_json]
+                [common_meta, sorted_images_list, buildLoadDataMetadata(common_meta, image_metas)]
             }
             .set { ch_cropped_images }
 

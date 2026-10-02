@@ -4,6 +4,7 @@
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
 include { CELLPROFILER_ILLUMCALC } from '../../../modules/local/cellprofiler/illumcalc'
+include { ILLUM_MEANILLUM } from '../../../modules/local/illum/meanillum'
 include { QC_MONTAGEILLUM as QC_MONTAGEILLUM_BARCODING } from '../../../modules/local/qc/montageillum'
 include { QC_MONTAGEILLUM as QC_MONTAGE_ALIGNFAIL_BARCODING } from '../../../modules/local/qc/montageillum'
 include { CELLPROFILER_ILLUMAPPLY as CELLPROFILER_ILLUMAPPLY_BARCODING } from '../../../modules/local/cellprofiler/illumapply'
@@ -11,6 +12,10 @@ include { CELLPROFILER_PREPROCESS } from '../../../modules/local/cellprofiler/pr
 include { CELLPROFILER_PLUGINS_UPDATE } from '../../../modules/local/cellprofiler_plugins/update'
 include { QC_PREPROCESS } from '../../../modules/local/qc/preprocess'
 include { QC_BARCODEALIGN } from '../../../modules/local/qc/barcodealign'
+include { QC_CHECKDUPLICATEIMAGES as QC_CHECKDUPLICATES_ILLUMCALC_BARCODING } from '../../../modules/local/qc/checkduplicateimages'
+include { QC_CHECKDUPLICATEIMAGES as QC_CHECKDUPLICATES_ILLUMAPPLY_BARCODING } from '../../../modules/local/qc/checkduplicateimages'
+include { QC_CHECKDUPLICATEIMAGES as QC_CHECKDUPLICATES_PREPROCESS } from '../../../modules/local/qc/checkduplicateimages'
+include { expandImageChannels; buildLoadDataMetadata } from '../utils_nfcore_nf-pooled-cellpainting_pipeline'
 
 workflow BARCODING_NO_STITCH {
     take:
@@ -31,58 +36,104 @@ workflow BARCODING_NO_STITCH {
     compensatecolors_plugin_default
     update_cellprofiler_plugins
     cellprofiler_plugins_repo
+    distributeillum
+    skipillum
 
     main:
     ch_versions = channel.empty()
 
-    // Group images by batch, plate, and cycle for illumination calculation
+    // Group images by batch, plate, and cycle for illumination calculation - or
+    // additionally by well when --distributeillum splits illumcalc into
+    // smaller, per-well jobs (averaged back into a per-plate illum below).
     // All channels for a given cycle are processed together
     ch_illumcalc_input = ch_samplesheet_sbs
         .map { meta, image ->
-            def group_id = "${meta.batch}_${meta.plate}_${meta.cycle}"
-            def group_key = meta.subMap(['batch', 'plate', 'cycle']) + [id: group_id]
+            def group_fields = distributeillum ? ['batch', 'plate', 'well', 'cycle'] : ['batch', 'plate', 'cycle']
+            def group_id = distributeillum
+                ? "${meta.batch}_${meta.plate}_${meta.well}_${meta.cycle}"
+                : "${meta.batch}_${meta.plate}_${meta.cycle}"
+            def group_key = meta.subMap(group_fields) + [id: group_id]
 
-            // Preserve full metadata for each image
-            def image_meta = meta + [filename: image.name, original_path: image.toString(), original_filename: image.name]
-
-            [group_key, image_meta, image]
+            // One metadata entry per (file, channel) pair - see expandImageChannels().
+            // illumcalc's cppipe selects input images named Orig{channel}.
+            [group_key, expandImageChannels(meta, image, 'Orig'), image]
         }
         .groupTuple()
         .map { meta, images_meta_list, images_list ->
-            def all_channels = images_meta_list.channels.unique().join(", ")
-            // Return tuple: (shared meta, channels, cycle, images, per-image metadata)
-            [meta, all_channels, meta.cycle, images_list, images_meta_list]
+            def image_metas = images_meta_list.flatten()
+            def all_channels = image_metas.channel.unique().join(",")
+            // Each images_list[i] is staged as images/imgN/ (1-based); this is
+            // the disambiguated name the module renames it to (see
+            // expandImageChannels/stagedImageName) so generate_load_data_csv.py
+            // never has to reverse-engineer which staged copy is which.
+            def staged_names = images_meta_list.collect { it[0].filename }
+            // Return tuple: (shared meta, channels, cycle, images, load_data metadata, staged names)
+            [meta, all_channels, meta.cycle, images_list, buildLoadDataMetadata(meta, image_metas), staged_names]
         }
 
-    CELLPROFILER_ILLUMCALC(
-        ch_illumcalc_input,
-        barcoding_illumcalc_cppipe,
-        true,
-    )
-    ch_versions = ch_versions.mix(CELLPROFILER_ILLUMCALC.out.versions)
-    // Merge load_data CSVs per plate
-    CELLPROFILER_ILLUMCALC.out.load_data_csv.collectFile(keepHeader: true, skip: 1) { meta, csv ->
-        def dir = file("${outdir}/workspace/load_data_csv/${meta.batch}/${meta.plate}")
-        dir.mkdirs()
-        [
-            "${dir}/barcoding-illumcalc.load_data.csv",
-            csv.text.replaceFirst(/(?m)^(.*)$/) { line ->
-                line[0]
-                    .replace('FinalFileName_', '__FINAL__')
-                    .replace('FileName_', 'StagedFileName_')
-                    .replace('__FINAL__', 'FileName_')
-            },
-        ]
+    if (skipillum) {
+        // Skip illumination calculation entirely - read precomputed .npy files
+        // from the directory each plate's samplesheet illum_path column points at.
+        ch_illumination_corrections = ch_samplesheet_sbs
+            .map { meta, _image ->
+                if (!meta.illum_path) {
+                    error("--skipillum requires an illum_path in the samplesheet for plate ${meta.batch}/${meta.plate}")
+                }
+                [meta.subMap(['batch', 'plate']), meta.illum_path]
+            }
+            .unique()
+            .map { plate_key, illum_path -> [plate_key, files("${illum_path}/*.npy")] }
+    }
+    else {
+        CELLPROFILER_ILLUMCALC(
+            ch_illumcalc_input,
+            barcoding_illumcalc_cppipe,
+            true,
+        )
+        ch_versions = ch_versions.mix(CELLPROFILER_ILLUMCALC.out.versions)
+        // Merge load_data CSVs per plate
+        CELLPROFILER_ILLUMCALC.out.load_data_csv.collectFile(keepHeader: true, skip: 1) { meta, csv ->
+            def dir = file("${outdir}/workspace/load_data_csv/${meta.batch}/${meta.plate}")
+            dir.mkdirs()
+            [
+                "${dir}/barcoding-illumcalc.load_data.csv",
+                csv.text.replaceFirst(/(?m)^(.*)$/) { line ->
+                    line[0]
+                        .replace('FinalFileName_', '__FINAL__')
+                        .replace('FileName_', 'StagedFileName_')
+                        .replace('__FINAL__', 'FileName_')
+                },
+            ]
+        }
+
+        if (distributeillum) {
+            // Average the per-well illum functions into a single mean function,
+            // used downstream exactly like a normal per-plate illumcalc output.
+            ch_meanillum_input = CELLPROFILER_ILLUMCALC.out.illumination_corrections
+                .map { meta, npy_files ->
+                    def plate_key = meta.subMap(['batch', 'plate', 'cycle'])
+                    [plate_key + [id: "${plate_key.batch}_${plate_key.plate}_${plate_key.cycle}"], npy_files]
+                }
+                .groupTuple()
+                .map { meta, npy_files_list -> [meta, npy_files_list.flatten().sort { it -> it.name }] }
+
+            ILLUM_MEANILLUM(ch_meanillum_input)
+            ch_versions = ch_versions.mix(ILLUM_MEANILLUM.out.versions)
+            ch_illumination_corrections = ILLUM_MEANILLUM.out.illumination_corrections
+        }
+        else {
+            ch_illumination_corrections = CELLPROFILER_ILLUMCALC.out.illumination_corrections
+        }
     }
 
     //// QC illumination correction profiles ////
-    ch_illumination_corrections_qc = CELLPROFILER_ILLUMCALC.out.illumination_corrections
+    ch_illumination_corrections_qc = ch_illumination_corrections
         .map { meta, npy_files ->
             [meta.subMap(['batch', 'plate']) + [arm: "barcoding"], npy_files]
         }
         .groupTuple()
         .map { meta, npy_files_list ->
-            [meta, npy_files_list.flatten()]
+            [meta, npy_files_list.flatten().sort { it -> it.name }]
         }
 
     QC_MONTAGEILLUM_BARCODING(
@@ -90,6 +141,15 @@ workflow BARCODING_NO_STITCH {
         ".*Cycle.*\\.npy\$",
     )
     ch_versions = ch_versions.mix(QC_MONTAGEILLUM_BARCODING.out.versions)
+
+    // Fail the pipeline if any two illumination-correction .npy files for this
+    // plate are pixel-identical - a safety net against staging/matching bugs
+    // that silently reuse one physical image where a different one should
+    // have been produced.
+    QC_CHECKDUPLICATES_ILLUMCALC_BARCODING(
+        ch_illumination_corrections_qc,
+    )
+    ch_versions = ch_versions.mix(QC_CHECKDUPLICATES_ILLUMCALC_BARCODING.out.versions)
 
     // Group images for ILLUMAPPLY based on parameter setting
     // Two modes:
@@ -114,29 +174,29 @@ workflow BARCODING_NO_STITCH {
                 group_id = "${meta.batch}_${meta.plate}_${meta.well}"
             }
 
-            // Preserve full metadata for each image (including site)
-            def image_meta = meta.clone()
-            image_meta.filename = image.name
-            image_meta.original_path = image.toString()
-            image_meta.original_filename = image.name
-
-            [group_key + [id: group_id], image_meta, image]
+            // illumapply's cppipe selects input images named Orig{channel} /
+            // Cycle{NN}_Orig{channel}; the Cycle prefix is added downstream by
+            // generate_load_data_csv.py when the group spans >1 cycle.
+            [group_key + [id: group_id], expandImageChannels(meta, image, 'Orig'), image]
         }
         .groupTuple()
         .map { group_meta, images_meta_list, images_list ->
+            def image_metas = images_meta_list.flatten()
             // Get unique cycles and channels for this group
             // For barcoding, we expect multiple cycles
-            def all_cycles = images_meta_list.collect { m -> m.cycle }.findAll { c -> c != null }.unique().sort()
+            def all_cycles = image_metas.collect { m -> m.cycle }.findAll { c -> c != null }.unique().sort()
             def unique_cycles = all_cycles.size() > 1 ? all_cycles : null
-            def all_channels = images_meta_list.channels.unique().join(", ")
+            def all_channels = image_metas.channel.unique().join(",")
+            // See the illumcalc staged_names comment above for why this exists.
+            def staged_names = images_meta_list.collect { it[0].filename }
 
-            // Return tuple: (shared meta, channels, cycles, images, per-image metadata)
-            [group_meta, all_channels, unique_cycles, images_list, images_meta_list]
+            // Return tuple: (shared meta, channels, cycles, images, load_data metadata, staged names)
+            [group_meta, all_channels, unique_cycles, images_list, buildLoadDataMetadata(group_meta, image_metas), staged_names]
         }
 
     // Group npy files by batch and plate
     // All wells in a plate share the same illumination correction files
-    ch_npy_by_plate = CELLPROFILER_ILLUMCALC.out.illumination_corrections
+    ch_npy_by_plate = ch_illumination_corrections
         .map { meta, npy_files ->
             def group_key = [
                 batch: meta.batch,
@@ -146,22 +206,22 @@ workflow BARCODING_NO_STITCH {
         }
         .groupTuple()
         .map { meta, npy_files_list ->
-            [meta, npy_files_list.flatten()]
+            [meta, npy_files_list.flatten().sort { it -> it.name }]
         }
 
     // Combine images with npy files
     // Each site gets all the npy files for its plate
     ch_illumapply_input = ch_images_by_site
-        .map { site_meta, channels, cycles, images, image_metas ->
+        .map { site_meta, channels, cycles, images, image_metas, staged_names ->
             def plate_key = [
                 batch: site_meta.batch,
                 plate: site_meta.plate,
             ]
-            [plate_key, site_meta, channels, cycles, images, image_metas]
+            [plate_key, site_meta, channels, cycles, images, image_metas, staged_names]
         }
         .combine(ch_npy_by_plate, by: 0)
-        .map { _plate_key, site_meta, channels, cycles, images, image_metas, npy_files ->
-            [site_meta, channels, cycles, images, image_metas, npy_files]
+        .map { _plate_key, site_meta, channels, cycles, images, image_metas, staged_names, npy_files ->
+            [site_meta, channels, cycles, images, image_metas, staged_names, npy_files]
         }
 
     CELLPROFILER_ILLUMAPPLY_BARCODING(
@@ -184,6 +244,20 @@ workflow BARCODING_NO_STITCH {
             },
         ]
     }
+
+    // Fail the pipeline if any two corrected .tiff images for this plate are
+    // pixel-identical - see the illumcalc dedup check above for rationale.
+    ch_corrected_images_dedup_qc = CELLPROFILER_ILLUMAPPLY_BARCODING.out.corrected_images
+        .map { meta, tiff_files, _csv_files ->
+            [meta.subMap(['batch', 'plate']) + [arm: "barcoding"], tiff_files]
+        }
+        .groupTuple()
+        .map { meta, tiff_files_list -> [meta, tiff_files_list.flatten().sort { it -> it.name }] }
+
+    QC_CHECKDUPLICATES_ILLUMAPPLY_BARCODING(
+        ch_corrected_images_dedup_qc,
+    )
+    ch_versions = ch_versions.mix(QC_CHECKDUPLICATES_ILLUMAPPLY_BARCODING.out.versions)
 
     // QC montage of any PNG QC images output by illumapply (optional)
     ch_illumapply_qc = CELLPROFILER_ILLUMAPPLY_BARCODING.out.qc_images
@@ -268,25 +342,28 @@ workflow BARCODING_NO_STITCH {
             site_meta.site = site
             site_meta.id = "${group_meta.batch}_${group_meta.plate}_${group_meta.well}_Site${site}"
 
-            // Build image_metas for this site's images
+            // Build image_metas for this site's images. preprocess's cppipe selects
+            // input images named Cycle{NN}_{channel} - bare channel name, cycle
+            // prefix added by generate_load_data_csv.py from the cycles list.
             def image_metas = site_images.collect { img ->
-                // Extract cycle and channel from corrected image filename
-                // Pattern: Plate_X_Well_Y_Site_Z_Cycle01_DNA.tiff
                 def cycle_channel_match = (img.name =~ /.*_Cycle(\d+)_(.+?)\.tiff?$/)
                 def cycle = cycle_channel_match ? cycle_channel_match[0][1] as Integer : null
                 def channel = cycle_channel_match ? cycle_channel_match[0][2] : 'UNKNOWN'
 
-                // Clone metadata and add filename + cycle + channel + site + published path
-                site_meta + [
-                    filename: img.name,
-                    cycle: cycle,
-                    channel: channel,
-                    site: site,
+                [
+                    well         : site_meta.well,
+                    site         : site,
+                    arm          : site_meta.arm,
+                    cycle        : cycle,
+                    channel      : channel,
+                    frame_index  : null,
+                    column_prefix: '',
+                    filename     : img.name,
                     original_path: "${outdir}/images/${site_meta.batch}/images_aligned/${site_meta.arm}/${site_meta.plate}/${site_meta.plate}-${site_meta.well}/${img.name}",
                 ]
             }
 
-            [site_meta, site_images, image_metas]
+            [site_meta, site_images, buildLoadDataMetadata(site_meta, image_metas)]
         }
     }
 
@@ -333,6 +410,18 @@ workflow BARCODING_NO_STITCH {
             },
         ]
     }
+
+    // Fail the pipeline if any two preprocessed .tiff images for this plate
+    // are pixel-identical - see the illumcalc dedup check above for rationale.
+    ch_preprocessed_images_dedup_qc = CELLPROFILER_PREPROCESS.out.preprocessed_images
+        .map { meta, tiff_files -> [meta.subMap(['batch', 'plate']) + [arm: "barcoding"], tiff_files] }
+        .groupTuple()
+        .map { meta, tiff_files_list -> [meta, tiff_files_list.flatten().sort { it -> it.name }] }
+
+    QC_CHECKDUPLICATES_PREPROCESS(
+        ch_preprocessed_images_dedup_qc,
+    )
+    ch_versions = ch_versions.mix(QC_CHECKDUPLICATES_PREPROCESS.out.versions)
 
     //// QC: Barcode preprocessing ////
     // Group preprocessing stats by plate and collect wells

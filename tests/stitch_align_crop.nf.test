@@ -1,0 +1,228 @@
+/*
+ * STITCH_ALIGN_CROP Entry Point Integration Tests
+ * ================================================
+ *
+ * Mirrors the stub variants in tests/no_stitch.nf.test, but runs the
+ * STITCH_ALIGN_CROP named workflow entry (`-entry STITCH_ALIGN_CROP`).
+ * Unlike the default and NO_STITCH entries, stitch/align/crop here are
+ * unconditional (no qc_*_passed gate before them) - only combined analysis
+ * is gated. bin/stitch.py, bin/crop.py, bin/align_barcoding.py, and
+ * bin/align_combined.py have not been implemented yet, so this only
+ * exercises the stub branch.
+ *
+ * Snapshot Strategy: see tests/main.nf.test - same rationale applies here
+ * (stub tests skip containers, so only workflow logic/branching is verified).
+ */
+
+nextflow_pipeline {
+
+    name "Test Workflow STITCH_ALIGN_CROP"
+    script "main.nf"
+
+    tag "pipeline"
+    tag "nf_pooled_cellpainting"
+    tag "stitch_align_crop"
+
+    test("stitch_align_crop - stub - qc passed") {
+
+        tag "stub"
+        tag "fast"
+
+        options "-stub -entry STITCH_ALIGN_CROP"
+
+        when {
+            params {
+                // Use the test profile parameters
+                config_profile_name         = 'Test profile'
+                config_profile_description  = 'Minimal test dataset to check pipeline function'
+
+                qc_painting_passed          = true
+                qc_barcoding_passed         = true
+
+                // Input data
+                input                       = "${projectDir}/assets/samplesheet.csv"
+                barcodes                    = "s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1_sub25/Source1/workspace/metadata/Barcodes.csv"
+                range_skip                  = 2
+
+                painting_illumcalc_cppipe   = "${projectDir}/assets/cellprofiler/painting_illumcalc_cppipe.template"
+                painting_illumapply_cppipe  = "${projectDir}/assets/cellprofiler/painting_illumapply.cppipe"
+                painting_segcheck_cppipe    = "${projectDir}/assets/cellprofiler/painting_segcheck.cppipe"
+                barcoding_illumcalc_cppipe  = "${projectDir}/assets/cellprofiler/barcoding_illumcalc_cppipe.template"
+                barcoding_illumapply_cppipe = "${projectDir}/assets/cellprofiler/barcoding_illumapply.cppipe"
+                barcoding_preprocess_cppipe = "${projectDir}/assets/cellprofiler/barcoding_preprocess.cppipe"
+                combinedanalysis_cppipe     = "${projectDir}/assets/cellprofiler/combined_analysis.cppipe"
+
+                // Output directory
+                outdir                      = "${outputDir}"
+            }
+        }
+
+        then {
+            def stable_name = getAllFilesFromDir(params.outdir, relative: true, includeDir: true, ignore: ['pipeline_info/*.{html,json,txt}'])
+            def stable_path = getAllFilesFromDir(params.outdir, ignoreFile: 'tests/.nftignore')
+            assertAll(
+                { assert workflow.success },
+                // Stitch/align/crop run unconditionally, regardless of qc_*_passed
+                { assert workflow.trace.succeeded().collect { it.name }.any { it.contains('STITCH_PAINTING') || it.contains('STITCH_BARCODING') } },
+                { assert workflow.trace.succeeded().collect { it.name }.any { it.contains('CROP_PAINTING') || it.contains('CROP_BARCODING') } },
+                { assert workflow.trace.succeeded().collect { it.name }.any { it.contains('ALIGN_INTRAARM_PAINTING') || it.contains('ALIGN_INTRAARM_BARCODING') } },
+                { assert workflow.trace.succeeded().collect { it.name }.any { it.contains('ALIGN_COMBINED') } },
+                // Combined analysis SHOULD run when both QC flags are passed
+                { assert workflow.trace.succeeded().collect { it.name }.any { it.contains('STITCH_ALIGN_CROP_POOLED_CELLPAINTING:CELLPROFILER_COMBINEDANALYSIS') } },
+                { assert snapshot(
+                    // Number of successful tasks
+                    workflow.trace.succeeded().size(),
+                    // All stable path name, with a relative path
+                    stable_name,
+                    // All files with stable contents
+                    stable_path
+                ).match() }
+            )
+        }
+    }
+
+    test("stitch_align_crop - stub - painting qc false") {
+
+        tag "stub_painting_qc_false"
+        tag "fast"
+
+        options "-stub -entry STITCH_ALIGN_CROP"
+
+        when {
+            params {
+                config_profile_name         = 'Test profile'
+                config_profile_description  = 'Minimal test dataset to check pipeline function'
+
+                // QC parameters - painting failed, barcoding passed
+                qc_painting_passed          = false
+                qc_barcoding_passed         = true
+
+                input                       = "${projectDir}/assets/samplesheet.csv"
+                barcodes                    = "s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1_sub25/Source1/workspace/metadata/Barcodes.csv"
+                range_skip                  = 2
+
+                painting_illumcalc_cppipe   = "${projectDir}/assets/cellprofiler/painting_illumcalc_cppipe.template"
+                painting_illumapply_cppipe  = "${projectDir}/assets/cellprofiler/painting_illumapply.cppipe"
+                painting_segcheck_cppipe    = "${projectDir}/assets/cellprofiler/painting_segcheck.cppipe"
+                barcoding_illumcalc_cppipe  = "${projectDir}/assets/cellprofiler/barcoding_illumcalc_cppipe.template"
+                barcoding_illumapply_cppipe = "${projectDir}/assets/cellprofiler/barcoding_illumapply.cppipe"
+                barcoding_preprocess_cppipe = "${projectDir}/assets/cellprofiler/barcoding_preprocess.cppipe"
+                combinedanalysis_cppipe     = "${projectDir}/assets/cellprofiler/combined_analysis.cppipe"
+
+                outdir                      = "${outputDir}"
+            }
+        }
+
+        then {
+            def stable_name = getAllFilesFromDir(params.outdir, relative: true, includeDir: true, ignore: ['pipeline_info/*.{html,json,txt}'])
+            def stable_path = getAllFilesFromDir(params.outdir, ignoreFile: 'tests/.nftignore')
+            assertAll(
+                { assert workflow.success },
+                // Stitch/align/crop still run even though qc_painting_passed is false
+                { assert workflow.trace.succeeded().collect { it.name }.any { it.contains('STITCH_PAINTING') || it.contains('STITCH_BARCODING') } },
+                // Combined analysis should NOT run when painting QC failed
+                { assert !workflow.trace.succeeded().collect { it.name }.any { it.contains('STITCH_ALIGN_CROP_POOLED_CELLPAINTING:CELLPROFILER_COMBINEDANALYSIS') } },
+                { assert snapshot(
+                    workflow.trace.succeeded().size(),
+                    stable_name,
+                    stable_path
+                ).match() }
+            )
+        }
+    }
+
+    test("stitch_align_crop - stub - barcoding qc false") {
+
+        tag "stub_barcoding_qc_false"
+        tag "fast"
+
+        options "-stub -entry STITCH_ALIGN_CROP"
+
+        when {
+            params {
+                config_profile_name         = 'Test profile'
+                config_profile_description  = 'Minimal test dataset to check pipeline function'
+
+                // QC parameters - painting passed, barcoding failed
+                qc_painting_passed          = true
+                qc_barcoding_passed         = false
+
+                input                       = "${projectDir}/assets/samplesheet.csv"
+                barcodes                    = "s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1_sub25/Source1/workspace/metadata/Barcodes.csv"
+                range_skip                  = 2
+
+                painting_illumcalc_cppipe   = "${projectDir}/assets/cellprofiler/painting_illumcalc_cppipe.template"
+                painting_illumapply_cppipe  = "${projectDir}/assets/cellprofiler/painting_illumapply.cppipe"
+                painting_segcheck_cppipe    = "${projectDir}/assets/cellprofiler/painting_segcheck.cppipe"
+                barcoding_illumcalc_cppipe  = "${projectDir}/assets/cellprofiler/barcoding_illumcalc_cppipe.template"
+                barcoding_illumapply_cppipe = "${projectDir}/assets/cellprofiler/barcoding_illumapply.cppipe"
+                barcoding_preprocess_cppipe = "${projectDir}/assets/cellprofiler/barcoding_preprocess.cppipe"
+                combinedanalysis_cppipe     = "${projectDir}/assets/cellprofiler/combined_analysis.cppipe"
+
+                outdir                      = "${outputDir}"
+            }
+        }
+
+        then {
+            def stable_name = getAllFilesFromDir(params.outdir, relative: true, includeDir: true, ignore: ['pipeline_info/*.{html,json,txt}'])
+            def stable_path = getAllFilesFromDir(params.outdir, ignoreFile: 'tests/.nftignore')
+            assertAll(
+                { assert workflow.success },
+                // Combined analysis should NOT run when barcoding QC failed
+                { assert !workflow.trace.succeeded().collect { it.name }.any { it.contains('STITCH_ALIGN_CROP_POOLED_CELLPAINTING:CELLPROFILER_COMBINEDANALYSIS') } },
+                { assert snapshot(
+                    workflow.trace.succeeded().size(),
+                    stable_name,
+                    stable_path
+                ).match() }
+            )
+        }
+    }
+
+    test("stitch_align_crop - stub - both qc false") {
+
+        tag "stub_both_qc_false"
+        tag "fast"
+
+        options "-stub -entry STITCH_ALIGN_CROP"
+
+        when {
+            params {
+                config_profile_name         = 'Test profile'
+                config_profile_description  = 'Minimal test dataset to check pipeline function'
+
+                // QC parameters - both failed
+                qc_painting_passed          = false
+                qc_barcoding_passed         = false
+
+                input                       = "${projectDir}/assets/samplesheet.csv"
+                barcodes                    = "s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1_sub25/Source1/workspace/metadata/Barcodes.csv"
+                range_skip                  = 2
+
+                painting_illumcalc_cppipe   = "${projectDir}/assets/cellprofiler/painting_illumcalc_cppipe.template"
+                painting_illumapply_cppipe  = "${projectDir}/assets/cellprofiler/painting_illumapply.cppipe"
+                painting_segcheck_cppipe    = "${projectDir}/assets/cellprofiler/painting_segcheck.cppipe"
+                barcoding_illumcalc_cppipe  = "${projectDir}/assets/cellprofiler/barcoding_illumcalc_cppipe.template"
+                barcoding_illumapply_cppipe = "${projectDir}/assets/cellprofiler/barcoding_illumapply.cppipe"
+                barcoding_preprocess_cppipe = "${projectDir}/assets/cellprofiler/barcoding_preprocess.cppipe"
+                combinedanalysis_cppipe     = "${projectDir}/assets/cellprofiler/combined_analysis.cppipe"
+
+                outdir                      = "${outputDir}"
+            }
+        }
+
+        then {
+            def stable_name = getAllFilesFromDir(params.outdir, relative: true, includeDir: true, ignore: ['pipeline_info/*.{html,json,txt}'])
+            def stable_path = getAllFilesFromDir(params.outdir, ignoreFile: 'tests/.nftignore')
+            assertAll(
+                { assert workflow.success },
+                { assert !workflow.trace.succeeded().collect { it.name }.any { it.contains('STITCH_ALIGN_CROP_POOLED_CELLPAINTING:CELLPROFILER_COMBINEDANALYSIS') } },
+                { assert snapshot(
+                    workflow.trace.succeeded().size(),
+                    stable_name,
+                    stable_path
+                ).match() }
+            )
+        }
+    }
+}

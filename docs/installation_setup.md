@@ -92,7 +92,7 @@ For image processing workloads, select instance families with:
 - `m6id` - General-purpose with NVMe
 - `r6id` - Memory-optimized with NVMe
 
-:::{warning} 
+```{warning} 
 **When using Fusion Snapshots, pin specific instance sizes** (not just families) to ensure successful snapshot creation. Snapshots require sufficient memory-to-NVMe-bandwidth ratio to complete within the 2-minute spot reclamation window.
 
 **Recommended for Fusion Snapshots** (pin all of these in your compute environment):
@@ -100,6 +100,6 @@ For image processing workloads, select instance families with:
 - `c6id.large`, `c6id.xlarge`, `c6id.2xlarge`, `c6id.4xlarge`, `c6id.8xlarge`, `c6id.12xlarge`
 
 Avoid letting AWS auto-select very large instances (e.g., `32xlarge`) which may sit idle after some tasks complete, costing ~$6/hour for minimal utilization. The `12xlarge` ceiling provides sufficient memory for most Combined Analysis tasks while limiting cost exposure.
-:::
+```
 
 After setup, we recommend you [run the test example](quick_start.md).

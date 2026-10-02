@@ -1,0 +1,2 @@
+FROM cellprofiler/distributed-fiji@sha256:44dbc2ddb34260e7883980dc6719dfb73babb2e158c11b106c94c0192dad5e95
+ENTRYPOINT []
