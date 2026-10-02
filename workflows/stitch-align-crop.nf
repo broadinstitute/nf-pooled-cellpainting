@@ -271,7 +271,7 @@ workflow STITCH_ALIGN_CROP_POOLED_CELLPAINTING {
     ch_preprocessed_images_dedup_qc = CELLPROFILER_PREPROCESS_STITCHALIGNCROP.out.preprocessed_images
         .map { meta, tiff_files -> [meta.subMap(['batch', 'plate']) + [arm: "barcoding"], tiff_files] }
         .groupTuple()
-        .map { meta, tiff_files_list -> [meta, tiff_files_list.flatten()] }
+        .map { meta, tiff_files_list -> [meta, tiff_files_list.flatten().sort { it -> it.name }] }
 
     QC_CHECKDUPLICATES_PREPROCESS_STITCHALIGNCROP(
         ch_preprocessed_images_dedup_qc,
@@ -362,17 +362,26 @@ workflow STITCH_ALIGN_CROP_POOLED_CELLPAINTING {
             }
             .groupTuple(by: 0)
             .map { _group_key, meta_list, images_list ->
+                // groupTuple(by:0) orders items by upstream arrival (process completion
+                // order), which differs between a live run and a -resume run where some
+                // tasks are cache hits - sort meta/image pairs together by filename so the
+                // list order (and thus CELLPROFILER_COMBINEDANALYSIS's input hash) is
+                // reproducible across runs instead of breaking resume.
+                def sorted_pairs = [meta_list, images_list].transpose().sort { it[1].name }
+                def sorted_meta_list = sorted_pairs.collect { it[0] }
+                def sorted_images_list = sorted_pairs.collect { it[1] }
+
                 // Use first meta (they should all be identical for common fields like batch, plate, well, site)
-                def common_meta = meta_list[0]
+                def common_meta = sorted_meta_list[0]
 
                 // Build image metadata for each image, using the preserved arm_source and existing channel info.
                 // `arm` uses the samplesheet's painting/barcoding vocabulary, replacing
                 // the ad hoc `type: cellpainting/barcoding` this block used to emit.
                 // combined_analysis.cppipe selects bare channel names (DNA/CHN2/Phalloidin,
                 // no Corr prefix) for painting and Cycle01_DNA/Cycle01_A/... for barcoding.
-                def image_metas = (0..<images_list.size()).collect { i ->
-                    def img = images_list[i]
-                    def current_meta = meta_list[i]
+                def image_metas = (0..<sorted_images_list.size()).collect { i ->
+                    def img = sorted_images_list[i]
+                    def current_meta = sorted_meta_list[i]
                     def arm = current_meta.arm_source == 'cellpainting' ? 'painting' : 'barcoding'
                     def img_meta = [
                         well         : common_meta.well,
@@ -415,7 +424,7 @@ workflow STITCH_ALIGN_CROP_POOLED_CELLPAINTING {
                 }
 
                 def group_key = "${common_meta.batch}_${common_meta.plate}_${common_meta.well}_${common_meta.site}"
-                [group_key, common_meta, images_list, image_metas]
+                [group_key, common_meta, sorted_images_list, image_metas]
             }
             .join(ch_foci_objects_by_site, remainder: true)
             .map { _group_key, common_meta, images_list, image_metas, foci_npy ->

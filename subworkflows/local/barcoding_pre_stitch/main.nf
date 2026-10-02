@@ -76,7 +76,7 @@ workflow BARCODING_PRE_STITCH {
         }
         .groupTuple()
         .map { meta, npy_files_list ->
-            [meta, npy_files_list.flatten()]
+            [meta, npy_files_list.flatten().sort { it -> it.name }]
         }
 
     QC_MONTAGEILLUM_BARCODING(
@@ -149,7 +149,7 @@ workflow BARCODING_PRE_STITCH {
         }
         .groupTuple()
         .map { meta, npy_files_list ->
-            [meta, npy_files_list.flatten()]
+            [meta, npy_files_list.flatten().sort { it -> it.name }]
         }
 
     // Combine images with npy files
@@ -197,7 +197,7 @@ workflow BARCODING_PRE_STITCH {
             [meta.subMap(['batch', 'plate']) + [arm: "barcoding"], tiff_files]
         }
         .groupTuple()
-        .map { meta, tiff_files_list -> [meta, tiff_files_list.flatten()] }
+        .map { meta, tiff_files_list -> [meta, tiff_files_list.flatten().sort { it -> it.name }] }
 
     QC_CHECKDUPLICATES_ILLUMAPPLY_BARCODING_PRESTITCH(
         ch_corrected_images_dedup_qc,

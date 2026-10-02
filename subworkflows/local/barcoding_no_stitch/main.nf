@@ -91,7 +91,7 @@ workflow BARCODING_NO_STITCH {
         }
         .groupTuple()
         .map { meta, npy_files_list ->
-            [meta, npy_files_list.flatten()]
+            [meta, npy_files_list.flatten().sort { it -> it.name }]
         }
 
     QC_MONTAGEILLUM_BARCODING(
@@ -164,7 +164,7 @@ workflow BARCODING_NO_STITCH {
         }
         .groupTuple()
         .map { meta, npy_files_list ->
-            [meta, npy_files_list.flatten()]
+            [meta, npy_files_list.flatten().sort { it -> it.name }]
         }
 
     // Combine images with npy files
@@ -210,7 +210,7 @@ workflow BARCODING_NO_STITCH {
             [meta.subMap(['batch', 'plate']) + [arm: "barcoding"], tiff_files]
         }
         .groupTuple()
-        .map { meta, tiff_files_list -> [meta, tiff_files_list.flatten()] }
+        .map { meta, tiff_files_list -> [meta, tiff_files_list.flatten().sort { it -> it.name }] }
 
     QC_CHECKDUPLICATES_ILLUMAPPLY_BARCODING(
         ch_corrected_images_dedup_qc,
@@ -374,7 +374,7 @@ workflow BARCODING_NO_STITCH {
     ch_preprocessed_images_dedup_qc = CELLPROFILER_PREPROCESS.out.preprocessed_images
         .map { meta, tiff_files -> [meta.subMap(['batch', 'plate']) + [arm: "barcoding"], tiff_files] }
         .groupTuple()
-        .map { meta, tiff_files_list -> [meta, tiff_files_list.flatten()] }
+        .map { meta, tiff_files_list -> [meta, tiff_files_list.flatten().sort { it -> it.name }] }
 
     QC_CHECKDUPLICATES_PREPROCESS(
         ch_preprocessed_images_dedup_qc,

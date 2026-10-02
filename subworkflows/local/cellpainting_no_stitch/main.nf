@@ -147,7 +147,7 @@ workflow CELLPAINTING_NO_STITCH {
         }
         .groupTuple()
         .map { meta, npy_files_list ->
-            [meta, npy_files_list.flatten()]
+            [meta, npy_files_list.flatten().sort { it -> it.name }]
         }
 
     // Combine images with npy files
@@ -196,7 +196,7 @@ workflow CELLPAINTING_NO_STITCH {
             [meta.subMap(['batch', 'plate']) + [arm: "painting"], tiff_files]
         }
         .groupTuple()
-        .map { meta, tiff_files_list -> [meta, tiff_files_list.flatten()] }
+        .map { meta, tiff_files_list -> [meta, tiff_files_list.flatten().sort { it -> it.name }] }
 
     QC_CHECKDUPLICATES_ILLUMAPPLY_PAINTING(
         ch_corrected_images_dedup_qc,

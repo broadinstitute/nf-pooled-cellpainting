@@ -111,7 +111,7 @@ workflow BARCODING {
         }
         .groupTuple()
         .map { meta, npy_files_list ->
-            [meta, npy_files_list.flatten()]
+            [meta, npy_files_list.flatten().sort { it -> it.name }]
         }
 
     QC_MONTAGEILLUM_BARCODING(
@@ -184,7 +184,7 @@ workflow BARCODING {
         }
         .groupTuple()
         .map { meta, npy_files_list ->
-            [meta, npy_files_list.flatten()]
+            [meta, npy_files_list.flatten().sort { it -> it.name }]
         }
 
     // Combine images with npy files
@@ -230,7 +230,7 @@ workflow BARCODING {
             [meta.subMap(['batch', 'plate']) + [arm: "barcoding"], tiff_files]
         }
         .groupTuple()
-        .map { meta, tiff_files_list -> [meta, tiff_files_list.flatten()] }
+        .map { meta, tiff_files_list -> [meta, tiff_files_list.flatten().sort { it -> it.name }] }
 
     QC_CHECKDUPLICATES_ILLUMAPPLY_BARCODING(
         ch_corrected_images_dedup_qc,
@@ -394,7 +394,7 @@ workflow BARCODING {
     ch_preprocessed_images_dedup_qc = CELLPROFILER_PREPROCESS.out.preprocessed_images
         .map { meta, tiff_files -> [meta.subMap(['batch', 'plate']) + [arm: "barcoding"], tiff_files] }
         .groupTuple()
-        .map { meta, tiff_files_list -> [meta, tiff_files_list.flatten()] }
+        .map { meta, tiff_files_list -> [meta, tiff_files_list.flatten().sort { it -> it.name }] }
 
     QC_CHECKDUPLICATES_PREPROCESS(
         ch_preprocessed_images_dedup_qc,
@@ -456,7 +456,7 @@ workflow BARCODING {
             // Calculate the starting site number from metadata
             def min_site = site_list.min()
             def enriched_meta = well_meta + [first_site_index: min_site]
-            [enriched_meta, images_list.flatten()]
+            [enriched_meta, images_list.flatten().sort { it -> it.name }]
         }
 
     FIJI_STITCHCROP(
