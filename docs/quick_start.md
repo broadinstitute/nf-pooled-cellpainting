@@ -101,10 +101,10 @@ nextflow run broadinstitute/nf-pooled-cellpainting \
     -resume
 ```
 
-:::{admonition} The `-resume` flag is critical
+```{admonition} The `-resume` flag is critical
 
 It tells Nextflow to use cached results and only execute new steps. Without it, the pipeline restarts from scratch.
-:::
+```
 
 ### Seqera Platform
 

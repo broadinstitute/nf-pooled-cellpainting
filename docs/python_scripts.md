@@ -16,169 +16,94 @@ These scripts are automatically available in the process `PATH` and are called d
 
 ### Purpose
 
-Generates `load_data.csv` files required by CellProfiler processes. This is the **primary data staging script** used throughout the pipeline.
+Generates `load_data.csv` files required by CellProfiler processes. This is the **primary data staging script** used throughout the pipeline, and it is the same script for all 5 CellProfiler modules (`illumcalc`, `illumapply`, `segcheck`, `preprocess`, `combinedanalysis`) - there is no per-module branching, filename parsing, or file discovery in the script itself.
 
 ### Usage
 
 ```bash
 generate_load_data_csv.py \
-    --pipeline_type <type> \
-    --channels <channel_list> \
-    --frames <frame_list> \
-    --cycles <cycle_list> \
-    --output load_data.csv
+    --metadata-json metadata.json \
+    --images-dir ./images \
+    --output load_data.csv \
+    [--illum-dir ./images --include-illum-files] \
+    [--range-skip N] \
+    [--has-cycles] \
+    [--cycle N] \
+    [--cycle-metadata-name Cycle] \
+    [--outdir <pipeline outdir>]
 ```
 
 ### Parameters
 
-| Parameter         | Required | Description                                                                                 |
-| ----------------- | -------- | ------------------------------------------------------------------------------------------- |
-| `--pipeline_type` | Yes      | Pipeline stage: `illumcalc`, `illumapply`, `segcheck`, `analysis`, `preprocess`, `combined` |
-| `--channels`      | Yes      | Comma-separated channel names (e.g., `DAPI,GFP,RFP`)                                        |
-| `--frames`        | No       | Comma-separated frame indices (e.g., `0,1,2,3`)                                             |
-| `--cycles`        | No       | Comma-separated cycle numbers (e.g., `1,2,3`) - barcoding only                              |
-| `--output`        | Yes      | Output CSV file path                                                                        |
+| Parameter               | Required | Description                                                                                          |
+| ------------------------ | -------- | ------------------------------------------------------------------------------------------------------ |
+| `--metadata-json`        | Yes      | Path to the canonical metadata JSON file (see below) built by the calling Nextflow module            |
+| `--images-dir`           | No       | Directory containing input images (default: `./images`)                                              |
+| `--output`               | No       | Output CSV file path (default: `load_data.csv`)                                                        |
+| `--include-illum-files`  | No       | Also emit `FileName_Illum<Channel>` columns by scanning `--illum-dir` for `.npy` files (illumapply only) |
+| `--illum-dir`            | No       | Directory containing illumination `.npy` files; required if `--include-illum-files` is set            |
+| `--range-skip`           | No       | Subsample sites per well - keep every Nth site (default: 1 = all sites)                                |
+| `--has-cycles`           | No       | Emit a `Metadata_<cycle-metadata-name>` column (barcoding workflows)                                    |
+| `--cycle`                | No       | Override the cycle number used for the `Metadata_Cycle` column instead of the JSON metadata's `cycle`  |
+| `--cycle-metadata-name`  | No       | Name for the cycle metadata column (default: `Cycle`, giving `Metadata_Cycle`)                          |
+| `--outdir`               | No       | Pipeline `--outdir`, used to construct durable/original paths for illumination `.npy` files            |
 
-### Pipeline Types
+### The canonical metadata JSON
 
-#### 1. `illumcalc` - Illumination Calculation
+Every caller builds the same top-level object, with one `image_metadata` entry per (physical file, channel) pair:
 
-Stages original multi-channel images for illumination function calculation.
-
-**Output columns**:
-
-```
-Metadata_Plate, Metadata_Well, Metadata_Site, Metadata_Frame, FileName_<Channel>
-```
-
-**Example**:
-
-```python
-generate_load_data_csv.py \
-    --pipeline_type illumcalc \
-    --channels DAPI,GFP,RFP \
-    --frames 0,1,2,3 \
-    --output load_data.csv
-```
-
-#### 2. `illumapply` - Illumination Application
-
-Stages original images alongside illumination functions for correction.
-
-**Output columns**:
-
-```
-Metadata_Plate, Metadata_Well, Metadata_Site, Metadata_Frame,
-FileName_Orig<Channel>, FileName_Illum<Channel>
+```json
+{
+  "plate": "Plate1", "batch": "Batch1", "cycles": [1, 2, 3],
+  "image_metadata": [
+    {
+      "well": "A1", "site": 0, "arm": "painting",
+      "cycle": 1, "channel": "DNA", "frame_index": 2, "column_prefix": "Orig",
+      "filename": "...", "original_path": "...", "original_filename": "..."
+    }
+  ]
+}
 ```
 
-**Example**:
+| Field                | Required | Description                                                                                          |
+| --------------------- | -------- | ------------------------------------------------------------------------------------------------------ |
+| `plate` / `batch`     | plate required | Top-level identifiers, stated once by the Nextflow caller                                      |
+| `cycles`              | If any entry has a `cycle` | List of distinct cycle numbers present in `image_metadata`; must match exactly, or the script fails loudly |
+| `well` / `site`       | Yes (per entry) | Grouping key for CSV rows, alongside `plate`                                                    |
+| `arm`                 | Yes (per entry) | `painting` or `barcoding` - carried for debugging only, never branched on                        |
+| `channel`             | Yes (per entry) | The channel name used to build the CellProfiler column name                                       |
+| `column_prefix`       | Yes (per entry) | `""`, `"Orig"`, or `"Corr"` - the actual driver of the column name; determined by which cppipe stage will read the column, not by `arm` |
+| `filename`            | Yes (per entry) | Path relative to `--images-dir`; trusted directly, joined and checked for existence - no glob or pattern matching |
+| `cycle`               | Barcoding only | Cycle number this entry belongs to                                                                |
+| `frame_index`         | Multichannel files only | Present iff this channel is one frame of a multi-frame/multichannel file; its presence is what makes the `Frame_<name>` column appear |
+| `original_path` / `original_filename` | No | Used to populate `FinalFileName_<name>` with the pre-staging path                        |
 
-```python
-generate_load_data_csv.py \
-    --pipeline_type illumapply \
-    --channels DAPI,GFP,RFP \
-    --frames 0,1,2,3 \
-    --output load_data.csv
-```
+One physical multi-frame file (e.g. a 3-frame OME-TIFF) contributes multiple `image_metadata` entries sharing one `filename`, differing in `channel`/`frame_index`. A single-channel file contributes one entry with `frame_index` omitted.
 
-#### 3. `segcheck` - Segmentation Check
+### Column naming
 
-Stages corrected images for segmentation quality control.
-
-**Output columns**:
-
-```
-Metadata_Plate, Metadata_Well, Metadata_Site, Metadata_Frame, FileName_Corr<Channel>
-```
-
-#### 4. `preprocess` - Barcoding Preprocessing
-
-Stages cycle-based images for barcode calling.
-
-**Output columns**:
+A single rule replaces the old per-pipeline-type branches:
 
 ```
-Metadata_Plate, Metadata_Well, Metadata_Site, Metadata_Frame, Metadata_Cycle,
-FileName_Cycle<N>_<Channel>
+name = f"{cycle_prefix}{column_prefix}{channel}"
+cycle_prefix = f"Cycle{cycle:02d}_" if (cycle is not None and more than one distinct cycle across the plate) else ""
 ```
 
-**Example**:
-
-```python
-generate_load_data_csv.py \
-    --pipeline_type preprocess \
-    --channels Cy3,Cy5 \
-    --cycles 1,2,3 \
-    --frames 0,1,2,3 \
-    --output load_data.csv
-```
-
-#### 5. `combined` - Combined Analysis
-
-Stages both painting (corrected) and barcoding (preprocessed) images.
-
-**Output columns**:
-
-```
-Metadata_Plate, Metadata_Well, Metadata_Site, Metadata_Frame,
-FileName_Corr<Channel>, FileName_Cycle<N>_<Channel>
-```
-
-### Metadata Flow
-
-Metadata originates from the input samplesheet and flows through Nextflow channels to the Python scripts. The scripts use two approaches:
-
-**Pattern A: Metadata-Driven** (ILLUMCALC, ILLUMAPPLY)
-
-Metadata is passed as CLI arguments from the Nextflow `meta` map:
-
-```bash
-generate_load_data_csv.py \
-    --pipeline-type illumcalc \
-    --images-dir ./images \
-    --plate ${meta.plate} \      # from samplesheet
-    --channels "${channels}" \   # from meta.channels
-    --output load_data.csv
-```
-
-**Pattern B: Filename-Driven** (PREPROCESS, COMBINEDANALYSIS)
-
-All metadata is extracted from standardized filenames:
-
-```bash
-generate_load_data_csv.py \
-    --pipeline-type preprocess \
-    --images-dir ./images \
-    --output load_data.csv
-```
-
-### Filename Patterns
-
-The script parses different filename patterns depending on the pipeline stage:
-
-| Image Type | Pattern | Example |
-| :--------- | :------ | :------ |
-| Original | `Well{well}_Point{site}_{frame}_Channel{channels}_Seq*.ome.tiff` | `WellA1_PointA1_0000_ChannelDNA,GFP_Seq0000.ome.tiff` |
-| Corrected | `Plate_{plate}_Well_{well}_Site_{site}_Corr{channel}.tiff` | `Plate_Plate1_Well_A1_Site_1_CorrDNA.tiff` |
-| Illumination | `{plate}_Illum{channel}.npy` | `Plate1_IllumDNA.npy` |
-| Cycle | `Plate_{plate}_Well_{well}_Site_{site}_Cycle{cycle}_{channel}.tiff` | `Plate_Plate1_Well_A1_Site_1_Cycle01_A.tiff` |
+`FileName_<name>` and `FinalFileName_<name>` are always emitted; `Frame_<name>` is emitted only when the entry carries a `frame_index`. When `--include-illum-files` is set, a matching `FileName_Illum<name>` / `FinalFileName_Illum<name>` pair is added by looking up illumination `.npy` files collected from `--illum-dir` (these aren't part of `image_metadata` - they're still matched by scanning the directory and parsing `{plate}_Illum{channel}.npy` / `{plate}_Cycle{N}_Illum{channel}.npy` filenames).
 
 ### CSV Output Structures
 
-Different pipeline types produce different CSV structures:
-
-**Standard (Cell Painting)**:
+**Standard (Cell Painting, illumcalc/illumapply)**:
 
 |Metadata_Plate|Metadata_Well|Metadata_Site|FileName_OrigDNA          |Frame_OrigDNA|FileName_IllumDNA  |...|
 |--------------|-------------|-------------|--------------------------|-------------|-------------------|---|
 |Plate1        |A1           |1            |WellA1_Point_0000.ome.tiff|0            |Plate1_IllumDNA.npy|...|
 
-**With Cycles (Barcoding)**:
+**With Cycles (Barcoding, preprocess)**:
 
-|Metadata_Plate|Metadata_Well|Metadata_Site|Metadata_Cycle|FileName_Cycle01_OrigA|Frame_Cycle01_OrigA|...|
-|--------------|-------------|-------------|--------------|----------------------|-------------------|---|
-|Plate1        |A1           |1            |1             |filename.ome.tiff     |0                  |...|
+|Metadata_Plate|Metadata_Well|Metadata_Site|Metadata_Cycle|FileName_Cycle01_A|...|
+|--------------|-------------|-------------|--------------|------------------|---|
+|Plate1        |A1           |1            |1             |filename.tiff     |...|
 
 **Combined Analysis**:
 
@@ -190,19 +115,19 @@ Different pipeline types produce different CSV structures:
 
 The script:
 
-1. **Scans directories** for TIFF images matching expected patterns
-2. **Parses filenames** to extract metadata (plate, well, site, frame, channel, cycle)
-3. **Groups images** by metadata keys
-4. **Generates CSV** with proper CellProfiler column names
+1. **Loads and validates** the metadata JSON, cross-checking declared `cycles` against the cycles actually present in `image_metadata`
+2. **Joins and checks existence** of `images_dir + entry['filename']` directly for every entry - no directory glob, no filename regex, no substring search
+3. **Groups entries** by `(plate, well, site)`, optionally subsampling sites per well via `--range-skip`
+4. **Generates CSV rows** using the single column-naming rule above
 
 ### Error Handling
 
-The script validates:
+The script fails loudly (non-zero exit, descriptive `ValueError`) on:
 
-- File existence
-- Metadata completeness
-- Channel consistency
-- Frame/cycle ranges
+- A metadata JSON entry referencing a file that doesn't exist under `--images-dir`
+- Missing required per-entry fields (`well`, `site`, `arm`, `channel`, `column_prefix`, `filename`)
+- An `arm` or `column_prefix` value outside the allowed set
+- A mismatch between the declared top-level `cycles` and the cycles actually present in entries
 
 ## qc_barcode_align.py
 
@@ -254,62 +179,54 @@ qc_barcode_align.py \
 
 ## Development Guide
 
-### Adding New Pipeline Types
+### Adding a New CellProfiler Stage
 
-To support a new CellProfiler stage:
+Because every module already builds the same canonical metadata JSON, adding a new CellProfiler stage does **not** require touching `generate_load_data_csv.py` at all - the script has no per-stage branching left to extend. Instead:
 
-1. **Update `generate_load_data_csv.py`**:
-
-```python
-def generate_newtype_csv(images, channels, output):
-    rows = []
-    for img in images:
-        row = {
-            'Metadata_Plate': img.plate,
-            'Metadata_Well': img.well,
-            # ... additional metadata
-            f'FileName_{channel}': img.filename
-        }
-        rows.append(row)
-
-    df = pd.DataFrame(rows)
-    df.to_csv(output, index=False)
-```
-
-2. **Add to pipeline type switch**:
-
-```python
-if pipeline_type == 'newtype':
-    generate_newtype_csv(images, channels, output)
-```
-
-3. **Update process module**:
+1. **Build the metadata JSON in the new module's Groovy code**, using `expandImageChannels`/`buildLoadDataMetadata` from `subworkflows/local/utils_nfcore_nf-pooled-cellpainting_pipeline/main.nf` (or constructing the equivalent `{plate, batch, cycles, image_metadata}` shape by hand), choosing the right `column_prefix` (`""`/`"Orig"`/`"Corr"`) for whichever cppipe stage will read the resulting CSV.
+2. **Call the script unchanged** from the new module's `script:` block:
 
 ```groovy
 script:
+def metadata_json_content = groovy.json.JsonOutput.toJson(image_metas)
+def metadata_base64 = metadata_json_content.bytes.encodeBase64().toString()
 """
+echo '${metadata_base64}' | base64 -d > metadata.json
+
 generate_load_data_csv.py \
-    --pipeline_type newtype \
-    --channels ${meta.channels.join(',')} \
-    --output load_data.csv
+    --metadata-json metadata.json \
+    --images-dir ./images \
+    --output load_data.csv \
+    --cycle-metadata-name "${params.cycle_metadata_name}"
 """
 ```
 
+3. **Add a `modules/local/cellprofiler/<newstage>/tests/main.nf.test`** fixture using the same canonical schema as the other 5 modules' fixtures.
+
 ### Testing Scripts
 
-Test scripts in isolation:
+Test the script in isolation with a hand-built metadata JSON:
 
 ```bash
 # Create test data
 mkdir -p test_images
-touch test_images/P001_A01_1_0_DAPI.tif
-touch test_images/P001_A01_1_0_GFP.tif
+touch test_images/WellA1_Site0_DAPI.tiff
+touch test_images/WellA1_Site0_GFP.tiff
+
+cat > metadata.json <<'EOF'
+{
+  "plate": "Plate1",
+  "image_metadata": [
+    {"well": "A1", "site": 0, "arm": "painting", "channel": "DAPI", "column_prefix": "Orig", "filename": "WellA1_Site0_DAPI.tiff"},
+    {"well": "A1", "site": 0, "arm": "painting", "channel": "GFP", "column_prefix": "Orig", "filename": "WellA1_Site0_GFP.tiff"}
+  ]
+}
+EOF
 
 # Run script
 python bin/generate_load_data_csv.py \
-    --pipeline_type illumcalc \
-    --channels DAPI,GFP \
-    --frames 0 \
+    --metadata-json metadata.json \
+    --images-dir test_images \
     --output test_load_data.csv
 
 # Validate output

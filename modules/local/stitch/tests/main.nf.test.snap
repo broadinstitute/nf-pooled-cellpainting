@@ -1,0 +1,192 @@
+{
+    "stitch - painting - stub": {
+        "content": [
+            {
+                "0": [
+                    [
+                        {
+                            "batch": "Batch1",
+                            "plate": "Plate1",
+                            "arm": "painting",
+                            "well": "A1",
+                            "cycle": 1,
+                            "id": "Batch1_Plate1_painting_A1_Cycle1"
+                        },
+                        "Plate_Plate1_Well_A1_Site_1_Stitched_Cycle01_CorrDNA.tiff:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "1": [
+                    [
+                        {
+                            "batch": "Batch1",
+                            "plate": "Plate1",
+                            "arm": "painting",
+                            "well": "A1",
+                            "cycle": 1,
+                            "id": "Batch1_Plate1_painting_A1_Cycle1"
+                        },
+                        "TileConfiguration_Cycle01.txt:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "2": [
+                    [
+                        {
+                            "batch": "Batch1",
+                            "plate": "Plate1",
+                            "arm": "painting",
+                            "well": "A1",
+                            "cycle": 1,
+                            "id": "Batch1_Plate1_painting_A1_Cycle1"
+                        },
+                        "Plate_Plate1_Well_A1_Site_1_Stitched_Cycle01_CorrDNA.tiff:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "3": [
+                    "versions.yml:md5,d6226c193650159997dd90f0f111b1f9"
+                ],
+                "downsampled_images": [
+                    [
+                        {
+                            "batch": "Batch1",
+                            "plate": "Plate1",
+                            "arm": "painting",
+                            "well": "A1",
+                            "cycle": 1,
+                            "id": "Batch1_Plate1_painting_A1_Cycle1"
+                        },
+                        "Plate_Plate1_Well_A1_Site_1_Stitched_Cycle01_CorrDNA.tiff:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "stitched_images": [
+                    [
+                        {
+                            "batch": "Batch1",
+                            "plate": "Plate1",
+                            "arm": "painting",
+                            "well": "A1",
+                            "cycle": 1,
+                            "id": "Batch1_Plate1_painting_A1_Cycle1"
+                        },
+                        "Plate_Plate1_Well_A1_Site_1_Stitched_Cycle01_CorrDNA.tiff:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "tile_config": [
+                    [
+                        {
+                            "batch": "Batch1",
+                            "plate": "Plate1",
+                            "arm": "painting",
+                            "well": "A1",
+                            "cycle": 1,
+                            "id": "Batch1_Plate1_painting_A1_Cycle1"
+                        },
+                        "TileConfiguration_Cycle01.txt:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "versions": [
+                    "versions.yml:md5,d6226c193650159997dd90f0f111b1f9"
+                ]
+            }
+        ],
+        "meta": {
+            "nf-test": "0.9.3",
+            "nextflow": "25.10.2"
+        },
+        "timestamp": "2026-08-13T13:06:01.306577"
+    },
+    "stitch - barcoding - stub": {
+        "content": [
+            {
+                "0": [
+                    [
+                        {
+                            "batch": "Batch1",
+                            "plate": "Plate1",
+                            "arm": "barcoding",
+                            "well": "A1",
+                            "cycle": 1,
+                            "id": "Batch1_Plate1_barcoding_A1_Cycle1"
+                        },
+                        "Plate_Plate1_Well_A1_Site_1_Stitched_Cycle01_DNA.tiff:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "1": [
+                    [
+                        {
+                            "batch": "Batch1",
+                            "plate": "Plate1",
+                            "arm": "barcoding",
+                            "well": "A1",
+                            "cycle": 1,
+                            "id": "Batch1_Plate1_barcoding_A1_Cycle1"
+                        },
+                        "TileConfiguration_Cycle01.txt:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "2": [
+                    [
+                        {
+                            "batch": "Batch1",
+                            "plate": "Plate1",
+                            "arm": "barcoding",
+                            "well": "A1",
+                            "cycle": 1,
+                            "id": "Batch1_Plate1_barcoding_A1_Cycle1"
+                        },
+                        "Plate_Plate1_Well_A1_Site_1_Stitched_Cycle01_DNA.tiff:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "3": [
+                    "versions.yml:md5,d6226c193650159997dd90f0f111b1f9"
+                ],
+                "downsampled_images": [
+                    [
+                        {
+                            "batch": "Batch1",
+                            "plate": "Plate1",
+                            "arm": "barcoding",
+                            "well": "A1",
+                            "cycle": 1,
+                            "id": "Batch1_Plate1_barcoding_A1_Cycle1"
+                        },
+                        "Plate_Plate1_Well_A1_Site_1_Stitched_Cycle01_DNA.tiff:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "stitched_images": [
+                    [
+                        {
+                            "batch": "Batch1",
+                            "plate": "Plate1",
+                            "arm": "barcoding",
+                            "well": "A1",
+                            "cycle": 1,
+                            "id": "Batch1_Plate1_barcoding_A1_Cycle1"
+                        },
+                        "Plate_Plate1_Well_A1_Site_1_Stitched_Cycle01_DNA.tiff:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "tile_config": [
+                    [
+                        {
+                            "batch": "Batch1",
+                            "plate": "Plate1",
+                            "arm": "barcoding",
+                            "well": "A1",
+                            "cycle": 1,
+                            "id": "Batch1_Plate1_barcoding_A1_Cycle1"
+                        },
+                        "TileConfiguration_Cycle01.txt:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "versions": [
+                    "versions.yml:md5,d6226c193650159997dd90f0f111b1f9"
+                ]
+            }
+        ],
+        "meta": {
+            "nf-test": "0.9.3",
+            "nextflow": "25.10.2"
+        },
+        "timestamp": "2026-08-13T13:06:11.548682"
+    }
+}

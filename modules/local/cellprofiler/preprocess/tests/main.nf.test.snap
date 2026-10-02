@@ -29,14 +29,7 @@
                             "well": "A1",
                             "arm": "barcoding"
                         },
-                        [
-                            "BarcodePreprocessing_AllFoci.csv:md5,d41d8cd98f00b204e9800998ecf8427e",
-                            "BarcodePreprocessing_BarcodeFoci.csv:md5,d41d8cd98f00b204e9800998ecf8427e",
-                            "BarcodePreprocessing_Experiment.csv:md5,d41d8cd98f00b204e9800998ecf8427e",
-                            "BarcodePreprocessing_Foci.csv:md5,d41d8cd98f00b204e9800998ecf8427e",
-                            "BarcodePreprocessing_Image.csv:md5,d41d8cd98f00b204e9800998ecf8427e",
-                            "BarcodePreprocessing_Nuclei.csv:md5,d41d8cd98f00b204e9800998ecf8427e"
-                        ]
+                        "Batch1_Plate1_barcoding_A1_FociObjects.tiff:md5,d41d8cd98f00b204e9800998ecf8427e"
                     ]
                 ],
                 "3": [
@@ -48,11 +41,42 @@
                             "well": "A1",
                             "arm": "barcoding"
                         },
-                        "load_data.csv:md5,d41d8cd98f00b204e9800998ecf8427e"
+                        [
+                            "BarcodePreprocessing_AllFoci.csv:md5,d41d8cd98f00b204e9800998ecf8427e",
+                            "BarcodePreprocessing_BarcodeFoci.csv:md5,d41d8cd98f00b204e9800998ecf8427e",
+                            "BarcodePreprocessing_Experiment.csv:md5,d41d8cd98f00b204e9800998ecf8427e",
+                            "BarcodePreprocessing_Foci.csv:md5,d41d8cd98f00b204e9800998ecf8427e",
+                            "BarcodePreprocessing_Image.csv:md5,d41d8cd98f00b204e9800998ecf8427e",
+                            "BarcodePreprocessing_Nuclei.csv:md5,d41d8cd98f00b204e9800998ecf8427e"
+                        ]
                     ]
                 ],
                 "4": [
+                    [
+                        {
+                            "id": "Batch1_Plate1_barcoding_A1",
+                            "batch": "Batch1",
+                            "plate": "Plate1",
+                            "well": "A1",
+                            "arm": "barcoding"
+                        },
+                        "load_data.csv:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "5": [
                     "versions.yml:md5,f4b0463411335dba45560870b62c868c"
+                ],
+                "foci_objects": [
+                    [
+                        {
+                            "id": "Batch1_Plate1_barcoding_A1",
+                            "batch": "Batch1",
+                            "plate": "Plate1",
+                            "well": "A1",
+                            "arm": "barcoding"
+                        },
+                        "Batch1_Plate1_barcoding_A1_FociObjects.tiff:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
                 ],
                 "load_data_csv": [
                     [
@@ -112,7 +136,7 @@
             "nf-test": "0.9.3",
             "nextflow": "25.10.2"
         },
-        "timestamp": "2026-07-24T20:23:11.496859743"
+        "timestamp": "2026-09-16T14:09:31.565424"
     },
     "cellprofiler - preprocess - barcoding": {
         "content": [
@@ -146,17 +170,17 @@
                 "Plate_Plate1_Well_A1_Site_0_StDev_Overlay.tiff:md5,2269c3ac3a740a9dea8799859f363a87"
             ],
             [
-                "BarcodePreprocessing_AllFoci.csv:md5,3818e0b6b37cb6d093a897714b7ed355",
-                "BarcodePreprocessing_Nuclei.csv:md5,939220babec985ae55740ce6ea423d17"
+                "BarcodePreprocessing_AllFoci.csv:md5,e9313d4df54a3faafb2cc2a19b64ca46",
+                "BarcodePreprocessing_Nuclei.csv:md5,6e05dd476e22913b89c788870c93449c"
             ],
             [
                 "versions.yml:md5,f4b0463411335dba45560870b62c868c"
             ]
         ],
         "meta": {
-            "nf-test": "0.9.3",
-            "nextflow": "25.10.0"
+            "nf-test": "0.9.2",
+            "nextflow": "25.10.4"
         },
-        "timestamp": "2025-11-11T19:15:25.087748819"
+        "timestamp": "2026-09-01T20:09:44.843322"
     }
 }

@@ -18,25 +18,24 @@ results/
 ├── images/
 │   └── {batch}/
 │       ├── illum/                          # Illumination functions
-│       ├── images_corrected/               # Illumination-corrected images
-│       ├── images_aligned/                 # Aligned barcoding images
+│       ├── images_corrected/               # Illumination-corrected images (default, NO_STITCH)
+│       ├── images_aligned/                 # Aligned barcoding images (default, NO_STITCH)
+│       ├── images_aligned_intraarm/        # Cross-cycle aligned images (STITCH_ALIGN_CROP only)
+│       ├── images_aligned_combined/        # Cross-arm aligned images (STITCH_ALIGN_CROP only)
+│       ├── images_preprocessed/            # Preprocessed barcoding images (STITCH_ALIGN_CROP only)
 │       ├── images_segmentation/            # Segmentation check outputs
 │       ├── images_corrected_stitched/      # Stitched images (full resolution)
 │       ├── images_corrected_cropped/       # Cropped images
 │       └── images_corrected_stitched_10X/  # 10X downsampled stitched images
 ├── workspace/
 │   ├── analysis/                           # Combined analysis outputs
-│   └── qc_reports/                         # Quality control reports
-│       ├── 1_illumination_painting/
-│       ├── 3_segmentation/
-│       ├── 4_stitching_painting/
-│       ├── 5_illumination_barcoding/
-│       ├── 6_alignment/
-│       ├── 7_preprocessing/
-│       └── 8_stitching_barcoding/
+│   └── qc_reports/                         # Quality control reports - numbering
+│                                            # differs by entrypoint, see below
 ├── multiqc/                                # MultiQC summary reports
 └── pipeline_info/                          # Nextflow execution reports and metadata
 ```
+
+**Note**: the default and `NO_STITCH` entrypoints share one `qc_reports` numbering scheme; `STITCH_ALIGN_CROP` uses a different one (its stitch/align/crop steps happen in a different order relative to preprocessing/segmentation). See [Quality Control Outputs](#quality-control-outputs) below for the full, per-entrypoint mapping.
 
 ## Cell Painting Outputs
 
@@ -118,11 +117,11 @@ results/images/Batch1/images_corrected/painting/Plate1/Plate1-A1-1/
 
 ### Preprocessed Images
 
-**Location**: `results/images/{batch}/images_corrected/barcoding/{plate}/{plate}-{well}-{site}/`
+**Location**: `results/images/{batch}/images_corrected/barcoding/{plate}/{plate}-{well}-{site}/` (default, `NO_STITCH`) or `results/images/{batch}/images_preprocessed/barcoding/{plate}/{plate}-{well}-{site}/` (`STITCH_ALIGN_CROP` - this entrypoint preprocesses after stitch/align/crop, so it's kept under its own folder name rather than `images_corrected`)
 
-**Files**: `Plate_{plate}_Well_{well}_Site_{site}_Cycle{cycle}_{channel}.tiff`
+**Files**: `Plate_{plate}_Well_{well}_Site_{site}_Cycle{cycle}_{channel}.tiff`, plus an optional `..._FociObjects.tiff` (a per-site Foci object/label image, produced only if the barcoding preprocessing pipeline includes a module that saves it; `STITCH_ALIGN_CROP` only)
 
-**Description**: Barcode-called and color-compensated images, ready for stitching and combined analysis.
+**Description**: Barcode-called and color-compensated images, ready for stitching and combined analysis. In `STITCH_ALIGN_CROP`, the optional `FociObjects.tiff` is also made available to combined analysis (see below).
 
 ### Stitched Images
 
@@ -212,20 +211,40 @@ Pipeline metadata and run parameters.
 
 ## Quality Control Outputs
 
-QC reports are numbered to reflect the pipeline execution order, making it easy to review them sequentially.
+QC reports are numbered to reflect the pipeline execution order, making it easy to review them sequentially. **The numbering differs by entrypoint** - the default and `NO_STITCH` entrypoints share one scheme, while `STITCH_ALIGN_CROP` uses a different one (alignment happens after stitching there, and preprocessing/segmentation happen much later, after crop).
 
 **Location**: `results/workspace/qc_reports/`
+
+### Default and `NO_STITCH` entrypoints
+
+| Directory | Description | Files | Entrypoints |
+|-----------|-------------|-------|-------------|
+| `1_illumination_painting/` | Painting illumination correction montages | `*.png` montages | default, `NO_STITCH`, `STITCH_ALIGN_CROP` |
+| `2_alignment/` | Alignment for multicycle painting | `*.html`, `*.ipynb` | default, `NO_STITCH` |
+| `3_segmentation/` | Segmentation QC with overlays | `*.png` montages | default, `NO_STITCH` |
+| `4_stitching_painting/` | Painting stitching QC | `*.png` montages | default only |
+| `5_illumination_barcoding/` | Barcoding illumination correction montages | `*.png` montages | default, `NO_STITCH`, `STITCH_ALIGN_CROP` |
+| `6_alignment/` | Barcode alignment reports | `*.html`, `*.ipynb`, `*.png` | default, `NO_STITCH` |
+| `7_preprocessing/` | Barcoding preprocessing QC | `*.html`, `*.ipynb`, `*.png` | default, `NO_STITCH` |
+| `8_stitching_barcoding/` | Barcoding stitching QC | `*.png` montages | default only |
+
+### `STITCH_ALIGN_CROP` entrypoint
+
+Stitching/alignment happen immediately after illumination correction here (before segmentation/preprocessing, which run later on cropped tiles), so this entrypoint numbers its `qc_reports` subfolders differently:
 
 | Directory | Description | Files |
 |-----------|-------------|-------|
 | `1_illumination_painting/` | Painting illumination correction montages | `*.png` montages |
-| `2_alignment_painting/` | Alignment for multicycle painting | `*.html`, `*.ipynb` |
-| `3_segmentation/` | Segmentation QC with overlays | `*.png` montages |
-| `4_stitching_painting/` | Painting stitching QC | `*.png` montages |
+| `2_illum_apply_painting/` | Duplicate-image check on illumination-applied painting images | `*.txt` |
+| `3_stitching_painting/` | Painting stitching QC | `*.png` montages |
+| `4_alignment/painting/` | Cross-cycle alignment QC (painting, per well) | `*.png`, `*.csv` |
 | `5_illumination_barcoding/` | Barcoding illumination correction montages | `*.png` montages |
-| `6_alignment/` | Barcode alignment reports | `*.html`, `*.ipynb`, `*.png` |
-| `7_preprocessing/` | Barcoding preprocessing QC | `*.html`, `*.ipynb`, `*.png` |
-| `8_stitching_barcoding/` | Barcoding stitching QC | `*.png` montages |
+| `6_illum_apply_barcoding/` | Duplicate-image check on illumination-applied barcoding images | `*.txt` |
+| `7_stitching_barcoding/` | Barcoding stitching QC | `*.png` montages |
+| `8_alignment/barcoding/` | Cross-cycle alignment QC (barcoding, per well) | `*.png`, `*.csv` |
+| `9_alignment/combined/` | Cross-arm (painting-to-barcoding) alignment QC, per well | `*.png`, `*.csv` |
+| `11_segmentation/` | Segmentation QC with overlays (post-crop) | `*.png` montages |
+| `13_preprocessing/` | Barcoding preprocessing QC (post-crop) + duplicate-image check | `*.html`, `*.ipynb`, `*.png`, `*.txt` |
 
 ## MultiQC Reports
 
