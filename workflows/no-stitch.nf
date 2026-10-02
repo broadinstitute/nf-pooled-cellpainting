@@ -94,6 +94,8 @@ workflow NO_STITCH_POOLED_CELLPAINTING {
         params.outdir,
         params.acquisition_geometry_rows,
         params.acquisition_geometry_columns,
+        params.distributeillum,
+        params.skipillum,
     )
     ch_versions = ch_versions.mix(CELLPAINTING_NO_STITCH.out.versions)
 
@@ -116,6 +118,8 @@ workflow NO_STITCH_POOLED_CELLPAINTING {
         params.compensatecolors_plugin_default,
         params.update_cellprofiler_plugins,
         params.cellprofiler_plugins_repo,
+        params.distributeillum,
+        params.skipillum,
     )
     ch_versions = ch_versions.mix(BARCODING_NO_STITCH.out.versions)
 

@@ -68,6 +68,13 @@ workflow PIPELINE_INITIALISATION {
     )
 
     //
+    // Validate illumination-correction flags
+    //
+    if (params.distributeillum && params.skipillum) {
+        error("--distributeillum and --skipillum cannot be used together.")
+    }
+
+    //
     // Create channel from input file provided through params.input
     //
 

@@ -80,6 +80,40 @@ Located in `modules/local/cellprofiler/combinedanalysis/main.nf`. Executes when 
 - Segmentation masks (TIFF)
 - Consolidated `load_data.csv` for all samples
 
+### Illumination Correction Options
+
+Two mutually exclusive flags change how the Phase 1 `ILLUMCALC` step (in both the
+Cell Painting and Barcoding subworkflows) is executed. Both apply uniformly across
+every pipeline entrypoint (default, `NO_STITCH`, `STITCH_ALIGN_CROP`) and both arms.
+With neither flag set, behavior is unchanged from the tables above.
+
+**`--distributeillum`**: splits `ILLUMCALC` into one job per well instead of one job
+per plate (painting: `[batch, plate, well]`; barcoding:
+`[batch, plate, well, cycle]`) - smaller, more parallelizable CellProfiler jobs. A
+new `ILLUM_MEANILLUM` step (`modules/local/illum/meanillum/main.nf`) then averages
+the per-well `.npy` illumination functions back into a single mean function per
+plate (or per plate+cycle for barcoding), which is used downstream exactly like a
+normal per-plate `ILLUMCALC` output. `ILLUMAPPLY` and everything after it is
+unaffected. Note: illumination is computed independently for each well with no
+fallback for wells with too few images to produce a reliable illumination
+function - per-well image count is the user's responsibility.
+
+**`--skipillum`**: skips `ILLUMCALC` entirely and reads precomputed `.npy`
+illumination files from a directory supplied via the samplesheet's `illum_path`
+column (see [samplesheet_dependencies.md](samplesheet_dependencies.md)), one
+directory per plate containing every precomputed `.npy` file for that plate/arm.
+
+### `ONLYILLUM` Entrypoint (`-entry ONLYILLUM`)
+
+A fourth top-level workflow (`workflows/only-illum.nf`, minimal subworkflows
+`CELLPAINTING_ONLY_ILLUM`/`BARCODING_ONLY_ILLUM`) that runs only Phase 1
+(`ILLUMCALC` + its QC montage and duplicate-image check) for both arms, then stops -
+no `ILLUMAPPLY`, segmentation/preprocessing, stitching, or combined analysis.
+Defaults to per-plate `ILLUMCALC` like the tables above; pass `--distributeillum` to
+compute it per well and average instead (same behavior as described above).
+`--skipillum` is rejected for this entrypoint, since skipping the only step it runs
+would do nothing.
+
 ### MultiQC Report (Conditional)
 
 Located in `modules/nf-core/multiqc/main.nf`. Executes when both `qc_painting_passed` and `qc_barcoding_passed` are `true`.

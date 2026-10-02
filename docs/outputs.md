@@ -219,11 +219,11 @@ QC reports are numbered to reflect the pipeline execution order, making it easy 
 
 | Directory | Description | Files | Entrypoints |
 |-----------|-------------|-------|-------------|
-| `1_illumination_painting/` | Painting illumination correction montages | `*.png` montages | default, `NO_STITCH`, `STITCH_ALIGN_CROP` |
+| `1_illumination_painting/` | Painting illumination correction montages | `*.png` montages | default, `NO_STITCH`, `STITCH_ALIGN_CROP`, `ONLYILLUM` |
 | `2_alignment/` | Alignment for multicycle painting | `*.html`, `*.ipynb` | default, `NO_STITCH` |
 | `3_segmentation/` | Segmentation QC with overlays | `*.png` montages | default, `NO_STITCH` |
 | `4_stitching_painting/` | Painting stitching QC | `*.png` montages | default only |
-| `5_illumination_barcoding/` | Barcoding illumination correction montages | `*.png` montages | default, `NO_STITCH`, `STITCH_ALIGN_CROP` |
+| `5_illumination_barcoding/` | Barcoding illumination correction montages | `*.png` montages | default, `NO_STITCH`, `STITCH_ALIGN_CROP`, `ONLYILLUM` |
 | `6_alignment/` | Barcode alignment reports | `*.html`, `*.ipynb`, `*.png` | default, `NO_STITCH` |
 | `7_preprocessing/` | Barcoding preprocessing QC | `*.html`, `*.ipynb`, `*.png` | default, `NO_STITCH` |
 | `8_stitching_barcoding/` | Barcoding stitching QC | `*.png` montages | default only |
