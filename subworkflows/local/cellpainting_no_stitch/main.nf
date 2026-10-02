@@ -4,6 +4,7 @@
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
 include { CELLPROFILER_ILLUMCALC } from '../../../modules/local/cellprofiler/illumcalc'
+include { ILLUM_MEANILLUM } from '../../../modules/local/illum/meanillum'
 include { QC_MONTAGEILLUM as QC_MONTAGEILLUM_PAINTING } from '../../../modules/local/qc/montageillum'
 include { QC_MONTAGEILLUM as QC_MONTAGE_ALIGNFAIL_PAINTING } from '../../../modules/local/qc/montageillum'
 include { QC_MONTAGEILLUM as QC_MONTAGE_SEGCHECK } from '../../../modules/local/qc/montageillum'
@@ -25,19 +26,24 @@ workflow CELLPAINTING_NO_STITCH {
     outdir
     acquisition_geometry_rows
     acquisition_geometry_columns
+    distributeillum
+    skipillum
 
     main:
     ch_versions = channel.empty()
 
     //// Calculate illumination correction profiles ////
 
-    // Group images by batch and plate for illumination calculation
+    // Group images by batch and plate for illumination calculation - or by
+    // batch, plate and well when --distributeillum splits illumcalc into
+    // smaller, per-well jobs (averaged back into a per-plate illum below).
     // Keep metadata for each image to generate load_data.csv
     ch_illumcalc_input = ch_samplesheet_cp
         .map { meta, image ->
 
-            def group_id = "${meta.batch}_${meta.plate}"
-            def group_key = meta.subMap(['batch', 'plate']) + [id: group_id]
+            def group_fields = distributeillum ? ['batch', 'plate', 'well'] : ['batch', 'plate']
+            def group_id = distributeillum ? "${meta.batch}_${meta.plate}_${meta.well}" : "${meta.batch}_${meta.plate}"
+            def group_key = meta.subMap(group_fields) + [id: group_id]
 
             // One metadata entry per (file, channel) pair - see expandImageChannels().
             // illumcalc's cppipe selects input images named Orig{channel}.
@@ -58,31 +64,65 @@ workflow CELLPAINTING_NO_STITCH {
             [meta, all_channels, null, images_list, buildLoadDataMetadata(meta, image_metas), staged_names]
         }
 
-    // Calculate illumination correction profiles
-    CELLPROFILER_ILLUMCALC(
-        ch_illumcalc_input,
-        painting_illumcalc_cppipe,
-        false,
-    )
-    // Merge load_data CSVs per plate
-    CELLPROFILER_ILLUMCALC.out.load_data_csv.collectFile(keepHeader: true, skip: 1) { meta, csv ->
-        def dir = file("${outdir}/workspace/load_data_csv/${meta.batch}/${meta.plate}")
-        dir.mkdirs()
-        [
-            "${dir}/painting-illumcalc.load_data.csv",
-            csv.text.replaceFirst(/(?m)^(.*)$/) { line ->
-                line[0]
-                    .replace('FinalFileName_', '__FINAL__')
-                    .replace('FileName_', 'StagedFileName_')
-                    .replace('__FINAL__', 'FileName_')
-            },
-        ]
+    if (skipillum) {
+        // Skip illumination calculation entirely - read precomputed .npy files
+        // from the directory each plate's samplesheet illum_path column points at.
+        ch_illumination_corrections = ch_samplesheet_cp
+            .map { meta, _image ->
+                if (!meta.illum_path) {
+                    error("--skipillum requires an illum_path in the samplesheet for plate ${meta.batch}/${meta.plate}")
+                }
+                [meta.subMap(['batch', 'plate']), meta.illum_path]
+            }
+            .unique()
+            .map { plate_key, illum_path -> [plate_key, files("${illum_path}/*.npy")] }
+    }
+    else {
+        // Calculate illumination correction profiles
+        CELLPROFILER_ILLUMCALC(
+            ch_illumcalc_input,
+            painting_illumcalc_cppipe,
+            false,
+        )
+        // Merge load_data CSVs per plate
+        CELLPROFILER_ILLUMCALC.out.load_data_csv.collectFile(keepHeader: true, skip: 1) { meta, csv ->
+            def dir = file("${outdir}/workspace/load_data_csv/${meta.batch}/${meta.plate}")
+            dir.mkdirs()
+            [
+                "${dir}/painting-illumcalc.load_data.csv",
+                csv.text.replaceFirst(/(?m)^(.*)$/) { line ->
+                    line[0]
+                        .replace('FinalFileName_', '__FINAL__')
+                        .replace('FileName_', 'StagedFileName_')
+                        .replace('__FINAL__', 'FileName_')
+                },
+            ]
+        }
+
+        ch_versions = ch_versions.mix(CELLPROFILER_ILLUMCALC.out.versions)
+
+        if (distributeillum) {
+            // Average the per-well illum functions into a single mean function,
+            // used downstream exactly like a normal per-plate illumcalc output.
+            ch_meanillum_input = CELLPROFILER_ILLUMCALC.out.illumination_corrections
+                .map { meta, npy_files ->
+                    def plate_key = meta.subMap(['batch', 'plate'])
+                    [plate_key + [id: "${plate_key.batch}_${plate_key.plate}"], npy_files]
+                }
+                .groupTuple()
+                .map { meta, npy_files_list -> [meta, npy_files_list.flatten().sort { it -> it.name }] }
+
+            ILLUM_MEANILLUM(ch_meanillum_input)
+            ch_versions = ch_versions.mix(ILLUM_MEANILLUM.out.versions)
+            ch_illumination_corrections = ILLUM_MEANILLUM.out.illumination_corrections
+        }
+        else {
+            ch_illumination_corrections = CELLPROFILER_ILLUMCALC.out.illumination_corrections
+        }
     }
 
-    ch_versions = ch_versions.mix(CELLPROFILER_ILLUMCALC.out.versions)
-
     //// QC illumination correction profiles ////
-    ch_illumination_corrections_qc = CELLPROFILER_ILLUMCALC.out.illumination_corrections
+    ch_illumination_corrections_qc = ch_illumination_corrections
         .map { meta, npy_files ->
             def npy_meta = meta.subMap(['batch', 'plate']) + [arm: "painting"]
             [npy_meta, npy_files]
@@ -137,7 +177,7 @@ workflow CELLPAINTING_NO_STITCH {
 
     // Group npy files by batch and plate
     // All wells in a plate share the same illumination correction files
-    ch_npy_by_plate = CELLPROFILER_ILLUMCALC.out.illumination_corrections
+    ch_npy_by_plate = ch_illumination_corrections
         .map { meta, npy_files ->
             def group_key = [
                 batch: meta.batch,

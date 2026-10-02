@@ -60,6 +60,12 @@
                 "minimum": 1,
                 "errorMessage": "Number of frames must be a positive integer",
                 "meta": ["n_frames"]
+            },
+            "illum_path": {
+                "type": "string",
+                "format": "directory-path",
+                "errorMessage": "illum_path must be a directory path",
+                "meta": ["illum_path"]
             }
         },
         "required": ["path", "arm", "batch", "plate", "well", "site", "cycle", "channels"]

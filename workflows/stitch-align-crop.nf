@@ -98,6 +98,8 @@ workflow STITCH_ALIGN_CROP_POOLED_CELLPAINTING {
         params.painting_illumcalc_cppipe,
         params.painting_illumapply_cppipe,
         params.outdir,
+        params.distributeillum,
+        params.skipillum,
     )
     ch_versions = ch_versions.mix(CELLPAINTING_PRE_STITCH.out.versions)
 
@@ -107,6 +109,8 @@ workflow STITCH_ALIGN_CROP_POOLED_CELLPAINTING {
         params.barcoding_illumapply_cppipe,
         params.outdir,
         params.barcoding_illumapply_grouping,
+        params.distributeillum,
+        params.skipillum,
     )
     ch_versions = ch_versions.mix(BARCODING_PRE_STITCH.out.versions)
 

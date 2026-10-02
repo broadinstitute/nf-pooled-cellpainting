@@ -18,6 +18,12 @@ The samplesheet is the single source of truth for experimental metadata. The pip
 | `arm`      | `painting` or `barcoding`         | Determines which subworkflow processes the image.                                                                        |
 | `cycle`    | Imaging round number (both arms)  | **CRITICAL** for barcoding: drives cycle grouping and `Cycle{NN}_` column naming. For painting/phenotyping: the real per-round imaging cycle (use `1` for single-round data) - used only for stitching/cross-round alignment, never for illumination-correction column naming, since phenotyping rounds already use distinct channel names (e.g. `DNA` vs `DNA2`). |
 
+### Optional Columns
+
+| Column       | Description                                              | Critical Dependency                                                                                                                                                                    |
+| :----------- | :-------------------------------------------------------- | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `illum_path` | Directory of precomputed illumination `.npy` files | Only consulted when `--skipillum` is set (see [architecture.md](architecture.md#illumination-correction-options)). One directory per plate, containing every `.npy` file for that plate/arm; repeat the same value on every row of that plate. Ignored otherwise. |
+
 ### Metadata Flow
 
 1.  **Ingestion**: The samplesheet is read by `main.nf`.
