@@ -17,10 +17,11 @@ A file that fails to load is treated as a hard failure too, not skipped: an
 output image a CellProfiler module claims to have produced that can't be
 read is exactly as suspicious as a duplicate would be.
 
-Blank frames (all-black or all-white images) are excluded from comparison:
-some channels/sites legitimately produce a uniform blank image, and two
-blank images matching each other is not the staging/matching bug this
-check is meant to catch.
+Blank frames (all-black or all-white images, allowing a handful of stray
+hot/dead sensor pixels) are excluded from comparison: some channels/sites
+legitimately produce a near-uniform blank image, and two blank images
+matching each other is not the staging/matching bug this check is meant
+to catch.
 
 Usage:
     check_duplicate_images.py <images_dir> [--report report.txt]
@@ -44,18 +45,23 @@ def load_array(file_path: Path) -> np.ndarray:
     return np.array(Image.open(file_path))
 
 
+MAX_BLANK_OUTLIER_FRACTION = 0.0001
+
+
 def is_blank(arr: np.ndarray) -> bool:
-    """True if arr is uniformly all-black (0) or all-white (the dtype's max value)."""
-    value = arr.flat[0]
-    if not np.all(arr == value):
-        return False
-    if value == 0:
+    """True if arr is all-black (0) or all-white (the dtype's max value), allowing
+    up to MAX_BLANK_OUTLIER_FRACTION of pixels to be stray outliers (e.g. hot/dead
+    sensor pixels) that don't match the background value."""
+    max_outliers = arr.size * MAX_BLANK_OUTLIER_FRACTION
+    if np.count_nonzero(arr != 0) <= max_outliers:
         return True
     if np.issubdtype(arr.dtype, np.integer):
-        return value == np.iinfo(arr.dtype).max
-    if np.issubdtype(arr.dtype, np.floating):
-        return value == 1.0
-    return False
+        white = np.iinfo(arr.dtype).max
+    elif np.issubdtype(arr.dtype, np.floating):
+        white = 1.0
+    else:
+        return False
+    return np.count_nonzero(arr != white) <= max_outliers
 
 
 def check_duplicates(images_dir: Path) -> Tuple[bool, List[str]]:
