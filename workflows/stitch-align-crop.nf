@@ -166,7 +166,7 @@ workflow STITCH_ALIGN_CROP_POOLED_CELLPAINTING {
                     frame_index  : null,
                     column_prefix: '',
                     filename     : img.name,
-                    original_path: "${params.outdir}/images/${meta.batch}/images_corrected_cropped/${meta.arm}/${meta.plate}/${meta.plate}-${meta.well}/${img.name}",
+                    original_path: "${params.outdir}/images/${meta.batch}/images_aligned_cropped/${meta.arm}/${meta.plate}/${meta.plate}-${meta.well}/${img.name}",
                 ]
             }
             [well_key, meta.site, images, image_metas]
@@ -236,7 +236,7 @@ workflow STITCH_ALIGN_CROP_POOLED_CELLPAINTING {
                     frame_index  : null,
                     column_prefix: '',
                     filename     : img.name,
-                    original_path: "${params.outdir}/images/${meta.batch}/images_corrected_cropped/${meta.arm}/${meta.plate}/${meta.plate}-${meta.well}/${img.name}",
+                    original_path: "${params.outdir}/images/${meta.batch}/images_aligned_cropped/${meta.arm}/${meta.plate}/${meta.plate}-${meta.well}/${img.name}",
                 ]
             }
             [meta, images, buildLoadDataMetadata(meta, image_metas)]
@@ -391,7 +391,7 @@ workflow STITCH_ALIGN_CROP_POOLED_CELLPAINTING {
                         frame_index  : null,
                         column_prefix: '',
                         filename     : img.name,
-                        original_path: "${params.outdir}/images/${common_meta.batch}/images_corrected_cropped/${arm}/${common_meta.plate}/${common_meta.plate}-${common_meta.well}/${img.name}",
+                        original_path: "${params.outdir}/images/${common_meta.batch}/images_aligned_cropped/${arm}/${common_meta.plate}/${common_meta.plate}-${common_meta.well}/${img.name}",
                     ]
 
                     // Add channel and cycle information based on arm_source

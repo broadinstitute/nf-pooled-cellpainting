@@ -25,7 +25,8 @@ results/
 │       ├── images_preprocessed/            # Preprocessed barcoding images (STITCH_ALIGN_CROP only)
 │       ├── images_segmentation/            # Segmentation check outputs
 │       ├── images_corrected_stitched/      # Stitched images (full resolution)
-│       ├── images_corrected_cropped/       # Cropped images
+│       ├── images_corrected_cropped/       # Cropped images (default, NO_STITCH)
+│       ├── images_aligned_cropped/         # Cropped images (STITCH_ALIGN_CROP only)
 │       └── images_corrected_stitched_10X/  # 10X downsampled stitched images
 ├── workspace/
 │   ├── analysis/                           # Combined analysis outputs
@@ -91,7 +92,7 @@ results/images/Batch1/images_corrected/painting/Plate1/Plate1-A1-1/
 
 ### Cropped Images
 
-**Location**: `results/images/{batch}/images_corrected_cropped/painting/{plate}/{plate}-{well}/`
+**Location**: `results/images/{batch}/images_corrected_cropped/painting/{plate}/{plate}-{well}/` (default, `NO_STITCH`) or `results/images/{batch}/images_aligned_cropped/painting/{plate}/{plate}-{well}/` (`STITCH_ALIGN_CROP` - by this point the images have gone through cross-cycle/cross-arm alignment, not just illumination correction)
 
 **Files**: `*.tiff`
 
@@ -133,7 +134,7 @@ results/images/Batch1/images_corrected/painting/Plate1/Plate1-A1-1/
 
 ### Cropped Images
 
-**Location**: `results/images/{batch}/images_corrected_cropped/barcoding/{plate}/{plate}-{well}/`
+**Location**: `results/images/{batch}/images_corrected_cropped/barcoding/{plate}/{plate}-{well}/` (default, `NO_STITCH`) or `results/images/{batch}/images_aligned_cropped/barcoding/{plate}/{plate}-{well}/` (`STITCH_ALIGN_CROP`)
 
 **Files**: `*.tiff`
 
