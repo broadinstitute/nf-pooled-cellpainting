@@ -8,7 +8,7 @@ include { BARCODING_PRE_STITCH } from '../subworkflows/local/barcoding_pre_stitc
 include { STITCH_ALIGN_CROP_JOINT } from '../subworkflows/local/stitch_align_crop'
 include { CELLPROFILER_SEGCHECK } from '../modules/local/cellprofiler/segcheck'
 include { CELLPROFILER_PREPROCESS as CELLPROFILER_PREPROCESS_STITCHALIGNCROP } from '../modules/local/cellprofiler/preprocess'
-include { CELLPROFILER_COMBINEDANALYSIS } from '../modules/local/cellprofiler/combinedanalysis/main'
+include { CELLPROFILER_COMBINEDANALYSIS as CELLPROFILER_COMBINEDANALYSIS_STITCHALIGNCROP } from '../modules/local/cellprofiler/combinedanalysis/main'
 include { CELLPROFILER_PLUGINS_UPDATE } from '../modules/local/cellprofiler_plugins/update'
 include { QC_MONTAGEILLUM as QC_MONTAGE_SEGCHECK_STITCHALIGNCROP } from '../modules/local/qc/montageillum'
 include { QC_PREPROCESS as QC_PREPROCESS_STITCHALIGNCROP } from '../modules/local/qc/preprocess'
@@ -450,16 +450,16 @@ workflow STITCH_ALIGN_CROP_POOLED_CELLPAINTING {
             }
             .set { ch_cropped_images }
 
-        CELLPROFILER_COMBINEDANALYSIS(
+        CELLPROFILER_COMBINEDANALYSIS_STITCHALIGNCROP(
             ch_cropped_images,
             params.combinedanalysis_cppipe,
             barcodes,
             ch_cellprofiler_plugins,
         )
-        ch_versions = ch_versions.mix(CELLPROFILER_COMBINEDANALYSIS.out.versions)
+        ch_versions = ch_versions.mix(CELLPROFILER_COMBINEDANALYSIS_STITCHALIGNCROP.out.versions)
 
         // Merge load_data CSVs per plate
-        CELLPROFILER_COMBINEDANALYSIS.out.load_data_csv.collectFile(keepHeader: true, skip: 1) { meta, csv ->
+        CELLPROFILER_COMBINEDANALYSIS_STITCHALIGNCROP.out.load_data_csv.collectFile(keepHeader: true, skip: 1) { meta, csv ->
             def dir = file("${params.outdir}/workspace/load_data_csv/${meta.batch}/${meta.plate}")
             dir.mkdirs()
             [
