@@ -214,7 +214,7 @@ Pipeline metadata and run parameters.
 
 QC reports are numbered to reflect the pipeline execution order, making it easy to review them sequentially. **The numbering differs by entrypoint** - the default and `NO_STITCH` entrypoints share one scheme, while `STITCH_ALIGN_CROP` uses a different one (alignment happens after stitching there, and preprocessing/segmentation happen much later, after crop).
 
-**Location**: `results/workspace/qc_reports/`
+**Location**: `results/workspace/qc_reports/{batch}/`
 
 ### Default and `NO_STITCH` entrypoints
 
