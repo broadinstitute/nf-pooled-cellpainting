@@ -305,6 +305,11 @@
                     "type": "boolean",
                     "default": false,
                     "description": "Whether the images are from a Phenix microscope where the first image is in the center of the well"
+                },
+                "check_duplicate_images": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Whether to run the QC_CHECKDUPLICATEIMAGES pixel-duplicate safety-net check after illumination calculation, illumination correction and preprocessing steps."
                 }
             },
             "fa_icon": "fas fa-cog"
