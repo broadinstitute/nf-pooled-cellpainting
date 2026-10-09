@@ -1,0 +1,55 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/nf-core/modules/master/modules/meta-schema.json
+name: "qc_checkduplicateimages"
+description: "Verify that no two output image files (.npy/.tiff) share identical pixel content"
+keywords:
+  - quality_control
+  - duplicate_detection
+  - cellpainting
+  - microscopy
+
+tools:
+  - "python":
+      description: "Python with numpy and Pillow for array-content hashing of image files"
+      homepage: "https://www.python.org/"
+      documentation: "https://docs.python.org/"
+      tool_dev_url: "https://github.com/python/cpython"
+      doi: ""
+      licence: ["Python Software Foundation License"]
+      identifier: ""
+
+input:
+  - - meta:
+        type: map
+        description: |
+          Groovy Map containing sample information
+          e.g. `[ plate:'Plate1', batch:'Batch1' ]`
+    - image_files:
+        type: file
+        description: "Output image files to check for pixel-content duplicates (.npy/.tif/.tiff)"
+        pattern: "*.{npy,tif,tiff}"
+        ontologies:
+          - edam: "http://edamontology.org/data_0006" # Data
+
+output:
+  - report:
+      - meta:
+          type: map
+          description: |
+            Groovy Map containing sample information
+            e.g. `[ plate:'Plate1', batch:'Batch1' ]`
+      - "*_duplicate_check.txt":
+          type: file
+          description: "Summary of the duplicate check (pass or list of duplicates/unreadable files)"
+          pattern: "*_duplicate_check.txt"
+  - versions:
+      - versions.yml:
+          type: file
+          description: "File containing software versions"
+          pattern: "versions.yml"
+          ontologies:
+            - edam: "http://edamontology.org/format_3750" # YAML
+
+authors:
+  - "@ErinWeisbart"
+maintainers:
+  - "@ErinWeisbart"

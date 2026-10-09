@@ -133,9 +133,9 @@ barcoding_preprocess_cppipe: "s3://your-bucket/pipelines/barcoding_preprocess.cp
 combinedanalysis_cppipe: "s3://your-bucket/pipelines/combinedanalysis.cppipe"
 ```
 
-:::important
+```important
 Keep `qc_barcoding_passed: false` and `qc_painting_passed: false` for your first trigger of the pipeline. This will pause the pipeline after these important QC steps before the final steps are run.
-:::
+```
 
 Select "Launch"
 
@@ -151,9 +151,9 @@ qc_painting_passed: true
 qc_barcoding_passed: true
 ```
 
-:::{important} "Resume vs Relaunch"
+```{important} "Resume vs Relaunch"
 **Resume** uses cached results; **Relaunch** starts from scratch. Always use Resume after QC review.
-:::
+```
 
 ### Cost Optimization Tips
 
@@ -185,9 +185,9 @@ process {
 
 The queue name is visible in your Seqera Platform compute environment under "Manual config attributes".
 
-:::{tip} When to use on-demand
+```{tip} When to use on-demand
 Use on-demand for tasks that: (1) run longer than 1-2 hours, (2) have experienced repeated spot reclamations, or (3) are in the final stages of a critical run
-:::
+```
 
 ### Resource Requirements by Process
 
