@@ -14,13 +14,13 @@
     "barcode preprocessing QC - 3 cycles - 3 wells": {
         "content": [
             [
-                "versions.yml:md5,0efe1189d8ec1f49d2a2774bae9dfd8d"
+                "versions.yml:md5,f973f1f63a9504b8c4f89859eb9eebbd"
             ]
         ],
         "meta": {
             "nf-test": "0.9.3",
-            "nextflow": "25.10.0"
+            "nextflow": "25.10.2"
         },
-        "timestamp": "2025-11-10T04:10:16.071551886"
+        "timestamp": "2026-10-19T13:47:14.835796"
     }
 }

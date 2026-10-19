@@ -845,7 +845,7 @@
     },
     "nf-pooled-cellpainting - full pipeline - test profile - qc passed": {
         "content": [
-            66,
+            61,
             {
                 "CELLPROFILER_COMBINEDANALYSIS": {
                     "cellprofiler": "4.2.8"
@@ -872,21 +872,6 @@
                     "jupytext": "1.18.1",
                     "nbconvert": "7.16.6",
                     "papermill": "2.6.0 from /opt/conda/lib/python3.13/site-packages/papermill/cli.py (3.13.14)"
-                },
-                "QC_CHECKDUPLICATES_ILLUMAPPLY_BARCODING": {
-                    "qc_check_duplicate_images": "0.1.0"
-                },
-                "QC_CHECKDUPLICATES_ILLUMAPPLY_PAINTING": {
-                    "qc_check_duplicate_images": "0.1.0"
-                },
-                "QC_CHECKDUPLICATES_ILLUMCALC_BARCODING": {
-                    "qc_check_duplicate_images": "0.1.0"
-                },
-                "QC_CHECKDUPLICATES_ILLUMCALC_PAINTING": {
-                    "qc_check_duplicate_images": "0.1.0"
-                },
-                "QC_CHECKDUPLICATES_PREPROCESS": {
-                    "qc_check_duplicate_images": "0.1.0"
                 },
                 "QC_MONTAGEILLUM_BARCODING": {
                     "qc_montage": "0.1.0"
@@ -2141,50 +2126,46 @@
                 "workspace/load_data_csv/Batch1/Plate1/painting-illumcalc.load_data.csv",
                 "workspace/load_data_csv/Batch1/Plate1/painting-segcheck.load_data.csv",
                 "workspace/qc_reports",
-                "workspace/qc_reports/1_illumination_painting",
-                "workspace/qc_reports/1_illumination_painting/Plate1",
-                "workspace/qc_reports/1_illumination_painting/Plate1/Batch1_Plate1_duplicate_check.txt",
-                "workspace/qc_reports/1_illumination_painting/Plate1/painting.Batch1_Plate1.montage.png",
-                "workspace/qc_reports/2_alignment",
-                "workspace/qc_reports/2_alignment/Plate1",
-                "workspace/qc_reports/2_alignment/Plate1/Batch1_Plate1_duplicate_check.txt",
-                "workspace/qc_reports/2_alignment/Plate1/Batch1_Plate1_qc_painting_align.html",
-                "workspace/qc_reports/2_alignment/Plate1/Batch1_Plate1_qc_painting_align.ipynb",
-                "workspace/qc_reports/3_segmentation",
-                "workspace/qc_reports/3_segmentation/Plate1",
-                "workspace/qc_reports/3_segmentation/Plate1/painting.Batch1_Plate1.montage.png",
-                "workspace/qc_reports/4_stitching_painting",
-                "workspace/qc_reports/4_stitching_painting/Plate1",
-                "workspace/qc_reports/4_stitching_painting/Plate1/painting.Batch1_Plate1.montage.png",
-                "workspace/qc_reports/5_illumination_barcoding",
-                "workspace/qc_reports/5_illumination_barcoding/Plate1",
-                "workspace/qc_reports/5_illumination_barcoding/Plate1/Batch1_Plate1_duplicate_check.txt",
-                "workspace/qc_reports/5_illumination_barcoding/Plate1/barcoding.Batch1_Plate1.montage.png",
-                "workspace/qc_reports/6_alignment",
-                "workspace/qc_reports/6_alignment/Plate1",
-                "workspace/qc_reports/6_alignment/Plate1/Batch1_Plate1_duplicate_check.txt",
-                "workspace/qc_reports/6_alignment/Plate1/Batch1_Plate1_qc_barcode_align.html",
-                "workspace/qc_reports/6_alignment/Plate1/Batch1_Plate1_qc_barcode_align.ipynb",
-                "workspace/qc_reports/7_preprocessing",
-                "workspace/qc_reports/7_preprocessing/Plate1",
-                "workspace/qc_reports/7_preprocessing/Plate1/Batch1_Plate1_duplicate_check.txt",
-                "workspace/qc_reports/7_preprocessing/Plate1/Batch1_Plate1_qc_barcode_preprocess.html",
-                "workspace/qc_reports/7_preprocessing/Plate1/Batch1_Plate1_qc_barcode_preprocess.ipynb",
-                "workspace/qc_reports/7_preprocessing/Plate1/barcode_score_distribution.png",
-                "workspace/qc_reports/7_preprocessing/Plate1/barcode_score_distribution_per_well.png",
-                "workspace/qc_reports/7_preprocessing/Plate1/library_nucleotide_frequency.png",
-                "workspace/qc_reports/7_preprocessing/Plate1/observed_nucleotide_frequency.png",
-                "workspace/qc_reports/7_preprocessing/Plate1/observed_nucleotide_frequency_noYlim.png",
-                "workspace/qc_reports/8_stitching_barcoding",
-                "workspace/qc_reports/8_stitching_barcoding/Plate1",
-                "workspace/qc_reports/8_stitching_barcoding/Plate1/barcoding.Batch1_Plate1.montage.png"
+                "workspace/qc_reports/Batch1",
+                "workspace/qc_reports/Batch1/1_illumination_painting",
+                "workspace/qc_reports/Batch1/1_illumination_painting/Plate1",
+                "workspace/qc_reports/Batch1/1_illumination_painting/Plate1/painting.Batch1_Plate1.montage.png",
+                "workspace/qc_reports/Batch1/2_alignment",
+                "workspace/qc_reports/Batch1/2_alignment/Plate1",
+                "workspace/qc_reports/Batch1/2_alignment/Plate1/Batch1_Plate1_qc_painting_align.html",
+                "workspace/qc_reports/Batch1/2_alignment/Plate1/Batch1_Plate1_qc_painting_align.ipynb",
+                "workspace/qc_reports/Batch1/3_segmentation",
+                "workspace/qc_reports/Batch1/3_segmentation/Plate1",
+                "workspace/qc_reports/Batch1/3_segmentation/Plate1/painting.Batch1_Plate1.montage.png",
+                "workspace/qc_reports/Batch1/4_stitching_painting",
+                "workspace/qc_reports/Batch1/4_stitching_painting/Plate1",
+                "workspace/qc_reports/Batch1/4_stitching_painting/Plate1/painting.Batch1_Plate1.montage.png",
+                "workspace/qc_reports/Batch1/5_illumination_barcoding",
+                "workspace/qc_reports/Batch1/5_illumination_barcoding/Plate1",
+                "workspace/qc_reports/Batch1/5_illumination_barcoding/Plate1/barcoding.Batch1_Plate1.montage.png",
+                "workspace/qc_reports/Batch1/6_alignment",
+                "workspace/qc_reports/Batch1/6_alignment/Plate1",
+                "workspace/qc_reports/Batch1/6_alignment/Plate1/Batch1_Plate1_qc_barcode_align.html",
+                "workspace/qc_reports/Batch1/6_alignment/Plate1/Batch1_Plate1_qc_barcode_align.ipynb",
+                "workspace/qc_reports/Batch1/7_preprocessing",
+                "workspace/qc_reports/Batch1/7_preprocessing/Plate1",
+                "workspace/qc_reports/Batch1/7_preprocessing/Plate1/Batch1_Plate1_qc_barcode_preprocess.html",
+                "workspace/qc_reports/Batch1/7_preprocessing/Plate1/Batch1_Plate1_qc_barcode_preprocess.ipynb",
+                "workspace/qc_reports/Batch1/7_preprocessing/Plate1/barcode_score_distribution.png",
+                "workspace/qc_reports/Batch1/7_preprocessing/Plate1/barcode_score_distribution_per_well.png",
+                "workspace/qc_reports/Batch1/7_preprocessing/Plate1/library_nucleotide_frequency.png",
+                "workspace/qc_reports/Batch1/7_preprocessing/Plate1/observed_nucleotide_frequency.png",
+                "workspace/qc_reports/Batch1/7_preprocessing/Plate1/observed_nucleotide_frequency_noYlim.png",
+                "workspace/qc_reports/Batch1/8_stitching_barcoding",
+                "workspace/qc_reports/Batch1/8_stitching_barcoding/Plate1",
+                "workspace/qc_reports/Batch1/8_stitching_barcoding/Plate1/barcoding.Batch1_Plate1.montage.png"
             ]
         ],
         "meta": {
             "nf-test": "0.9.3",
             "nextflow": "25.10.2"
         },
-        "timestamp": "2026-09-18T15:58:26.403865"
+        "timestamp": "2026-10-19T13:59:35.769962"
     },
     "nf-pooled-cellpainting - full pipeline - test profile - stub - both qc false": {
         "content": [
