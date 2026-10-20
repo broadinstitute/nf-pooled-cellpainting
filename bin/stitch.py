@@ -196,9 +196,12 @@ def build_chandict(channels: List[str]) -> Dict[str, str]:
     return {ch: SHORT_CODES[i] for i, ch in enumerate(unique_channels)}
 
 
-def synthesize_noise(shape: Tuple[int, ...], dtype: np.dtype, high: int = 25) -> np.ndarray:
-    """Low-amplitude noise, kept below the real camera noise floor, for empty round-well corners."""
-    return np.random.randint(0, high, size=shape).astype(dtype)
+def synthesize_noise(shape: Tuple[int, ...], dtype: np.dtype, seed: List[int], high: int = 25) -> np.ndarray:
+    """Low-amplitude noise, kept below the real camera noise floor, for empty round-well corners.
+
+    Seeded so reruns produce identical filler images.
+    """
+    return np.random.default_rng(seed).integers(0, high, size=shape).astype(dtype)
 
 
 def stage_channel_set(
@@ -251,7 +254,7 @@ def stage_channel_set(
                 if src is not None:
                     shutil.copy(src, dest)
                 else:
-                    noise = synthesize_noise(shape, dtype)
+                    noise = synthesize_noise(shape, dtype, seed=[series, ord(code)])
                     Image.fromarray(noise).save(dest)
 
 

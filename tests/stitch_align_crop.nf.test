@@ -6,9 +6,7 @@
  * STITCH_ALIGN_CROP named workflow entry (`-entry STITCH_ALIGN_CROP`).
  * Unlike the default and NO_STITCH entries, stitch/align/crop here are
  * unconditional (no qc_*_passed gate before them) - only combined analysis
- * is gated. bin/stitch.py, bin/crop.py, bin/align_barcoding.py, and
- * bin/align_combined.py have not been implemented yet, so this only
- * exercises the stub branch.
+ * is gated. These tests only exercise the stub branch.
  *
  * Snapshot Strategy: see tests/main.nf.test - same rationale applies here
  * (stub tests skip containers, so only workflow logic/branching is verified).
