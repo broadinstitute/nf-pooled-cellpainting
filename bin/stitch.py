@@ -234,6 +234,15 @@ def stage_channel_set(
         norm_site = normalize_site(entry["site"], first_site_index)
         by_site_channel[(norm_site, entry["channel"])] = entry["path"]
 
+    layout_sites = set(position_dict.values())
+    dropped_sites = sorted({site for site, _ in by_site_channel if site not in layout_sites})
+    if dropped_sites:
+        print(f"WARNING: sites {dropped_sites} (after first-site-index normalization) are not in the layout and will be dropped")
+    for channel in chandict:
+        missing_sites = sorted(s for s in layout_sites if (s, channel) not in by_site_channel)
+        if missing_sites:
+            print(f"WARNING: channel {channel}: no image for layout sites {missing_sites}, filling with noise")
+
     # Prefer the channame-matching image for shape/dtype detection (matches the legacy
     # script's use of channame as a reference channel); fall back to any real image.
     reference_path = next((e["path"] for e in images if channame in e["channel"]), None)
