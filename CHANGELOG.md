@@ -8,20 +8,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### `Added`
 
 - **New entrypoints** alongside the default FIJI-based workflow (`POOLED_CELLPAINTING`), selected with `-entry`:
-    - `NO_STITCH`: same QC flow as the default workflow but skips `FIJI_STITCHCROP` in both arms; combined analysis runs on the pre-stitch per-site images.
-    - `STITCH_ALIGN_CROP`: stitching, alignment and cropping without FIJI. Order is illumcalc, illumapply, per-arm stitch (ashlar), within-arm cycle alignment, cross-arm alignment, per-arm crop, segmentation check and preprocess, then a single QC gate before combined analysis. Stitch/align/crop always run; only combined analysis is gated by `qc_painting_passed`/`qc_barcoding_passed`. Supports multi-cycle painting.
+  - `NO_STITCH`: same QC flow as the default workflow but skips `FIJI_STITCHCROP` in both arms; combined analysis runs on the pre-stitch per-site images.
+  - `STITCH_ALIGN_CROP`: stitching, alignment and cropping without FIJI. Order is illumcalc, illumapply, per-arm stitch (ashlar), within-arm cycle alignment, cross-arm alignment, per-arm crop, segmentation check and preprocess, then a single QC gate before combined analysis. Stitch/align/crop always run; only combined analysis is gated by `qc_painting_passed`/`qc_barcoding_passed`. Supports multi-cycle painting.
 - **New local modules and scripts**: `STITCH` (`bin/stitch.py`), `ALIGN_INTRAARM` (`bin/align_intraarm.py`), `ALIGN_COMBINED` (`bin/align_combined.py`), `CROP` (`bin/crop.py`), `QC_PAINTINGALIGN`, `QC_CHECKDUPLICATEIMAGES` and `CELLPROFILER_PLUGINS_UPDATE`, with new `stitch_align_crop`, `align` and `ashlar` containers.
 - **Support for Phenix-style acquisition.** `phenix` parameter (first site is the well centre) for both the FIJI and ashlar stitchers; round-well site layouts now live in the shared `assets/stitchcrop/well_site_layouts.json`. Barcode image-name matching also accepts 2- and 3-colour barcode channels (`A488`, `A568`, `A647`).
 - **Cellpose support** for segmentation check and combined analysis: `cellprofiler_flavor` (`default`, `cellpose2`, `cellpose3`), `cellprofiler_container_override`, and `runcellpose_plugin`.
 - **Enhanced CellProfiler plugin support**. `update_cellprofiler_plugins` and `cellprofiler_plugins_repo` to clone the latest CellProfiler-plugins at runtime. User-set `callbarcodes_plugin`/`compensatecolors_plugin` still take precedence over the clone (tracked via the hidden `callbarcodes_plugin_default` and `compensatecolors_plugin_default`).
 - **Allow passing of Foci objects instead of images to analysis**. Optional `FociObjects` image (`.tiff`) from barcode preprocessing, routed into combined analysis. `combinedanalysis_include_barcoding_images` (default `false`) for the `STITCH_ALIGN_CROP` combined analysis.
-- **Expanded QC**: 
-    - `check_duplicate_images` (default `false`): fails the run if any two output images of a CellProfiler step are pixel-identical (blank frames ignored). Runs after illumcalc, illumapply and preprocess.
-    - painting-alignment QC for multicycle painting
-    - barcode-alignment QC with two alignment methods (original NCC and MI), pixel-shift and correlation plots, channel-combination plots and per-well ordering
-    - montages of sites failing alignment
-    - improved illumination and `.npy` checks.
-    - Warnings when sites are dropped or missing while staging the stitch grid.
+- **Expanded QC**:
+  - `check_duplicate_images` (default `false`): fails the run if any two output images of a CellProfiler step are pixel-identical (blank frames ignored). Runs after illumcalc, illumapply and preprocess.
+  - painting-alignment QC for multicycle painting
+  - barcode-alignment QC with two alignment methods (original NCC and MI), pixel-shift and correlation plots, channel-combination plots and per-well ordering
+  - montages of sites failing alignment
+  - improved illumination and `.npy` checks.
+  - Warnings when sites are dropped or missing while staging the stitch grid.
 - Documentation migrated from MkDocs to Jupyter Book and reorganised
 - `cellprofiler_large` resource label and `stitch`, `crop` and `align` labels in `conf/base.config`.
 
