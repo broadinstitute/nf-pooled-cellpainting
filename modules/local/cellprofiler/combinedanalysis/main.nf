@@ -2,12 +2,7 @@ process CELLPROFILER_COMBINEDANALYSIS {
     tag "${meta.id}"
     label 'cellprofiler_large'
 
-    container "${
-        params.cellprofiler_container_override ?:
-        (params.cellprofiler_flavor == 'default' && workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container
-            ? 'oras://community.wave.seqera.io/library/cellprofiler:4.2.8--7c1bd3a82764de92'
-            : params.cellprofiler_flavor_containers[params.cellprofiler_flavor])
-    }"
+    container "${params.cellprofiler_container_override ?: (params.cellprofiler_flavor == 'default' && workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ? 'oras://community.wave.seqera.io/library/cellprofiler:4.2.8--7c1bd3a82764de92' : params.cellprofiler_flavor_containers[params.cellprofiler_flavor])}"
 
     input:
     tuple val(meta), path(cropped_images, stageAs: "images/"), val(image_metas)
