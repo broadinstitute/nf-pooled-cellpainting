@@ -6,11 +6,15 @@ Technical overview of the pipeline architecture and implementation.
 
 ### Main Workflow
 
+![standard workflow](images/standard_workflow.png)
+
 The main workflow (`workflows/nf-pooled-cellpainting.nf`) orchestrates the pipeline execution:
 
 1. **Subworkflow Execution**: Runs CELLPAINTING and BARCODING subworkflows in parallel
 2. **Combined Analysis**: Merges outputs from both arms (conditional on QC gates)
 3. **MultiQC Report**: Generates unified QC report (conditional on QC gates)
+
+This describes the default entrypoint. See [Alternative Entrypoints](#alternative-entrypoints) for `NO_STITCH` and `STITCH_ALIGN_CROP`.
 
 ### Cell Painting Subworkflow
 
@@ -54,7 +58,7 @@ Located in `subworkflows/local/barcoding/main.nf`. Organized into three logical 
 
 | Process | Description | Grouping |
 |---------|-------------|----------|
-| QC_BARCODEALIGN | Barcode alignment QC (validates against thresholds) | |
+| QC_BARCODEALIGN | Barcode alignment QC (reports shifts/correlations against thresholds) | |
 | PREPROCESS | Barcode calling and preprocessing | `[batch, plate, well, site]` |
 | QC_PREPROCESS | Preprocessing QC visualizations | |
 
@@ -79,6 +83,30 @@ Located in `modules/local/cellprofiler/combinedanalysis/main.nf`. Executes when 
 - CSV statistics for Nuclei, Cells, Cytoplasm, Foci measurements
 - Segmentation masks (TIFF)
 - Consolidated `load_data.csv` for all samples
+
+### Alternative Entrypoints
+
+Selected with `-entry` (defined in `main.nf`).
+
+![no stitch workflow](images/no_stitch_workflow.png)
+
+**`NO_STITCH`** (`workflows/no-stitch.nf`, `subworkflows/local/{cellpainting,barcoding}_no_stitch`): same as the default workflow without the `FIJI_STITCHCROP` phase; combined analysis runs on the per-site images.
+
+![stitch align crop workflow](images/stitch_align_crop_workflow.png)
+
+**`STITCH_ALIGN_CROP`** (`workflows/stitch-align-crop.nf`): stitching, alignment and cropping happen before segmentation check and barcode preprocessing. Stitch/align/crop are not gated; only combined analysis requires both QC flags.
+
+| Stage | Process / subworkflow | Grouping |
+|-------|-----------------------|----------|
+| Illumination correction | `CELLPAINTING_PRE_STITCH`, `BARCODING_PRE_STITCH` (ILLUMCALC, ILLUMAPPLY, optional duplicate check) | `[batch, plate]`, `[batch, plate, well, site]` |
+| Stitch (ashlar) | `STITCH` (one task per well and cycle, per arm) | `[batch, plate, well, cycle]` |
+| Align within arm | `ALIGN_INTRAARM` (cycles aligned to the first cycle; pass-through if one cycle) | `[batch, plate, well]` |
+| Align across arms | `ALIGN_COMBINED` (scale, then register painting to barcoding cycle 1) | `[batch, plate, well]` |
+| Crop | `CROP` (per arm) | `[batch, plate, well]` |
+| QC / preprocessing | `CELLPROFILER_SEGCHECK`, `CELLPROFILER_PREPROCESS`, `QC_PREPROCESS` on cropped tiles | `[batch, plate, well]`, `[batch, plate, well, site]` |
+| Combined analysis | `CELLPROFILER_COMBINEDANALYSIS` (painting images, plus optional `FociObjects.tiff`; barcoding images only if `combinedanalysis_include_barcoding_images`) | `[batch, plate, well, site]` |
+
+The stitch/align/crop logic lives in `subworkflows/local/stitch_align_crop/main.nf`; the scripts are described in [Python Scripts](python_scripts.md).
 
 ### MultiQC Report (Conditional)
 
@@ -215,7 +243,8 @@ process EXAMPLE_PROCESS {
     """
     # Generate load_data.csv
     generate_load_data_csv.py \\
-        --pipeline_type example \\
+        --metadata-json metadata.json \\
+        --images-dir ./images \\
         --output load_data.csv
 
     # Run CellProfiler
@@ -277,18 +306,12 @@ All CellProfiler processes require `load_data.csv` files:
 
 ```python
 generate_load_data_csv.py \
-    --pipeline_type illumcalc \
-    --channels DAPI,GFP,RFP \
+    --metadata-json metadata.json \
+    --images-dir ./images \
     --output load_data.csv
 ```
 
-Supported pipeline types:
-
-- `illumcalc`: Multi-channel raw images
-- `illumapply`: Corrected images + illumination functions
-- `segcheck`: Corrected images for QC
-- `preprocess`: Cycle-based barcoding images
-- `combined`: Painting + barcoding merged images
+The same script serves every CellProfiler module (`illumcalc`, `illumapply`, `segcheck`, `preprocess`, `combinedanalysis`); the calling Nextflow module builds the metadata JSON and sets the optional flags (`--has-cycles`, `--include-illum-files`, `--range-skip`). See [Python Scripts](python_scripts.md).
 
 For more details about the `load_data.csv` file, see the [Cellprofiler Integration](cellprofiler.md) document.
 

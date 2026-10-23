@@ -26,9 +26,10 @@ If you use this pipeline, please cite the original authors and tools:
 
 **Key Tools**:
 
-- CellProfiler (Carpenter et al., 2006)
+- CellProfiler (Stirling et al., 2021)
 - Fiji/ImageJ (Schindelin et al., 2012)
 - Nextflow (Di Tommaso et al., 2017)
+- Ashlar (Muhlich et al., 2022)
 
 See [CITATIONS.md](https://github.com/broadinstitute/nf-pooled-cellpainting/blob/dev/CITATIONS.md) for complete citations.
 

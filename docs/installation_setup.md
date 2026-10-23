@@ -92,7 +92,7 @@ For image processing workloads, select instance families with:
 - `m6id` - General-purpose with NVMe
 - `r6id` - Memory-optimized with NVMe
 
-```{warning} 
+```{warning}
 **When using Fusion Snapshots, pin specific instance sizes** (not just families) to ensure successful snapshot creation. Snapshots require sufficient memory-to-NVMe-bandwidth ratio to complete within the 2-minute spot reclamation window.
 
 **Recommended for Fusion Snapshots** (pin all of these in your compute environment):

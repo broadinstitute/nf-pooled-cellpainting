@@ -2,64 +2,9 @@
 
 ## Pipeline Architecture
 
-The pipeline processes data through two parallel arms (the Cell Painting arm and the ISS arm) that operate independently on separate stacks of images before converging for final analysis. A mermaid diagram follows:
+The pipeline processes data through two parallel arms (the Cell Painting arm and the ISS arm) that operate independently on separate stacks of images before converging for final analysis in the standard workflow. The standard workflow is as follows:
 
-```{mermaid}
-flowchart TD
-    subgraph Input
-        Samplesheet[Samplesheet]
-    end
-
-    subgraph "Cell Painting Arm"
-        CP_IllumCalc[IllumCalc]
-        CP_IllumQC[Illum QC]
-        CP_IllumApply[IllumApply]
-        CP_SegCheck[SegCheck]
-        CP_SegCheckQC[SegCheck QC]
-        CP_StitchCrop[Stitch & Crop]
-        CP_StitchQC[Stitch QC]
-    end
-
-    subgraph "Barcoding Arm"
-        BC_IllumCalc[IllumCalc]
-        BC_IllumQC[Illum QC]
-        BC_IllumApply[IllumApply & Align]
-        BC_AlignQC[Align QC]
-        BC_Preprocess[Preprocess]
-        BC_PreprocessQC[Preprocess QC]
-        BC_StitchCrop[Stitch & Crop]
-        BC_StitchQC[Stitch QC]
-    end
-
-    subgraph "Combined Analysis"
-        CombinedAnalysis[Combined Analysis]
-        MultiQC[MultiQC]
-    end
-
-    Samplesheet --> CP_IllumCalc
-    Samplesheet --> BC_IllumCalc
-
-    CP_IllumCalc --> CP_IllumQC
-    CP_IllumCalc --> CP_IllumApply
-    CP_IllumApply --> CP_SegCheck
-    CP_SegCheck --> CP_SegCheckQC
-    CP_SegCheckQC -.-> CP_StitchCrop
-    CP_IllumApply --> CP_StitchCrop
-    CP_StitchCrop --> CP_StitchQC
-
-    BC_IllumCalc --> BC_IllumQC
-    BC_IllumCalc --> BC_IllumApply
-    BC_IllumApply --> BC_AlignQC
-    BC_IllumApply --> BC_Preprocess
-    BC_Preprocess --> BC_PreprocessQC
-    BC_PreprocessQC -.-> BC_StitchCrop
-    BC_Preprocess --> BC_StitchCrop
-    BC_StitchCrop --> BC_StitchQC
-
-    CP_StitchCrop --> CombinedAnalysis
-    BC_StitchCrop --> CombinedAnalysis
-    CombinedAnalysis --> MultiQC
-```
+![standard workflow](images/standard_workflow.png)
 
 ### Cell Painting Arm (Phenotype)
 
@@ -78,6 +23,22 @@ flowchart TD
 ### Combined Analysis
 
 Once both arms pass quality control, the final **Analysis** pipeline aligns Cell Painting and barcoding images, segments cells from the phenotypic stains, measures morphological features, reads an SBS barcodes for each SBS focus and selects a best match from the barcode library, and assigns barcode foci to cells — linking each cell's genotype to its phenotype.
+
+## Entrypoints
+
+The pipeline has three entrypoints, selected with Nextflow's `-entry` option. These alter the sequence of image processing. The stich-align-crop workflow is as follows:
+
+![stitch-align-crop workflow](images/stitch_align_crop_workflow.png)
+
+| Entrypoint | Command | What it does |
+|------------|---------|--------------|
+| default | `nextflow run ...` | The workflow described above: illumination correction, QC (segmentation check / preprocessing), then Fiji stitch & crop and combined analysis once the QC flags are `true`. |
+| `NO_STITCH` | `-entry NO_STITCH` | Same as the default but skips stitching and cropping in both arms; combined analysis runs on the per-site images. |
+| `STITCH_ALIGN_CROP` | `-entry STITCH_ALIGN_CROP` | Reorders processing: illumination correction -> stitch each arm (ashlar) -> align cycles within each arm -> align painting to barcoding -> crop -> segmentation check / barcode preprocessing on the cropped tiles -> combined analysis. |
+
+In `STITCH_ALIGN_CROP`, stitch, align and crop always run (they are not gated by `qc_painting_passed` / `qc_barcoding_passed`); only combined analysis is gated, and it requires both flags to be `true`. Relevant parameters: `tileperside`, `final_tile_size`, `painting_scalingstring`, `barcoding_scalingstring`, `painting_channame`, `barcoding_channame`, `barcoding_shift_threshold`, `barcoding_corr_threshold`, and `combinedanalysis_include_barcoding_images` (default `false`: only painting images, plus the optional barcoding `FociObjects.tiff`, are given to combined analysis). Output folders and QC report numbering differ for this entrypoint; see [Outputs](outputs.md).
+
+Set `--check_duplicate_images true` (any entrypoint) to run a pixel-duplicate check after illumination calculation/correction and preprocessing.
 
 ## The "Stop-and-Check" Workflow
 

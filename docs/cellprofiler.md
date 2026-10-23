@@ -1,18 +1,18 @@
 # CellProfiler Integration
 
-[CellProfiler](https://cellprofiler.org/) is the workhorse of this pipeline. It's an open-source tool designed specifically for high-throughput image analysis in biology. If you're new to CellProfiler, think of it as a flexible image processing engine that you configure using "pipeline" files (`.cppipe`).
+[CellProfiler](https://cellprofiler.org/) is the workhorse of this pipeline. It's an open-source tool designed specifically for high-throughput image analysis in biology. If you're new to CellProfiler, think of it as a flexible image processing engine that you configure using CellProfiler pipeline files (`.cppipe`).
 
-This page explains how the pipeline uses CellProfiler and how to customize the integration for your own data.
+This page explains how the Nextflow pipeline uses CellProfiler and how to customize the integration for your own data.
 
 ## Overview
 
 The pipeline uses CellProfiler v4.2.8 for image analysis tasks:
 
 - Illumination correction calculation and application
-- Image preprocessing
+- Image preprocessing (such as masking debris or confluent areas or balancing channels for barcode calling)
 - Cell segmentation
 - Feature extraction
-- Barcode calling
+- Barcode calling (optional, can be done outside of the Nextflow pipeline)
 
 ## CellProfiler Processes
 
@@ -32,8 +32,8 @@ process CELLPROFILER_ILLUMCALC {
     """
     # Generate load_data.csv
     generate_load_data_csv.py \\
-        --pipeline_type illumcalc \\
-        --channels ${meta.channels.join(',')} \\
+        --metadata-json metadata.json \\
+        --images-dir ./images \\
         --output load_data.csv
 
     # Run CellProfiler
@@ -108,9 +108,8 @@ The `generate_load_data_csv.py` script creates these files:
 
 ```python
 generate_load_data_csv.py \
-    --pipeline_type illumcalc \
-    --channels DAPI,GFP,RFP,Cy5,Cy3 \
-    --frames 0,1,2,3 \
+    --metadata-json metadata.json \
+    --images-dir ./images \
     --output load_data.csv
 ```
 
@@ -160,7 +159,7 @@ cellprofiler \
 ### Plugin Loading
 
 For processes requiring plugins, Nextflow stages plugins into the process based on the plugin path provided.
-Default plugins are loaded from https://github.com/CellProfiler/CellProfiler-plugins via raw github links but local or other sources for the plugins can be specified if required.
+Default plugins are loaded from [CellProfiler plugins](https://github.com/CellProfiler/CellProfiler-plugins) via raw github links but local or other sources for the plugins can be specified if required.
 
 ```bash
 # Stage plugins in nf-pooled-cellpainting.nf

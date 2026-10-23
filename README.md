@@ -18,7 +18,7 @@ Key steps include:
 
 1. Illumination correction (CellProfiler)
 2. Quality control checkpoints (segmentation evaluation, barcode calling and cycle alignment)
-3. Image stitching and cropping (Fiji)
+3. Image stitching and cropping (Fiji; ashlar in the `STITCH_ALIGN_CROP` entrypoint)
 4. Segmentation and feature extraction
 5. Barcode calling and assignment
 6. Final reporting and QC with MultiQC

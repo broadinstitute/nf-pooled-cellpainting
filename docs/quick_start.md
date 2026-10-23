@@ -101,8 +101,8 @@ nextflow run broadinstitute/nf-pooled-cellpainting \
     -resume
 ```
 
-```{admonition} The `-resume` flag is critical
-
+```{admonition}
+The `-resume` flag is critical
 It tells Nextflow to use cached results and only execute new steps. Without it, the pipeline restarts from scratch.
 ```
 
@@ -135,5 +135,7 @@ results/
 ├── multiqc/                   # Summary report
 └── pipeline_info/             # Execution logs and metrics
 ```
+
+This tree is for the default entrypoint. With `-entry NO_STITCH` there are no stitched/cropped folders; with `-entry STITCH_ALIGN_CROP` the image folders and `qc_reports` numbering differ. See [Outputs](outputs.md).
 
 The most important outputs are in `results/workspace/analysis/`—CSV files containing linked phenotype and genotype data for every cell.

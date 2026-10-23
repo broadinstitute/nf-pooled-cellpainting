@@ -39,7 +39,7 @@ Here's a minimal example showing one Cell Painting image and two barcoding cycle
 A more complete samplesheet with multiple wells and sites would have many more rows, one per image file.
 
 ```{warning}
-**Ensure the channel names in the **`channels` **column match the names used in your CellProfiler pipelines** as the channel names will be used to build load_data.csv columns that need to correspond to your cppipe files provided to the pipeline!
+**Ensure the channel names in the** `channels` **column match the names used in your CellProfiler pipelines** as the channel names will be used to build load_data.csv columns that need to correspond to your cppipe files provided to the pipeline!
 ```
 
 ## 2. Barcodes File
@@ -69,7 +69,7 @@ You need to provide paths to these files using the corresponding parameters:
 
 - `--painting_illumcalc_cppipe`: Calculates illumination correction functions for painting images.
 - `--painting_illumapply_cppipe`: Applies illumination correction to painting images.
-- `--painting_segcheck_cppipe`: Performs quality control for painting segmentation (stops here in Phase 1).
+- `--painting_segcheck_cppipe`: Performs quality control for painting segmentation.
 
 ### Barcoding Arm
 
@@ -79,7 +79,7 @@ You need to provide paths to these files using the corresponding parameters:
 
 ### Combined
 
-- `--combinedanalysis_cppipe`: The final step that merges data. **Crucially**, this pipeline must expect the input object tables from the previous steps.
+- `--combinedanalysis_cppipe`: The final step that merges both arms of data. It makes the morphological measurements and associates the barcode foci with the Cells being measured.
 
 ```{warning}
 Ensure your CellProfiler pipelines are compatible with the version of CellProfiler used in the container (currently 4.2.x).

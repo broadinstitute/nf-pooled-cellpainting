@@ -48,8 +48,8 @@ The Nextflow workflow code (not the Python script - see above) uses regular expr
 - **Requirement**: The pipeline generates these. If you provide pre-corrected images, they must match the pattern.
 - **Regex** (in `workflows/stitch-align-crop.nf`, `subworkflows/local/cellpainting*/main.nf`, `workflows/nf-pooled-cellpainting.nf`, `workflows/no-stitch.nf`): `.*_Corr(.+?)\.tiff?$`
 - **Example**: `Plate_P1_Well_A01_Site_1_CorrDNA.tiff`
-  - Here, `DNA` is extracted as the channel name.
-  - **Constraint**: This extracted name MUST match one of the entries in your samplesheet `channels` column (e.g., `DNA`).
+    - Here, `DNA` is extracted as the channel name.
+    - **Constraint**: This extracted name MUST match one of the entries in your samplesheet `channels` column (e.g., `DNA`).
 
 ### Barcoding Arm
 
@@ -63,8 +63,8 @@ The Nextflow workflow code (not the Python script - see above) uses regular expr
 - **Allowed Channels**: `A`, `C`, `G`, `T` (for bases), `DNA`, `DAPI` (for reference).
 - **Regex** (in `subworkflows/local/barcoding*/main.nf`, `workflows/stitch-align-crop.nf`): `.*_Cycle(\d+)_(.+?)\.tiff?$`
 - **Example**: `Plate_P1_Well_A01_Site_1_Cycle01_A.tiff`
-  - `Cycle01` -> Cycle 1
-  - `A` -> Channel A
+    - `Cycle01` -> Cycle 1
+    - `A` -> Channel A
 
 ```{warning}
 Ensure your samplesheet `channels` column for barcoding rows uses standard base names (`A`, `C`, `G`, `T`) or `DNA`/`DAPI`. Using non-standard names (e.g., `Cy5`, `FITC`) may cause the regex to fail or the script to misinterpret the file type.
@@ -112,8 +112,8 @@ Before running the pipeline:
 - [ ] **Samplesheet Columns**: Ensure `batch`, `plate`, `well`, `site`, `channels`, `arm` are present.
 
 - [ ] **Channel Names**:
-  - Cell Painting: Names in `channels` column match the names in your raw image filenames (e.g., `DNA`, `Mito`).
-  - Barcoding: Names in `channels` column are `A`, `C`, `G`, `T`, `DNA`, or `DAPI`.
+    - Cell Painting: Names in `channels` column match the names in your raw image filenames (e.g., `DNA`, `Mito`).
+    - Barcoding: Names in `channels` column are `A`, `C`, `G`, `T`, `DNA`, or `DAPI`.
 
 - [ ] **Avoid Keywords**: Do not use `Cycle` or `Corr` as part of your raw channel names to avoid regex confusion.
 

@@ -39,10 +39,10 @@ nextflow run . \
     --painting_quarter_if_round false \
     --barcoding_quarter_if_round false \
     --painting_imperwell 80 --barcoding_imperwell 21 \
-    --painting_rows 10 --barcoding_columns 5 \
+    --painting_rows 10 --barcoding_rows 5 \
     --painting_columns 10 --barcoding_columns 5 \
     --tileperside 5 --final_tile_size 2500 \
-    --first_site_index 0 --phenix true \
+    --phenix true \
     -profile docker
 ```
 
@@ -62,6 +62,7 @@ profiles{
         includeConfig 'conf/experiment.config'
     }
 }
+```
 
 Example `conf/experiment.config`:
 
@@ -87,15 +88,18 @@ params {
     painting_imperwell = 80
     barcoding_imperwell = 21
     painting_rows = 10
-    barcoding_columns = 5
+    barcoding_rows = 5
     painting_columns = 10
     barcoding_columns = 5
     tileperside = 5
     final_tile_size = 2500
-    first_site_index = 0
     phenix = true
 }
 ```
+
+### Alternative workflows
+
+To use an alternative workflow, add the `-entry` flag with the name of the entrypoint (e.g. `-entry STITCH_ALIGN_CROP`).
 
 ## Running the Pipeline with Seqera Platform
 
@@ -166,7 +170,7 @@ qc_barcoding_passed: true
 
 ### Routing Long-Running Tasks to On-Demand Instances
 
-Long-running tasks like `FIJI_STITCHCROP` (up to 4-6 hours) and `CELLPROFILER_COMBINEDANALYSIS` risk losing hours of work if spot instances are reclaimed. To avoid this:
+Long-running tasks like illumination calculation or  FIJI_STITCHCROP risk losing hours of work if spot instances are reclaimed. To avoid this:
 
 1. **Create an on-demand compute environment** in Seqera Platform (duplicate your spot environment, disable Fusion Snapshots since they're unnecessary for on-demand)
 
@@ -191,13 +195,17 @@ Use on-demand for tasks that: (1) run longer than 1-2 hours, (2) have experience
 
 ### Resource Requirements by Process
 
+Note that these are preliminary benchmarks and have not been extensively tuned.
+
 | Process | CPU | Memory | Notes |
 |---------|-----|--------|-------|
 | CELLPROFILER_ILLUMCALC | 1 | 2 GB | Per plate |
 | CELLPROFILER_ILLUMAPPLY | 1-2 | 6 GB | Per well/site |
 | CELLPROFILER_PREPROCESS | 4 | 8 GB | Per site |
-| FIJI_STITCHCROP | 6 | 36 GB | Memory-intensive |
-| CELLPROFILER_COMBINEDANALYSIS | 4 | 12-32 GB | Most demanding |
+| FIJI_STITCHCROP | 6 | 36 GB | Memory-intensive (default entrypoint) |
+| STITCH / CROP | 6 | 12 GB | `STITCH_ALIGN_CROP` entrypoint, per well (and cycle for STITCH) |
+| ALIGN_INTRAARM / ALIGN_COMBINED | 4 | 12 GB | `STITCH_ALIGN_CROP` entrypoint, per well |
+| CELLPROFILER_COMBINEDANALYSIS | 4 | 12-32 GB | Most demanding. The larger the input images the more memory it needs. |
 
 To override defaults, add to your Nextflow config:
 
@@ -208,3 +216,7 @@ process {
     }
 }
 ```
+
+### Alternative workflows
+
+To use an alternative workflow, in `Advanced_settings`, under `Workflow entry name` enter the entrypoint name (e.g. `STITCH_ALIGN_CROP`).

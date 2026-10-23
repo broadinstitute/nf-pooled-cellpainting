@@ -9,6 +9,16 @@ These scripts live in the `bin/` directory and are automatically available to al
 - `generate_load_data_csv.py`: Universal CSV generator for CellProfiler
 - `qc_barcode_align.py`: Barcode alignment quality control
 - `qc_barcode_preprocess.py`: Barcode preprocessing quality control
+- `qc_painting_align.py`: Multicycle painting alignment quality control
+- `check_duplicate_images.py`: Pixel-duplicate safety-net check (optional, `--check_duplicate_images`)
+- `montage.py`: QC montage generation
+
+Used only by the `STITCH_ALIGN_CROP` entrypoint (see [Pipeline Overview](pipeline_overview.md)):
+
+- `stitch.py`: Stitches one well (and cycle) of per-site images with ashlar
+- `align_intraarm.py`: Cross-cycle alignment within one arm
+- `align_combined.py`: Cross-arm (painting to barcoding) scaling and alignment
+- `crop.py`: Crops full-well stitched images into tiles
 
 These scripts are automatically available in the process `PATH` and are called during pipeline execution.
 
@@ -133,49 +143,50 @@ The script fails loudly (non-zero exit, descriptive `ValueError`) on:
 
 ### Purpose
 
-Jupyter notebook for analyzing barcode alignment quality across cycles.
+Analyzes barcode alignment quality across cycles. The file is a jupytext "percent" script that the `QC_BARCODEALIGN` process converts to a notebook (`jupytext`), executes with `papermill`, and exports to HTML (`nbconvert`). `qc_painting_align.py` does the same for multicycle painting (`QC_PAINTINGALIGN`).
 
 ### Functionality
 
-1. **Load cycle images**: Reads corrected images from all cycles
-2. **Calculate pixel shifts**: Measures X/Y displacement between cycles
-3. **Compute correlations**: Calculates Pearson correlation between cycles
-4. **Generate visualizations**:
-    - Scatter plots of pixel shifts
-    - Correlation heatmaps
-    - Spatial shift maps
-5. **Validate thresholds**: Checks against `barcoding_shift_threshold` and `barcoding_corr_threshold`
+1. **Load alignment statistics**: Reads each well's `BarcodingApplication_Image.csv`
+2. **Compare cycles**: Summarizes pixel shifts and correlation scores between cycles
+3. **Generate visualizations**: Shift and correlation plots, including a spatial plot using the acquisition geometry (`acquisition_geometry_rows` / `acquisition_geometry_columns`)
+4. **Apply thresholds**: Summarizes sites whose shift exceeds `barcoding_shift_threshold` and draws `barcoding_corr_threshold` as a reference line on the correlation plots
 
-### Usage
+### Parameters
 
-```python
-# In Jupyter or as script
-qc_barcode_align.py \
-    --input_dir /path/to/corrected/cycles/ \
-    --shift_threshold 50 \
-    --corr_threshold 0.9 \
-    --output_dir qc/barcode_align/
-```
+Injected by papermill (see the `parameters` cell in the script): `input_dir`, `output_dir`, `use_cache`, `numcycles`, `shift_threshold`, `corr_threshold`, and optionally `rows` / `columns`. These are set by the process, not by command-line flags.
 
 ### Output Files
 
-- `shift_summary.csv`: Per-site shift statistics
-- `correlation_matrix.csv`: Cycle-to-cycle correlations
-- `shift_spatial_plot.png`: Spatial distribution of shifts
-- `correlation_heatmap.png`: Correlation visualization
-- `qc_report.html`: Interactive QC report
+- `{id}_qc_barcode_align.ipynb`: Executed notebook
+- `{id}_qc_barcode_align.html`: HTML report
+- `*.png`: Optional extra figures (the process accepts them if present)
+
+Published to `results/workspace/qc_reports/{batch}/` (see [Outputs](outputs.md)).
 
 ### QC Criteria
 
-**Pass criteria**:
+The thresholds are for human review of the report; the notebook does not fail or stop the pipeline when they are exceeded.
 
-- Mean pixel shift < `barcoding_shift_threshold`
-- Mean correlation > `barcoding_corr_threshold`
+## check_duplicate_images.py
 
-**Fail criteria**:
+Fails (exit 1) if any two `.npy`/`.tif`/`.tiff` files under a directory have pixel-identical content, or any file cannot be read. Blank frames (all 0 or all max value, allowing up to 0.01% stray pixels) are ignored. Run by the `QC_CHECKDUPLICATEIMAGES` process only when `--check_duplicate_images true`.
 
-- Any site exceeds shift threshold
-- Any cycle pair below correlation threshold
+```bash
+check_duplicate_images.py <images_dir> [--report report.txt]
+```
+
+## stitch.py
+
+Stitches one well and one cycle of illumination-corrected per-site images into one full-well image per channel with ashlar. Sites are copied into a raster-ordered temporary grid using the layouts in `assets/stitchcrop/well_site_layouts.json` (empty grid corners of round wells are filled with seeded low-amplitude noise). Prints a `WARNING:` for sites that fall outside the layout (dropped) and for layout sites with no image (noise-filled). Writes `Plate_{plate}_Well_{well}_Site_1_Stitched_Cycle{NN}_[Corr]{channel}.tiff` plus 10X-downsampled copies. Square wells currently support only `--stitchorder "Grid: snake by rows"`.
+
+## align_intraarm.py and align_combined.py
+
+`align_intraarm.py` registers every cycle of one arm to its first cycle using phase cross-correlation on the reference channel, applying one shift to all channels of the cycle (single-cycle input is copied through). `align_combined.py` scales both arms to a common pixel size and registers painting to barcoding cycle 1, shifting painting only. Both write stats CSVs and QC overlay PNGs. `--shift-threshold` / `--corr-threshold` are recorded in the stats but not enforced.
+
+## crop.py
+
+Crops each full-well stitched image into `tileperside` x `tileperside` tiles of `final_tile_size` pixels (zero-padding on the bottom/right if the stitched image is smaller). Tiles are numbered column-major starting at the well's first site index and written as `Plate_{plate}_Well_{well}_Site_{n}_{suffix}.tiff`.
 
 ## Development Guide
 

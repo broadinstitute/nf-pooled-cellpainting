@@ -13,30 +13,51 @@ Within these, outputs follow a consistent naming pattern: `{batch}/{subfolder}/{
 
 ## Directory Structure Overview
 
+### Default and No-Stitch workflows
+
+![standard workflow folders](images/standard_workflow_folders.png)
+
 ```
 results/
 ├── images/
 │   └── {batch}/
 │       ├── illum/                          # Illumination functions
-│       ├── images_corrected/               # Illumination-corrected images (default, NO_STITCH)
-│       ├── images_aligned/                 # Aligned barcoding images (default, NO_STITCH)
-│       ├── images_aligned_intraarm/        # Cross-cycle aligned images (STITCH_ALIGN_CROP only)
-│       ├── images_aligned_combined/        # Cross-arm aligned images (STITCH_ALIGN_CROP only)
-│       ├── images_preprocessed/            # Preprocessed barcoding images (STITCH_ALIGN_CROP only)
+│       ├── images_corrected/               # Illumination-corrected images, intra-arm aligned, channel balanced if 4-color SBS chemistry
+│       ├── images_aligned/                 # Aligned barcoding images
 │       ├── images_segmentation/            # Segmentation check outputs
-│       ├── images_corrected_stitched/      # Stitched images (full resolution)
-│       ├── images_corrected_cropped/       # Cropped images (default, NO_STITCH)
-│       ├── images_aligned_cropped/         # Cropped images (STITCH_ALIGN_CROP only)
-│       └── images_corrected_stitched_10X/  # 10X downsampled stitched images
+│       ├── images_corrected_stitched/      # Stitched images (default only)
+│       ├── images_corrected_cropped/       # Cropped images (default only)
+│       └── images_corrected_stitched_10X/  # 10X downsampled stitched images (default only)
 ├── workspace/
 │   ├── analysis/                           # Combined analysis outputs
-│   └── qc_reports/                         # Quality control reports - numbering
-│                                            # differs by entrypoint, see below
+│   └── qc_reports/                         # Quality control reports
 ├── multiqc/                                # MultiQC summary reports
 └── pipeline_info/                          # Nextflow execution reports and metadata
 ```
 
-**Note**: the default and `NO_STITCH` entrypoints share one `qc_reports` numbering scheme; `STITCH_ALIGN_CROP` uses a different one (its stitch/align/crop steps happen in a different order relative to preprocessing/segmentation). See [Quality Control Outputs](#quality-control-outputs) below for the full, per-entrypoint mapping.
+### Stitch-Align-Crop workflow
+
+![stitch align crop folders](images/stitch_align_crop_folders.png)
+
+```
+results/
+├── images/
+│   └── {batch}/
+│       ├── illum/                          # Illumination functions
+│       ├── images_corrected/               # Illumination-corrected images
+│       ├── images_corrected_stitched/      # Stitched images
+│       └── images_corrected_stitched_10X/  # 10X downsampled stitched images
+│       ├── images_aligned_intraarm/        # Cross-cycle aligned images
+│       ├── images_aligned_combined/        # Cross-arm aligned images
+│       ├── images_aligned_cropped/         # Cropped images
+│       ├── images_preprocessed/            # Preprocessed barcoding images (STITCH_ALIGN_CROP only)
+│       └── images_segmentation/            # Segmentation check outputs
+├── workspace/
+│   ├── analysis/                           # Combined analysis outputs
+│   └── qc_reports/                         # Quality control reports - numbering
+├── multiqc/                                # MultiQC summary reports
+└── pipeline_info/                          # Nextflow execution reports and metadata
+```
 
 ## Cell Painting Outputs
 
@@ -88,11 +109,11 @@ results/images/Batch1/images_corrected/painting/Plate1/Plate1-A1-1/
 
 **Files**: `*.tiff`, `TileConfiguration.txt`
 
-**Description**: Stitched full-resolution images for each well. Generated only if `qc_painting_passed == true`. Includes the FIJI TileConfiguration file for reference.
+**Description**: Stitched full-resolution images for each well. Default entrypoint: generated only if `qc_painting_passed == true`, and includes the FIJI TileConfiguration file for reference. `STITCH_ALIGN_CROP`: always generated (not gated by `qc_painting_passed`), stitched with ashlar from the illumination-corrected images, one file per well, cycle and channel named `Plate_{plate}_Well_{well}_Site_1_Stitched_Cycle{NN}_Corr{channel}.tiff` (no TileConfiguration file).
 
 ### Cropped Images
 
-**Location**: `results/images/{batch}/images_corrected_cropped/painting/{plate}/{plate}-{well}/` (default, `NO_STITCH`) or `results/images/{batch}/images_aligned_cropped/painting/{plate}/{plate}-{well}/` (`STITCH_ALIGN_CROP` - by this point the images have gone through cross-cycle/cross-arm alignment, not just illumination correction)
+**Location**: `results/images/{batch}/images_corrected_cropped/painting/{plate}/{plate}-{well}/` (default) or `results/images/{batch}/images_aligned_cropped/painting/{plate}/{plate}-{well}/` (`STITCH_ALIGN_CROP` - by this point the images have gone through cross-cycle/cross-arm alignment, not just illumination correction)
 
 **Files**: `*.tiff`
 
@@ -104,7 +125,7 @@ results/images/Batch1/images_corrected/painting/Plate1/Plate1-A1-1/
 
 **Files**: `*.tiff`
 
-**Description**: 10X downsampled versions of stitched images for quick visualization.
+**Description**: Downsampled versions of stitched images for quick visualization (every 10th pixel in `STITCH_ALIGN_CROP`).
 
 ## Barcoding Outputs
 
@@ -122,7 +143,7 @@ results/images/Batch1/images_corrected/painting/Plate1/Plate1-A1-1/
 
 **Files**: `Plate_{plate}_Well_{well}_Site_{site}_Cycle{cycle}_{channel}.tiff`, plus an optional `..._FociObjects.tiff` (a per-site Foci object/label image, produced only if the barcoding preprocessing pipeline includes a module that saves it; `STITCH_ALIGN_CROP` only)
 
-**Description**: Barcode-called and color-compensated images, ready for stitching and combined analysis. In `STITCH_ALIGN_CROP`, the optional `FociObjects.tiff` is also made available to combined analysis (see below).
+**Description**: Barcode-called and color-compensated images. In the default and `NO_STITCH` entrypoints these are ready for stitching/combined analysis; in `STITCH_ALIGN_CROP` they are produced from the already stitched, aligned and cropped tiles. In `STITCH_ALIGN_CROP`, the optional `FociObjects.tiff` is also made available to combined analysis (see below).
 
 ### Stitched Images
 
@@ -130,11 +151,11 @@ results/images/Batch1/images_corrected/painting/Plate1/Plate1-A1-1/
 
 **Files**: `*.tiff`, `TileConfiguration.txt`
 
-**Description**: Stitched preprocessed barcoding images. Generated only if `qc_barcoding_passed == true`.
+**Description**: Default entrypoint: stitched preprocessed barcoding images, generated only if `qc_barcoding_passed == true`. `STITCH_ALIGN_CROP`: always generated (not gated by `qc_barcoding_passed`), stitched with ashlar from the illumination-corrected images, one file per well, cycle and channel named `Plate_{plate}_Well_{well}_Site_1_Stitched_Cycle{NN}_{channel}.tiff` (no TileConfiguration file).
 
 ### Cropped Images
 
-**Location**: `results/images/{batch}/images_corrected_cropped/barcoding/{plate}/{plate}-{well}/` (default, `NO_STITCH`) or `results/images/{batch}/images_aligned_cropped/barcoding/{plate}/{plate}-{well}/` (`STITCH_ALIGN_CROP`)
+**Location**: `results/images/{batch}/images_corrected_cropped/barcoding/{plate}/{plate}-{well}/` (default) or `results/images/{batch}/images_aligned_cropped/barcoding/{plate}/{plate}-{well}/` (`STITCH_ALIGN_CROP`)
 
 **Files**: `*.tiff`
 
@@ -209,6 +230,26 @@ Per-object measurements, including:
 #### Experiment.csv
 
 Pipeline metadata and run parameters.
+
+## STITCH_ALIGN_CROP Intermediate Images
+
+Only produced by the `STITCH_ALIGN_CROP` entrypoint, between stitching and cropping.
+
+### Cross-cycle Aligned Images
+
+**Location**: `results/images/{batch}/images_aligned_intraarm/{arm}/{plate}/{plate}-{well}/`
+
+**Files**: full-well stitched `*.tiff`, one per cycle and channel
+
+**Description**: Each cycle is registered to the first cycle of its arm (phase cross-correlation on the `painting_channame` / `barcoding_channame` reference channel), and the same shift is applied to every channel in that cycle. If only one cycle is present the images pass through unchanged. Alignment stats and QC overlays are written to `qc_reports/{batch}/4_alignment/painting/` and `8_alignment/barcoding/`.
+
+### Cross-arm Aligned Images
+
+**Location**: `results/images/{batch}/images_aligned_combined/{painting|barcoding}/{plate}/{plate}-{well}/`
+
+**Files**: full-well `*.tiff` for each arm
+
+**Description**: Painting and barcoding images are scaled to a common pixel size (`painting_scalingstring`, `barcoding_scalingstring`), then painting is registered to barcoding cycle 1. The shift is applied to every painting image; barcoding images are scaled but not shifted. Stats and a QC overlay are written to `qc_reports/{batch}/9_alignment/combined/`.
 
 ## Quality Control Outputs
 
