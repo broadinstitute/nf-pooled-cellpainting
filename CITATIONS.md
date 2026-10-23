@@ -14,11 +14,13 @@
 
 > Stirling DR, Swain-Bowden MJ, Lucas AM, Carpenter AE, Cimini BA, Goodman A (2021). CellProfiler 4: improvements in speed, utility and usability. BMC Bioinformatics, 22 (1), 433. . PMID: 34507520 PMCID: PMC8431850
 
-> McQuin C, Goodman A, Chernyshev V, Kamentsky L, Cimini BA, Karhohs KW, Doan M, Ding L, Rafelski SM, Thirstrup D, Wiegraebe W, Singh S, Becker T, Caicedo JC, Carpenter AE (2018). CellProfiler 3.0: Next-generation image processing for biology. PLoS Biol. 16(7):e2005970. PMID: 29969450
+- [Ashlar](https://labsyspharm.github.io/ashlar/)
 
-> Kamentsky L, Jones TR, Fraser A, Bray M, Logan D, Madden K, Ljosa V, Rueden C, Harris GB, Eliceiri K, Carpenter AE (2011). Improved structure, function, and compatibility for CellProfiler: modular high-throughput image analysis software. Bioinformatics 2011. PMID: 21349861 PMCID: PMC3072555
+> Jeremy L Muhlich, Yu-An Chen, Clarence Yapp, Douglas Russell, Sandro Santagata, Peter K Sorger, Stitching and registering highly multiplexed whole-slide images of tissues and tumors using ASHLAR, Bioinformatics, Volume 38, Issue 19, October 2022, Pages 4613–4621, doi: 10.1093/bioinformatics/btac544
 
-> Carpenter AE, Jones TR, Lamprecht MR, Clarke C, Kang IH, Friman O, Guertin DA, Chang JH, Lindquist RA, Moffat J, Golland P, Sabatini DM (2006) CellProfiler: image analysis software for identifying and quantifying cell phenotypes. Genome Biology 7:R100. PMID: 17076895
+- [Fiji](https://fiji.sc)
+
+> Schindelin, J., Arganda-Carreras, I., Frise, E. et al. Fiji: an open-source platform for biological-image analysis. Nat Methods 9, 676–682 (2012). do: 10.1038/nmeth.2019
 
 - [MultiQC](https://pubmed.ncbi.nlm.nih.gov/27312411/)
 

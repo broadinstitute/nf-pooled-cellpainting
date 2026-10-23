@@ -63,7 +63,7 @@ df[['Metadata_Plate', 'Metadata_Well', 'Metadata_Site']].drop_duplicates()
 
 **Symptom**: A resumed or relaunched pipeline does not include changes made to the Nextflow workflow codebase since the last launch.
 
-![Seqera Platform settings for using latest commit](image/use_latest_commits.png)
+![Seqera Platform settings for using latest commit](images/use_latest_commits.png)
 
 **Solution**: In Seqera Platform, in the Launchpad, in the 1) General config tab, under **Run setup**, make sure that `Revision` is pointing to the branch that you are working off of and not a specific commit. Make sure that `Pull latest` is set to True (toggle is to the right and shows blue).
 

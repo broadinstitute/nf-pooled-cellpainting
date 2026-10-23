@@ -20,7 +20,9 @@ Memory-intensive tasks are:
 | CELLPROFILER_PREPROCESS | 8 GB |
 | CELLPROFILER_COMBINEDANALYSIS | 32+ GB |
 
-All of these processes require increased amounts of memory, with COMBINEDANALYSIS needing the most. In our tests with cpg0032, CELLPROFILER_COMBINEDANALYSIS needed 32GB of RAM provisioned to not fail. If you encounter exit codes 137 (`OutOfMemoryError`) frequently and task get resubmitted with more memory, try increasing the memory for the specific process in a custom config file. Here is an example for the stitching process. Include this snippet into your Nextflow config (either on Seqera Platform, a local config file or even in your repository config if you want it applied to all pipeline runs). Be aware that increasing resource configuration for your pipeline on AWS will generally lead to provisioning of larger and more expensive EC2 instances!
+The `STITCH_ALIGN_CROP` entrypoint does not use Fiji. Its processes request: `STITCH` and `CROP` 6 CPUs / 12 GB, `ALIGN_INTRAARM` and `ALIGN_COMBINED` 4 CPUs / 12 GB, `CELLPROFILER_PREPROCESS_STITCHALIGNCROP` 12 GB and `CELLPROFILER_COMBINEDANALYSIS_STITCHALIGNCROP` 40 GB (see `conf/base.config`). Override them with `withName:` the same way as below.
+
+All of these processes require increased amounts of memory, with COMBINEDANALYSIS needing the most. In our tests with cpg0032, CELLPROFILER_COMBINEDANALYSIS needed 32GB of RAM provisioned to not fail. If you encounter exit codes 137 (`OutOfMemoryError`) frequently and tasks get resubmitted with more memory, try increasing the memory for the specific process in a custom config file. Here is an example for the stitching process. Include this snippet into your Nextflow config (either on Seqera Platform, a local config file or even in your repository config if you want it applied to all pipeline runs). Be aware that increasing resource configuration for your pipeline on AWS will generally lead to provisioning of larger and more expensive EC2 instances!
 
 ```groovy
 process {
@@ -78,6 +80,8 @@ To debug, navigate to the failed task's work directory (shown in the error) and 
 - `.command.log` - stdout/stderr from the tool
 - `.command.sh` - the exact command that ran
 - `.command.err` - any error output
+
+The same applies to the `STITCH_ALIGN_CROP` entrypoint's processes (e.g. `STITCH_PAINTING`, `CROP_BARCODING`, `ALIGN_COMBINED`). `stitch.py` prints `WARNING:` lines to `.command.log` for sites missing from the well layout.
 
 ## How do I know if my QC passed?
 

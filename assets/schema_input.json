@@ -46,7 +46,7 @@
             "cycle": {
                 "type": "integer",
                 "minimum": 1,
-                "errorMessage": "The imaging round must be a positive integer",
+                "errorMessage": "The imaging round must be a positive integer (the SBS cycle number for barcoding rows, or the phenotyping/imaging round for painting rows - use 1 if there is only one round)",
                 "meta": ["cycle"]
             },
             "channels": {

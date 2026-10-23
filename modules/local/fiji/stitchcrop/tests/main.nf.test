@@ -32,23 +32,24 @@ nextflow_process {
                 ]
                 // Stitch script
                 input[1] = file("\${projectDir}/assets/stitchcrop/stitch_crop.env_master.test_profile.py", checkIfExists: true)
+                input[2] = file("\${projectDir}/assets/stitchcrop/well_site_layouts.json", checkIfExists: true)
                 // Painting-specific stitching parameters
-                input[2] = "square"                    // painting_round_or_square
-                input[3] = true                        // painting_quarter_if_round
-                input[4] = 10                          // painting_overlap_pct
-                input[5] = 2                           // painting_scalingstring
-                input[6] = 1                           // painting_imperwell
-                input[7] = 2                           // painting_rows
-                input[8] = 2                           // painting_columns
-                input[9] = "Grid: snake by rows"      // painting_stitchorder
-                input[10] = 2                          // tileperside
-                input[11] = 800                        // final_tile_size
-                input[12] = 0                          // painting_xoffset_tiles
-                input[13] = 0                          // painting_yoffset_tiles
-                input[14] = true                       // compress
-                input[15] = false                      //phenix
-                input[16] = "DNA"                     // channame
-                input[17] = true                       // should_run
+                input[3] = "square"                    // painting_round_or_square
+                input[4] = true                        // painting_quarter_if_round
+                input[5] = 10                          // painting_overlap_pct
+                input[6] = 2                           // painting_scalingstring
+                input[7] = 1                           // painting_imperwell
+                input[8] = 2                           // painting_rows
+                input[9] = 2                           // painting_columns
+                input[10] = "Grid: snake by rows"      // painting_stitchorder
+                input[11] = 2                          // tileperside
+                input[12] = 800                        // final_tile_size
+                input[13] = 0                          // painting_xoffset_tiles
+                input[14] = 0                          // painting_yoffset_tiles
+                input[15] = true                       // compress
+                input[16] = false                      //phenix
+                input[17] = "DNA"                     // channame
+                input[18] = true                       // should_run
                 """
             }
         }
@@ -109,23 +110,24 @@ nextflow_process {
                 ]
                 // Stitch script
                 input[1] = file("\${projectDir}/assets/stitchcrop/stitch_crop.env_master.test_profile.py", checkIfExists: true)
+                input[2] = file("\${projectDir}/assets/stitchcrop/well_site_layouts.json", checkIfExists: true)
                 // Barcoding-specific stitching parameters
-                input[2] = "square"                    // barcoding_round_or_square
-                input[3] = true                        // barcoding_quarter_if_round
-                input[4] = 10                          // barcoding_overlap_pct
-                input[5] = 2                           // barcoding_scalingstring
-                input[6] = 1                           // barcoding_imperwell
-                input[7] = 2                           // barcoding_rows
-                input[8] = 2                           // barcoding_columns
-                input[9] = "Grid: snake by rows"      // barcoding_stitchorder
-                input[10] = 2                          // tileperside
-                input[11] = 800                        // final_tile_size
-                input[12] = 0                          // barcoding_xoffset_tiles
-                input[13] = 0                          // barcoding_yoffset_tiles
-                input[14] = true                       // compress
-                input[15] = false                      //phenix
-                input[16] = "DAPI"                    // channame
-                input[17] = true                       // should_run
+                input[3] = "square"                    // barcoding_round_or_square
+                input[4] = true                        // barcoding_quarter_if_round
+                input[5] = 10                          // barcoding_overlap_pct
+                input[6] = 2                           // barcoding_scalingstring
+                input[7] = 1                           // barcoding_imperwell
+                input[8] = 2                           // barcoding_rows
+                input[9] = 2                           // barcoding_columns
+                input[10] = "Grid: snake by rows"      // barcoding_stitchorder
+                input[11] = 2                          // tileperside
+                input[12] = 800                        // final_tile_size
+                input[13] = 0                          // barcoding_xoffset_tiles
+                input[14] = 0                          // barcoding_yoffset_tiles
+                input[15] = true                       // compress
+                input[16] = false                      //phenix
+                input[17] = "DAPI"                    // channame
+                input[18] = true                       // should_run
                 """
             }
         }
@@ -156,23 +158,24 @@ nextflow_process {
                     ]
                 ]
                 input[1] = file("\${projectDir}/assets/stitchcrop/stitch_crop.env_master.test_profile.py", checkIfExists: true)
+                input[2] = file("\${projectDir}/assets/stitchcrop/well_site_layouts.json", checkIfExists: true)
                 // Painting-specific stitching parameters
-                input[2] = "square"                    // painting_round_or_square
-                input[3] = true                        // painting_quarter_if_round
-                input[4] = 10                          // painting_overlap_pct
-                input[5] = 2                           // painting_scalingstring
-                input[6] = 1                           // painting_imperwell
-                input[7] = 2                           // painting_rows
-                input[8] = 2                           // painting_columns
-                input[9] = "Grid: snake by rows"      // painting_stitchorder
-                input[10] = 2                          // tileperside
-                input[11] = 800                        // final_tile_size
-                input[12] = 0                          // painting_xoffset_tiles
-                input[13] = 0                          // painting_yoffset_tiles
-                input[14] = true                       // compress
-                input[15] = false                      //phenix
-                input[16] = "DNA"                     // channame
-                input[17] = true                       // should_run
+                input[3] = "square"                    // painting_round_or_square
+                input[4] = true                        // painting_quarter_if_round
+                input[5] = 10                          // painting_overlap_pct
+                input[6] = 2                           // painting_scalingstring
+                input[7] = 1                           // painting_imperwell
+                input[8] = 2                           // painting_rows
+                input[9] = 2                           // painting_columns
+                input[10] = "Grid: snake by rows"      // painting_stitchorder
+                input[11] = 2                          // tileperside
+                input[12] = 800                        // final_tile_size
+                input[13] = 0                          // painting_xoffset_tiles
+                input[14] = 0                          // painting_yoffset_tiles
+                input[15] = true                       // compress
+                input[16] = false                      //phenix
+                input[17] = "DNA"                     // channame
+                input[18] = true                       // should_run
                 """
             }
         }
