@@ -1,5 +1,3 @@
-include { toJson } from 'plugin/nf-boost'
-
 process CELLPROFILER_ILLUMCALC {
     tag "${meta.id}"
     label 'cellprofiler_basic'
@@ -9,13 +7,13 @@ process CELLPROFILER_ILLUMCALC {
         : 'community.wave.seqera.io/library/cellprofiler:4.2.8--aff0a99749304a7f'}"
 
     input:
-    tuple val(meta), val(channels), val(cycle), path(images, stageAs: "images/"), val(image_metas)
+    tuple val(meta), val(channels), val(cycle), path(images, stageAs: "images/img?/*"), val(image_metas), val(staged_names)
     path illumination_cppipe
     val has_cycles
 
     output:
     tuple val(meta), path("*.npy"), emit: illumination_corrections
-    path "load_data.csv", emit: load_data_csv
+    tuple val(meta), path("load_data.csv"), emit: load_data_csv
     path "versions.yml", emit: versions
 
     when:
@@ -24,21 +22,37 @@ process CELLPROFILER_ILLUMCALC {
     script:
     // Serialize image metadata for load_data.csv generation
     // Base64 encode to reduce log verbosity
-    def metadata_json_content = toJson(image_metas)
+    def metadata_json_content = groovy.json.JsonOutput.toJson(image_metas)
     def metadata_base64 = metadata_json_content.bytes.encodeBase64().toString()
+    // Trailing newline required: a `while read` loop over a file whose last
+    // line lacks one silently skips that final line.
+    def staged_names_base64 = (staged_names.join('\n') + '\n').bytes.encodeBase64().toString()
 
     """
     # Create metadata JSON file from base64 (reduces log verbosity)
     echo '${metadata_base64}' | base64 -d > metadata.json
+    echo '${staged_names_base64}' | base64 -d > staged_names.txt
+
+    # Nextflow stages each raw file into its own images/imgN/ directory (in
+    # the same order as staged_names, which every image_metadata entry's
+    # `filename` already matches) to avoid basename collisions across
+    # cycles/acquisition rounds - rename each to that disambiguated name so
+    # generate_load_data_csv.py can trust `filename` directly, no matching.
+    i=1
+    while IFS= read -r staged_name; do
+        src=\$(ls "images/img\${i}"/)
+        mv "images/img\${i}/\${src}" "images/\${staged_name}"
+        rmdir "images/img\${i}"
+        i=\$((i + 1))
+    done < staged_names.txt
 
     # Generate load_data.csv
     generate_load_data_csv.py \\
-        --pipeline-type illumcalc \\
         --images-dir ./images \\
         --output load_data.csv \\
         --metadata-json metadata.json \\
-        --channels "${channels}" \\
         --cycle-metadata-name "${params.cycle_metadata_name}" \\
+        --outdir "${params.outdir}" \\
         ${has_cycles ? '--has-cycles' : ''}
 
     # Check if illumination_cppipe ends with .template

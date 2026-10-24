@@ -1,19 +1,20 @@
 process CELLPROFILER_ILLUMAPPLY {
     tag "${meta.id}"
-    label 'cellprofiler_basic'
+    label 'cellprofiler_large'
 
     container "${workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container
         ? 'oras://community.wave.seqera.io/library/cellprofiler:4.2.8--7c1bd3a82764de92'
         : 'community.wave.seqera.io/library/cellprofiler:4.2.8--aff0a99749304a7f'}"
 
     input:
-    tuple val(meta), val(channels), val(cycles), path(images, stageAs: "images/img?/*"), val(image_metas), path(npy_files, stageAs: "images/")
+    tuple val(meta), val(channels), val(cycles), path(images, stageAs: "images/img?/*"), val(image_metas), val(staged_names), path(npy_files, stageAs: "images/")
     path illumination_apply_cppipe
     val has_cycles
 
     output:
     tuple val(meta), path("*.tiff"), path("*.csv"), emit: corrected_images
-    path "load_data.csv", emit: load_data_csv
+    tuple val(meta), path("*.png"), emit: qc_images, optional: true
+    tuple val(meta), path("load_data.csv"), emit: load_data_csv
     path "versions.yml", emit: versions
 
     when:
@@ -24,20 +25,37 @@ process CELLPROFILER_ILLUMAPPLY {
     // Base64 encode to reduce log verbosity
     def metadata_json_content = groovy.json.JsonOutput.toJson(image_metas)
     def metadata_base64 = metadata_json_content.bytes.encodeBase64().toString()
+    // Trailing newline required: a `while read` loop over a file whose last
+    // line lacks one silently skips that final line.
+    def staged_names_base64 = (staged_names.join('\n') + '\n').bytes.encodeBase64().toString()
 
     """
     # Create metadata JSON file from base64 (reduces log verbosity)
     echo '${metadata_base64}' | base64 -d > metadata.json
+    echo '${staged_names_base64}' | base64 -d > staged_names.txt
+
+    # Nextflow stages each raw file into its own images/imgN/ directory (in
+    # the same order as staged_names, which every image_metadata entry's
+    # `filename` already matches) to avoid basename collisions across
+    # cycles/acquisition rounds - rename each to that disambiguated name so
+    # generate_load_data_csv.py can trust `filename` directly, no matching.
+    i=1
+    while IFS= read -r staged_name; do
+        src=\$(ls "images/img\${i}"/)
+        mv "images/img\${i}/\${src}" "images/\${staged_name}"
+        rmdir "images/img\${i}"
+        i=\$((i + 1))
+    done < staged_names.txt
 
     # Generate load_data.csv
     generate_load_data_csv.py \\
-        --pipeline-type illumapply \\
         --images-dir ./images \\
         --illum-dir ./images \\
         --output load_data.csv \\
         --metadata-json metadata.json \\
-        --channels "${channels}" \\
         --cycle-metadata-name "${params.cycle_metadata_name}" \\
+        --outdir "${params.outdir}" \\
+        --include-illum-files \\
         ${has_cycles ? '--has-cycles' : ''}
 
     # Patch Base image location to use Default Input Folder (staged images)
@@ -60,8 +78,8 @@ process CELLPROFILER_ILLUMAPPLY {
     stub:
     // For barcoding (has_cycles=true): create files with _Cycle pattern that downstream regex expects
     // For painting (has_cycles=false): create painting-style files
-    def stub_files = has_cycles ?
-        """
+    def stub_files = has_cycles
+        ? """
         touch load_data.csv
         touch Plate_${meta.plate}_Well_${meta.well}_Site_${meta.site ?: 1}_Cycle01_DNA.tiff
         touch Plate_${meta.plate}_Well_${meta.well}_Site_${meta.site ?: 1}_Cycle01_A.tiff
@@ -70,8 +88,8 @@ process CELLPROFILER_ILLUMAPPLY {
         touch BarcodingIllumApplication_Experiment.csv
         touch BarcodingIllumApplication_Image.csv
         touch BarcodingIllumApplication_Nuclei.csv
-        """ :
         """
+        : """
         touch load_data.csv
         touch Plate_${meta.plate}_Well_${meta.well}_Site_${meta.site ?: 1}_CorrPhalloidin.tiff
         touch PaintingIllumApplication_Cells.csv

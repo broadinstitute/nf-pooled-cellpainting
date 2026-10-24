@@ -16,6 +16,11 @@ on:
       - main
       - master
 
+# Least privilege: this workflow downloads and runs the pipeline, so its token
+# must not be able to write to the repository.
+permissions:
+  contents: read
+
 env:
   NXF_ANSI_LOG: false
 
@@ -39,7 +44,7 @@ jobs:
     needs: configure
     steps:
       - name: Install Nextflow
-        uses: nf-core/setup-nextflow@v2
+        uses: nf-core/setup-nextflow@6c2e22b4d901f0c42ca66c5069f8026df026d165 # v2
 
       - name: Disk space cleanup
         uses: jlumbroso/free-disk-space@54081f138730dfa15788a46383842cd2f914a1be # v1.3.1

@@ -23,12 +23,10 @@ watchdog = ">=6.0.0,<7"
 # Features - Modular dependency groups
 # =============================================================================
 
-# Documentation tools
+# Documentation tools (Jupyter Book / MyST)
 [feature.docs.dependencies]
-mkdocs = ">=1.5.0"
-mkdocs-material = ">=9.5.0"
-mkdocs-macros-plugin = ">=1.0.0"
-pymdown-extensions = ">=10.7.0"
+jupyter-book = ">=2.1"
+jupytext = "*"
 
 # Development tools (linting, formatting)
 [feature.dev.dependencies]
@@ -75,12 +73,16 @@ description = "Update schema after adding parameters"
 
 # Documentation
 [tasks.serve-docs]
-cmd = "mkdocs serve --livereload"
+cmd = "cd docs && jupyter book start"
 description = "Serve documentation locally"
 
 [tasks.build-docs]
-cmd = "mkdocs build"
+cmd = "cd docs && jupyter book build --html"
 description = "Build documentation"
+
+[tasks.clean-docs]
+cmd = "rm -rf docs/_build"
+description = "Clean documentation build artifacts"
 
 # Clean up
 [tasks.clean-work]

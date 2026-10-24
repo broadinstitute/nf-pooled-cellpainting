@@ -1,0 +1,72 @@
+{
+    "all unique - passes": {
+        "content": [
+            {
+                "0": [
+                    [
+                        {
+                            "batch": "Batch1",
+                            "plate": "Plate1"
+                        },
+                        "Batch1_Plate1_duplicate_check.txt:md5,ca8f0f2f8841ffb0a160a80a16bf2069"
+                    ]
+                ],
+                "1": [
+                    "versions.yml:md5,cf05a6e6606c6ba15d3bd515a074b8f8"
+                ],
+                "report": [
+                    [
+                        {
+                            "batch": "Batch1",
+                            "plate": "Plate1"
+                        },
+                        "Batch1_Plate1_duplicate_check.txt:md5,ca8f0f2f8841ffb0a160a80a16bf2069"
+                    ]
+                ],
+                "versions": [
+                    "versions.yml:md5,cf05a6e6606c6ba15d3bd515a074b8f8"
+                ]
+            }
+        ],
+        "meta": {
+            "nf-test": "0.9.3",
+            "nextflow": "25.10.2"
+        },
+        "timestamp": "2026-09-04T12:17:25.631034"
+    },
+    "checkduplicateimages - stub": {
+        "content": [
+            {
+                "0": [
+                    [
+                        {
+                            "batch": "Batch1",
+                            "plate": "Plate1"
+                        },
+                        "Batch1_Plate1_duplicate_check.txt:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "1": [
+                    "versions.yml:md5,cf05a6e6606c6ba15d3bd515a074b8f8"
+                ],
+                "report": [
+                    [
+                        {
+                            "batch": "Batch1",
+                            "plate": "Plate1"
+                        },
+                        "Batch1_Plate1_duplicate_check.txt:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "versions": [
+                    "versions.yml:md5,cf05a6e6606c6ba15d3bd515a074b8f8"
+                ]
+            }
+        ],
+        "meta": {
+            "nf-test": "0.9.3",
+            "nextflow": "25.10.2"
+        },
+        "timestamp": "2026-09-04T12:17:47.27852"
+    }
+}

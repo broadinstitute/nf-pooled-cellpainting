@@ -38,7 +38,10 @@ lint:
     - .github/PULL_REQUEST_TEMPLATE.md
     # Custom workflow configs for this pipeline (not using nf-core template versions)
     - .github/workflows/linting.yml
-    - .github/workflows/linting_comment.yml
+    # Hardened against the nf-core PR-comment workflow advisory ahead of the
+    # template: posts its comment via .github/workflows/pr-comment.yml instead of
+    # running privileged on pull_request_target.
+    - .github/workflows/branch.yml
     - assets/email_template.txt
     - docs/README.md
   nextflow_config:
@@ -60,6 +63,10 @@ lint:
     - .github/ISSUE_TEMPLATE/config.yml
     - .github/workflows/awstest.yml
     - .github/workflows/awsfulltest.yml
+    # Deliberately removed: fix_linting.yml ran privileged on issue_comment and
+    # needs a bot token this repo does not have; linting_comment.yml was a dead stub.
+    - .github/workflows/fix_linting.yml
+    - .github/workflows/linting_comment.yml
     - conf/igenomes.config
     - conf/igenomes_ignored.config
     - assets/email_template.html
@@ -78,7 +85,7 @@ template:
   org: broadinstitute
   name: nf-pooled-cellpainting
   description: A Nextflow pipeline for analysing optical pooled screens (OPS) data.
-  author: Florian Wuennemann, Ken Brewer, Erin Weissbart, Shantanu Singh, and Seqera Services
+  author: Florian Wuennemann, Ken Brewer, Erin Weisbart, Shantanu Singh, and Seqera Services
   version: 1.1.0dev
   force: true
   outdir: .

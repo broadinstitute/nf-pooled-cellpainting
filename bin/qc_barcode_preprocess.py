@@ -21,6 +21,7 @@ import pandas as pd
 import seaborn as sns
 import datetime
 import matplotlib.pyplot as plt
+import matplotlib.lines as mlines
 
 # %matplotlib inline
 
@@ -87,21 +88,25 @@ bc_df = pd.read_csv(barcode_library_path)
 # Normalize gene column name to 'Gene'
 if "gene_symbol" in bc_df.columns:
     bc_df = bc_df.rename(columns={"gene_symbol": "Gene"})
+elif "target_symbol" in bc_df.columns:
+    bc_df = bc_df.rename(columns={"target_symbol": "Gene"})
 elif "Gene" not in bc_df.columns:
-    raise ValueError("Barcode library must contain 'Gene' or 'gene_symbol' column")
+    raise ValueError("Barcode library must contain 'Gene', 'gene_symbol', or 'target_symbol' column")
 
 # Normalize barcode column name to 'Barcode'
 if "sgRNA" in bc_df.columns:
     bc_df = bc_df.rename(columns={"sgRNA": "Barcode"})
+elif "barcode_to_call" in bc_df.columns:
+    bc_df = bc_df.rename(columns={"barcode_to_call": "Barcode"})
 elif "Barcode" not in bc_df.columns:
-    raise ValueError("Barcode library must contain 'Barcode' or 'sgRNA' column")
+    raise ValueError("Barcode library must contain 'Barcode', 'sgRNA', or 'barcode_to_call' column")
 
 gene_col = "Gene"
 barcode_col = "Barcode"
 
 # %%
 # Describe barcodes
-print(len(bc_df), "total barcodes")
+print(len(bc_df), "total barcodes in library")
 rep5 = sum(
     [
         any(repeat in read for repeat in ["AAAAA", "CCCCC", "GGGGG", "TTTTT"])
@@ -184,8 +189,8 @@ for cycle in range(1, numcycles + 1):
             "Frequency": float(BarcodeCat.count("T")) / float(len(BarcodeCat)),
         }
     )
-df_parsed = pd.DataFrame(dflist)
-g = sns.lineplot(x="Cycle", y="Frequency", hue="Nucleotide", data=df_parsed)
+df_library = pd.DataFrame(dflist)
+g = sns.lineplot(x="Cycle", y="Frequency", hue="Nucleotide", data=df_library)
 g.set_ylim([0.1, 0.5])
 handles, labels = g.get_legend_handles_labels()
 g.legend(handles=handles[0:], labels=labels[0:])
@@ -253,7 +258,6 @@ column_list = [
     "Metadata_Plate",
     "Metadata_Site",
     "Metadata_Well",
-    "Metadata_Well_Value",
     "Barcode_BarcodeCalled",
     "Barcode_MatchedTo_Barcode",
     "Barcode_MatchedTo_GeneCode",
@@ -261,8 +265,20 @@ column_list = [
     "Barcode_MatchedTo_Score",
 ]
 
-csvfolder = input_dir
 cache_file = Path(output_dir) / "cached_barcode_foci.parquet"
+allfolders = os.listdir(input_dir)
+# Filter for input_* folders if they exist
+input_folders = [f for f in allfolders if f.startswith('input_') and os.path.isdir(os.path.join(input_dir, f))]
+folderlist = input_folders if input_folders else allfolders
+test_file = os.path.join(input_dir, folderlist[0], filename)
+test_df = pd.read_csv(test_file, nrows=0)
+thresh_cols = [x for x in test_df.columns if '_Threshold_' in x]
+int_cols = []
+upquart_cols = []
+if thresh_cols: # used for 2/3 color
+    upquart_cols = [x for x in thresh_cols if '_UpperQuartileIntensity_' in x]
+    int_cols = [x for x in thresh_cols if '_IntegratedIntensity_' in x]
+    column_list = column_list + upquart_cols + int_cols
 
 # Load data with caching support
 if use_cache and cache_file.exists():
@@ -270,8 +286,8 @@ if use_cache and cache_file.exists():
     df_foci = pd.read_parquet(cache_file)
     print(f"Loaded {len(df_foci)} barcode foci from cache")
 else:
-    print(f"Loading data from: {csvfolder}")
-    df_foci = merge_csvs(csvfolder, filename, column_list)
+    print(f"Loading data from: {input_dir}")
+    df_foci = merge_csvs(input_dir, filename, column_list)
     print(f"Loaded {len(df_foci)} barcode foci")
 
     # Cache for future use
@@ -286,23 +302,39 @@ print(f"Detected site numbering: starting at {min_site} ({'0-based' if min_site 
 print(f"Total sites per well: {max_site - min_site + 1}")
 
 # %%
-df_foci.head()
-
-# %%
 # useful dataframe manipulations
-df_foci.sort_values(by=["Metadata_Well_Value", "Metadata_Site"], inplace=True)
+df_foci.sort_values(by=["Metadata_Well", "Metadata_Site"], inplace=True)
 df_foci["well-site"] = (
     df_foci["Metadata_Well"] + "-" + df_foci["Metadata_Site"].astype(str)
 )
-df_foci_well_groups = df_foci.groupby("Metadata_Well_Value")
+df_foci_well_groups = df_foci.groupby("Metadata_Well")
 
 print(
     sum(df_foci["Barcode_MatchedTo_Score"] == 1)
     * 100.0
-    / sum(df_foci["Barcode_MatchedTo_Score"] > 0),
+    / sum(df_foci["Barcode_MatchedTo_Score"] >= 0),
     " percent perfect overall",
 )
 print(f"{len(df_foci.loc[df_foci['Barcode_MatchedTo_Score'] == 1])} count perfect foci")
+print(
+    sum(df_foci["Barcode_MatchedTo_Score"] >= 1-1/numcycles)
+    * 100.0
+    / sum(df_foci["Barcode_MatchedTo_Score"] >= 0),
+    " percent perfect and off by one",
+)
+
+# Count the matches (duplicates in list are counted individually)
+matchin7_count = sum(1 for s in df_foci['Barcode_BarcodeCalled'] if s[:7] in [x[:7] for x in bc_df["Barcode"]])
+print (matchin7_count/len(df_foci) *100, " percent perfect match in first 7 cycles")
+matchin7_count = sum(1 for s in df_foci['Barcode_BarcodeCalled'] if s[:5] in [x[:5] for x in bc_df["Barcode"]])
+print (matchin7_count/len(df_foci) *100, " percent perfect match in first 5 cycles")
+
+# Count the matches (duplicates in list are counted individually)
+matchinEND5_count = sum(1 for s in df_foci['Barcode_BarcodeCalled'] if s[-5:] in [x[-5:] for x in bc_df["Barcode"]])
+print (matchinEND5_count/len(df_foci) *100, " percent perfect match in last 5 cycles")
+matchinEND5_count = sum(1 for s in df_foci['Barcode_BarcodeCalled'] if s[-7:] in [x[-7:] for x in bc_df["Barcode"]])
+print (matchinEND5_count/len(df_foci) *100, " percent perfect match in last 7 cycles")
+
 sns.displot(df_foci["Barcode_MatchedTo_Score"], kde=False)
 plt.title("Barcode Match Score Distribution")
 plt.tight_layout()
@@ -313,7 +345,7 @@ plt.show()
 
 # %%
 sns_displot = sns.displot(
-    df_foci, x="Barcode_MatchedTo_Score", col="Metadata_Well_Value", col_wrap=3
+    df_foci, x="Barcode_MatchedTo_Score", col="Metadata_Well", col_wrap=3
 )
 plt.tight_layout()
 plt.savefig(
@@ -336,107 +368,22 @@ print(
     ).mean()
 )
 
-# %%
-# Pos df
-# Creates x, y coordinates for plotting per-plate views.
+print("% Reads with >4 repeat X calls")
+print(100*len([x for x in readlist if 'XXXXX' in x])/len(readlist))
+print("% Reads with >4 repeat A calls")
+print(100*len([x for x in readlist if 'AAAAA' in x])/len(readlist))
+print("% Reads with >4 repeat C calls")
+print(100*len([x for x in readlist if 'CCCCC' in x])/len(readlist))
+print("% Reads with >4 repeat G calls")
+print(100*len([x for x in readlist if 'GGGGG' in x])/len(readlist))
+print("% Reads with >4 repeat T calls")
+print(100*len([x for x in readlist if 'TTTTT' in x])/len(readlist))
 
-# Create position mapping based on geometry
-pos_df = None
+print("% Reads that are all unassigned (X) calls")
+print(100*len([x for x in readlist if set(x)=={'X'}])/len(readlist))
 
-if rows and columns:
-    # Square/rectangular acquisition
-    print(f"Creating square position mapping: {rows}x{columns}")
-    pos_data = []
-    for site in range(rows * columns):
-        row = site // columns
-        col = site % columns
-        # Use min_site offset to match data's site numbering convention
-        pos_data.append({"Metadata_Site": site + min_site, "x_loc": col, "y_loc": row})
-    pos_df = pd.DataFrame(pos_data)
-
-elif row_widths:
-    # Circular acquisition (original logic)
-    print(f"Creating circular position mapping with {len(row_widths)} rows")
-    max_width = max(row_widths)
-    pos_dict = {}
-    count = 0
-    # creates dict of (xpos,ypos) = imnumber
-    for row in range(len(row_widths)):
-        row_width = row_widths[row]
-        left_pos = int((max_width - row_width) / 2)
-        for col in range(row_width):
-            if row % 2 == 0:
-                # Use min_site offset to match data's site numbering convention
-                pos_dict[(int(left_pos + col), row)] = count + min_site
-                count += 1
-            else:
-                right_pos = left_pos + row_width - 1
-                # Use min_site offset to match data's site numbering convention
-                pos_dict[(int(right_pos - col), row)] = count + min_site
-                count += 1
-    # make dict into df
-    pos_df = (
-        pd.DataFrame.from_dict(pos_dict, orient="index")
-        .reset_index()
-        .rename(columns={"index": "loc", 0: "Metadata_Site"})
-    )
-    pos_df[["x_loc", "y_loc"]] = pd.DataFrame(
-        pos_df["loc"].tolist(), index=pos_df.index
-    )
-
-if pos_df is not None:
-    print(f"Position mapping created for {len(pos_df)} sites (starting at site {min_site})")
-    # % Perfect by well
-    df_foci_slice = df_foci.loc[
-        :, ["Metadata_Well", "Metadata_Site", "Barcode_MatchedTo_Score"]
-    ]
-    df_foci_perf = df_foci_slice[df_foci_slice["Barcode_MatchedTo_Score"] == 1]
-
-    # Only create spatial plot if there are perfect barcodes
-    if len(df_foci_perf) > 0:
-        df_foci_perf = (
-            df_foci_perf.groupby(["Metadata_Well", "Metadata_Site"])
-            .count()
-            .reset_index()
-            .rename(columns={"Barcode_MatchedTo_Score": "Num_Perf"})
-        )
-        df_foci_slice = (
-            df_foci_slice.groupby(["Metadata_Well", "Metadata_Site"])
-            .count()
-            .reset_index()
-            .rename(columns={"Barcode_MatchedTo_Score": "Num_Total"})
-        )
-        df_foci_pp = df_foci_perf.merge(
-            df_foci_slice, on=["Metadata_Well", "Metadata_Site"]
-        )
-        df_foci_pp["PerPerf"] = (df_foci_pp["Num_Perf"] / df_foci_pp["Num_Total"]) * 100
-        df_foci_pp["PerPerf"] = df_foci_pp["PerPerf"].astype("int")
-
-        # Add the location to the foci dfs
-        df_foci_pp = df_foci_pp.merge(pos_df, on="Metadata_Site").reset_index()
-
-        g = sns.relplot(
-            data=df_foci_pp,
-            x="x_loc",
-            y="y_loc",
-            hue="PerPerf",
-            col="Metadata_Well",
-            col_wrap=3,
-            palette="viridis",
-            marker="s",
-            s=200,
-        )
-        plt.suptitle("Spatial Distribution of Perfect Barcodes")
-        plt.tight_layout()
-        plt.savefig(
-            Path(output_dir) / "spatial_quality_scatter.png", dpi=150, bbox_inches="tight"
-        )
-        plt.show()
-        # note missing sites indicate that site has zero perfect barcodes
-    else:
-        print("No perfect barcodes found (score == 1.0) - spatial plot skipped")
-else:
-    print("No geometry provided - spatial plot skipped")
+print("% Reads with unassigned (X) nucleotide calls")
+print(100*len([x for x in readlist if 'X' in x])/len(readlist))
 
 # %%
 dflist = []
@@ -471,6 +418,13 @@ for cycle in range(1, numcycles + 1):
             "Frequency": float(BarcodeCat.count("T")) / float(len(BarcodeCat)),
         }
     )
+    dflist.append(
+        {
+            "Cycle": int(cycle),
+            "Nucleotide": "X",
+            "Frequency": float(BarcodeCat.count("X")) / float(len(BarcodeCat)),
+        }
+    )
 df_parsed = pd.DataFrame(dflist)
 g = sns.lineplot(x="Cycle", y="Frequency", hue="Nucleotide", data=df_parsed)
 g.set_ylim([0.1, 0.5])
@@ -484,6 +438,32 @@ plt.savefig(
 )
 plt.show()
 
+# %%
+g = sns.lineplot(x="Cycle", y="Frequency", hue="Nucleotide", data=df_parsed)
+handles, labels = g.get_legend_handles_labels()
+g.legend(handles=handles[0:], labels=labels[0:])
+g.set_xticks(list(range(1, numcycles + 1)))
+plt.title("Observed Nucleotide Frequency by Cycle")
+plt.tight_layout()
+plt.savefig(
+    Path(output_dir) / "observed_nucleotide_frequency_noYlim.png", dpi=150, bbox_inches="tight"
+)
+plt.show()
+
+# %%
+merged = df_parsed.loc[df_parsed['Nucleotide']!='X'].merge(df_library[['Cycle', 'Nucleotide', 'Frequency']],
+                         on=['Cycle', 'Nucleotide'],
+                         how='left',
+                         suffixes=('', '_lib'))
+merged['Difference'] = merged['Frequency'] - merged['Frequency_lib']
+
+g = sns.lineplot(x="Cycle", y="Difference", hue="Nucleotide", data=merged)
+handles, labels = g.get_legend_handles_labels()
+g.legend(handles=handles[0:], labels=labels[0:])
+g.set_xticks(list(range(1, numcycles + 1)))
+plt.title("Difference from Expected Nucleotide Frequency by Cycle\nObserved - Expected")
+plt.tight_layout()
+plt.show()
 
 # %%
 def returnbadcycle(query, target):
@@ -495,7 +475,7 @@ def returnbadcycle(query, target):
 
 
 thresh = 1 - 1 / numcycles
-df_onemismatch = df_foci.query("1 > Barcode_MatchedTo_Score > .85").reset_index(
+df_onemismatch = df_foci.query(f"1 > Barcode_MatchedTo_Score >= {thresh}").reset_index(
     drop=True
 )
 
@@ -508,7 +488,7 @@ if len(df_onemismatch) > 0:
     )
     sns.catplot(
         data=df_onemismatch, col="Metadata_Well", x="BadCycle", kind="count", col_wrap=3
-    )  # row='Metadata_Plate'
+    )
     plt.suptitle("Distribution of Mismatch Cycles (Near-Perfect Matches)")
     plt.tight_layout()
     plt.savefig(
@@ -518,7 +498,169 @@ if len(df_onemismatch) > 0:
     )
     plt.show()
 else:
-    print("No near-perfect mismatches found (all scores are either 1.0 or <= 0.85)")
+    print(f"No near-perfect mismatches found (all scores are either 1.0 or < {thresh})")
+
+def returnmismatch(query, target):
+    if pd.isna(query) or pd.isna(target):
+        return None
+    for x in range(len(query)):
+        if query[x] != target[x]:
+            return f"{target[x]}>{query[x]}"
+
+match_type_dict = {"A>C":"(Missed:647, Added:568)", "A>G":"(Missed:488+647)", "A>T":"(Missed:488+647, Added:568)","A>X":"(488+647 to one of\n488 OR 647 OR 568+647 OR 488+588+647)",
+                       "C>A":"(Missed:568, Added:647)", "C>G":"(Missed:488+568)", "C>T":"(Missed:488)","C>X":"(488+568 to one of\n488 OR 647 OR 568+647 OR 488+588+647)",
+                       "G>A":"(Added:488+647)", "G>C":"(Added:488+568)", "G>T":"(Added:568)","G>X":"(None to one of\n488 OR 647 OR 568+647 OR 488+588+647)",
+                       "T>A":"(Missed:568, Added:488+647)", "T>C":"(Added:488)", "T>G":"(Missed:568)","T>X":"(568 to one of\n488 OR 647 OR 568+647 OR 488+588+647)",}
+
+alphabetical_column_order = [f"{x}>{y}" for x in ["A", "C", "G", "T"] for y in ["A", "C", "G", "T", "X"] if x!= y ]
+
+functional_column_order = ["T>C", "G>T", "G>C", "G>A", "C>T", "T>G", "A>G", "C>G",
+                           "A>C", "C>A", "A>T", "T>A", "G>X", "C>X", "A>X", "T>X"]
+
+if len(df_onemismatch) > 0:
+    df_onemismatch["ErrorType"] = df_onemismatch.apply(
+            lambda x: returnmismatch(
+                x["Barcode_BarcodeCalled"], x["Barcode_MatchedTo_Barcode"]
+            ),
+            axis=1,
+        )
+    g = sns.catplot(
+        data=df_onemismatch, x="BadCycle", kind="count", col_wrap=4, col="ErrorType",
+        col_order= functional_column_order
+    )
+    for ax in g.axes.flat:
+        current_title =ax.get_title()[-3:]
+        ax.set_title(f"{current_title} {match_type_dict[current_title]}")
+    plt.suptitle("Distribution of Mismatch Cycles (Near-Perfect Matches)",y=1.01)
+    plt.savefig(
+        Path(output_dir) / "mismatch_cycle_distribution_by_mistake_type.png",
+        dpi=150,
+        bbox_inches="tight",
+    )
+    plt.show()
+
+
+# %%
+def plot_chan_combos(df_full, cols,title, numcycles):
+    channels = ['488', '568', '647']
+    df = df_full.copy()
+    for cycle in [f"{i:02d}" for i in range(1, numcycles+1)]:
+        bool_df = df[[x for x in cols if f'Cycle{cycle}' in x]] > 0
+
+        # We zip the boolean values with the channel names and join the True ones with an underscore
+        df[f'Pattern_Cycle{cycle}'] = bool_df.apply(
+            lambda row: '_'.join([ch for ch, is_positive in zip(channels, row) if is_positive]),
+            axis=1
+        )
+
+        # Replace empty strings with 'None'
+        df[f'Pattern_Cycle{cycle}'] = df[f'Pattern_Cycle{cycle}'].replace('', 'None')
+
+    pattern_cols = [col for col in df.columns if 'Pattern_Cycle' in col]
+
+    df_melted = df.melt(
+        value_vars=pattern_cols,
+        var_name='Cycle_Col',
+        value_name='Pattern'
+    )
+
+    # Clean up the string so the x-axis just shows the cycle number (e.g., '01', '02')
+    df_melted['Cycle'] = df_melted['Cycle_Col'].str.replace('Pattern_Cycle', '')
+
+    # Calculate the counts by grouping by the Cycle and the Pattern
+    df_counts = df_melted.groupby(['Cycle', 'Pattern']).size().reset_index(name='Count')
+
+    plt.figure(figsize=(12, 6))
+
+    ax = sns.lineplot(
+        data=df_counts,
+        x='Cycle',
+        y='Count',
+        hue='Pattern',     # This creates a separate line for each channel combination
+        marker='o',        # Adds dots at each cycle point
+        linewidth=2.5
+    )
+    plt.xlabel('Cycle', fontsize=12)
+    plt.ylabel('Foci Count', fontsize=12)
+    # Use legend for without adding the kit legends
+    #plt.legend(title='Channel Combination', bbox_to_anchor=(1.01, 1), loc='upper left')
+    plt.title(title)
+
+    handles, labels = ax.get_legend_handles_labels()
+    color_map = {label: handle.get_color() for handle, label in zip(handles, labels)}
+
+    def get_color(pattern):
+        return color_map.get(pattern, 'black')
+
+    # Position the main legend
+    main_legend = plt.legend(title='Channel Combination', bbox_to_anchor=(1.02, 1), loc='upper left')
+    ax.add_artist(main_legend) # We must use add_artist() so the next legends don't overwrite this one
+
+    nova_6000_lines = [
+        mlines.Line2D([], [], color=get_color('568_647'), marker='o', lw=2, label='A = 568+647'),
+        mlines.Line2D([], [], color=get_color('568'), marker='o', lw=2, label='T = 568'),
+        mlines.Line2D([], [], color=get_color('647'), marker='o', lw=2, label='C = 647'),
+        mlines.Line2D([], [], color=get_color('None'), marker='o', lw=2, label='G = None')
+    ]
+    nova_6000_legend = ax.legend(handles=nova_6000_lines, title='Novaseq 6000',
+                                bbox_to_anchor=(1.02, 0.5), loc='upper left')
+    ax.add_artist(nova_6000_legend)
+
+    nova_x_lines = [
+        mlines.Line2D([], [], color=get_color('488_647'), marker='o', lw=2, label='A = 488+647'),
+        mlines.Line2D([], [], color=get_color('488_568'), marker='o', lw=2, label='C = 488+568'),
+        mlines.Line2D([], [], color=get_color('568'), marker='o', lw=2, label='T = 568'),
+        mlines.Line2D([], [], color=get_color('None'), marker='o', lw=2, label='G = None')
+    ]
+    ax.legend(handles=nova_x_lines, title='Novaseq X',
+            bbox_to_anchor=(1.02, 0.25), loc='upper left')
+
+    plt.tight_layout()
+    plt.show()
+if int_cols:
+    plot_chan_combos(df_foci, int_cols, 'Integrated Intensity', numcycles)
+
+# %%
+if upquart_cols:
+    plot_chan_combos(df_foci, upquart_cols,'Upper Quartile', numcycles)
+
+# %%
+if int_cols:
+    if numcycles <=12:
+        plotrows = 3
+    else:
+        plotrows = 4
+    for channelcombo in [("568","647"),("488","647"),("488","568")]:
+        fig, axes = plt.subplots(plotrows, 4, sharex=True, sharey=True, figsize=(16,plotrows*4))
+        fig.suptitle(f'Intensity Comparison: {channelcombo[0]} vs {channelcombo[1]}', fontsize=20, fontweight='bold')
+        axes=axes.flatten()
+        for cycle in range(numcycles):
+            sub_data = df_foci.query(f"(Intensity_IntegratedIntensity_Threshold_{channelcombo[0]}_Cycle{cycle+1:02} > 0) | (Intensity_IntegratedIntensity_Threshold_{channelcombo[1]}_Cycle{cycle+1:02} > 0)")
+            sns.histplot(ax=axes[cycle], data=sub_data,x=f'Intensity_IntegratedIntensity_Threshold_{channelcombo[0]}_Cycle{cycle+1:02}',y=f'Intensity_IntegratedIntensity_Threshold_{channelcombo[1]}_Cycle{cycle+1:02}',
+                        )
+            axes[cycle].set_title(f'Cycle{cycle+1:02} IntegratedIntensity')
+            axes[cycle].set(xlabel=channelcombo[0], ylabel=channelcombo[1])
+        plt.tight_layout(rect=[0, 0, 1, 0.96])
+        plt.show()
+
+# %%
+if upquart_cols:
+    if numcycles <=12:
+        plotrows = 3
+    else:
+        plotrows = 4
+    for channelcombo in [("568","647"),("488","647"),("488","568")]:
+        fig, axes = plt.subplots(plotrows, 4, sharex=True, sharey=True, figsize=(16,plotrows*4))
+        fig.suptitle(f'Intensity Comparison: {channelcombo[0]} vs {channelcombo[1]}', fontsize=20, fontweight='bold')
+        axes=axes.flatten()
+        for cycle in range(numcycles):
+            sub_data = df_foci.query(f"(Intensity_UpperQuartileIntensity_Threshold_{channelcombo[0]}_Cycle{cycle+1:02} > 0) | (Intensity_UpperQuartileIntensity_Threshold_{channelcombo[1]}_Cycle{cycle+1:02} > 0)")
+            sns.histplot(ax=axes[cycle], data=sub_data,x=f'Intensity_UpperQuartileIntensity_Threshold_{channelcombo[0]}_Cycle{cycle+1:02}',y=f'Intensity_UpperQuartileIntensity_Threshold_{channelcombo[1]}_Cycle{cycle+1:02}',
+                        )
+            axes[cycle].set_title(f'Cycle{cycle+1:02} UpperQuartile')
+            axes[cycle].set(xlabel=channelcombo[0], ylabel=channelcombo[1])
+        plt.tight_layout(rect=[0, 0, 1, 0.96])
+        plt.show()
 
 # %%
 perfect_df = df_foci[df_foci["Barcode_MatchedTo_Score"] == 1]
