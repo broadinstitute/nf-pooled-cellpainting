@@ -1,0 +1,15 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it using the metadata in this file."
+type: software
+title: "nf-pooled-cellpainting: A Nextflow pipeline for optical pooled screening image analysis"
+authors:
+  - family-names: Wuennemann
+    given-names: Florian
+  - family-names: Brewer
+    given-names: Ken
+  - family-names: Weisbart
+    given-names: Erin
+  - family-names: Singh
+    given-names: Shantanu
+repository-code: "https://github.com/broadinstitute/nf-pooled-cellpainting"
+license: BSD-3-Clause
