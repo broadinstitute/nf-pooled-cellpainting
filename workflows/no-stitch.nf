@@ -30,6 +30,10 @@ workflow NO_STITCH_POOLED_CELLPAINTING {
     barcodes // file: path to barcodes.csv file
 
     main:
+    // Coerce explicitly: string values ("false") from -params-file or config overrides are truthy in Groovy
+    def qc_painting_passed = params.qc_painting_passed.toString().toBoolean()
+    def qc_barcoding_passed = params.qc_barcoding_passed.toString().toBoolean()
+
 
     ch_versions = channel.empty()
     ch_multiqc_files = channel.empty()
@@ -121,7 +125,7 @@ workflow NO_STITCH_POOLED_CELLPAINTING {
 
     //// Combined analysis of painting and barcoding data ////
     // Only run if BOTH painting and barcoding QC have been marked as pass
-    if (params.qc_painting_passed && params.qc_barcoding_passed) {
+    if (qc_painting_passed && qc_barcoding_passed) {
         // Combine pre-stitch per-site images from both arms
         CELLPAINTING_NO_STITCH.out.precrop_images
             .map { meta, images -> [meta + [arm_source: 'cellpainting'], images] }
@@ -247,7 +251,7 @@ workflow NO_STITCH_POOLED_CELLPAINTING {
         }
     }
     else {
-        log.info("Skipping combined analysis: Both qc_painting_passed (${params.qc_painting_passed}) and qc_barcoding_passed (${params.qc_barcoding_passed}) must be true. Review QC montages for both arms and set both parameters to true to proceed.")
+        log.info("Skipping combined analysis: Both qc_painting_passed (${qc_painting_passed}) and qc_barcoding_passed (${qc_barcoding_passed}) must be true. Review QC montages for both arms and set both parameters to true to proceed.")
     }
 
 
