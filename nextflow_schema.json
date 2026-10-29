@@ -153,7 +153,7 @@
                     "description": "Image overlap percentage"
                 },
                 "painting_scalingstring": {
-                    "type": "integer",
+                    "type": "number",
                     "default": 1,
                     "description": "Scaling for images."
                 },
