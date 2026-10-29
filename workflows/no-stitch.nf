@@ -39,7 +39,7 @@ workflow NO_STITCH_POOLED_CELLPAINTING {
     ch_multiqc_files = channel.empty()
 
     // Cellprofiler plugins (shared by segmentation check and combined analysis)
-    if (params.update_cellprofiler_plugins) {
+    if (params.update_cellprofiler_plugins.toString().toBoolean()) {
         CELLPROFILER_PLUGINS_UPDATE(params.cellprofiler_plugins_repo)
         ch_versions = ch_versions.mix(CELLPROFILER_PLUGINS_UPDATE.out.versions)
 
@@ -93,11 +93,11 @@ workflow NO_STITCH_POOLED_CELLPAINTING {
         params.painting_illumcalc_cppipe,
         params.painting_illumapply_cppipe,
         params.painting_segcheck_cppipe,
-        params.range_skip,
+        params.range_skip as Integer,
         ch_cellprofiler_plugins,
         params.outdir,
-        params.acquisition_geometry_rows,
-        params.acquisition_geometry_columns,
+        params.acquisition_geometry_rows as Integer,
+        params.acquisition_geometry_columns as Integer,
     )
     ch_versions = ch_versions.mix(CELLPAINTING_NO_STITCH.out.versions)
 
@@ -110,15 +110,15 @@ workflow NO_STITCH_POOLED_CELLPAINTING {
         barcodes,
         params.outdir,
         params.barcoding_illumapply_grouping,
-        params.barcoding_shift_threshold,
+        params.barcoding_shift_threshold as Integer,
         params.barcoding_corr_threshold,
-        params.acquisition_geometry_rows,
-        params.acquisition_geometry_columns,
+        params.acquisition_geometry_rows as Integer,
+        params.acquisition_geometry_columns as Integer,
         params.callbarcodes_plugin,
         params.compensatecolors_plugin,
         params.callbarcodes_plugin_default,
         params.compensatecolors_plugin_default,
-        params.update_cellprofiler_plugins,
+        params.update_cellprofiler_plugins.toString().toBoolean(),
         params.cellprofiler_plugins_repo,
     )
     ch_versions = ch_versions.mix(BARCODING_NO_STITCH.out.versions)
