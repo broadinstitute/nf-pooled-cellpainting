@@ -93,7 +93,7 @@ jobs:
         shard: ${{ fromJson(needs.nf-test-changes.outputs.shard) }}
         profile: [docker]
         NXF_VER:
-          - "25.04.8"
+          - "26.04.0"
     env:
       NXF_ANSI_LOG: false
       TOTAL_SHARDS: ${{ needs.nf-test-changes.outputs.total_shards }}
