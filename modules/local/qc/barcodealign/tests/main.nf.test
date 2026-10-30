@@ -41,10 +41,8 @@ nextflow_process {
                 // Check that notebook and HTML files exist (not reproducible due to timestamps)
                 { assert process.out.notebook.get(0).get(1) ==~ /.*\.ipynb/ },
                 { assert process.out.html_report.get(0).get(1) ==~ /.*\.html/ },
-                // Check that PNG files exist (multiple files generated)
-                { assert process.out.png_reports.get(0) instanceof List },
-                { assert process.out.png_reports.get(0).size() > 0 },
-                { assert process.out.png_reports.get(0).every { it.toString().endsWith('.png') } }
+                // PNG files are optional (not produced when all wells pass alignment thresholds)
+                { assert process.out.png_reports.size() == 0 || process.out.png_reports.get(0).every { it.toString().endsWith('.png') } }
             )
         }
 

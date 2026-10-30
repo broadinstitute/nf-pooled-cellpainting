@@ -18,10 +18,10 @@
             ]
         ],
         "meta": {
-            "nf-test": "0.9.3",
-            "nextflow": "25.10.0"
+            "nf-test": "0.9.5",
+            "nextflow": "26.04.3"
         },
-        "timestamp": "2025-11-18T01:41:55.53558124"
+        "timestamp": "2026-06-11T18:32:00.000000000"
     },
     "fiji - stitchcrop - painting - corrected_images": {
         "content": [
@@ -41,10 +41,10 @@
                 "versions.yml:md5,05ad37a5e97798a96e40b06bcfb25949"
             ]
         ],
+        "timestamp": "2026-06-11T14:11:10.89526213",
         "meta": {
-            "nf-test": "0.9.3",
-            "nextflow": "25.10.0"
-        },
-        "timestamp": "2025-12-01T21:15:13.480352318"
+            "nf-test": "0.9.5",
+            "nextflow": "26.04.3"
+        }
     }
 }

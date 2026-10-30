@@ -2,11 +2,12 @@ process FIJI_STITCHCROP {
     tag "${meta.id}"
     label 'fiji'
 
-    container 'docker.io/cellprofiler/distributed-fiji:fusion-v0.1.0'
+    container 'cellprofiler/nf-pooled-cellpainting:fiji_v1'
 
     input:
     tuple val(meta), path(corrected_images, stageAs: 'images/')
     path stitch_script
+    path well_site_layouts_json
     val round_or_square
     val quarter_if_round
     val overlap_pct
@@ -20,13 +21,14 @@ process FIJI_STITCHCROP {
     val xoffset_tiles
     val yoffset_tiles
     val compress
+    val phenix
     val channame
     val should_run
 
     output:
     tuple val(meta), path("stitched_images/*.tiff"), emit: stitched_images
     tuple val(meta), path("stitched_images/TileConfiguration.txt"), emit: tile_config
-    tuple val(meta), path("cropped_images/*.tiff"), emit: cropped_images
+    tuple val(meta), path("cropped_images/**.tiff"), emit: cropped_images
     tuple val(meta), path("downsampled_images/*.tiff"), emit: downsampled_images
     path ("versions.yml"), emit: versions
 
@@ -66,7 +68,9 @@ process FIJI_STITCHCROP {
     export YOFFSET_TILES="${yoffset_tiles}"
     export COMPRESS="${compress}"
     export CHANNAME="${channame}"
+    export PHENIX="${phenix}"
     export FIRST_SITE_INDEX="${first_site_index}"
+    export WELL_SITE_LAYOUTS_JSON="${well_site_layouts_json}"
 
     # Run Fiji in headless mode
     /opt/fiji/Fiji.app/ImageJ-linux64 \\

@@ -98,6 +98,22 @@
                 "combinedanalysis_cppipe": {
                     "type": "string",
                     "description": "Cellprofiler pipeline for combined analysis."
+                },
+                "combinedanalysis_include_barcoding_images": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Include barcoding images in STITCH_ALIGN_CROP's combined analysis load_data.csv (in addition to painting images and the optional FociObjects.tiff)."
+                },
+                "cellprofiler_flavor": {
+                    "type": "string",
+                    "default": "default",
+                    "description": "Cellprofiler container variant to use for segmentation check and combined analysis (e.g. to enable Cellpose support).",
+                    "enum": ["default", "cellpose2", "cellpose3"]
+                },
+                "cellprofiler_container_override": {
+                    "type": "string",
+                    "description": "Fully-qualified container image for segmentation check and combined analysis, bypassing cellprofiler_flavor entirely.",
+                    "hidden": true
                 }
             },
             "required": [
@@ -142,8 +158,8 @@
                     "description": "Scaling for images."
                 },
                 "painting_imperwell": {
-                    "type": "string",
-                    "default": "unused",
+                    "type": "integer",
+                    "default": 80,
                     "description": "Number of images per well."
                 },
                 "painting_rows": {
@@ -182,7 +198,7 @@
             "properties": {
                 "barcoding_channame": {
                     "type": "string",
-                    "default": "DNA",
+                    "default": "DAPI",
                     "description": "Channel name for nucleus staining for barcoding arm."
                 },
                 "barcoding_illumapply_grouping": {
@@ -212,8 +228,8 @@
                     "description": "Scaling for images."
                 },
                 "barcoding_imperwell": {
-                    "type": "string",
-                    "default": "unused",
+                    "type": "integer",
+                    "default": 20,
                     "description": "Number of images per well."
                 },
                 "barcoding_rows": {
@@ -284,6 +300,16 @@
                     "type": "boolean",
                     "default": true,
                     "description": "Whether to compress output files."
+                },
+                "phenix": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Whether the images are from a Phenix microscope where the first image is in the center of the well"
+                },
+                "check_duplicate_images": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Whether to run the QC_CHECKDUPLICATEIMAGES pixel-duplicate safety-net check after illumination calculation, illumination correction and preprocessing steps."
                 }
             },
             "fa_icon": "fas fa-cog"
@@ -344,13 +370,40 @@
             "properties": {
                 "callbarcodes_plugin": {
                     "type": "string",
-                    "default": "https://raw.githubusercontent.com/CellProfiler/CellProfiler-plugins/refs/heads/master/active_plugins/callbarcodes.py",
+                    "default": "https://raw.githubusercontent.com/CellProfiler/CellProfiler-plugins/0405c91595cfabbfce8ec579384138c78ccf73ab/active_plugins/callbarcodes.py",
                     "description": "Cellprofiler plugin for calling barcodes."
                 },
                 "compensatecolors_plugin": {
                     "type": "string",
-                    "default": "https://raw.githubusercontent.com/CellProfiler/CellProfiler-plugins/refs/heads/master/active_plugins/compensatecolors.py",
+                    "default": "https://raw.githubusercontent.com/CellProfiler/CellProfiler-plugins/da969556d1d5095e5737601f483c7d55da374f75/active_plugins/compensatecolors.py",
                     "description": "Cellprofiler plugin for compensating colors."
+                },
+                "callbarcodes_plugin_default": {
+                    "type": "string",
+                    "default": "https://raw.githubusercontent.com/CellProfiler/CellProfiler-plugins/0405c91595cfabbfce8ec579384138c78ccf73ab/active_plugins/callbarcodes.py",
+                    "description": "Internal: fixed copy of callbarcodes_plugin's default, used to detect whether the user overrode it. Do not set directly.",
+                    "hidden": true
+                },
+                "compensatecolors_plugin_default": {
+                    "type": "string",
+                    "default": "https://raw.githubusercontent.com/CellProfiler/CellProfiler-plugins/da969556d1d5095e5737601f483c7d55da374f75/active_plugins/compensatecolors.py",
+                    "description": "Internal: fixed copy of compensatecolors_plugin's default, used to detect whether the user overrode it. Do not set directly.",
+                    "hidden": true
+                },
+                "runcellpose_plugin": {
+                    "type": "string",
+                    "default": "https://raw.githubusercontent.com/CellProfiler/CellProfiler-plugins/0f1de5696e933f417f50a48eb40233dc490f98a0/active_plugins/runcellpose.py",
+                    "description": "Cellprofiler plugin for running Cellpose. Only loaded when cellprofiler_flavor is not 'default'."
+                },
+                "update_cellprofiler_plugins": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Clone the latest CellProfiler-plugins repository at runtime. If callbarcodes_plugin/compensatecolors_plugin have been explicitly overridden, those override the same-named files from the clone; otherwise the freshly-cloned versions are used."
+                },
+                "cellprofiler_plugins_repo": {
+                    "type": "string",
+                    "default": "https://github.com/CellProfiler/CellProfiler-plugins.git",
+                    "description": "Git URL of the CellProfiler-plugins repository to clone when update_cellprofiler_plugins is true."
                 }
             },
             "fa_icon": "fas fa-plug"

@@ -3,8 +3,20 @@ name: pre-commit linting
 # It runs pre-commit checks to ensure code quality.
 on:
   pull_request:
+  # Also lint the integration branches themselves. Without this, an unformatted
+  # file merged into dev is never linted directly and instead fails the next
+  # unrelated pull request, which lints the merge of dev and that PR.
+  push:
+    branches:
+      - dev
+      - main
   release:
     types: [published]
+
+# Least privilege: this workflow runs pre-commit hooks defined by the pull
+# request, so its token must not be able to write to the repository.
+permissions:
+  contents: read
 
 jobs:
   pre-commit:

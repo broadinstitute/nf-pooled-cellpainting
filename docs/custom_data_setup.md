@@ -1,0 +1,90 @@
+# Using Your Own Data: Setup
+
+To run the pipeline on your own data, you need to prepare a few key input files. This guide details the requirements for each.
+
+## 1. Samplesheet
+
+The samplesheet is a CSV file that maps your image files to their experimental metadata. It tells the pipeline where to find the images and how they relate to each other (batch, plate, well, site).
+
+### Format Requirements
+
+- **Format**: Comma-separated values (CSV)
+- **Header**: Required (see columns below)
+- **Paths**: Must be **absolute paths** or valid **S3 URIs**. Relative paths are not supported.
+
+### Columns
+
+| Column     | Description                                 | Format                               |
+| ---------- | ------------------------------------------- | ------------------------------------ |
+| `path`     | Path to the directory containing the images | Directory path (local or S3)         |
+| `arm`      | Experimental arm                            | String (`painting` or `barcoding`)   |
+| `batch`    | Batch identifier                            | String                               |
+| `plate`    | Plate identifier                            | String                               |
+| `well`     | Well identifier                             | String (e.g., `A01`)                 |
+| `channels` | Channel names                               | String (comma-separated if multiple) |
+| `site`     | Site number                                 | Integer                              |
+| `cycle`    | Imaging round number (required for all rows) | Integer - the SBS cycle for barcoding rows; the phenotyping/imaging round for painting rows (use `1` if single-round) |
+| `n_frames` | Number of frames/channels                   | Integer                              |
+
+### Example
+
+Here's a minimal example showing one Cell Painting image and two barcoding cycles:
+
+|path|arm|batch|plate|well                 |channels       |site|cycle  |n_frames|
+|----|---|-----|-----|---------------------|---------------|----|-------|--------|
+|/data/painting/WellA1_PointA1_0000_ChannelPhalloidin,CHN2,DNA_Seq0000.ome.tiff|painting|Batch1|Plate1|A1                   |Phalloidin,CHN2,DNA|1   |1      |3       |
+|/data/barcoding/WellA1_PointA1_0000_ChannelC,A,T,G,DNA_Seq0000.ome.tiff|barcoding|Batch1|Plate1|A1                   |C,A,T,G,DNA    |1   |1      |5       |
+|/data/barcoding/WellA1_PointA1_0000_ChannelC,A,T,G,DNA_Seq0001.ome.tiff|barcoding|Batch1|Plate1|A1                   |C,A,T,G,DNA    |1   |2      |5       |
+
+A more complete samplesheet with multiple wells and sites would have many more rows, one per image file.
+
+```{warning}
+**Ensure the channel names in the** `channels` **column match the names used in your CellProfiler pipelines** as the channel names will be used to build load_data.csv columns that need to correspond to your cppipe files provided to the pipeline!
+```
+
+## 2. Barcodes File
+
+This CSV file defines the known barcodes in your library. It is used to map the decoded sequences back to gene identifiers.
+
+### Format
+
+- **Columns**: `barcode_id`, `sequence` (Whatever you name the columns, they must match what column names are set in CellProfiler's CallBarcodes module.)
+- **Sequence**: The nucleotide sequence of the barcode. Can be the full barcode length no matter how many cycles you are reading. CellProfiler's CallBarcodes module will start matches at the beginning of the barcode.
+
+### Example
+
+|barcode_id|sequence|
+|----------|--------|
+|id1       |TAAATAGTAGGATTTACACG|
+|id2       |TAGGTGATATCAATCGATAC|
+|id3       |ATAGCTGATTCCATTCGCTA|
+
+## 3. CellProfiler Pipelines (`.cppipe`)
+
+The pipeline uses CellProfiler for image analysis. You must provide `.cppipe` files for each stage of the analysis. These files define the image processing modules (e.g., IdentifyPrimaryObjects, MeasureObjectIntensity).
+
+You need to provide paths to these files using the corresponding parameters:
+
+### Painting Arm
+
+- `--painting_illumcalc_cppipe`: Calculates illumination correction functions for painting images.
+- `--painting_illumapply_cppipe`: Applies illumination correction to painting images.
+- `--painting_segcheck_cppipe`: Performs quality control for painting segmentation.
+
+### Barcoding Arm
+
+- `--barcoding_illumcalc_cppipe`: Calculates illumination correction for barcoding images.
+- `--barcoding_illumapply_cppipe`: Applies illumination correction to barcoding images.
+- `--barcoding_preprocess_cppipe`: Performs base calling (decoding) for barcodes.
+
+### Combined
+
+- `--combinedanalysis_cppipe`: The final step that merges both arms of data. It makes the morphological measurements and associates the barcode foci with the Cells being measured.
+
+```{warning}
+Ensure your CellProfiler pipelines are compatible with the version of CellProfiler used in the container (currently 4.2.x).
+```
+
+## Full Parameters
+
+Full parameters can be read from nextflow_schema.json.

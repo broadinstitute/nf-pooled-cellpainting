@@ -45,7 +45,7 @@ def natural_sort_key(s: str) -> List:
     ]
 
 
-def load_image(file_path: Path, apply_sqrt: bool = False) -> Image.Image:
+def load_image(file_path: Path, apply_sqrt: bool = False):
     """
     Load an image file and convert to PIL Image.
 
@@ -54,7 +54,7 @@ def load_image(file_path: Path, apply_sqrt: bool = False) -> Image.Image:
         apply_sqrt: Apply sqrt transform (for illumination functions)
 
     Returns:
-        PIL Image object
+        Tuple of (PIL Image, (min_val, max_val)) for .npy files, or (PIL Image, None) for others.
     """
     if file_path.suffix == ".npy":
         # Load numpy array
@@ -64,17 +64,20 @@ def load_image(file_path: Path, apply_sqrt: bool = False) -> Image.Image:
         if apply_sqrt:
             arr = np.sqrt(np.maximum(arr, 0))  # Ensure non-negative before sqrt
 
+        min_val, max_val = float(arr.min()), float(arr.max())
+
         # Normalize to 0-255 range
-        if arr.max() > arr.min():
-            arr = (arr - arr.min()) / (arr.max() - arr.min())
+        if max_val > min_val:
+            arr = (arr - min_val) / (max_val - min_val)
         arr = (arr * 255).astype(np.uint8)
 
-        # Convert to PIL Image
-        return Image.fromarray(arr)
+        img = Image.fromarray(arr)
+        img = img.resize((img.width // 4, img.height // 4), Image.LANCZOS)
+        return img, (min_val, max_val)
 
     else:
         # Load regular image file
-        return Image.open(file_path)
+        return Image.open(file_path), None
 
 
 def extract_pattern_groups(files: List[Path]) -> Dict[str, List[Tuple[str, Path]]]:
@@ -110,8 +113,12 @@ def extract_pattern_groups(files: List[Path]) -> Dict[str, List[Tuple[str, Path]
         # Check for site-based patterns (segmentation images)
         site_match = re.search(r"Site[_\s]?(\d+)", name)
         if site_match:
-            site = f"Site{site_match.group(1)}"
-            patterns.setdefault("site", []).append((site, file_path))
+            site_num = site_match.group(1)
+            well_match = re.search(r"(?:^|[-_])([A-P]\d{1,2})(?:[-_])", name)
+            well = well_match.group(1) if well_match else ""
+            label = f"{well}\nSite{site_num}" if well else f"Site{site_num}"
+            sort_key = (well, int(site_num))
+            patterns.setdefault("site", []).append((sort_key, label, file_path))
             continue
 
         # Default: use filename stem
@@ -150,9 +157,9 @@ def determine_grid_layout(n_items: int, aspect_ratio: float = 1.5) -> Tuple[int,
 def create_montage(
     images: List[Tuple[str, Image.Image]],
     grid: Optional[Tuple[int, int]] = None,
-    padding: int = 10,
+    padding: int = 5,
     background_color: tuple = (255, 255, 255),
-    label_height: int = 40,
+    label_height: int = 90,
 ) -> Image.Image:
     """
     Create a montage from a list of images.
@@ -193,15 +200,15 @@ def create_montage(
 
     # Try to load a font for labels (fallback to default)
     try:
-        font = ImageFont.truetype("/System/Library/Fonts/Helvetica.ttc", 24)
+        font = ImageFont.truetype("/System/Library/Fonts/Helvetica.ttc", 36)
     except:
         try:
             # Try a common Linux font path
             font = ImageFont.truetype(
-                "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 24
+                "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 36
             )
         except:
-            font = ImageFont.load_default()
+            font = ImageFont.load_default(size=36)
 
     # Place images
     for idx, (label, img) in enumerate(images):
@@ -349,8 +356,8 @@ def main(
         print(f"Organizing {len(items)} channels in a row")
 
     elif "site" in pattern_groups:
-        # Site-based layout
-        items = sorted(pattern_groups["site"], key=lambda x: natural_sort_key(x[0]))
+        # Site-based layout — sort by well then site number, label includes both
+        items = [(label, fp) for _, label, fp in sorted(pattern_groups["site"], key=lambda x: x[0])]
         print(f"Organizing {len(items)} sites")
 
     else:
@@ -360,9 +367,20 @@ def main(
 
     # Load images
     images = []
+    all_max_vals = []
+    all_min_vals = []
+    dup_detect = False
     for label, file_path in items:
         try:
-            img = load_image(file_path, apply_sqrt=apply_sqrt)
+            img, stats = load_image(file_path, apply_sqrt=apply_sqrt)
+            if stats is not None:
+                min_val, max_val = stats
+                all_max_vals.append(max_val)
+                all_min_vals.append(min_val)
+                label = f"{label}\nmax={max_val:.2g}"
+            for prev_label, prev_img in images:
+                if np.array_equal(np.array(img), np.array(prev_img)):
+                    dup_detect = True
             images.append((label, img))
             print(f"  Loaded: {file_path.name} -> {label}")
         except Exception as e:
@@ -375,6 +393,37 @@ def main(
     # Create montage
     print(f"\nCreating montage with grid {grid if grid else 'auto'}...")
     montage = create_montage(images, grid=grid)
+
+    # Append footer with global max if .npy files were loaded
+    if all_max_vals:
+        global_max = max(all_max_vals)
+        footer_text = f"Max of all max values: {global_max:.4g}"
+        if global_max > 4:
+            footer_text += "  WARNING: HIGH VALUE. POTENTIAL PROBLEM"
+        if any(val == 1 for val in all_max_vals):
+            footer_text += "  ERROR: ILLUMS IMPROPERLY MADE!!! ILLUM WITH MAX=1 DETECTED"
+        if any(val != 1 for val in all_min_vals):
+            footer_text += "  ERROR: ILLUMS IMPROPERLY MADE!!! ILLUM WITH MIN!=1 DETECTED"
+        if dup_detect:
+            footer_text += "  ERROR: DUPLICATED ILLUMS DETECTED!!!"
+        footer_height = 100
+        footer = Image.new("RGB", (montage.width, footer_height), (255, 255, 255))
+        draw = ImageDraw.Draw(footer)
+        try:
+            font = ImageFont.truetype("/System/Library/Fonts/Helvetica.ttc", 36)
+        except:
+            try:
+                font = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 36)
+            except:
+                font = ImageFont.load_default(size=36)
+        bbox = draw.textbbox((0, 0), footer_text, font=font)
+        text_w = bbox[2] - bbox[0]
+        text_h = bbox[3] - bbox[1]
+        draw.text(((montage.width - text_w) // 2, (footer_height - text_h) // 2), footer_text, fill=(0, 0, 0), font=font)
+        combined = Image.new("RGB", (montage.width, montage.height + footer_height), (255, 255, 255))
+        combined.paste(montage, (0, 0))
+        combined.paste(footer, (0, montage.height))
+        montage = combined
 
     # Save
     output_file.parent.mkdir(parents=True, exist_ok=True)

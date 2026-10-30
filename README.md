@@ -18,7 +18,7 @@ Key steps include:
 
 1. Illumination correction (CellProfiler)
 2. Quality control checkpoints (segmentation evaluation, barcode calling and cycle alignment)
-3. Image stitching and cropping (Fiji)
+3. Image stitching and cropping (Fiji; ashlar in the `STITCH_ALIGN_CROP` entrypoint)
 4. Segmentation and feature extraction
 5. Barcode calling and assignment
 6. Final reporting and QC with MultiQC
@@ -79,7 +79,7 @@ The pipeline contains several parameters that are necessary for correct executio
 
 ## Credits
 
-nf-pooled-cellpainting was originally written by [Florian Wuennemann](https://github.com/FloWuenne) (Seqera), [Ken Brewer](https://github.com/kenibrewer) (Seqera), [Erin Weissbart](https://github.com/ErinWeisbart) (Broad Institute), and [Shantanu Singh](https://github.com/shntnu) (Broad Institute).
+nf-pooled-cellpainting was originally written by [Florian Wuennemann](https://github.com/FloWuenne) (Seqera), [Ken Brewer](https://github.com/kenibrewer) (Seqera), [Erin Weisbart](https://github.com/ErinWeisbart) (Broad Institute), and [Shantanu Singh](https://github.com/shntnu) (Broad Institute).
 
 ## Contributions and Support
 

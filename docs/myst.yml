@@ -1,0 +1,38 @@
+# See docs at: https://mystmd.org/guide/frontmatter
+version: 1
+project:
+  id: 20cbaad9-71c1-49fa-a216-1ef99e12df75
+  title: nf-pooled-cellpainting Documentation
+  description: Documentation for the Nextflow Pooled Cell Painting workflow
+  open_access: True
+  license: BSD-3-Clause
+  github: https://github.com/broadinstitute/nf-pooled-cellpainting
+  toc:
+    - file: overview.md
+    - title: Overview
+      children:
+        - file: pipeline_overview.md
+    - title: Getting Started
+      children:
+        - file: installation_setup.md
+        - file: quick_start.md
+    - title: Using Your Own Data
+      children:
+        - file: custom_data_setup.md
+        - file: custom_data_run.md
+        - file: outputs.md
+        - file: samplesheet_dependencies.md
+        - file: faq.md
+        - file: troubleshooting.md
+    - title: For Developers
+      children:
+        - file: developer_intro.md
+        - file: architecture.md
+        - file: cellprofiler.md
+        - file: python_scripts.md
+        - file: dev_testing_ci_cd.md
+site:
+  template: book-theme
+  options:
+     favicon: "images/microscope_favicon.png"
+     logo: "images/microscope_favicon.png"

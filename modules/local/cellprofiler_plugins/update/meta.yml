@@ -1,0 +1,39 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/nf-core/modules/master/modules/meta-schema.json
+name: "cellprofiler_plugins_update"
+description: Clone the latest CellProfiler-plugins repository so downstream CellProfiler steps use up-to-date plugins
+keywords:
+  - cellprofiler
+  - plugins
+  - git
+tools:
+  - "git":
+      description: "Distributed version control system"
+      homepage: "https://git-scm.com/"
+      documentation: "https://git-scm.com/doc"
+      licence: ["GPL-2.0-only"]
+
+input:
+  - repo:
+      type: string
+      description: URL of the CellProfiler-plugins git repository to clone
+
+output:
+  plugin_files:
+    - "CellProfiler-plugins/active_plugins/*.py":
+        type: file
+        description: CellProfiler plugin Python files from the freshly cloned repository
+        pattern: "*.py"
+        ontologies:
+          - edam: "http://edamontology.org/format_3996" # Python script
+  versions:
+    - "versions.yml":
+        type: file
+        description: File containing software versions
+        pattern: "versions.yml"
+        ontologies:
+          - edam: "http://edamontology.org/format_3750" # YAML
+
+authors:
+  - "@ErinWeisbart"
+maintainers:
+  - "@ErinWeisbart"
