@@ -20,7 +20,7 @@ include { PIPELINE_INITIALISATION } from './subworkflows/local/utils_nfcore_nf-p
 include { PIPELINE_COMPLETION } from './subworkflows/local/utils_nfcore_nf-pooled-cellpainting_pipeline'
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    RUN MAIN WORKFLOW
+    RUN MAIN WORKFLOW (select variant with --entrypoint)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
 
@@ -38,90 +38,40 @@ workflow {
     )
 
     //
-    // WORKFLOW: Run main workflow
+    // WORKFLOW: Run the pipeline variant selected with --entrypoint
+    // (default POOLED_CELLPAINTING, NO_STITCH or STITCH_ALIGN_CROP)
     //
-    POOLED_CELLPAINTING(
-        PIPELINE_INITIALISATION.out.samplesheet,
-        params.barcodes,
-    )
+    if (params.entrypoint == 'NO_STITCH') {
+        NO_STITCH_POOLED_CELLPAINTING(
+            PIPELINE_INITIALISATION.out.samplesheet,
+            params.barcodes,
+        )
+        ch_multiqc_report = NO_STITCH_POOLED_CELLPAINTING.out.multiqc_report
+    }
+    else if (params.entrypoint == 'STITCH_ALIGN_CROP') {
+        STITCH_ALIGN_CROP_POOLED_CELLPAINTING(
+            PIPELINE_INITIALISATION.out.samplesheet,
+            params.barcodes,
+        )
+        ch_multiqc_report = STITCH_ALIGN_CROP_POOLED_CELLPAINTING.out.multiqc_report
+    }
+    else if (params.entrypoint == 'POOLED_CELLPAINTING') {
+        POOLED_CELLPAINTING(
+            PIPELINE_INITIALISATION.out.samplesheet,
+            params.barcodes,
+        )
+        ch_multiqc_report = POOLED_CELLPAINTING.out.multiqc_report
+    }
+    else {
+        error("Unknown --entrypoint '${params.entrypoint}'. Choose one of: POOLED_CELLPAINTING, NO_STITCH, STITCH_ALIGN_CROP")
+    }
+
     //
     // SUBWORKFLOW: Run completion tasks
     //
     PIPELINE_COMPLETION(
         params.outdir,
         params.monochrome_logs,
-        POOLED_CELLPAINTING.out.multiqc_report,
-    )
-}
-
-/*
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    RUN NO-STITCH WORKFLOW (select with -entry NO_STITCH)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-*/
-
-workflow NO_STITCH {
-    //
-    // SUBWORKFLOW: Run initialisation tasks
-    //
-    PIPELINE_INITIALISATION(
-        params.version,
-        params.validate_params,
-        params.monochrome_logs,
-        args,
-        params.outdir,
-        params.input,
-    )
-
-    //
-    // WORKFLOW: Run no-stitch workflow
-    //
-    NO_STITCH_POOLED_CELLPAINTING(
-        PIPELINE_INITIALISATION.out.samplesheet,
-        params.barcodes,
-    )
-    //
-    // SUBWORKFLOW: Run completion tasks
-    //
-    PIPELINE_COMPLETION(
-        params.outdir,
-        params.monochrome_logs,
-        NO_STITCH_POOLED_CELLPAINTING.out.multiqc_report,
-    )
-}
-
-/*
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    RUN STITCH_ALIGN_CROP WORKFLOW (select with -entry STITCH_ALIGN_CROP)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-*/
-
-workflow STITCH_ALIGN_CROP {
-    //
-    // SUBWORKFLOW: Run initialisation tasks
-    //
-    PIPELINE_INITIALISATION(
-        params.version,
-        params.validate_params,
-        params.monochrome_logs,
-        args,
-        params.outdir,
-        params.input,
-    )
-
-    //
-    // WORKFLOW: Run stitch-align-crop workflow
-    //
-    STITCH_ALIGN_CROP_POOLED_CELLPAINTING(
-        PIPELINE_INITIALISATION.out.samplesheet,
-        params.barcodes,
-    )
-    //
-    // SUBWORKFLOW: Run completion tasks
-    //
-    PIPELINE_COMPLETION(
-        params.outdir,
-        params.monochrome_logs,
-        STITCH_ALIGN_CROP_POOLED_CELLPAINTING.out.multiqc_report,
+        ch_multiqc_report,
     )
 }

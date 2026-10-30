@@ -86,7 +86,7 @@ Located in `modules/local/cellprofiler/combinedanalysis/main.nf`. Executes when 
 
 ### Alternative Entrypoints
 
-Selected with `-entry` (defined in `main.nf`).
+Selected with `--entrypoint` (dispatched in `main.nf`).
 
 ![no stitch workflow](images/no_stitch_workflow.png)
 

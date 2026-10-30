@@ -39,12 +39,16 @@ workflow STITCH_ALIGN_CROP_POOLED_CELLPAINTING {
     barcodes // file: path to barcodes.csv file
 
     main:
+    // Coerce explicitly: string values ("false") from -params-file or config overrides are truthy in Groovy
+    def qc_painting_passed = params.qc_painting_passed.toString().toBoolean()
+    def qc_barcoding_passed = params.qc_barcoding_passed.toString().toBoolean()
+
 
     ch_versions = channel.empty()
     ch_multiqc_files = channel.empty()
 
     // Cellprofiler plugins (shared by segmentation check and combined analysis)
-    if (params.update_cellprofiler_plugins) {
+    if (params.update_cellprofiler_plugins.toString().toBoolean()) {
         CELLPROFILER_PLUGINS_UPDATE(params.cellprofiler_plugins_repo)
         ch_versions = ch_versions.mix(CELLPROFILER_PLUGINS_UPDATE.out.versions)
 
@@ -115,28 +119,28 @@ workflow STITCH_ALIGN_CROP_POOLED_CELLPAINTING {
         CELLPAINTING_PRE_STITCH.out.corrected_images_by_well,
         BARCODING_PRE_STITCH.out.corrected_images_by_well,
         params.painting_round_or_square,
-        params.painting_quarter_if_round,
-        params.painting_overlap_pct,
+        params.painting_quarter_if_round.toString().toBoolean(),
+        params.painting_overlap_pct as Integer,
         params.painting_scalingstring,
-        params.painting_imperwell,
-        params.painting_rows,
-        params.painting_columns,
+        params.painting_imperwell as Integer,
+        params.painting_rows as Integer,
+        params.painting_columns as Integer,
         params.painting_stitchorder,
-        params.compress,
-        params.phenix,
+        params.compress.toString().toBoolean(),
+        params.phenix.toString().toBoolean(),
         params.painting_channame,
         params.barcoding_round_or_square,
-        params.barcoding_quarter_if_round,
-        params.barcoding_overlap_pct,
+        params.barcoding_quarter_if_round.toString().toBoolean(),
+        params.barcoding_overlap_pct as Integer,
         params.barcoding_scalingstring,
-        params.barcoding_imperwell,
-        params.barcoding_rows,
-        params.barcoding_columns,
+        params.barcoding_imperwell as Integer,
+        params.barcoding_rows as Integer,
+        params.barcoding_columns as Integer,
         params.barcoding_stitchorder,
         params.barcoding_channame,
-        params.tileperside,
-        params.final_tile_size,
-        params.barcoding_shift_threshold,
+        params.tileperside as Integer,
+        params.final_tile_size as Integer,
+        params.barcoding_shift_threshold as Integer,
         params.barcoding_corr_threshold,
     )
     ch_versions = ch_versions.mix(STITCH_ALIGN_CROP_JOINT.out.versions)
@@ -181,7 +185,7 @@ workflow STITCH_ALIGN_CROP_POOLED_CELLPAINTING {
     CELLPROFILER_SEGCHECK(
         ch_sub_corr_images,
         params.painting_segcheck_cppipe,
-        params.range_skip,
+        params.range_skip as Integer,
         ch_cellprofiler_plugins,
     )
     ch_versions = ch_versions.mix(CELLPROFILER_SEGCHECK.out.versions)
@@ -307,8 +311,8 @@ workflow STITCH_ALIGN_CROP_POOLED_CELLPAINTING {
         ch_preprocess_qc_input,
         file("${projectDir}/bin/qc_barcode_preprocess.py"),
         barcodes,
-        params.acquisition_geometry_rows,
-        params.acquisition_geometry_columns,
+        params.acquisition_geometry_rows as Integer,
+        params.acquisition_geometry_columns as Integer,
     )
     ch_versions = ch_versions.mix(QC_PREPROCESS_STITCHALIGNCROP.out.versions)
 
@@ -321,7 +325,7 @@ workflow STITCH_ALIGN_CROP_POOLED_CELLPAINTING {
     //// Combined analysis of painting and barcoding data ////
     // Only run if BOTH painting and barcoding QC have been marked as pass.
     // This is the ONLY qc gate in this entrypoint - stitch/align/crop above always run.
-    if (params.qc_painting_passed && params.qc_barcoding_passed) {
+    if (qc_painting_passed && qc_barcoding_passed) {
         // Combine cropped images from both arms (the same images SEGCHECK/PREPROCESS
         // consumed - those modules are QC/preprocessing side steps, not combined
         // analysis' input; POOLED_CELLPAINTING and NO_STITCH_POOLED_CELLPAINTING both
@@ -474,7 +478,7 @@ workflow STITCH_ALIGN_CROP_POOLED_CELLPAINTING {
         }
     }
     else {
-        log.info("Skipping combined analysis: Both qc_painting_passed (${params.qc_painting_passed}) and qc_barcoding_passed (${params.qc_barcoding_passed}) must be true. Review QC montages for both arms and set both parameters to true to proceed.")
+        log.info("Skipping combined analysis: Both qc_painting_passed (${qc_painting_passed}) and qc_barcoding_passed (${qc_barcoding_passed}) must be true. Review QC montages for both arms and set both parameters to true to proceed.")
     }
 
 

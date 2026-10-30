@@ -3,7 +3,7 @@
  * ========================================
  *
  * Mirrors the stub variants in tests/main.nf.test, but runs the NO_STITCH
- * named workflow entry (`-entry NO_STITCH`) instead of the default entry.
+ * named workflow entry (`--entrypoint NO_STITCH`) instead of the default entry.
  * FIJI_STITCHCROP must never run in this entry point, and combined analysis
  * should still be gated by qc_painting_passed/qc_barcoding_passed, now fed
  * from pre-stitch per-site images.
@@ -26,11 +26,12 @@ nextflow_pipeline {
         tag "stub"
         tag "fast"
 
-        options "-stub -entry NO_STITCH"
+        options "-stub"
 
         when {
             params {
                 // Use the test profile parameters
+                entrypoint = 'NO_STITCH'
                 config_profile_name         = 'Test profile'
                 config_profile_description  = 'Minimal test dataset to check pipeline function'
 
@@ -83,10 +84,11 @@ nextflow_pipeline {
         tag "stub_painting_qc_false"
         tag "fast"
 
-        options "-stub -entry NO_STITCH"
+        options "-stub"
 
         when {
             params {
+                entrypoint = 'NO_STITCH'
                 config_profile_name         = 'Test profile'
                 config_profile_description  = 'Minimal test dataset to check pipeline function'
 
@@ -132,10 +134,11 @@ nextflow_pipeline {
         tag "stub_barcoding_qc_false"
         tag "fast"
 
-        options "-stub -entry NO_STITCH"
+        options "-stub"
 
         when {
             params {
+                entrypoint = 'NO_STITCH'
                 config_profile_name         = 'Test profile'
                 config_profile_description  = 'Minimal test dataset to check pipeline function'
 
@@ -181,10 +184,11 @@ nextflow_pipeline {
         tag "stub_both_qc_false"
         tag "fast"
 
-        options "-stub -entry NO_STITCH"
+        options "-stub"
 
         when {
             params {
+                entrypoint = 'NO_STITCH'
                 config_profile_name         = 'Test profile'
                 config_profile_description  = 'Minimal test dataset to check pipeline function'
 

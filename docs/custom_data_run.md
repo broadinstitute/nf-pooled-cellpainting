@@ -99,7 +99,7 @@ params {
 
 ### Alternative workflows
 
-To use an alternative workflow, add the `-entry` flag with the name of the entrypoint (e.g. `-entry STITCH_ALIGN_CROP`).
+To use an alternative workflow, add the `--entrypoint` parameter with the name of the entrypoint (e.g. `--entrypoint STITCH_ALIGN_CROP`).
 
 ## Running the Pipeline with Seqera Platform
 
