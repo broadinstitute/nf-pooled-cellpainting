@@ -48,6 +48,12 @@
                     "type": "string",
                     "description": "Path to script to use for FIJI Stitchcrop. Defaults to ${projectDir}/assets/stitchcrop/stitch_crop.env_master.py"
                 },
+                "entrypoint": {
+                    "type": "string",
+                    "default": "POOLED_CELLPAINTING",
+                    "enum": ["POOLED_CELLPAINTING", "NO_STITCH", "STITCH_ALIGN_CROP"],
+                    "description": "Which pipeline variant to run: the default FIJI-based workflow, NO_STITCH (skips FIJI stitching/cropping) or STITCH_ALIGN_CROP (ashlar stitching, no FIJI)."
+                },
                 "range_skip": {
                     "type": "integer",
                     "default": 2,

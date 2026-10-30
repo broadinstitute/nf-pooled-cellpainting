@@ -3,7 +3,7 @@
  * ================================================
  *
  * Mirrors the stub variants in tests/no_stitch.nf.test, but runs the
- * STITCH_ALIGN_CROP named workflow entry (`-entry STITCH_ALIGN_CROP`).
+ * STITCH_ALIGN_CROP named workflow entry (`--entrypoint STITCH_ALIGN_CROP`).
  * Unlike the default and NO_STITCH entries, stitch/align/crop here are
  * unconditional (no qc_*_passed gate before them) - only combined analysis
  * is gated. These tests only exercise the stub branch.
@@ -26,11 +26,12 @@ nextflow_pipeline {
         tag "stub"
         tag "fast"
 
-        options "-stub -entry STITCH_ALIGN_CROP"
+        options "-stub"
 
         when {
             params {
                 // Use the test profile parameters
+                entrypoint = 'STITCH_ALIGN_CROP'
                 config_profile_name         = 'Test profile'
                 config_profile_description  = 'Minimal test dataset to check pipeline function'
 
@@ -84,10 +85,11 @@ nextflow_pipeline {
         tag "stub_painting_qc_false"
         tag "fast"
 
-        options "-stub -entry STITCH_ALIGN_CROP"
+        options "-stub"
 
         when {
             params {
+                entrypoint = 'STITCH_ALIGN_CROP'
                 config_profile_name         = 'Test profile'
                 config_profile_description  = 'Minimal test dataset to check pipeline function'
 
@@ -134,10 +136,11 @@ nextflow_pipeline {
         tag "stub_barcoding_qc_false"
         tag "fast"
 
-        options "-stub -entry STITCH_ALIGN_CROP"
+        options "-stub"
 
         when {
             params {
+                entrypoint = 'STITCH_ALIGN_CROP'
                 config_profile_name         = 'Test profile'
                 config_profile_description  = 'Minimal test dataset to check pipeline function'
 
@@ -182,10 +185,11 @@ nextflow_pipeline {
         tag "stub_both_qc_false"
         tag "fast"
 
-        options "-stub -entry STITCH_ALIGN_CROP"
+        options "-stub"
 
         when {
             params {
+                entrypoint = 'STITCH_ALIGN_CROP'
                 config_profile_name         = 'Test profile'
                 config_profile_description  = 'Minimal test dataset to check pipeline function'
 
