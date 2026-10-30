@@ -44,7 +44,7 @@ process QC_PREPROCESS {
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
         jupytext: \$(jupytext --version | sed 's/jupytext //')
-        papermill: \$(papermill --version | sed 's/papermill //')
+        papermill: \$(python -c "from importlib.metadata import version; print(version('papermill'))")
         nbconvert: \$(jupyter nbconvert --version | sed 's/nbconvert //')
     END_VERSIONS
     """
