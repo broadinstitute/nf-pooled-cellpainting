@@ -9,6 +9,7 @@ process ALIGN_INTRAARM {
     val channame
     val shift_threshold
     val corr_threshold
+    val align_on_threshold
 
     output:
     tuple val(meta), path("*.tiff"), emit: aligned_images
@@ -23,6 +24,7 @@ process ALIGN_INTRAARM {
     // Serialize image metadata (cycle/channel per file) for bin/align_intraarm.py to consume.
     def metadata_json_content = groovy.json.JsonOutput.toJson(image_metas)
     def metadata_base64 = metadata_json_content.bytes.encodeBase64().toString()
+    def align_on_threshold_flag = align_on_threshold ? '--align-on-threshold' : ''
     """
     echo '${metadata_base64}' | base64 -d > metadata.json
 
@@ -32,7 +34,8 @@ process ALIGN_INTRAARM {
         --output-dir . \\
         --channame "${channame}" \\
         --shift-threshold "${shift_threshold}" \\
-        --corr-threshold "${corr_threshold}"
+        --corr-threshold "${corr_threshold}" \\
+        ${align_on_threshold_flag}
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":

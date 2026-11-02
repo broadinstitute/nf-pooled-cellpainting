@@ -39,6 +39,9 @@ input:
   - corr_threshold:
       type: float
       description: Recorded in the alignment_stats CSV for later QC review; not enforced by this module
+  - align_on_threshold:
+      type: boolean
+      description: If true, compute the alignment shift from Otsu-thresholded masks of the central 50% of the reference channel images instead of raw intensities
 
 output:
   - aligned_images:

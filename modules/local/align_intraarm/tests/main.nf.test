@@ -35,6 +35,7 @@ nextflow_process {
                 input[1] = "DNA"   // channame
                 input[2] = 50      // shift_threshold
                 input[3] = 0.9     // corr_threshold
+                input[4] = false   // align_on_threshold
                 """
             }
         }
@@ -67,6 +68,7 @@ nextflow_process {
                 input[1] = "DNA"   // channame
                 input[2] = 50      // shift_threshold
                 input[3] = 0.9     // corr_threshold
+                input[4] = false   // align_on_threshold
                 """
             }
         }

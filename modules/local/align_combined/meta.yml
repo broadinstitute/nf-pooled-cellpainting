@@ -48,6 +48,9 @@ input:
   - barcoding_channame:
       type: string
       description: Reference channel substring used to identify barcoding's registration channel
+  - align_on_threshold:
+      type: boolean
+      description: If true, compute the cross-arm shift from Otsu-thresholded masks of the central 50% of the reference channel images instead of raw intensities
 
 output:
   - painting_aligned_images:

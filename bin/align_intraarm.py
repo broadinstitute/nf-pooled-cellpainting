@@ -20,7 +20,7 @@ Design philosophy:
 Usage:
     align_intraarm.py \\
         --images-dir images/ --metadata-json metadata.json --output-dir . \\
-        --channame DNA --shift-threshold 10 --corr-threshold 0.1
+        --channame DNA --shift-threshold 10 --corr-threshold 0.1 [--align-on-threshold]
 """
 
 import argparse
@@ -34,6 +34,7 @@ from typing import Dict, List, Optional
 import numpy as np
 from PIL import Image
 from scipy.ndimage import shift as ndi_shift
+from skimage.filters import threshold_otsu
 from skimage.registration import phase_cross_correlation
 
 # Full-well stitched mosaics routinely exceed PIL's default decompression-bomb
@@ -128,6 +129,21 @@ def copy_unchanged(entries: List[dict], images_dir: Path, output_dir: Path, comm
             save_array(crop_to_shape(arr, common_shape), arr.dtype, output_dir / entry["filename"])
 
 
+def center_crop(arr: np.ndarray, fraction: float = 0.5) -> np.ndarray:
+    """Keep the middle `fraction` of each dimension (0.5 -> central 50% of height and width)."""
+    h, w = arr.shape[:2]
+    dh = int(h * (1 - fraction) / 2)
+    dw = int(w * (1 - fraction) / 2)
+    return arr[dh : h - dh, dw : w - dw]
+
+
+def threshold_mask(arr: np.ndarray) -> np.ndarray:
+    """Otsu-threshold to a float32 binary mask (1.0 = foreground) for registration."""
+    if arr.min() == arr.max():
+        return np.zeros(arr.shape, dtype=np.float32)
+    return (arr > threshold_otsu(arr)).astype(np.float32)
+
+
 def align_cycle(
     entries: List[dict],
     reference_entries: List[dict],
@@ -135,6 +151,7 @@ def align_cycle(
     output_dir: Path,
     channame: str,
     common_shape: tuple,
+    align_on_threshold: bool = False,
 ) -> dict:
     """Align one non-reference cycle's images to the reference cycle. Returns a stats row."""
     ref_entry = find_reference_image(reference_entries, channame)
@@ -153,7 +170,16 @@ def align_cycle(
     # shift = translation required to register moving_array with reference_array
     # (see skimage.registration.phase_cross_correlation docs) - apply as-is via
     # scipy.ndimage.shift, do not negate.
-    shift, error, diffphase = phase_cross_correlation(reference_array, moving_array)
+    # Optionally register on thresholded masks of the central 50% of each image
+    # instead of raw intensities. Both crops share the same location, so the shift
+    # found is valid for the full images and is applied to them below.
+    if align_on_threshold:
+        fixed_in = threshold_mask(center_crop(reference_array))
+        moving_in = threshold_mask(center_crop(moving_array))
+        print(f"  aligning on thresholded central 50%: foreground fraction reference={fixed_in.mean():.3f} moving={moving_in.mean():.3f}")
+    else:
+        fixed_in, moving_in = reference_array, moving_array
+    shift, error, diffphase = phase_cross_correlation(fixed_in, moving_in)
 
     aligned_reference_channel = None
     for entry in entries:
@@ -215,7 +241,7 @@ def main(args: argparse.Namespace) -> None:
         if cycle == reference_cycle:
             copy_unchanged(entries, args.images_dir, args.output_dir, common_shape)
             continue
-        stats_rows.append(align_cycle(entries, reference_entries, args.images_dir, args.output_dir, args.channame, common_shape))
+        stats_rows.append(align_cycle(entries, reference_entries, args.images_dir, args.output_dir, args.channame, common_shape, args.align_on_threshold))
         print(f"  cycle {cycle}: shift={stats_rows[-1]['shift_row']:.3f},{stats_rows[-1]['shift_col']:.3f} error={stats_rows[-1]['error']:.4f}")
 
     if stats_rows:
@@ -241,6 +267,11 @@ if __name__ == "__main__":
     parser.add_argument("--channame", default="DNA", help="Reference channel substring used to identify the registration channel within each cycle")
     parser.add_argument("--shift-threshold", default="0", help="Recorded in the stats CSV for later QC review; not enforced by this script")
     parser.add_argument("--corr-threshold", default="0", help="Recorded in the stats CSV for later QC review; not enforced by this script")
+    parser.add_argument(
+        "--align-on-threshold",
+        action="store_true",
+        help="Mask reference images to their central 50%%, Otsu-threshold them, and compute the alignment shift from the binary masks",
+    )
 
     parsed_args = parser.parse_args()
     main(parsed_args)

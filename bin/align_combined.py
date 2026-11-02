@@ -25,7 +25,7 @@ Usage:
         --metadata-json metadata.json --output-dir . \\
         --painting-output-dir aligned_painting/ --barcoding-output-dir aligned_barcoding/ \\
         --painting-scalingstring 1 --barcoding-scalingstring 1.99 \\
-        --painting-channame DNA --barcoding-channame DAPI
+        --painting-channame DNA --barcoding-channame DAPI [--align-on-threshold]
 """
 
 import argparse
@@ -38,6 +38,7 @@ from typing import Dict, List, Optional
 import numpy as np
 from PIL import Image
 from scipy.ndimage import shift as ndi_shift
+from skimage.filters import threshold_otsu
 from skimage.registration import phase_cross_correlation
 
 # Full-well stitched mosaics routinely exceed PIL's default decompression-bomb
@@ -129,6 +130,21 @@ def crop_to_common_shape(a: np.ndarray, b: np.ndarray) -> tuple:
     return a[:h, :w], b[:h, :w]
 
 
+def center_crop(arr: np.ndarray, fraction: float = 0.5) -> np.ndarray:
+    """Keep the middle `fraction` of each dimension (0.5 -> central 50% of height and width)."""
+    h, w = arr.shape[:2]
+    dh = int(h * (1 - fraction) / 2)
+    dw = int(w * (1 - fraction) / 2)
+    return arr[dh : h - dh, dw : w - dw]
+
+
+def threshold_mask(arr: np.ndarray) -> np.ndarray:
+    """Otsu-threshold to a float32 binary mask (1.0 = foreground) for registration."""
+    if arr.min() == arr.max():
+        return np.zeros(arr.shape, dtype=np.float32)
+    return (arr > threshold_otsu(arr)).astype(np.float32)
+
+
 def main(args: argparse.Namespace) -> None:
     args.output_dir.mkdir(parents=True, exist_ok=True)
     args.painting_output_dir.mkdir(parents=True, exist_ok=True)
@@ -176,7 +192,16 @@ def main(args: argparse.Namespace) -> None:
     # shift = translation required to register painting (moving) with barcoding
     # (reference) - see skimage.registration.phase_cross_correlation docs. Apply
     # as-is via scipy.ndimage.shift, do not negate.
-    shift, error, diffphase = phase_cross_correlation(barcoding_ref_cropped, painting_ref_cropped)
+    # Optionally register on thresholded masks of the central 50% of each image
+    # instead of raw intensities. Both crops share the same location, so the shift
+    # found is valid for the full images and is applied to them below.
+    if args.align_on_threshold:
+        fixed_in = threshold_mask(center_crop(barcoding_ref_cropped))
+        moving_in = threshold_mask(center_crop(painting_ref_cropped))
+        print(f"Aligning on thresholded central 50%: foreground fraction barcoding={fixed_in.mean():.3f} painting={moving_in.mean():.3f}")
+    else:
+        fixed_in, moving_in = barcoding_ref_cropped, painting_ref_cropped
+    shift, error, diffphase = phase_cross_correlation(fixed_in, moving_in)
     print(f"Cross-arm shift (painting -> barcoding): {shift[0]:.3f},{shift[1]:.3f} error={error:.4f}")
 
     aligned_painting_ref_array = None
@@ -232,6 +257,12 @@ if __name__ == "__main__":
     parser.add_argument("--barcoding-scalingstring", default="1")
     parser.add_argument("--painting-channame", default="DNA")
     parser.add_argument("--barcoding-channame", default="DAPI")
+
+    parser.add_argument(
+        "--align-on-threshold",
+        action="store_true",
+        help="Mask reference images to their central 50%%, Otsu-threshold them, and compute the alignment shift from the binary masks",
+    )
 
     parsed_args = parser.parse_args()
     main(parsed_args)
