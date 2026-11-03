@@ -270,7 +270,7 @@
                 "align_on_threshold": {
                     "type": "boolean",
                     "default": false,
-                    "description": "Compute alignment shifts (within-arm cycle alignment and painting-to-barcoding alignment) from Otsu-thresholded masks of the central 50% of the reference channel images instead of raw intensities."
+                    "description": "Compute alignment shifts from Otsu-thresholded masks instead of raw intensities: the central 50% of the reference channel for within-arm cycle alignment, and the downsampled reference channel images for the coarse painting-to-barcoding step."
                 },
                 "acquisition_geometry_rows": {
                     "type": "integer",
