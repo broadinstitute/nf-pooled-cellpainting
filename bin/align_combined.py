@@ -15,6 +15,9 @@ Design philosophy:
 - Scaling happens here (not in bin/stitch.py) specifically because this is the one
   place both arms need to be compared - scaling per arm at stitch time would only
   be useful for this same comparison, so it's centralized here instead.
+- Both arms are zero-padded (top-left anchored) onto one common canvas before the
+  shift is applied, so shifting painting never pushes its right/bottom content off
+  the array, and the aligned arms come out the same size.
 - Same phase_cross_correlation + scipy.ndimage.shift approach as bin/align_intraarm.py
   (see that script for the shift-direction rationale), just registering across arms
   instead of across cycles within one arm.
@@ -130,6 +133,15 @@ def crop_to_common_shape(a: np.ndarray, b: np.ndarray) -> tuple:
     return a[:h, :w], b[:h, :w]
 
 
+def pad_to_canvas(arr: np.ndarray, height: int, width: int) -> np.ndarray:
+    """Zero-pad (top-left anchored) to a common canvas so nothing is lost when the arrays are shifted/compared."""
+    pad_rows = max(0, height - arr.shape[0])
+    pad_cols = max(0, width - arr.shape[1])
+    if pad_rows == 0 and pad_cols == 0:
+        return arr
+    return np.pad(arr, ((0, pad_rows), (0, pad_cols)), mode="constant", constant_values=0)
+
+
 def center_crop(arr: np.ndarray, fraction: float = 0.5) -> np.ndarray:
     """Keep the middle `fraction` of each dimension (0.5 -> central 50% of height and width)."""
     h, w = arr.shape[:2]
@@ -204,13 +216,22 @@ def main(args: argparse.Namespace) -> None:
     shift, error, diffphase = phase_cross_correlation(fixed_in, moving_in)
     print(f"Cross-arm shift (painting -> barcoding): {shift[0]:.3f},{shift[1]:.3f} error={error:.4f}")
 
+    # The two arms' stitched mosaics differ in size, and the painting shift can be
+    # large (hundreds+ px). Shifting within painting's own canvas would push its
+    # right/bottom content off the array (lost for good), so both arms are padded
+    # (top-left anchored) onto one common canvas first: at least the larger arm, and
+    # big enough that a positive shift doesn't push painting content off the edge.
+    canvas_h = max(barcoding_ref_array.shape[0], painting_ref_array.shape[0] + max(0, int(np.ceil(shift[0]))))
+    canvas_w = max(barcoding_ref_array.shape[1], painting_ref_array.shape[1] + max(0, int(np.ceil(shift[1]))))
+    print(f"Common canvas (rows x cols): {canvas_h} x {canvas_w}")
+
     aligned_painting_ref_array = None
     for entry in painting_entries:
         if entry is painting_ref_entry:
             arr = painting_ref_array
         else:
             arr = scale_array(load_array(args.painting_images_dir / entry["filename"]), args.painting_scalingstring)
-        shifted = ndi_shift(arr, shift, mode="constant", cval=0)
+        shifted = ndi_shift(pad_to_canvas(arr, canvas_h, canvas_w), shift, mode="constant", cval=0)
         save_array(shifted, arr.dtype, args.painting_output_dir / entry["filename"])
         if entry is painting_ref_entry:
             aligned_painting_ref_array = shifted
@@ -221,7 +242,10 @@ def main(args: argparse.Namespace) -> None:
             arr = barcoding_ref_array
         else:
             arr = scale_array(load_array(args.barcoding_images_dir / entry["filename"]), args.barcoding_scalingstring)
+        arr = pad_to_canvas(arr, canvas_h, canvas_w)
         save_array(arr, arr.dtype, args.barcoding_output_dir / entry["filename"])
+        if entry is barcoding_ref_entry:
+            barcoding_ref_array = arr
         del arr
 
     overlay_path = args.output_dir / "AlignCombined_QC.png"
