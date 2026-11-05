@@ -10,7 +10,6 @@ process ALIGN_COMBINED {
     val barcoding_scalingstring
     val painting_channame
     val barcoding_channame
-    val align_on_threshold
 
     output:
     tuple val(meta), path("aligned_painting/*.tiff"), emit: painting_aligned_images
@@ -26,7 +25,6 @@ process ALIGN_COMBINED {
     // Serialize per-image metadata (arm/channel/cycle) for bin/align_combined.py to consume.
     def metadata_json_content = groovy.json.JsonOutput.toJson(image_metas)
     def metadata_base64 = metadata_json_content.bytes.encodeBase64().toString()
-    def align_on_threshold_flag = align_on_threshold ? '--align-on-threshold' : ''
     """
     mkdir -p aligned_painting aligned_barcoding
     echo '${metadata_base64}' | base64 -d > metadata.json
@@ -41,8 +39,7 @@ process ALIGN_COMBINED {
         --painting-scalingstring "${painting_scalingstring}" \\
         --barcoding-scalingstring "${barcoding_scalingstring}" \\
         --painting-channame "${painting_channame}" \\
-        --barcoding-channame "${barcoding_channame}" \\
-        ${align_on_threshold_flag}
+        --barcoding-channame "${barcoding_channame}"
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":

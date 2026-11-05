@@ -138,7 +138,6 @@ workflow STITCH_ALIGN_CROP_POOLED_CELLPAINTING {
         params.final_tile_size,
         params.barcoding_shift_threshold,
         params.barcoding_corr_threshold,
-        params.align_on_threshold,
     )
     ch_versions = ch_versions.mix(STITCH_ALIGN_CROP_JOINT.out.versions)
 

@@ -41,7 +41,6 @@ workflow STITCH_ALIGN_CROP_JOINT {
     final_tile_size
     shift_threshold
     corr_threshold
-    align_on_threshold
 
     main:
     ch_versions = channel.empty()
@@ -144,7 +143,7 @@ workflow STITCH_ALIGN_CROP_JOINT {
             [meta, images, image_metas]
         }
 
-    ALIGN_INTRAARM_PAINTING(ch_painting_stitched_with_metas, painting_channame, shift_threshold, corr_threshold, align_on_threshold)
+    ALIGN_INTRAARM_PAINTING(ch_painting_stitched_with_metas, painting_channame, shift_threshold, corr_threshold)
     ch_versions = ch_versions.mix(ALIGN_INTRAARM_PAINTING.out.versions)
 
     ch_barcoding_stitched_with_metas = ch_barcoding_stitch_by_well
@@ -158,7 +157,7 @@ workflow STITCH_ALIGN_CROP_JOINT {
             [meta, images, image_metas]
         }
 
-    ALIGN_INTRAARM_BARCODING(ch_barcoding_stitched_with_metas, barcoding_channame, shift_threshold, corr_threshold, align_on_threshold)
+    ALIGN_INTRAARM_BARCODING(ch_barcoding_stitched_with_metas, barcoding_channame, shift_threshold, corr_threshold)
     ch_versions = ch_versions.mix(ALIGN_INTRAARM_BARCODING.out.versions)
 
     //// Cross-arm join by well, then cross-arm alignment ////
@@ -202,7 +201,7 @@ workflow STITCH_ALIGN_CROP_JOINT {
             [combined_meta, p_images, b_images, painting_metas + barcoding_metas]
         }
 
-    ALIGN_COMBINED(ch_joined, painting_scalingstring, barcoding_scalingstring, painting_channame, barcoding_channame, align_on_threshold)
+    ALIGN_COMBINED(ch_joined, painting_scalingstring, barcoding_scalingstring, painting_channame, barcoding_channame)
     ch_versions = ch_versions.mix(ALIGN_COMBINED.out.versions)
 
     //// CROP each arm's now-aligned full-well images separately ////

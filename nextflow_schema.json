@@ -267,11 +267,6 @@
                     "default": 0.9,
                     "description": "Correlation threshold for barcoding align QC step."
                 },
-                "align_on_threshold": {
-                    "type": "boolean",
-                    "default": false,
-                    "description": "Compute alignment shifts from Otsu-thresholded masks instead of raw intensities: the central 50% of the reference channel for within-arm cycle alignment, and the downsampled reference channel images for the coarse painting-to-barcoding step."
-                },
                 "acquisition_geometry_rows": {
                     "type": "integer",
                     "description": "Number of rows in acquisition geometry for QC spatial plots (square patterns).",

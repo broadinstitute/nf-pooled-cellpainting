@@ -33,7 +33,6 @@ nextflow_process {
                 input[2] = 1.99                         // barcoding_scalingstring
                 input[3] = "DNA"                        // painting_channame
                 input[4] = "DAPI"                       // barcoding_channame
-                input[5] = false                        // align_on_threshold
                 """
             }
         }
