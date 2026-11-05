@@ -34,12 +34,16 @@ from typing import Dict, List, Optional
 import numpy as np
 from PIL import Image
 from scipy.ndimage import shift as ndi_shift
-from skimage.registration import phase_cross_correlation
+
+from registration import register_coarse_to_fine
 
 # Full-well stitched mosaics routinely exceed PIL's default decompression-bomb
 # threshold (~89.5 megapixels) - these are legitimate large scientific images,
 # not the malicious images that check guards against.
 Image.MAX_IMAGE_PIXELS = None
+
+# Registered reference images with a correlation at or below this are flagged as a likely failed alignment.
+MIN_NCC = 0.1
 
 
 def load_metadata(path: Path) -> List[dict]:
@@ -153,7 +157,12 @@ def align_cycle(
     # shift = translation required to register moving_array with reference_array
     # (see skimage.registration.phase_cross_correlation docs) - apply as-is via
     # scipy.ndimage.shift, do not negate.
-    shift, error, diffphase = phase_cross_correlation(reference_array, moving_array)
+    # Coarse-to-fine registration with a tile vote (see bin/registration.py) rather than
+    # one global phase correlation, which is thrown off by hot pixels, fixed-pattern
+    # noise and low-signal regions.
+    shift, _, ncc, n_tiles_agree = register_coarse_to_fine(reference_array, moving_array)
+    if not ncc > MIN_NCC:
+        print(f"WARNING: cycle {entries[0].get('cycle')} registered reference barely correlates (ncc={ncc:.4f} <= {MIN_NCC}); alignment may have failed")
 
     aligned_reference_channel = None
     for entry in entries:
@@ -172,8 +181,8 @@ def align_cycle(
         "cycle": cycle,
         "shift_row": shift[0],
         "shift_col": shift[1],
-        "error": error,
-        "diffphase": diffphase,
+        "ncc": ncc,
+        "n_tiles_agree": n_tiles_agree,
     }
 
 
@@ -216,13 +225,13 @@ def main(args: argparse.Namespace) -> None:
             copy_unchanged(entries, args.images_dir, args.output_dir, common_shape)
             continue
         stats_rows.append(align_cycle(entries, reference_entries, args.images_dir, args.output_dir, args.channame, common_shape))
-        print(f"  cycle {cycle}: shift={stats_rows[-1]['shift_row']:.3f},{stats_rows[-1]['shift_col']:.3f} error={stats_rows[-1]['error']:.4f}")
+        print(f"  cycle {cycle}: shift={stats_rows[-1]['shift_row']:.3f},{stats_rows[-1]['shift_col']:.3f} ncc={stats_rows[-1]['ncc']:.4f}")
 
     if stats_rows:
         stats_path = args.output_dir / "AlignIntraArm_stats.csv"
         with open(stats_path, "w", newline="") as f:
             writer = csv.DictWriter(
-                f, fieldnames=["cycle", "shift_row", "shift_col", "error", "diffphase", "shift_threshold", "corr_threshold"]
+                f, fieldnames=["cycle", "shift_row", "shift_col", "ncc", "n_tiles_agree", "shift_threshold", "corr_threshold"]
             )
             writer.writeheader()
             for row in stats_rows:

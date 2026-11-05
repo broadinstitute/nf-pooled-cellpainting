@@ -15,9 +15,13 @@ Design philosophy:
 - Scaling happens here (not in bin/stitch.py) specifically because this is the one
   place both arms need to be compared - scaling per arm at stitch time would only
   be useful for this same comparison, so it's centralized here instead.
+- Both arms are zero-padded (top-left anchored) onto one common canvas before the
+  shift is applied, so shifting painting never pushes its right/bottom content off
+  the array, and the aligned arms come out the same size.
 - Same phase_cross_correlation + scipy.ndimage.shift approach as bin/align_intraarm.py
-  (see that script for the shift-direction rationale), just registering across arms
-  instead of across cycles within one arm.
+  (see that script for the shift-direction rationale), via the shared coarse-to-fine
+  registration in bin/registration.py, because the arms' mosaics can be offset by ~1000 px
+  and full-resolution phase correlation alone fails on that.
 
 Usage:
     align_combined.py \\
@@ -38,12 +42,16 @@ from typing import Dict, List, Optional
 import numpy as np
 from PIL import Image
 from scipy.ndimage import shift as ndi_shift
-from skimage.registration import phase_cross_correlation
+
+from registration import register_coarse_to_fine
 
 # Full-well stitched mosaics routinely exceed PIL's default decompression-bomb
 # threshold (~89.5 megapixels) - these are legitimate large scientific images,
 # not the malicious images that check guards against.
 Image.MAX_IMAGE_PIXELS = None
+
+# Registered reference images with a correlation at or below this are flagged as a likely failed alignment.
+MIN_NCC = 0.1
 
 
 def load_metadata(path: Path) -> List[dict]:
@@ -129,6 +137,15 @@ def crop_to_common_shape(a: np.ndarray, b: np.ndarray) -> tuple:
     return a[:h, :w], b[:h, :w]
 
 
+def pad_to_canvas(arr: np.ndarray, height: int, width: int) -> np.ndarray:
+    """Zero-pad (top-left anchored) to a common canvas so nothing is lost when the arrays are shifted/compared."""
+    pad_rows = max(0, height - arr.shape[0])
+    pad_cols = max(0, width - arr.shape[1])
+    if pad_rows == 0 and pad_cols == 0:
+        return arr
+    return np.pad(arr, ((0, pad_rows), (0, pad_cols)), mode="constant", constant_values=0)
+
+
 def main(args: argparse.Namespace) -> None:
     args.output_dir.mkdir(parents=True, exist_ok=True)
     args.painting_output_dir.mkdir(parents=True, exist_ok=True)
@@ -174,10 +191,25 @@ def main(args: argparse.Namespace) -> None:
     barcoding_ref_cropped, painting_ref_cropped = crop_to_common_shape(barcoding_ref_array, painting_ref_array)
 
     # shift = translation required to register painting (moving) with barcoding
-    # (reference) - see skimage.registration.phase_cross_correlation docs. Apply
-    # as-is via scipy.ndimage.shift, do not negate.
-    shift, error, diffphase = phase_cross_correlation(barcoding_ref_cropped, painting_ref_cropped)
-    print(f"Cross-arm shift (painting -> barcoding): {shift[0]:.3f},{shift[1]:.3f} error={error:.4f}")
+    # (reference) - same convention as skimage.registration.phase_cross_correlation.
+    # Apply as-is via scipy.ndimage.shift, do not negate.
+    shift, coarse_shift, ncc, _ = register_coarse_to_fine(
+        barcoding_ref_cropped,
+        painting_ref_cropped,
+        downsample_factor=args.downsample_factor,
+    )
+    print(f"Cross-arm shift (painting -> barcoding): {shift[0]:.3f},{shift[1]:.3f} ncc={ncc:.4f}")
+    if not ncc > MIN_NCC:
+        print(f"WARNING: registered reference images barely correlate (ncc={ncc:.4f} <= {MIN_NCC}); the cross-arm alignment probably failed")
+
+    # The two arms' stitched mosaics differ in size, and the painting shift can be
+    # large (hundreds+ px). Shifting within painting's own canvas would push its
+    # right/bottom content off the array (lost for good), so both arms are padded
+    # (top-left anchored) onto one common canvas first: at least the larger arm, and
+    # big enough that a positive shift doesn't push painting content off the edge.
+    canvas_h = max(barcoding_ref_array.shape[0], painting_ref_array.shape[0] + max(0, int(np.ceil(shift[0]))))
+    canvas_w = max(barcoding_ref_array.shape[1], painting_ref_array.shape[1] + max(0, int(np.ceil(shift[1]))))
+    print(f"Common canvas (rows x cols): {canvas_h} x {canvas_w}")
 
     aligned_painting_ref_array = None
     for entry in painting_entries:
@@ -185,7 +217,7 @@ def main(args: argparse.Namespace) -> None:
             arr = painting_ref_array
         else:
             arr = scale_array(load_array(args.painting_images_dir / entry["filename"]), args.painting_scalingstring)
-        shifted = ndi_shift(arr, shift, mode="constant", cval=0)
+        shifted = ndi_shift(pad_to_canvas(arr, canvas_h, canvas_w), shift, mode="constant", cval=0)
         save_array(shifted, arr.dtype, args.painting_output_dir / entry["filename"])
         if entry is painting_ref_entry:
             aligned_painting_ref_array = shifted
@@ -196,7 +228,10 @@ def main(args: argparse.Namespace) -> None:
             arr = barcoding_ref_array
         else:
             arr = scale_array(load_array(args.barcoding_images_dir / entry["filename"]), args.barcoding_scalingstring)
+        arr = pad_to_canvas(arr, canvas_h, canvas_w)
         save_array(arr, arr.dtype, args.barcoding_output_dir / entry["filename"])
+        if entry is barcoding_ref_entry:
+            barcoding_ref_array = arr
         del arr
 
     overlay_path = args.output_dir / "AlignCombined_QC.png"
@@ -206,14 +241,15 @@ def main(args: argparse.Namespace) -> None:
     stats_path = args.output_dir / "AlignCombined_stats.csv"
     with open(stats_path, "w", newline="") as f:
         writer = csv.DictWriter(
-            f, fieldnames=["shift_row", "shift_col", "error", "diffphase", "painting_scalingstring", "barcoding_scalingstring"]
+            f, fieldnames=["shift_row", "shift_col", "coarse_shift_row", "coarse_shift_col", "ncc", "painting_scalingstring", "barcoding_scalingstring"]
         )
         writer.writeheader()
         writer.writerow({
             "shift_row": shift[0],
             "shift_col": shift[1],
-            "error": error,
-            "diffphase": diffphase,
+            "coarse_shift_row": coarse_shift[0],
+            "coarse_shift_col": coarse_shift[1],
+            "ncc": ncc,
             "painting_scalingstring": args.painting_scalingstring,
             "barcoding_scalingstring": args.barcoding_scalingstring,
         })
@@ -230,6 +266,7 @@ if __name__ == "__main__":
     parser.add_argument("--barcoding-output-dir", type=Path, required=True)
     parser.add_argument("--painting-scalingstring", default="1")
     parser.add_argument("--barcoding-scalingstring", default="1")
+    parser.add_argument("--downsample-factor", type=int, default=8, help="Block-mean downsample factor for the coarse registration step")
     parser.add_argument("--painting-channame", default="DNA")
     parser.add_argument("--barcoding-channame", default="DAPI")
 
