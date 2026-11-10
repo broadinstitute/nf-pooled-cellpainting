@@ -223,7 +223,8 @@ def merge_csvs(csvfolder, filename, column_list=None):
     all_items = os.listdir(csvfolder)
     # Filter for input_* folders if they exist
     input_folders = [f for f in all_items if f.startswith('input_') and os.path.isdir(os.path.join(csvfolder, f))]
-    folderlist = input_folders if input_folders else all_items
+    just_folders = [f for f in all_items if os.path.isdir(os.path.join(csvfolder, f))]
+    folderlist = input_folders if input_folders else just_folders
 
     print(count, datetime.datetime.ctime(datetime.datetime.now()))
     for eachfolder in folderlist:
@@ -269,7 +270,8 @@ cache_file = Path(output_dir) / "cached_barcode_foci.parquet"
 allfolders = os.listdir(input_dir)
 # Filter for input_* folders if they exist
 input_folders = [f for f in allfolders if f.startswith('input_') and os.path.isdir(os.path.join(input_dir, f))]
-folderlist = input_folders if input_folders else allfolders
+just_folders = [f for f in allfolders if os.path.isdir(os.path.join(input_dir, f))]
+folderlist = input_folders if input_folders else just_folders
 test_file = os.path.join(input_dir, folderlist[0], filename)
 test_df = pd.read_csv(test_file, nrows=0)
 thresh_cols = [x for x in test_df.columns if '_Threshold_' in x]
@@ -278,7 +280,7 @@ upquart_cols = []
 if thresh_cols: # used for 2/3 color
     upquart_cols = [x for x in thresh_cols if '_UpperQuartileIntensity_' in x]
     int_cols = [x for x in thresh_cols if '_IntegratedIntensity_' in x]
-    column_list = column_list + upquart_cols + int_cols
+    column_list = column_list + upquart_cols + int_cols + ['AreaShape_Area', 'Intensity_MeanIntensity_ImageAfterMath']
 
 # Load data with caching support
 if use_cache and cache_file.exists():
@@ -617,6 +619,7 @@ def plot_chan_combos(df_full, cols,title, numcycles):
 
     plt.tight_layout()
     plt.show()
+
 if int_cols:
     plot_chan_combos(df_foci, int_cols, 'Integrated Intensity', numcycles)
 
@@ -644,23 +647,27 @@ if int_cols:
         plt.show()
 
 # %%
-if upquart_cols:
-    if numcycles <=12:
-        plotrows = 3
-    else:
-        plotrows = 4
-    for channelcombo in [("568","647"),("488","647"),("488","568")]:
-        fig, axes = plt.subplots(plotrows, 4, sharex=True, sharey=True, figsize=(16,plotrows*4))
-        fig.suptitle(f'Intensity Comparison: {channelcombo[0]} vs {channelcombo[1]}', fontsize=20, fontweight='bold')
-        axes=axes.flatten()
-        for cycle in range(numcycles):
-            sub_data = df_foci.query(f"(Intensity_UpperQuartileIntensity_Threshold_{channelcombo[0]}_Cycle{cycle+1:02} > 0) | (Intensity_UpperQuartileIntensity_Threshold_{channelcombo[1]}_Cycle{cycle+1:02} > 0)")
-            sns.histplot(ax=axes[cycle], data=sub_data,x=f'Intensity_UpperQuartileIntensity_Threshold_{channelcombo[0]}_Cycle{cycle+1:02}',y=f'Intensity_UpperQuartileIntensity_Threshold_{channelcombo[1]}_Cycle{cycle+1:02}',
-                        )
-            axes[cycle].set_title(f'Cycle{cycle+1:02} UpperQuartile')
-            axes[cycle].set(xlabel=channelcombo[0], ylabel=channelcombo[1])
-        plt.tight_layout(rect=[0, 0, 1, 0.96])
-        plt.show()
+sns.kdeplot(
+   data=df_foci, x="AreaShape_Area", hue="Barcode_MatchedTo_Score", palette="tab20c",
+)
+plt.savefig(
+    Path(output_dir) / "foci_score_by_size.png",
+    dpi=150,
+    bbox_inches="tight",
+)
+plt.show()
+
+# %%
+sns.kdeplot(
+   data=df_foci, x="Intensity_MeanIntensity_ImageAfterMath", hue="Barcode_MatchedTo_Score", palette="tab20c",
+)
+plt.savefig(
+    Path(output_dir) / "foci_score_by_mean_intensity.png",
+    dpi=150,
+    bbox_inches="tight",
+)
+plt.show()
+
 
 # %%
 perfect_df = df_foci[df_foci["Barcode_MatchedTo_Score"] == 1]
@@ -669,7 +676,7 @@ print(f"The number of unique genes in the library is {len(bc_df[gene_col].unique
 print(
     f"Perfect barcodes are detected for {len(df_foci.loc[df_foci['Barcode_MatchedTo_Score'] == 1]['Barcode_MatchedTo_GeneCode'].unique())} genes\n"
 )
-print("The 10 most detected genes are:")
+print("The 10 most perfectly-detected genes are:")
 print(
     df_foci.loc[df_foci["Barcode_MatchedTo_Score"] == 1]
     .Barcode_MatchedTo_GeneCode.value_counts()
@@ -681,7 +688,7 @@ print(
 print(
     f"Perfect barcodes are detected for {len(df_foci.loc[df_foci['Barcode_MatchedTo_Score'] == 1]['Barcode_MatchedTo_Barcode'].unique())} of them\n"
 )
-print("The 10 most detected barcodes are:")
+print("The 10 most perfectly-detected barcodes are:")
 print(
     df_foci.loc[df_foci["Barcode_MatchedTo_Score"] == 1]
     .Barcode_MatchedTo_Barcode.value_counts()
