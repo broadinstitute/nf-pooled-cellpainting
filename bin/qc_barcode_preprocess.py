@@ -280,7 +280,11 @@ upquart_cols = []
 if thresh_cols: # used for 2/3 color
     upquart_cols = [x for x in thresh_cols if '_UpperQuartileIntensity_' in x]
     int_cols = [x for x in thresh_cols if '_IntegratedIntensity_' in x]
-    column_list = column_list + upquart_cols + int_cols + ['AreaShape_Area', 'Intensity_MeanIntensity_ImageAfterMath']
+    column_list = column_list + upquart_cols + int_cols 
+    if 'AreaShape_Area' in test_df.columns:
+        column_list.append('AreaShape_Area')
+    if 'Intensity_MeanIntensity_ImageAfterMath' in test_df.columns:
+        column_list.append('Intensity_MeanIntensity_ImageAfterMath')
 
 # Load data with caching support
 if use_cache and cache_file.exists():
@@ -647,26 +651,28 @@ if int_cols:
         plt.show()
 
 # %%
-sns.kdeplot(
-   data=df_foci, x="AreaShape_Area", hue="Barcode_MatchedTo_Score", palette="tab20c",
-)
-plt.savefig(
-    Path(output_dir) / "foci_score_by_size.png",
-    dpi=150,
-    bbox_inches="tight",
-)
-plt.show()
+if "AreaShape_Area" in df_foci.columns:
+    sns.kdeplot(
+    data=df_foci, x="AreaShape_Area", hue="Barcode_MatchedTo_Score", palette="tab20c",
+    )
+    plt.savefig(
+        Path(output_dir) / "foci_score_by_size.png",
+        dpi=150,
+        bbox_inches="tight",
+    )
+    plt.show()
 
 # %%
-sns.kdeplot(
-   data=df_foci, x="Intensity_MeanIntensity_ImageAfterMath", hue="Barcode_MatchedTo_Score", palette="tab20c",
-)
-plt.savefig(
-    Path(output_dir) / "foci_score_by_mean_intensity.png",
-    dpi=150,
-    bbox_inches="tight",
-)
-plt.show()
+if "Intensity_MeanIntensity_ImageAfterMath" in df_foci.columns:
+    sns.kdeplot(
+    data=df_foci, x="Intensity_MeanIntensity_ImageAfterMath", hue="Barcode_MatchedTo_Score", palette="tab20c",
+    )
+    plt.savefig(
+        Path(output_dir) / "foci_score_by_mean_intensity.png",
+        dpi=150,
+        bbox_inches="tight",
+    )
+    plt.show()
 
 
 # %%
