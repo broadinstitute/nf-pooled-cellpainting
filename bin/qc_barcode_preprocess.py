@@ -469,6 +469,9 @@ g.legend(handles=handles[0:], labels=labels[0:])
 g.set_xticks(list(range(1, numcycles + 1)))
 plt.title("Difference from Expected Nucleotide Frequency by Cycle\nObserved - Expected")
 plt.tight_layout()
+plt.savefig(
+    Path(output_dir) / "observed_minus_exp_nucleotide_frequency.png", dpi=150, bbox_inches="tight"
+)
 plt.show()
 
 # %%
