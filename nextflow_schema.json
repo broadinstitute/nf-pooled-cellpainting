@@ -312,9 +312,9 @@
                     "description": "Whether to run the QC_CHECKDUPLICATEIMAGES pixel-duplicate safety-net check after illumination calculation, illumination correction and preprocessing steps."
                 },
                 "distributeillum": {
-                    "type": "boolean",
-                    "default": false,
-                    "description": "Compute illumination correction per well instead of per plate, then average the per-well results into a single mean illum function used as if it were a normal per-plate illum. Mutually exclusive with skipillum."
+                    "type": "string",
+                    "enum": ["well", "channel", "wellandchannel"],
+                    "description": "Split illumination correction calculation into smaller, parallel jobs: 'well' (one job per well), 'channel' (one job per channel) or 'wellandchannel' (one job per well and channel). Per-well results are averaged into a single mean illum function used as if it were a normal per-plate illum. Unset runs one job per plate (or plate and cycle). Mutually exclusive with skipillum."
                 },
                 "skipillum": {
                     "type": "boolean",

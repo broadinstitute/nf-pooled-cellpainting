@@ -1,0 +1,210 @@
+/*
+ * ONLYILLUM Entry Point - --distributeillum Tests
+ * ================================================
+ *
+ * Stub-run tests (`-stub -entry ONLYILLUM`) for each --distributeillum mode
+ * (unset, well, channel, wellandchannel) using the default test samplesheet
+ * (3 wells x 1 plate; painting channels DNA/Phalloidin/CHN2; barcoding
+ * channels DNA/A/C/G/T across 3 cycles). They assert the number of
+ * CELLPROFILER_ILLUMCALC jobs per arm and whether ILLUM_MEANILLUM ran
+ * (once for painting + once per cycle for barcoding when splitting by well).
+ * Also covers rejected parameter values.
+ */
+
+nextflow_pipeline {
+
+    name "Test ONLYILLUM --distributeillum modes"
+    script "main.nf"
+
+    tag "pipeline"
+    tag "nf_pooled_cellpainting"
+    tag "only_illum"
+
+    test("only_illum - stub - distributeillum none") {
+
+        tag "stub"
+        tag "fast"
+
+        options "-stub -entry ONLYILLUM"
+
+        when {
+            params {
+                config_profile_name         = 'Test profile'
+                config_profile_description  = 'Minimal test dataset to check pipeline function'
+                input                       = "${projectDir}/assets/samplesheet.csv"
+                barcodes                    = "s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1_sub25/Source1/workspace/metadata/Barcodes.csv"
+                range_skip                  = 2
+                painting_illumcalc_cppipe   = "${projectDir}/assets/cellprofiler/painting_illumcalc_cppipe.template"
+                barcoding_illumcalc_cppipe  = "${projectDir}/assets/cellprofiler/barcoding_illumcalc_cppipe.template"
+                outdir                      = "${outputDir}"
+            }
+        }
+
+        then {
+            def names = workflow.trace.succeeded().collect { it.name }
+            def count = { String s -> names.count { it.contains(s) } }
+            assertAll(
+                { assert workflow.success },
+                { assert count('CELLPAINTING_ONLY_ILLUM:CELLPROFILER_ILLUMCALC') == 1 },
+                { assert count('BARCODING_ONLY_ILLUM:CELLPROFILER_ILLUMCALC') == 3 },
+                { assert count('CELLPAINTING_ONLY_ILLUM:ILLUM_MEANILLUM') == 0 },
+                { assert count('BARCODING_ONLY_ILLUM:ILLUM_MEANILLUM') == 0 },
+            )
+        }
+    }
+
+    test("only_illum - stub - distributeillum well") {
+
+        tag "stub"
+        tag "fast"
+
+        options "-stub -entry ONLYILLUM"
+
+        when {
+            params {
+                config_profile_name         = 'Test profile'
+                config_profile_description  = 'Minimal test dataset to check pipeline function'
+                input                       = "${projectDir}/assets/samplesheet.csv"
+                barcodes                    = "s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1_sub25/Source1/workspace/metadata/Barcodes.csv"
+                range_skip                  = 2
+                painting_illumcalc_cppipe   = "${projectDir}/assets/cellprofiler/painting_illumcalc_cppipe.template"
+                barcoding_illumcalc_cppipe  = "${projectDir}/assets/cellprofiler/barcoding_illumcalc_cppipe.template"
+                outdir                      = "${outputDir}"
+                distributeillum = "well"
+            }
+        }
+
+        then {
+            def names = workflow.trace.succeeded().collect { it.name }
+            def count = { String s -> names.count { it.contains(s) } }
+            assertAll(
+                { assert workflow.success },
+                { assert count('CELLPAINTING_ONLY_ILLUM:CELLPROFILER_ILLUMCALC') == 3 },
+                { assert count('BARCODING_ONLY_ILLUM:CELLPROFILER_ILLUMCALC') == 9 },
+                { assert count('CELLPAINTING_ONLY_ILLUM:ILLUM_MEANILLUM') == 1 },
+                { assert count('BARCODING_ONLY_ILLUM:ILLUM_MEANILLUM') == 3 },
+            )
+        }
+    }
+
+    test("only_illum - stub - distributeillum channel") {
+
+        tag "stub"
+        tag "fast"
+
+        options "-stub -entry ONLYILLUM"
+
+        when {
+            params {
+                config_profile_name         = 'Test profile'
+                config_profile_description  = 'Minimal test dataset to check pipeline function'
+                input                       = "${projectDir}/assets/samplesheet.csv"
+                barcodes                    = "s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1_sub25/Source1/workspace/metadata/Barcodes.csv"
+                range_skip                  = 2
+                painting_illumcalc_cppipe   = "${projectDir}/assets/cellprofiler/painting_illumcalc_cppipe.template"
+                barcoding_illumcalc_cppipe  = "${projectDir}/assets/cellprofiler/barcoding_illumcalc_cppipe.template"
+                outdir                      = "${outputDir}"
+                distributeillum = "channel"
+            }
+        }
+
+        then {
+            def names = workflow.trace.succeeded().collect { it.name }
+            def count = { String s -> names.count { it.contains(s) } }
+            assertAll(
+                { assert workflow.success },
+                { assert count('CELLPAINTING_ONLY_ILLUM:CELLPROFILER_ILLUMCALC') == 3 },
+                { assert count('BARCODING_ONLY_ILLUM:CELLPROFILER_ILLUMCALC') == 15 },
+                { assert count('CELLPAINTING_ONLY_ILLUM:ILLUM_MEANILLUM') == 0 },
+                { assert count('BARCODING_ONLY_ILLUM:ILLUM_MEANILLUM') == 0 },
+            )
+        }
+    }
+
+    test("only_illum - stub - distributeillum wellandchannel") {
+
+        tag "stub"
+        tag "fast"
+
+        options "-stub -entry ONLYILLUM"
+
+        when {
+            params {
+                config_profile_name         = 'Test profile'
+                config_profile_description  = 'Minimal test dataset to check pipeline function'
+                input                       = "${projectDir}/assets/samplesheet.csv"
+                barcodes                    = "s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1_sub25/Source1/workspace/metadata/Barcodes.csv"
+                range_skip                  = 2
+                painting_illumcalc_cppipe   = "${projectDir}/assets/cellprofiler/painting_illumcalc_cppipe.template"
+                barcoding_illumcalc_cppipe  = "${projectDir}/assets/cellprofiler/barcoding_illumcalc_cppipe.template"
+                outdir                      = "${outputDir}"
+                distributeillum = "wellandchannel"
+            }
+        }
+
+        then {
+            def names = workflow.trace.succeeded().collect { it.name }
+            def count = { String s -> names.count { it.contains(s) } }
+            assertAll(
+                { assert workflow.success },
+                { assert count('CELLPAINTING_ONLY_ILLUM:CELLPROFILER_ILLUMCALC') == 9 },
+                { assert count('BARCODING_ONLY_ILLUM:CELLPROFILER_ILLUMCALC') == 45 },
+                { assert count('CELLPAINTING_ONLY_ILLUM:ILLUM_MEANILLUM') == 1 },
+                { assert count('BARCODING_ONLY_ILLUM:ILLUM_MEANILLUM') == 3 },
+            )
+        }
+    }
+
+    test("only_illum - stub - invalid distributeillum value fails") {
+
+        tag "stub"
+        tag "fast"
+
+        options "-stub -entry ONLYILLUM"
+
+        when {
+            params {
+                config_profile_name         = 'Test profile'
+                config_profile_description  = 'Minimal test dataset to check pipeline function'
+                input                       = "${projectDir}/assets/samplesheet.csv"
+                barcodes                    = "s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1_sub25/Source1/workspace/metadata/Barcodes.csv"
+                range_skip                  = 2
+                painting_illumcalc_cppipe   = "${projectDir}/assets/cellprofiler/painting_illumcalc_cppipe.template"
+                barcoding_illumcalc_cppipe  = "${projectDir}/assets/cellprofiler/barcoding_illumcalc_cppipe.template"
+                outdir                      = "${outputDir}"
+                distributeillum = "foo"
+            }
+        }
+
+        then {
+            assert workflow.failed
+        }
+    }
+
+    test("only_illum - stub - distributeillum with skipillum fails") {
+
+        tag "stub"
+        tag "fast"
+
+        options "-stub -entry ONLYILLUM"
+
+        when {
+            params {
+                config_profile_name         = 'Test profile'
+                config_profile_description  = 'Minimal test dataset to check pipeline function'
+                input                       = "${projectDir}/assets/samplesheet.csv"
+                barcodes                    = "s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1_sub25/Source1/workspace/metadata/Barcodes.csv"
+                range_skip                  = 2
+                painting_illumcalc_cppipe   = "${projectDir}/assets/cellprofiler/painting_illumcalc_cppipe.template"
+                barcoding_illumcalc_cppipe  = "${projectDir}/assets/cellprofiler/barcoding_illumcalc_cppipe.template"
+                outdir                      = "${outputDir}"
+                distributeillum = "well"
+                skipillum = true
+            }
+        }
+
+        then {
+            assert workflow.failed
+        }
+    }
+}

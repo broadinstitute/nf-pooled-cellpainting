@@ -70,6 +70,9 @@ workflow PIPELINE_INITIALISATION {
     //
     // Validate illumination-correction flags
     //
+    if (params.distributeillum && !(params.distributeillum in ['well', 'channel', 'wellandchannel'])) {
+        error("--distributeillum must be one of: well, channel, wellandchannel (got '${params.distributeillum}').")
+    }
     if (params.distributeillum && params.skipillum) {
         error("--distributeillum and --skipillum cannot be used together.")
     }

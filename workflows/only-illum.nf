@@ -17,8 +17,9 @@ include { methodsDescriptionText } from '../subworkflows/local/utils_nfcore_nf-p
     RUN ONLYILLUM WORKFLOW
     Runs only Phase 1 (illumination calculation + its QC) for both arms - no
     illumapply, segmentation/preprocessing, stitching, or combined analysis.
-    Defaults to per-plate illumcalc; pass --distributeillum for per-well
-    illumcalc jobs averaged back into a per-plate illum. --skipillum is
+    Defaults to per-plate illumcalc; pass --distributeillum well|channel|
+    wellandchannel for per-well and/or per-channel illumcalc jobs (per-well
+    results are averaged back into a per-plate illum). --skipillum is
     rejected, since skipping the only thing this entrypoint does is pointless.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */

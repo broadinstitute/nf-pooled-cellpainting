@@ -59,24 +59,33 @@ workflow BARCODING {
     skipillum
 
     main:
+    // --distributeillum: well | channel | wellandchannel (unset = per plate)
+    def split_by_well = distributeillum in ['well', 'wellandchannel']
+    def split_by_channel = distributeillum in ['channel', 'wellandchannel']
     ch_versions = channel.empty()
     ch_cropped_images = channel.empty()
 
     // Group images by batch, plate, and cycle for illumination calculation - or
     // additionally by well when --distributeillum splits illumcalc into
-    // smaller, per-well jobs (averaged back into a per-plate illum below).
+    // smaller per-well and/or per-channel jobs (averaged back into a per-plate illum below).
     // All channels for a given cycle are processed together
     ch_illumcalc_input = ch_samplesheet_sbs
-        .map { meta, image ->
-            def group_fields = distributeillum ? ['batch', 'plate', 'well', 'cycle'] : ['batch', 'plate', 'cycle']
-            def group_id = distributeillum
-                ? "${meta.batch}_${meta.plate}_${meta.well}_${meta.cycle}"
-                : "${meta.batch}_${meta.plate}_${meta.cycle}"
-            def group_key = meta.subMap(group_fields) + [id: group_id]
-
+        .flatMap { meta, image ->
             // One metadata entry per (file, channel) pair - see expandImageChannels().
             // illumcalc's cppipe selects input images named Orig{channel}.
-            [group_key, expandImageChannels(meta, image, 'Orig'), image]
+            def entries = expandImageChannels(meta, image, 'Orig')
+            // split_by_channel: one group (= one illumcalc job) per channel; a multichannel
+            // file is staged into each of its channels' jobs.
+            def entry_groups = split_by_channel ? entries.collect { entry -> [entry] } : [entries]
+            entry_groups.collect { group_entries ->
+                def group_fields = ['batch', 'plate'] + (split_by_well ? ['well'] : []) + ['cycle']
+                def id_parts = group_fields.collect { field -> meta[field] }
+                if (split_by_channel) {
+                    id_parts << group_entries[0].channel
+                }
+                def group_key = meta.subMap(group_fields) + (split_by_channel ? [channel: group_entries[0].channel] : [:]) + [id: id_parts.join('_')]
+                [group_key, group_entries, image]
+            }
         }
         .groupTuple()
         .map { meta, images_meta_list, images_list ->
@@ -126,7 +135,7 @@ workflow BARCODING {
             ]
         }
 
-        if (distributeillum) {
+        if (split_by_well) {
             // Average the per-well illum functions into a single mean function,
             // used downstream exactly like a normal per-plate illumcalc output.
             ch_meanillum_input = CELLPROFILER_ILLUMCALC.out.illumination_corrections
@@ -140,6 +149,17 @@ workflow BARCODING {
             ILLUM_MEANILLUM(ch_meanillum_input)
             ch_versions = ch_versions.mix(ILLUM_MEANILLUM.out.versions)
             ch_illumination_corrections = ILLUM_MEANILLUM.out.illumination_corrections
+        }
+        else if (split_by_channel) {
+            // Per-channel jobs already write distinct file names (Illum<channel>.npy), so no
+            // averaging is needed - just regroup the files per plate and cycle.
+            ch_illumination_corrections = CELLPROFILER_ILLUMCALC.out.illumination_corrections
+                .map { meta, npy_files ->
+                    def plate_key = meta.subMap(['batch', 'plate', 'cycle'])
+                    [plate_key + [id: "${plate_key.batch}_${plate_key.plate}_${plate_key.cycle}"], npy_files]
+                }
+                .groupTuple()
+                .map { meta, npy_files_list -> [meta, npy_files_list.flatten().sort { it -> it.name }] }
         }
         else {
             ch_illumination_corrections = CELLPROFILER_ILLUMCALC.out.illumination_corrections
