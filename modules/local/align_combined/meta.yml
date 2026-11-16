@@ -82,7 +82,7 @@ output:
             e.g. `[ id:'sample1', batch:'Batch1', plate:'Plate1', well:'A1' ]`
       - "*.csv":
           type: file
-          description: Cross-arm shift/error alignment quality metrics
+          description: Cross-arm shift (coarse and final) and registered normalized cross-correlation (ncc) quality metric
           pattern: "*.csv"
           ontologies:
             - edam: http://edamontology.org/format_3752

@@ -19,7 +19,8 @@ Design philosophy:
   phenix_im_per_well_dict) live in assets/stitchcrop/well_site_layouts.json, shared
   with the legacy Fiji-based stitcher (assets/stitchcrop/stitch_crop.env_master.py)
   so both scripts read the same data from one place.
-- ashlar registers from an implicit reference channel and applies that registration
+- ashlar registers tiles on one alignment channel (--align-channel, which this script
+  always sets to the --channame DNA/DAPI channel) and applies that registration
   to every channel in the same fileseries, so this script makes ONE ashlar call per
   well (painting) or per well x cycle (barcoding), covering all channels at once via
   ashlar's own `{channel}` wildcard - not one call per channel.
@@ -275,6 +276,7 @@ def run_ashlar(
     arm: str,
     out_dir: Path,
     out_prefix: str,
+    align_channel_index: int,
 ) -> None:
     """One ashlar call over every channel staged in work_dir - see module docstring."""
     overlap_frac = float(overlap_pct) / 100.0
@@ -287,7 +289,7 @@ def run_ashlar(
     # an escaped f-string placeholder here reads as an unfilled Jinja template
     # to nf-core lint's template-string check.
     out_template = str(out_dir / f"{out_prefix}{corr_infix}") + "{channel}.tif"
-    cmd = ["ashlar", fileseries_url, "-o", out_template]
+    cmd = ["ashlar", fileseries_url, "-o", out_template, "--align-channel", str(align_channel_index)]
     print("Running:", " ".join(cmd))
     subprocess.run(cmd, check=True)
 
@@ -335,17 +337,29 @@ def stitch_one_channel_set(
         )
 
         out_prefix = "stitched_"
-        run_ashlar(work_dir, grid_columns, grid_rows, float(args.overlap_pct), args.arm, ashlar_out_dir, out_prefix)
+        # ashlar numbers channels 0-based by rank in sorted chandict codes (see below);
+        # register tiles on the --channame (DNA/DAPI) channel rather than ashlar's default (index 0).
+        sorted_codes = sorted(chandict.values())
+        align_matches = sorted(ch for ch in chandict if args.channame in ch)
+        if not align_matches:
+            print(f"Error: no channel matched '{args.channame}' for ashlar alignment (channels: {sorted(chandict)})")
+            sys.exit(1)
+        if len(align_matches) > 1:
+            print(f"WARNING: {len(align_matches)} channels matched '{args.channame}', aligning on {align_matches[0]}")
+        align_channel_index = sorted_codes.index(chandict[align_matches[0]])
+        print(f"ashlar alignment channel: {align_matches[0]} (index {align_channel_index})")
+        run_ashlar(work_dir, grid_columns, grid_rows, float(args.overlap_pct), args.arm, ashlar_out_dir, out_prefix, align_channel_index)
 
         corr_infix = "Corr" if args.arm == "painting" else ""
         inv_chandict = {code: ch for ch, code in chandict.items()}
+        # QC montage shows only the reference channel (--channame), not every channel.
+        qc_channel = align_matches[0]
         # ashlar's fileseries reader assigns each channel an internal 0-based index
         # by sorting the parsed {channel} field values it found on disk (see
         # FileSeriesMetadata._enumerate_tiles: `channel_map = dict(enumerate(sorted(channels)))`)
         # and substitutes THAT index - not the literal parsed value - into the `-o`
         # template's {channel} placeholder. So output files are named by rank-in-sorted-order
         # of our chandict codes, not by the codes themselves.
-        sorted_codes = sorted(chandict.values())
         for ashlar_channel_index, code in enumerate(sorted_codes):
             channel = inv_chandict[code]
             ashlar_output = ashlar_out_dir / f"{out_prefix}{corr_infix}{ashlar_channel_index}.tif"
@@ -364,7 +378,8 @@ def stitch_one_channel_set(
             with Image.open(ashlar_output) as im:
                 im.save(final_path, **save_kwargs)
 
-            write_downsampled(final_path, args.downsampled_dir / final_name)
+            if channel == qc_channel:
+                write_downsampled(final_path, args.downsampled_dir / final_name)
             print(f"  wrote {final_path.name}")
 
 
@@ -400,7 +415,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--input-dir", type=Path, required=True, help="Directory of staged per-site illumination-corrected TIFFs for one well")
     parser.add_argument("--output-dir", type=Path, required=True, help="Directory to write stitched full-well TIFFs to")
-    parser.add_argument("--downsampled-dir", type=Path, required=True, help="Directory to write 10x-downsampled copies to")
+    parser.add_argument("--downsampled-dir", type=Path, required=True, help="Directory to write 10x-downsampled QC copies of the reference (--channame) channel to")
     parser.add_argument("--arm", required=True, choices=["painting", "barcoding"])
     parser.add_argument("--round-or-square", required=True, choices=["round", "square"])
     parser.add_argument("--quarter-if-round", default="false", help="Accepted for interface parity with the legacy Fiji script; unused here - imperwell already distinguishes a full round well from a single quarter of one")
@@ -411,7 +426,7 @@ if __name__ == "__main__":
     parser.add_argument("--stitchorder", default="Grid: snake by rows")
     parser.add_argument("--compress", default="true")
     parser.add_argument("--phenix", default="false")
-    parser.add_argument("--channame", default="DNA", help="Reference channel substring used to pick a representative image for shape/dtype detection")
+    parser.add_argument("--channame", default="DNA", help="Reference channel substring used to pick a representative image for shape/dtype detection and as the channel ashlar aligns on and the only one downsampled for the QC montage")
     parser.add_argument("--first-site-index", default="0")
     parser.add_argument("--well-site-layouts-json", type=Path, default=DEFAULT_WELL_SITE_LAYOUTS_JSON)
     parser.add_argument("--cycle", default=None, help="Cycle number for this invocation (painting only - "
