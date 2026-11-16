@@ -280,7 +280,7 @@ upquart_cols = []
 if thresh_cols: # used for 2/3 color
     upquart_cols = [x for x in thresh_cols if '_UpperQuartileIntensity_' in x]
     int_cols = [x for x in thresh_cols if '_IntegratedIntensity_' in x]
-    column_list = column_list + upquart_cols + int_cols 
+    column_list = column_list + upquart_cols + int_cols
     if 'AreaShape_Area' in test_df.columns:
         column_list.append('AreaShape_Area')
     if 'Intensity_MeanIntensity_ImageAfterMath' in test_df.columns:
