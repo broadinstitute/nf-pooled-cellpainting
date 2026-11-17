@@ -317,7 +317,7 @@
                 "skipillum": {
                     "type": "boolean",
                     "default": false,
-                    "description": "Skip illumination correction calculation and instead read precomputed .npy illumination files from the samplesheet's illum_path column. Mutually exclusive with distributeillum."
+                    "description": "Skip illumination correction calculation and instead read precomputed .npy illumination files from the samplesheet's illum_path column (if unset, from <outdir>/images/<batch>/illum/<plate>/). Mutually exclusive with distributeillum."
                 }
             },
             "fa_icon": "fas fa-cog"

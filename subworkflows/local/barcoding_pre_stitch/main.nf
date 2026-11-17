@@ -67,16 +67,20 @@ workflow BARCODING_PRE_STITCH {
 
     if (skipillum) {
         // Skip illumination calculation entirely - read precomputed .npy files
-        // from the directory each plate's samplesheet illum_path column points at.
+        // from the samplesheet illum_path directory, or (if unset) the workflow's own illum output dir.
         ch_illumination_corrections = ch_samplesheet_sbs
             .map { meta, _image ->
-                if (!meta.illum_path) {
-                    error("--skipillum requires an illum_path in the samplesheet for plate ${meta.batch}/${meta.plate}")
-                }
-                [meta.subMap(['batch', 'plate']), meta.illum_path]
+                def illum_dir = meta.illum_path ?: "${outdir}/images/${meta.batch}/illum/${meta.plate}"
+                [meta.subMap(['batch', 'plate']), illum_dir]
             }
             .unique()
-            .map { plate_key, illum_path -> [plate_key, files("${illum_path}/*.npy")] }
+            .map { plate_key, illum_dir ->
+                def npys = files("${illum_dir}/*.npy")
+                if (!npys) {
+                    error("--skipillum: no .npy illumination files found in ${illum_dir} for plate ${plate_key.batch}/${plate_key.plate}")
+                }
+                [plate_key, npys]
+            }
     }
     else {
         CELLPROFILER_ILLUMCALC(

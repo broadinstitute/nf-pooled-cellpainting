@@ -138,6 +138,8 @@ a reliable illumination function - per-well image count is the user's responsibi
 illumination files from a directory supplied via the samplesheet's `illum_path`
 column (see [samplesheet_dependencies.md](samplesheet_dependencies.md)), one
 directory per plate containing every precomputed `.npy` file for that plate/arm.
+If `illum_path` is empty, the files are read from `<outdir>/images/<batch>/illum/<plate>/`,
+where a previous run of this workflow published its illumination output.
 
 ### `ONLYILLUM` Entrypoint (`-entry ONLYILLUM`)
 

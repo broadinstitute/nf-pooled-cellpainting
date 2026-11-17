@@ -22,7 +22,7 @@ The samplesheet is the single source of truth for experimental metadata. The pip
 
 | Column       | Description                                              | Critical Dependency                                                                                                                                                                    |
 | :----------- | :-------------------------------------------------------- | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `illum_path` | Directory of precomputed illumination `.npy` files | Only consulted when `--skipillum` is set (see [architecture.md](architecture.md#illumination-correction-options)). One directory per plate, containing every `.npy` file for that plate/arm; repeat the same value on every row of that plate. Ignored otherwise. |
+| `illum_path` | Directory of precomputed illumination `.npy` files | Optional; only consulted when `--skipillum` is set (if empty, defaults to `<outdir>/images/<batch>/illum/<plate>/`, where the workflow publishes its own illum output) (see [architecture.md](architecture.md#illumination-correction-options)). One directory per plate, containing every `.npy` file for that plate/arm; repeat the same value on every row of that plate. Ignored otherwise. |
 
 ### Metadata Flow
 
