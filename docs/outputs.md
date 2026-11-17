@@ -78,6 +78,14 @@ results/images/Batch1/illum/Plate1/
   Plate1_IllumRFP.npy
 ```
 
+### Illumination Calculation Pipelines
+
+**Location**: `results/workspace/pipelines/{batch}/illumcalc/{plate}/`
+
+**Files**: `{job id}.illumination.cppipe` (one per illumcalc job: per plate, plus well/channel/cycle depending on `--distributeillum` and arm)
+
+**Description**: The CellProfiler pipeline that was actually run for each illumination calculation job - generated from the bundled (or your own) template, or your own `.cppipe` copied as-is. Useful for inspecting or re-running a job.
+
 ### Corrected Images
 
 **Location**: `results/images/{batch}/images_corrected/painting/{plate}/{plate}-{well}-{site}/`

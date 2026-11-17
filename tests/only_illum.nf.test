@@ -20,7 +20,7 @@ nextflow_pipeline {
     tag "nf_pooled_cellpainting"
     tag "only_illum"
 
-    test("only_illum - stub - distributeillum none") {
+    test("only_illum - stub - distributeillum none, default illumcalc templates") {
 
         tag "stub"
         tag "fast"
@@ -34,8 +34,6 @@ nextflow_pipeline {
                 input                       = "${projectDir}/assets/samplesheet.csv"
                 barcodes                    = "s3://nf-pooled-cellpainting-sandbox/data/test-data/fix-s1_sub25/Source1/workspace/metadata/Barcodes.csv"
                 range_skip                  = 2
-                painting_illumcalc_cppipe   = "${projectDir}/assets/cellprofiler/painting_illumcalc_cppipe.template"
-                barcoding_illumcalc_cppipe  = "${projectDir}/assets/cellprofiler/barcoding_illumcalc_cppipe.template"
                 outdir                      = "${outputDir}"
             }
         }

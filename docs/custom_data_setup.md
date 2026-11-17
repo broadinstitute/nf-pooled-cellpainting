@@ -63,17 +63,17 @@ This CSV file defines the known barcodes in your library. It is used to map the 
 
 The pipeline uses CellProfiler for image analysis. You must provide `.cppipe` files for each stage of the analysis. These files define the image processing modules (e.g., IdentifyPrimaryObjects, MeasureObjectIntensity).
 
-You need to provide paths to these files using the corresponding parameters:
+You need to provide paths to these files using the corresponding parameters (the two `illumcalc` pipelines are optional - see below):
 
 ### Painting Arm
 
-- `--painting_illumcalc_cppipe`: Calculates illumination correction functions for painting images.
+- `--painting_illumcalc_cppipe` (optional): Calculates illumination correction functions for painting images. Defaults to the bundled `assets/cellprofiler/painting_illumcalc_cppipe.template`, which is expanded automatically per job into a `.cppipe` for the channels in your samplesheet.
 - `--painting_illumapply_cppipe`: Applies illumination correction to painting images.
 - `--painting_segcheck_cppipe`: Performs quality control for painting segmentation.
 
 ### Barcoding Arm
 
-- `--barcoding_illumcalc_cppipe`: Calculates illumination correction for barcoding images.
+- `--barcoding_illumcalc_cppipe` (optional): Calculates illumination correction for barcoding images. Defaults to the bundled `assets/cellprofiler/barcoding_illumcalc_cppipe.template`, expanded automatically per job.
 - `--barcoding_illumapply_cppipe`: Applies illumination correction to barcoding images.
 - `--barcoding_preprocess_cppipe`: Performs base calling (decoding) for barcodes.
 

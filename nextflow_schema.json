@@ -73,7 +73,7 @@
             "properties": {
                 "painting_illumcalc_cppipe": {
                     "type": "string",
-                    "description": "Cellprofiler pipeline for painting illumination calculation."
+                    "description": "Cellprofiler pipeline for painting illumination calculation. Optional: defaults to the bundled template (assets/cellprofiler/painting_illumcalc_cppipe.template), which is expanded per job into a .cppipe for the channels being processed. A custom .cppipe is used as-is; a custom .template is expanded."
                 },
                 "painting_illumapply_cppipe": {
                     "type": "string",
@@ -85,7 +85,7 @@
                 },
                 "barcoding_illumcalc_cppipe": {
                     "type": "string",
-                    "description": "Cellprofiler pipeline for barcoding arm illumination calculation."
+                    "description": "Cellprofiler pipeline for barcoding arm illumination calculation. Optional: defaults to the bundled template (assets/cellprofiler/barcoding_illumcalc_cppipe.template), which is expanded per job into a .cppipe for the channels being processed. A custom .cppipe is used as-is; a custom .template is expanded."
                 },
                 "barcoding_illumapply_cppipe": {
                     "type": "string",
@@ -117,10 +117,8 @@
                 }
             },
             "required": [
-                "painting_illumcalc_cppipe",
                 "painting_illumapply_cppipe",
                 "painting_segcheck_cppipe",
-                "barcoding_illumcalc_cppipe",
                 "barcoding_illumapply_cppipe",
                 "barcoding_preprocess_cppipe",
                 "combinedanalysis_cppipe"
