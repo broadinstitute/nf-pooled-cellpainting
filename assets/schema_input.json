@@ -51,8 +51,8 @@
             },
             "channels": {
                 "type": "string",
-                "pattern": "^[^,]+(,[^,]+)*$",
-                "errorMessage": "Channel names must be provided as comma-separated values without spaces around commas",
+                "pattern": "^[A-Za-z0-9]+(,[A-Za-z0-9]+)*$",
+                "errorMessage": "Channel names must be alphanumeric (letters and digits only) and provided as comma-separated values without spaces around commas. Names are used verbatim in CellProfiler image names and Illum<channel>.npy file names",
                 "meta": ["channels"]
             },
             "n_frames": {
