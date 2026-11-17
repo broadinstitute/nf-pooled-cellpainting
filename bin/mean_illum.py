@@ -32,9 +32,18 @@ def group_by_basename(staging_dir: Path) -> Dict[str, List[Path]]:
 
 def write_means(groups: Dict[str, List[Path]], outdir: Path) -> None:
     for name, paths in groups.items():
-        arrays = [np.load(p) for p in paths]
-        mean = np.mean(arrays, axis=0).astype(arrays[0].dtype)
-        np.save(outdir / name, mean)
+        # Running sum, one array in memory at a time, so memory use doesn't
+        # grow with the number of wells.
+        total = None
+        dtype = None
+        for p in paths:
+            arr = np.load(p)
+            if total is None:
+                dtype = arr.dtype
+                total = arr.astype(np.float64)
+            else:
+                total += arr
+        np.save(outdir / name, (total / len(paths)).astype(dtype))
 
 
 def main():
