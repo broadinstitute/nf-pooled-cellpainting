@@ -1,5 +1,11 @@
 # /// script
-# dependencies = ["marimo", "pandas", "boto3"]
+# requires-python = ">=3.13"
+# dependencies = [
+#     "marimo",
+#     "pandas",
+#     "boto3",
+#     "obstore==0.12.1",
+# ]
 # ///
 
 import marimo
@@ -181,8 +187,6 @@ def _(exp_details_stacklist, mo, storage_location_stacklist):
            mo.vstack(
                storage_location_stacklist
            )},multiple=True)
-
-
     return
 
 
@@ -211,17 +215,20 @@ def _(mo):
 def _(
     bc_channel_map_df,
     bc_pre_prefix,
+    mo,
     out_folder_explorer,
     pheno_channel_map1_df,
     pheno_channel_map2_df,
     plate,
+    run_button,
 ):
+    mo.stop(not run_button.value)
     ## Turn anything that needs to be reformatted to match original syntax into the right syntax
     out_folder = out_folder_explorer.value[0].path
     bc_prefix = f'{bc_pre_prefix.value}{plate.value}/'
-    pheno_channel_map1 = {x[0]:x[1] for x in pheno_channel_map1_df.data.to_dict("split")['data']}
-    pheno_channel_map2 = {x[0]:x[1] for x in pheno_channel_map2_df.data.to_dict("split")['data']}
-    bc_channel_map = {x[0]:x[1] for x in bc_channel_map_df.data.to_dict("split")['data']}
+    pheno_channel_map1 = {x[0]:x[1] for x in pheno_channel_map1_df.value.to_dict("split")['data']}
+    pheno_channel_map2 = {x[0]:x[1] for x in pheno_channel_map2_df.value.to_dict("split")['data']}
+    bc_channel_map = {x[0]:x[1] for x in bc_channel_map_df.value.to_dict("split")['data']}
     return (
         bc_channel_map,
         bc_prefix,
@@ -232,8 +239,7 @@ def _(
 
 
 @app.cell
-def _(boto3, mo, run_button):
-    mo.stop(not run_button.value)
+def _(boto3):
     # Initialize the S3 client
     s3_client = boto3.client('s3')
     paginator = s3_client.get_paginator('list_objects_v2')
@@ -354,7 +360,7 @@ def _(
     mo.stop(not run_button_2.value)
     file_paths1 = paginate_a_folder(bucket.value, pheno_prefix1.value)
     file_paths1 = [f's3://{bucket.value}/{x}' for x in file_paths1 if '.tif' in x]
-    if phenotyping_rounds == 2:
+    if phenotyping_rounds.value == 2:
         file_paths2 = paginate_a_folder(bucket.value, pheno_prefix2.value)
         file_paths2 = [f's3://{bucket.value}/{x}' for x in file_paths2 if '.tif' in x]
     return file_paths1, file_paths2
@@ -426,14 +432,12 @@ def _(
     if phenotyping_rounds.value == 2:
         if df_1.loc[df_1['cycle'] == 1, 'site'].max() != df_1.loc[df_1['cycle'] == 2, 'site'].max():
             phen_error_message+='Max site values differ between cycles!\n'
-
-
     return df_1, phen_error_message, wells_we_want
 
 
 @app.cell
-def _(df, df_1, mo, phen_error_message):
-    phen_message = f"{len(df)} images were found in the phenotyping folder(s) you asked for; aftering filtering to just wells you said you want, it's {len(df_1)} images\n." 
+def _(df, df_1, mo, phen_error_message, wells_we_want):
+    phen_message = f"{len(df)} images were found in the phenotyping folder(s) you asked for; aftering filtering to just wells you said you want, it's {len(df_1)} images\n. One might naively expect {len(list(df['channels'].unique()))*len(wells_we_want)*df['site'].max()} based on wells, channel count, and site count.\n" 
     if phen_error_message != "":
         phen_message += "The following errors were found; check your bucket for incomplete syncs or check your metadata:\n"
     else:
@@ -562,8 +566,16 @@ def _(
 
 
 @app.cell
-def _(bc_error_message, df_bc, df_bc_1, mo):
-    bc_message = f"{len(df_bc)} images were found in the barcoding folder(s) you asked for; aftering filtering to just wells you said you want, it's {len(df_bc_1)} images\n." 
+def _(
+    bc_channel_map_df,
+    bc_cycles,
+    bc_error_message,
+    df_bc,
+    df_bc_1,
+    mo,
+    wells_we_want,
+):
+    bc_message = f"{len(df_bc)} images were found in the barcoding folder(s) you asked for; aftering filtering to just wells you said you want, it's {len(df_bc_1)} images\n. One might naively expect {bc_channel_map_df.value.shape[0]*bc_cycles.value*len(wells_we_want)*df_bc['site'].max()} based on wells, cycle count, channel count, and site count.\n" 
     if bc_error_message != "":
         bc_message += "The following errors were found; check your bucket for incomplete syncs or check your metadata entered above:\n"
     else:
