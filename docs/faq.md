@@ -98,3 +98,9 @@ Yes. Simply omit the other arm from your samplesheet. If you only include painti
 ## Where can I find example CellProfiler pipelines?
 
 The `test` profile and `cpg0032` profile both include working example pipelines. You can find these cppipe files in the `/assets/` subfolders `/cellprofiler` and `cpg0032_test_cppipes` respectively.
+
+## Where in Seqera do I set {parameter}?
+- Most commonly-changed parameters are set in the second launch tab, `Run parameters`, which gives you both form and JSON viewers for editing parameters, EXCEPT:
+    - The version of the repo to use (if you need to switch branches or commits) is set in the first tab (`General config`) in the field "Revision"
+    - Tags you want to use (often used by us so far per-plate) are set in the first tab (`General config`) in the field "Labels"
+    - Entrypoints you want to use (such as STITCH_ALIGN_CROP) are set in the third tab (`Advanced settings`) in the field "Workflow entry name"
