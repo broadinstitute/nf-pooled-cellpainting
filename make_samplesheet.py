@@ -427,21 +427,22 @@ def _(
     phen_error_message = ""
 
     if df_1.groupby('well').count().iloc[:, 0].nunique() != 1:
-        phen_error_message+='Not all wells have the same image count!\n'
+        phen_error_message+='Not all wells have the same image count!\n\n'
 
     if phenotyping_rounds.value == 2:
         if df_1.loc[df_1['cycle'] == 1, 'site'].max() != df_1.loc[df_1['cycle'] == 2, 'site'].max():
-            phen_error_message+='Max site values differ between cycles!\n'
+            phen_error_message+='Max site values differ between cycles!\n\n'
     return df_1, phen_error_message, wells_we_want
 
 
 @app.cell
 def _(df, df_1, mo, phen_error_message, wells_we_want):
-    phen_message = f"{len(df)} images were found in the phenotyping folder(s) you asked for; aftering filtering to just wells you said you want, it's {len(df_1)} images\n. One might naively expect {len(list(df['channels'].unique()))*len(wells_we_want)*df['site'].max()} based on wells, channel count, and site count.\n" 
+    phen_message = f"{len(df)} images were found in the phenotyping folder(s) you asked for; aftering filtering to just wells you said you want, it's {len(df_1)} images.\n\n One might naively expect {len(list(df['channels'].unique()))*len(wells_we_want)*df['site'].max()} based on wells, channel count, and site count.\n\n" 
     if phen_error_message != "":
-        phen_message += "The following errors were found; check your bucket for incomplete syncs or check your metadata:\n"
+        phen_message += "The following errors were found: check your bucket for incomplete syncs or check your metadata:\n"
+        phen_message += phen_error_message
     else:
-        phen_message += "No obvious errors were detected.\n"
+        phen_message += "No obvious errors were detected.\n\n"
     phen_message += "The images found are shown below; click the button below the data explorer when you're ready to continue."
     mo.md(phen_message)
     return
@@ -555,13 +556,13 @@ def _(
     bc_error_message = ""
 
     if len(prefix_list) != bc_cycles.value:
-        bc_error_message += f'Expected {bc_cycles.value} cycles, but found {len(prefix_list)} cycles in S3.\n'
+        bc_error_message += f'Expected {bc_cycles.value} cycles, but found {len(prefix_list)} cycles in S3.\n\n'
 
     if not all_match:
-        bc_error_message += f"Not all cycles have matching channel name outputs; check {non_matching_keys} for issues compared to the reference.\n"
+        bc_error_message += f"Not all cycles have matching channel name outputs; check {non_matching_keys} for issues compared to the reference.\n\n"
 
     if df_bc_1.groupby(['well', 'cycle']).count().iloc[:, 0].nunique() != 1:
-        bc_error_message+='Not all wells have the same image count!\n'
+        bc_error_message+='Not all wells have the same image count!\n\n'
     return bc_error_message, df_bc_1
 
 
@@ -575,11 +576,12 @@ def _(
     mo,
     wells_we_want,
 ):
-    bc_message = f"{len(df_bc)} images were found in the barcoding folder(s) you asked for; aftering filtering to just wells you said you want, it's {len(df_bc_1)} images\n. One might naively expect {bc_channel_map_df.value.shape[0]*bc_cycles.value*len(wells_we_want)*df_bc['site'].max()} based on wells, cycle count, channel count, and site count.\n" 
+    bc_message = f"{len(df_bc)} images were found in the barcoding folder(s) you asked for; aftering filtering to just wells you said you want, it's {len(df_bc_1)} images.\n\n One might naively expect {bc_channel_map_df.value.shape[0]*bc_cycles.value*len(wells_we_want)*df_bc['site'].max()} based on wells, cycle count, channel count, and site count.\n\n" 
     if bc_error_message != "":
-        bc_message += "The following errors were found; check your bucket for incomplete syncs or check your metadata entered above:\n"
+        bc_message += "The following errors were found; check your bucket for incomplete syncs or check your metadata entered above:\n\n"
+        bc_message += bc_error_message
     else:
-        bc_message += "No obvious errors were detected.\n"
+        bc_message += "No obvious errors were detected.\n\n"
     bc_message += "The images found are shown below; click the button below the data explorer when you're ready to continue. We're just about done!"
     mo.md(bc_message)
     return
