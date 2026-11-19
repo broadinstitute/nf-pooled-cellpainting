@@ -142,8 +142,9 @@ def _(images_to_view):
 
 @app.cell
 def _(math, mo, textwrap):
-    def make_image_grid(list_of_images,size=400,textwidth=50):
-        columns = round(len(list_of_images)**0.5)
+    def make_image_grid(list_of_images,size=400,textwidth=50,columns=False):
+        if not columns:
+            columns = round(len(list_of_images)**0.5)
         rows = math.ceil(len(list_of_images)/columns)
         grid_image_dict = {x:mo.vstack([mo.md(f"""**{'\n'.join(textwrap.wrap(list_of_images[x],width=textwidth))}**"""),
                                         mo.image(list_of_images[x],width=size)]) for x in range(len(list_of_images))}
@@ -155,7 +156,7 @@ def _(math, mo, textwrap):
                     grid_col_list.append(grid_image_dict[row*columns+col])
             grid_row_list.append(mo.hstack(grid_col_list))
         return mo.vstack(grid_row_list)
-        
+    
 
     return (make_image_grid,)
 
@@ -179,22 +180,24 @@ def _(alignment, make_image_grid):
 
 
 @app.cell
-def _(alignment, mo, plate):
+def _(alignment, make_image_grid, mo, plate):
     bc_align = [x for x in alignment if 'barcoding' in x]
     bc_align.sort()
     well_list = list(set([x.split(f"{plate.value}-")[1].split('/')[0] for x in bc_align]))
     well_list.sort()
-    well_picker = mo.ui.dropdown(label="Well",value=well_list[0],options=well_list)
-    mo.vstack([mo.md("For barcoding cross-cycle-alignment, the grid is too big for many wells; choose a well to look at"),
-               well_picker])
-    return bc_align, well_picker
+    #well_picker = mo.ui.dropdown(label="Well",value=well_list[0],options=well_list)
+    grid_stack = []
+    for well in well_list:
+        grid_stack.append(mo.md(f"### {well}"))
+        bc_well_list = [x for x in bc_align if well in x]
+        grid_stack.append(make_image_grid(bc_well_list,columns=3))
+    mo.md("### Barcoding intra-arm grids are long for many wells; they are collapsed behind a dropdown below")
+    return (grid_stack,)
 
 
 @app.cell
-def _(bc_align, make_image_grid, well_picker):
-    bc_well_list = [x for x in bc_align if well_picker.value in x]
-    bc_well_grid = make_image_grid(bc_well_list)
-    bc_well_grid
+def _(grid_stack, mo):
+    mo.accordion({"Barcoding cross-cycle alignment (collapsible for length)":mo.vstack(grid_stack)})
     return
 
 
