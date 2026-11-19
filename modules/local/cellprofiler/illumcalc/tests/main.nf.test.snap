@@ -45,6 +45,17 @@
                     ]
                 ],
                 "2": [
+                    [
+                        {
+                            "batch": "Batch1",
+                            "plate": "Plate1",
+                            "channels": "CHN2-AF488",
+                            "id": "Batch1_Plate1_CHN2-AF488"
+                        },
+                        "illumination.cppipe:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "3": [
                     "versions.yml:md5,98d323b6db96db92395d35d733f6af55"
                 ],
                 "illumination_corrections": [
@@ -56,6 +67,17 @@
                             "id": "Batch1_Plate1_CHN2-AF488"
                         },
                         "Plate1_IllumCHN2-AF488.npy:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "illumination_cppipe": [
+                    [
+                        {
+                            "batch": "Batch1",
+                            "plate": "Plate1",
+                            "channels": "CHN2-AF488",
+                            "id": "Batch1_Plate1_CHN2-AF488"
+                        },
+                        "illumination.cppipe:md5,d41d8cd98f00b204e9800998ecf8427e"
                     ]
                 ],
                 "load_data_csv": [
@@ -78,6 +100,6 @@
             "nf-test": "0.9.3",
             "nextflow": "25.10.2"
         },
-        "timestamp": "2026-07-24T20:22:45.31810249"
+        "timestamp": "2026-11-19T14:13:33.983418"
     }
 }
