@@ -1,5 +1,31 @@
 # Testing and CI/CD
 
+## Local tests on NixOS
+
+On x86_64 NixOS, use the checked-in Nix shell with Nix flakes, direnv, and a working host rootless Podman installation.
+The shell provides Pixi and an FHS wrapper for the `/bin/bash` paths required by nf-test and Nextflow.
+The wrapper uses the local rootless Podman socket so containers run outside the wrapper's user namespace.
+Python and workflow dependencies remain managed by `pixi.toml` and `pixi.lock`.
+The existing Podman profile avoids Docker's explicit user mapping, which prevents writes in rootless containers.
+
+```bash
+# Once per checkout (and after reviewing changes to .envrc):
+direnv allow
+
+# Start the host rootless Podman socket before testing:
+systemctl --user start podman.socket
+
+# Full suite, including real container tests and QC gate stubs:
+direnv exec . pixi run --locked test-nixos
+
+# Focused test; substitute the relevant test file:
+direnv exec . nf-test-fhs test modules/local/cellprofiler/illumcalc/tests/main.nf.test --profile debug,test,podman --ci
+```
+
+Tests download public S3 fixtures and container images; allow network access and sufficient disk space.
+The existing `pixi run test` task and GitHub Actions continue to use Docker.
+Do not commit `.direnv/`, `.pixi/`, `.nf-test/`, or generated pipeline outputs.
+
 ## GitHub Actions Workflow
 
 The pipeline uses GitHub Actions for continuous integration. Tests run automatically on pull requests (`.github/workflows/nf-test.yml`):

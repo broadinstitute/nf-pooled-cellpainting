@@ -53,6 +53,10 @@ pipeline = { cmd = "nextflow run main.nf -profile test,docker --outdir results",
 cmd = "nf-test test --profile debug,test,docker --verbose"
 description = "Run all nf-test tests"
 
+[tasks.test-nixos]
+cmd = "nf-test-fhs test --profile debug,test,podman --ci"
+description = "Run all nf-test tests on NixOS with rootless Podman (requires the Nix shell)"
+
 [tasks.test-illumcalc]
 cmd = "nf-test test modules/local/cellprofiler/illumcalc/tests/main.nf.test --profile debug,test,docker"
 description = "Test illumination calculation module (~1 min)"
