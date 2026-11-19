@@ -136,6 +136,6 @@ results/
 └── pipeline_info/             # Execution logs and metrics
 ```
 
-This tree is for the default entrypoint. With `-entry NO_STITCH` there are no stitched/cropped folders; with `-entry STITCH_ALIGN_CROP` the image folders and `qc_reports` numbering differ. See [Outputs](outputs.md).
+This tree is for the default entrypoint. With `--entrypoint NO_STITCH` there are no stitched/cropped folders; with `--entrypoint STITCH_ALIGN_CROP` the image folders and `qc_reports` numbering differ. See [Outputs](outputs.md).
 
 The most important outputs are in `results/workspace/analysis/`—CSV files containing linked phenotype and genotype data for every cell.

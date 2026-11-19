@@ -26,15 +26,15 @@ Once both arms pass quality control, the final **Analysis** pipeline aligns Cell
 
 ## Entrypoints
 
-The pipeline has three entrypoints, selected with Nextflow's `-entry` option. These alter the sequence of image processing. The stich-align-crop workflow is as follows:
+The pipeline has three entrypoints, selected with the `--entrypoint` parameter. These alter the sequence of image processing. The stich-align-crop workflow is as follows:
 
 ![stitch-align-crop workflow](images/stitch_align_crop_workflow.png)
 
 | Entrypoint | Command | What it does |
 |------------|---------|--------------|
 | default | `nextflow run ...` | The workflow described above: illumination correction, QC (segmentation check / preprocessing), then Fiji stitch & crop and combined analysis once the QC flags are `true`. |
-| `NO_STITCH` | `-entry NO_STITCH` | Same as the default but skips stitching and cropping in both arms; combined analysis runs on the per-site images. |
-| `STITCH_ALIGN_CROP` | `-entry STITCH_ALIGN_CROP` | Reorders processing: illumination correction -> stitch each arm (ashlar) -> align cycles within each arm -> align painting to barcoding -> crop -> segmentation check / barcode preprocessing on the cropped tiles -> combined analysis. |
+| `NO_STITCH` | `--entrypoint NO_STITCH` | Same as the default but skips stitching and cropping in both arms; combined analysis runs on the per-site images. |
+| `STITCH_ALIGN_CROP` | `--entrypoint STITCH_ALIGN_CROP` | Reorders processing: illumination correction -> stitch each arm (ashlar) -> align cycles within each arm -> align painting to barcoding -> crop -> segmentation check / barcode preprocessing on the cropped tiles -> combined analysis. |
 
 In `STITCH_ALIGN_CROP`, stitch, align and crop always run (they are not gated by `qc_painting_passed` / `qc_barcoding_passed`); only combined analysis is gated, and it requires both flags to be `true`. Relevant parameters: `tileperside`, `final_tile_size`, `painting_scalingstring`, `barcoding_scalingstring`, `painting_channame`, `barcoding_channame`, `barcoding_shift_threshold`, `barcoding_corr_threshold`, and `combinedanalysis_include_barcoding_images` (default `false`: only painting images, plus the optional barcoding `FociObjects.tiff`, are given to combined analysis). Output folders and QC report numbering differ for this entrypoint; see [Outputs](outputs.md).
 

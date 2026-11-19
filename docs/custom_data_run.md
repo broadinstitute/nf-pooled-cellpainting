@@ -10,15 +10,15 @@ nextflow run . \
     --input samplesheet.csv \
     --barcodes barcodes.csv \
     --outdir results \
-    --painting_illumcalc_cppipe your_painting_illumcalc_cppipe.cppipe \
     --painting_illumapply_cppipe your_painting_illumapply_cppipe.cppipe \
     --painting_segcheck_cppipe your_painting_segcheck_cppipe.cppipe \
-    --barcoding_illumcalc_cppipe your_barcoding_illumcalc_cppipe.cppipe \
     --barcoding_illumapply_cppipe your_barcoding_illumapply_cppipe.cppipe \
     --barcoding_preprocess_cppipe your_barcoding_preprocess_cppipe.cppipe \
     --combinedanalysis_cppipe your_combinedanalysis_cppipe.cppipe \
     -profile docker
 ```
+
+The illumination calculation pipelines (`--painting_illumcalc_cppipe`, `--barcoding_illumcalc_cppipe`) are optional: if omitted, the bundled templates in `assets/cellprofiler/` are expanded automatically for each job into a `.cppipe` covering the channels being processed. Pass a `.cppipe` to use your own file as-is, or a `.template` (with `# CHANNEL_BLOCK_START` / `# CHANNEL_BLOCK_END` markers and `{channel}`/`{module_num}` placeholders) to have your own template expanded. The pipeline actually run for each job is saved under `results/workspace/pipelines/{batch}/illumcalc/{plate}/`.
 
 Note that there are many configurable parameters to this workflow. The minimal specification above uses the default values for all of the parameters not passed which is unlikely to be appropriate for your custom data. Instead, there are two alternative approaches. You can pass in all of the parameters that you want to be non-default directly into the run command. It might look something like this:
 
@@ -28,10 +28,8 @@ nextflow run . \
     --input samplesheet.csv \
     --barcodes barcodes.csv \
     --outdir results \
-    --painting_illumcalc_cppipe your_painting_illumcalc_cppipe.cppipe \
     --painting_illumapply_cppipe your_painting_illumapply_cppipe.cppipe \
     --painting_segcheck_cppipe your_painting_segcheck_cppipe.cppipe \
-    --barcoding_illumcalc_cppipe your_barcoding_illumcalc_cppipe.cppipe \
     --barcoding_illumapply_cppipe your_barcoding_illumapply_cppipe.cppipe \
     --barcoding_preprocess_cppipe your_barcoding_preprocess_cppipe.cppipe \
     --combinedanalysis_cppipe your_combinedanalysis_cppipe.cppipe \
@@ -74,10 +72,8 @@ params {
     input                       = "path/to/samplesheet.csv"
     outdir                      = "path/to/output"
     barcodes                    = "path/to/Barcodes.csv"
-    painting_illumcalc_cppipe   = "path/to/painting_illumcalc_cppipe.template"
     painting_illumapply_cppipe  = "path/to/painting_illumapply.cppipe"
     painting_segcheck_cppipe    = "path/to/painting_segcheck.cppipe"
-    barcoding_illumcalc_cppipe  = "path/to/barcoding_illumcalc_cppipe.template"
     barcoding_illumapply_cppipe = "path/to/barcoding_illumapply.cppipe"
     barcoding_preprocess_cppipe = "path/to/barcoding_preprocess.cppipe"
     combinedanalysis_cppipe     = "path/to/combined_analysis.cppipe"
@@ -99,7 +95,7 @@ params {
 
 ### Alternative workflows
 
-To use an alternative workflow, add the `-entry` flag with the name of the entrypoint (e.g. `-entry STITCH_ALIGN_CROP`).
+To use an alternative workflow, add the `--entrypoint` parameter with the name of the entrypoint (e.g. `--entrypoint STITCH_ALIGN_CROP`).
 
 ## Running the Pipeline with Seqera Platform
 
@@ -128,10 +124,8 @@ In the "Run Parameters" tab, fill all of the required Input/Output options. You 
 input: "s3://your-bucket/samplesheet.csv"
 outdir: "s3://your-bucket/results"
 barcodes: "s3://your-bucket/barcodes.csv"
-painting_illumcalc_cppipe: "s3://your-bucket/pipelines/painting_illumcalc.cppipe"
 painting_illumapply_cppipe: "s3://your-bucket/pipelines/painting_illumapply.cppipe"
 painting_segcheck_cppipe: "s3://your-bucket/pipelines/painting_segcheck.cppipe"
-barcoding_illumcalc_cppipe: "s3://your-bucket/pipelines/barcoding_illumcalc.cppipe"
 barcoding_illumapply_cppipe: "s3://your-bucket/pipelines/barcoding_illumapply.cppipe"
 barcoding_preprocess_cppipe: "s3://your-bucket/pipelines/barcoding_preprocess.cppipe"
 combinedanalysis_cppipe: "s3://your-bucket/pipelines/combinedanalysis.cppipe"

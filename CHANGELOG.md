@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### `Added`
 
-- **New entrypoints** alongside the default FIJI-based workflow (`POOLED_CELLPAINTING`), selected with `-entry`:
+- **New entrypoints** alongside the default FIJI-based workflow (`POOLED_CELLPAINTING`), selected with `--entrypoint` (Nextflow 26.04 strict syntax no longer supports `-entry`):
   - `NO_STITCH`: same QC flow as the default workflow but skips `FIJI_STITCHCROP` in both arms; combined analysis runs on the pre-stitch per-site images.
   - `STITCH_ALIGN_CROP`: stitching, alignment and cropping without FIJI. Order is illumcalc, illumapply, per-arm stitch (ashlar), within-arm cycle alignment, cross-arm alignment, per-arm crop, segmentation check and preprocess, then a single QC gate before combined analysis. Stitch/align/crop always run; only combined analysis is gated by `qc_painting_passed`/`qc_barcoding_passed`. Supports multi-cycle painting.
 - **New local modules and scripts**: `STITCH` (`bin/stitch.py`), `ALIGN_INTRAARM` (`bin/align_intraarm.py`), `ALIGN_COMBINED` (`bin/align_combined.py`), `CROP` (`bin/crop.py`), `QC_PAINTINGALIGN`, `QC_CHECKDUPLICATEIMAGES` and `CELLPROFILER_PLUGINS_UPDATE`, with new `stitch_align_crop`, `align` and `ashlar` containers.

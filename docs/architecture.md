@@ -86,7 +86,7 @@ Located in `modules/local/cellprofiler/combinedanalysis/main.nf`. Executes when 
 
 ### Alternative Entrypoints
 
-Selected with `-entry` (defined in `main.nf`).
+Selected with `--entrypoint` (dispatched in `main.nf`).
 
 ![no stitch workflow](images/no_stitch_workflow.png)
 
@@ -107,6 +107,50 @@ Selected with `-entry` (defined in `main.nf`).
 | Combined analysis | `CELLPROFILER_COMBINEDANALYSIS` (painting images, plus optional `FociObjects.tiff`; barcoding images only if `combinedanalysis_include_barcoding_images`) | `[batch, plate, well, site]` |
 
 The stitch/align/crop logic lives in `subworkflows/local/stitch_align_crop/main.nf`; the scripts are described in [Python Scripts](python_scripts.md).
+
+### Illumination Correction Options
+
+Two mutually exclusive options change how the Phase 1 `ILLUMCALC` step (in both the
+Cell Painting and Barcoding subworkflows) is executed. Both apply uniformly across
+every pipeline entrypoint (default, `NO_STITCH`, `STITCH_ALIGN_CROP`) and both arms.
+With neither flag set, behavior is unchanged from the tables above.
+
+**`--distributeillum <well|channel|wellandchannel>`**: splits `ILLUMCALC` into smaller,
+more parallelizable CellProfiler jobs instead of one job per plate (painting) or per
+plate and cycle (barcoding). Unset = no splitting.
+
+| Value | One `ILLUMCALC` job per | Merge step |
+|---|---|---|
+| `well` | `[batch, plate, well]` (barcoding: `+ cycle`) | `ILLUM_MEANILLUM` averages across wells |
+| `channel` | `[batch, plate, channel]` (barcoding: `+ cycle`) | none - files already have distinct names, just regrouped per plate (+ cycle) |
+| `wellandchannel` | `[batch, plate, well, channel]` (barcoding: `+ cycle`) | `ILLUM_MEANILLUM` averages across wells, per channel |
+
+With `well`/`wellandchannel`, the `ILLUM_MEANILLUM` step
+(`modules/local/illum/meanillum/main.nf`) averages the per-well `.npy` illumination
+functions into a single mean function per plate (or per plate+cycle for barcoding),
+used downstream exactly like a normal per-plate `ILLUMCALC` output. `ILLUMAPPLY` and
+everything after it is unaffected. A multichannel image file is staged into each of
+its channels' jobs when splitting by channel. Note: illumination is computed
+independently for each well with no fallback for wells with too few images to produce
+a reliable illumination function - per-well image count is the user's responsibility.
+
+**`--skipillum`**: skips `ILLUMCALC` entirely and reads precomputed `.npy`
+illumination files from a directory supplied via the samplesheet's `illum_path`
+column (see [samplesheet_dependencies.md](samplesheet_dependencies.md)), one
+directory per plate containing every precomputed `.npy` file for that plate/arm.
+If `illum_path` is empty, the files are read from `<outdir>/images/<batch>/illum/<plate>/`,
+where a previous run of this workflow published its illumination output.
+
+### `ONLYILLUM` Entrypoint (`-entry ONLYILLUM`)
+
+A fourth top-level workflow (`workflows/only-illum.nf`, minimal subworkflows
+`CELLPAINTING_ONLY_ILLUM`/`BARCODING_ONLY_ILLUM`) that runs only Phase 1
+(`ILLUMCALC` + its QC montage and duplicate-image check) for both arms, then stops -
+no `ILLUMAPPLY`, segmentation/preprocessing, stitching, or combined analysis.
+Defaults to per-plate `ILLUMCALC` like the tables above; pass `--distributeillum well|channel|wellandchannel`
+to split it as described above.
+`--skipillum` is rejected for this entrypoint, since skipping the only step it runs
+would do nothing.
 
 ### MultiQC Report (Conditional)
 
