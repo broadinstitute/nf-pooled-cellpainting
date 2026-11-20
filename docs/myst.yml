@@ -20,6 +20,7 @@ project:
       children:
         - file: custom_data_setup.md
         - file: custom_data_run.md
+        - file: workflow_variations.md
         - file: outputs.md
         - file: samplesheet_dependencies.md
         - file: faq.md
