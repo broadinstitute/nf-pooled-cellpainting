@@ -68,6 +68,16 @@ workflow PIPELINE_INITIALISATION {
     )
 
     //
+    // Validate illumination-correction flags
+    //
+    if (params.distributeillum && !(params.distributeillum in ['well', 'channel', 'wellandchannel'])) {
+        error("--distributeillum must be one of: well, channel, wellandchannel (got '${params.distributeillum}').")
+    }
+    if (params.distributeillum && params.skipillum) {
+        error("--distributeillum and --skipillum cannot be used together.")
+    }
+
+    //
     // Create channel from input file provided through params.input
     //
 
@@ -196,6 +206,12 @@ def expandImageChannels(Map meta, image, String column_prefix, boolean record_cy
     def chans = (meta.channels instanceof List)
         ? meta.channels.collect { it.toString().trim() }
         : meta.channels.toString().split(',').collect { it.trim() }
+    // Channel names become Orig<channel>/Illum<channel> image names and
+    // Illum<channel>.npy file names, so two identical names in one file would
+    // collide and silently overwrite each other.
+    if (chans.unique().size() != chans.size()) {
+        error("Duplicate channel name in samplesheet row for ${image.name}: ${chans.join(',')}")
+    }
     def multiframe = chans.size() > 1
     // stagedImageName always uses the real meta.cycle regardless of record_cycle -
     // this is what keeps staged filenames collision-free across acquisition

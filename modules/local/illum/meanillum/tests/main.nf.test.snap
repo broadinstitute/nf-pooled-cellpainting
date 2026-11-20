@@ -1,0 +1,76 @@
+{
+    "meanillum - stub": {
+        "content": [
+            {
+                "0": [
+                    [
+                        {
+                            "batch": "Batch1",
+                            "plate": "Plate1",
+                            "id": "Batch1_Plate1"
+                        },
+                        "Plate1_Illum.npy:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "1": [
+                    "versions.yml:md5,57aa5c9735c361c179a7826d351dd48e"
+                ],
+                "illumination_corrections": [
+                    [
+                        {
+                            "batch": "Batch1",
+                            "plate": "Plate1",
+                            "id": "Batch1_Plate1"
+                        },
+                        "Plate1_Illum.npy:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "versions": [
+                    "versions.yml:md5,57aa5c9735c361c179a7826d351dd48e"
+                ]
+            }
+        ],
+        "meta": {
+            "nf-test": "0.9.3",
+            "nextflow": "25.10.2"
+        },
+        "timestamp": "2026-11-19T14:13:57.220504"
+    },
+    "averages per-well illum files sharing a basename": {
+        "content": [
+            {
+                "0": [
+                    [
+                        {
+                            "batch": "Batch1",
+                            "plate": "Plate1",
+                            "id": "Batch1_Plate1"
+                        },
+                        "Plate1_IllumDNA.npy:md5,0fda4ace220d60e03c0d1ba280754e19"
+                    ]
+                ],
+                "1": [
+                    "versions.yml:md5,57aa5c9735c361c179a7826d351dd48e"
+                ],
+                "illumination_corrections": [
+                    [
+                        {
+                            "batch": "Batch1",
+                            "plate": "Plate1",
+                            "id": "Batch1_Plate1"
+                        },
+                        "Plate1_IllumDNA.npy:md5,0fda4ace220d60e03c0d1ba280754e19"
+                    ]
+                ],
+                "versions": [
+                    "versions.yml:md5,57aa5c9735c361c179a7826d351dd48e"
+                ]
+            }
+        ],
+        "meta": {
+            "nf-test": "0.9.3",
+            "nextflow": "25.10.2"
+        },
+        "timestamp": "2026-11-19T14:13:46.665901"
+    }
+}

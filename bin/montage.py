@@ -37,6 +37,11 @@ import numpy as np
 from PIL import Image, ImageDraw, ImageFont
 
 
+# Montages larger than this are split into multiple files (_part01, _part02, ...)
+DEFAULT_MAX_DIM = 16000
+DEFAULT_MAX_PIXELS = 100_000_000
+
+
 def natural_sort_key(s: str) -> List:
     """Natural sorting key that handles numbers properly."""
     return [
@@ -250,6 +255,46 @@ def create_montage(
     return montage
 
 
+def cell_size(images: List[Tuple[str, Image.Image]], padding: int = 5, label_height: int = 90) -> Tuple[int, int]:
+    """Size of one montage cell (must match create_montage)."""
+    return (
+        max(img.width for _, img in images) + padding * 2,
+        max(img.height for _, img in images) + label_height + padding * 2,
+    )
+
+
+def plan_parts(
+    n_images: int,
+    cell_w: int,
+    cell_h: int,
+    grid: Optional[Tuple[int, int]],
+    max_dim: int,
+    max_pixels: int,
+) -> List[Tuple[slice, Optional[Tuple[int, int]]]]:
+    """
+    Decide how to split n_images across one or more montage files so that no
+    file exceeds max_dim pixels on a side or max_pixels in total.
+
+    Returns a list of (slice into the image list, grid for that part). A single
+    entry means no splitting is needed and the original grid is kept.
+    """
+    if grid is None:
+        n_cols, _ = determine_grid_layout(n_images)
+        n_cols = min(n_cols, max(1, max_dim // cell_w))
+    else:
+        n_cols = grid[0]
+    max_rows = max(1, max_dim // cell_h)
+    max_rows = min(max_rows, max(1, max_pixels // (n_cols * cell_w * cell_h)))
+    per_part = n_cols * max_rows
+    if n_images <= per_part:
+        return [(slice(0, n_images), grid)]
+    parts = []
+    for start in range(0, n_images, per_part):
+        n = min(per_part, n_images - start)
+        parts.append((slice(start, start + n), (n_cols, -(-n // n_cols))))
+    return parts
+
+
 def organize_cycle_channel_layout(
     items: List[Tuple[str, Path]],
 ) -> List[Tuple[str, Path]]:
@@ -292,6 +337,8 @@ def main(
     pattern: str = ".*",
     apply_sqrt: bool = None,
     grid: Optional[Tuple[int, int]] = None,
+    max_dim: int = DEFAULT_MAX_DIM,
+    max_pixels: int = DEFAULT_MAX_PIXELS,
 ):
     """
     Create a montage from images in a directory.
@@ -302,6 +349,8 @@ def main(
         pattern: Regex pattern to match filenames (e.g., ".*\\.npy$", "^(?!.*Cycle).*\\.npy$")
         apply_sqrt: Apply sqrt transform (auto-detect if None)
         grid: Optional (cols, rows) grid specification
+        max_dim: Max pixels per side of an output file; larger montages are split
+        max_pixels: Max total pixels of an output file; larger montages are split
     """
     # Find matching files using regex
     import re
@@ -390,46 +439,62 @@ def main(
         print("No images could be loaded")
         return
 
-    # Create montage
-    print(f"\nCreating montage with grid {grid if grid else 'auto'}...")
-    montage = create_montage(images, grid=grid)
+    def render_part(part_images, part_grid, out_path):
+        # Create montage
+        print(f"\nCreating montage with grid {part_grid if part_grid else 'auto'}...")
+        montage = create_montage(part_images, grid=part_grid)
 
-    # Append footer with global max if .npy files were loaded
-    if all_max_vals:
-        global_max = max(all_max_vals)
-        footer_text = f"Max of all max values: {global_max:.4g}"
-        if global_max > 4:
-            footer_text += "  WARNING: HIGH VALUE. POTENTIAL PROBLEM"
-        if any(val == 1 for val in all_max_vals):
-            footer_text += "  ERROR: ILLUMS IMPROPERLY MADE!!! ILLUM WITH MAX=1 DETECTED"
-        if any(val != 1 for val in all_min_vals):
-            footer_text += "  ERROR: ILLUMS IMPROPERLY MADE!!! ILLUM WITH MIN!=1 DETECTED"
-        if dup_detect:
-            footer_text += "  ERROR: DUPLICATED ILLUMS DETECTED!!!"
-        footer_height = 100
-        footer = Image.new("RGB", (montage.width, footer_height), (255, 255, 255))
-        draw = ImageDraw.Draw(footer)
-        try:
-            font = ImageFont.truetype("/System/Library/Fonts/Helvetica.ttc", 36)
-        except:
+        # Append footer with global max if .npy files were loaded
+        if all_max_vals:
+            global_max = max(all_max_vals)
+            footer_text = f"Max of all max values: {global_max:.4g}"
+            if global_max > 4:
+                footer_text += "  WARNING: HIGH VALUE. POTENTIAL PROBLEM"
+            if any(val == 1 for val in all_max_vals):
+                footer_text += "  ERROR: ILLUMS IMPROPERLY MADE!!! ILLUM WITH MAX=1 DETECTED"
+            if any(val != 1 for val in all_min_vals):
+                footer_text += "  ERROR: ILLUMS IMPROPERLY MADE!!! ILLUM WITH MIN!=1 DETECTED"
+            if dup_detect:
+                footer_text += "  ERROR: DUPLICATED ILLUMS DETECTED!!!"
+            footer_height = 100
+            footer = Image.new("RGB", (montage.width, footer_height), (255, 255, 255))
+            draw = ImageDraw.Draw(footer)
             try:
-                font = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 36)
+                font = ImageFont.truetype("/System/Library/Fonts/Helvetica.ttc", 36)
             except:
-                font = ImageFont.load_default(size=36)
-        bbox = draw.textbbox((0, 0), footer_text, font=font)
-        text_w = bbox[2] - bbox[0]
-        text_h = bbox[3] - bbox[1]
-        draw.text(((montage.width - text_w) // 2, (footer_height - text_h) // 2), footer_text, fill=(0, 0, 0), font=font)
-        combined = Image.new("RGB", (montage.width, montage.height + footer_height), (255, 255, 255))
-        combined.paste(montage, (0, 0))
-        combined.paste(footer, (0, montage.height))
-        montage = combined
+                try:
+                    font = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 36)
+                except:
+                    font = ImageFont.load_default(size=36)
+            bbox = draw.textbbox((0, 0), footer_text, font=font)
+            text_w = bbox[2] - bbox[0]
+            text_h = bbox[3] - bbox[1]
+            draw.text(((montage.width - text_w) // 2, (footer_height - text_h) // 2), footer_text, fill=(0, 0, 0), font=font)
+            combined = Image.new("RGB", (montage.width, montage.height + footer_height), (255, 255, 255))
+            combined.paste(montage, (0, 0))
+            combined.paste(footer, (0, montage.height))
+            montage = combined
 
-    # Save
-    output_file.parent.mkdir(parents=True, exist_ok=True)
-    montage.save(output_file, quality=95)
-    print(f"Saved montage to: {output_file}")
-    print(f"Dimensions: {montage.width}x{montage.height}")
+        # Save
+        out_path.parent.mkdir(parents=True, exist_ok=True)
+        montage.save(out_path, quality=95)
+        print(f"Saved montage to: {out_path}")
+        print(f"Dimensions: {montage.width}x{montage.height}")
+
+    cell_w, cell_h = cell_size(images)
+    parts = plan_parts(len(images), cell_w, cell_h, grid, max_dim, max_pixels)
+    if len(parts) == 1:
+        render_part(images, grid, output_file)
+    else:
+        print(
+            f"Montage would exceed {max_dim}px per side / {max_pixels:,} pixels; "
+            f"splitting {len(images)} images into {len(parts)} files"
+        )
+        for i, (chunk, part_grid) in enumerate(parts, start=1):
+            out_path = output_file.with_name(
+                f"{output_file.stem}_part{i:02d}{output_file.suffix}"
+            )
+            render_part(images[chunk], part_grid, out_path)
 
 
 if __name__ == "__main__":
@@ -452,6 +517,19 @@ if __name__ == "__main__":
     )
     parser.add_argument(
         "-g", "--grid", type=str, help="Grid layout as 'COLSxROWS' (e.g., '3x2')"
+    )
+
+    parser.add_argument(
+        "--max-dim",
+        type=int,
+        default=DEFAULT_MAX_DIM,
+        help="Max pixels per side of an output file; split into _partNN files if exceeded",
+    )
+    parser.add_argument(
+        "--max-pixels",
+        type=int,
+        default=DEFAULT_MAX_PIXELS,
+        help="Max total pixels of an output file; split into _partNN files if exceeded",
     )
 
     args = parser.parse_args()
@@ -479,4 +557,6 @@ if __name__ == "__main__":
         pattern=args.pattern,
         apply_sqrt=apply_sqrt,
         grid=grid,
+        max_dim=args.max_dim,
+        max_pixels=args.max_pixels,
     )
