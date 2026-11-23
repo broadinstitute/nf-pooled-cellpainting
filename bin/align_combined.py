@@ -98,12 +98,12 @@ def downsample(arr: np.ndarray, factor: int = 5) -> np.ndarray:
 def normalize_to_uint8(arr: np.ndarray) -> np.ndarray:
     """
     Normalize for QC display purposes only (not for analysis), scaling to the
-    image's 99th percentile rather than its max so a handful of hot pixels
-    don't wash out the rest of the display.
+    image's 90th percentile rather than its max so a handful of hot pixels
+    (or moderate debris) don't wash out the rest of the display.
     """
     arr = arr.astype(np.float64)
     lo = arr.min()
-    hi = np.percentile(arr, 99)
+    hi = np.percentile(arr, 90)
     if hi > lo:
         arr = np.clip((arr - lo) / (hi - lo), 0, 1)
     else:
