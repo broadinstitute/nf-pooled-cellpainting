@@ -14,7 +14,7 @@ process CELLPROFILER_PREPROCESS {
     path plugins, stageAs: "plugins/"
 
     output:
-    tuple val(meta), path("*.tiff"), emit: preprocessed_images
+    tuple val(meta), path("*.tiff"), optional: true,emit: preprocessed_images
     path "overlay/*.tiff", optional: true, emit: overlay
     tuple val(meta), path("foci_objects/*_FociObjects.tiff"), optional: true, emit: foci_objects
     tuple val(meta), path("BarcodePreprocessing*.csv"), emit: preprocess_stats

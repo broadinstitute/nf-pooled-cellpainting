@@ -33,17 +33,15 @@ nextflow run broadinstitute/nf-pooled-cellpainting -profile test,docker --outdir
 
 ### Using your own data
 
-To use your own or public optical pooled screening data, you need to supply a samplesheet, a `barcode.csv` file, your own generated CellProfiler pipeline files (`.cppipe` files) for all pipeline steps, and an output directory for the results.
+To use your own or public optical pooled screening data, you need to supply a samplesheet, a `barcode.csv` file, your own generated CellProfiler pipeline files (`.cppipe` files) for all pipeline steps except illumination calculation (which is generated automatically from a bundled template unless you pass your own), and an output directory for the results.
 
 ```bash
 nextflow run broadinstitute/nf-pooled-cellpainting \
    -profile docker \
    --input samplesheet.csv \
    --barcodes barcodes.csv \
-   --painting_illumcalc_cppipe painting_illumcalc.cppipe \
    --painting_illumapply_cppipe painting_illumapply.cppipe \
    --painting_segcheck_cppipe painting_segcheck.cppipe \
-   --barcoding_illumcalc_cppipe barcoding_illumcalc.cppipe \
    --barcoding_illumapply_cppipe barcoding_illumapply.cppipe \
    --barcoding_preprocess_cppipe barcoding_preprocess.cppipe \
    --combinedanalysis_cppipe combinedanalysis.cppipe \

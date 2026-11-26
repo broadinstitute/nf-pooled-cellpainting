@@ -108,6 +108,8 @@ workflow POOLED_CELLPAINTING {
         params.phenix,
         params.painting_channame,
         params.qc_painting_passed,
+        params.distributeillum,
+        params.skipillum,
     )
     ch_versions = ch_versions.mix(CELLPAINTING.out.versions)
 
@@ -147,6 +149,8 @@ workflow POOLED_CELLPAINTING {
         params.phenix,
         params.barcoding_channame,
         params.qc_barcoding_passed,
+        params.distributeillum,
+        params.skipillum,
     )
     ch_versions = ch_versions.mix(BARCODING.out.versions)
 

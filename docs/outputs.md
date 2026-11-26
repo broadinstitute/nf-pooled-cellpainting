@@ -78,6 +78,14 @@ results/images/Batch1/illum/Plate1/
   Plate1_IllumRFP.npy
 ```
 
+### Illumination Calculation Pipelines
+
+**Location**: `results/workspace/pipelines/{batch}/illumcalc/{plate}/`
+
+**Files**: `{job id}.illumination.cppipe` (one per illumcalc job: per plate, plus well/channel/cycle depending on `--distributeillum` and arm)
+
+**Description**: The CellProfiler pipeline that was actually run for each illumination calculation job - generated from the bundled (or your own) template, or your own `.cppipe` copied as-is. Useful for inspecting or re-running a job.
+
 ### Corrected Images
 
 **Location**: `results/images/{batch}/images_corrected/painting/{plate}/{plate}-{well}-{site}/`
@@ -261,11 +269,11 @@ QC reports are numbered to reflect the pipeline execution order, making it easy 
 
 | Directory | Description | Files | Entrypoints |
 |-----------|-------------|-------|-------------|
-| `1_illumination_painting/` | Painting illumination correction montages | `*.png` montages | default, `NO_STITCH`, `STITCH_ALIGN_CROP` |
+| `1_illumination_painting/` | Painting illumination correction montages | `*.png` montages | default, `NO_STITCH`, `STITCH_ALIGN_CROP`, `ONLYILLUM` |
 | `2_alignment/` | Alignment for multicycle painting | `*.html`, `*.ipynb` | default, `NO_STITCH` |
 | `3_segmentation/` | Segmentation QC with overlays | `*.png` montages | default, `NO_STITCH` |
 | `4_stitching_painting/` | Painting stitching QC | `*.png` montages | default only |
-| `5_illumination_barcoding/` | Barcoding illumination correction montages | `*.png` montages | default, `NO_STITCH`, `STITCH_ALIGN_CROP` |
+| `5_illumination_barcoding/` | Barcoding illumination correction montages | `*.png` montages | default, `NO_STITCH`, `STITCH_ALIGN_CROP`, `ONLYILLUM` |
 | `6_alignment/` | Barcode alignment reports | `*.html`, `*.ipynb`, `*.png` | default, `NO_STITCH` |
 | `7_preprocessing/` | Barcoding preprocessing QC | `*.html`, `*.ipynb`, `*.png` | default, `NO_STITCH` |
 | `8_stitching_barcoding/` | Barcoding stitching QC | `*.png` montages | default only |

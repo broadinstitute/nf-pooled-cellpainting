@@ -10,7 +10,7 @@
             "type": "object",
             "fa_icon": "fas fa-terminal",
             "description": "Define where the pipeline should find input data and save output data.",
-            "required": ["input", "outdir", "barcodes", "fiji_stitchcrop_script"],
+            "required": ["input", "outdir", "barcodes"],
             "properties": {
                 "input": {
                     "type": "string",
@@ -44,10 +44,6 @@
                     "description": "Path to barcodes.csv file for SBS data.",
                     "fa_icon": "fas fa-qrcode"
                 },
-                "fiji_stitchcrop_script": {
-                    "type": "string",
-                    "description": "Path to script to use for FIJI Stitchcrop. Defaults to ${projectDir}/assets/stitchcrop/stitch_crop.env_master.py"
-                },
                 "range_skip": {
                     "type": "integer",
                     "default": 2,
@@ -73,7 +69,7 @@
             "properties": {
                 "painting_illumcalc_cppipe": {
                     "type": "string",
-                    "description": "Cellprofiler pipeline for painting illumination calculation."
+                    "description": "Cellprofiler pipeline for painting illumination calculation. Optional: defaults to the bundled template (assets/cellprofiler/painting_illumcalc_cppipe.template), which is expanded per job into a .cppipe for the channels being processed. A custom .cppipe is used as-is; a custom .template is expanded."
                 },
                 "painting_illumapply_cppipe": {
                     "type": "string",
@@ -85,7 +81,7 @@
                 },
                 "barcoding_illumcalc_cppipe": {
                     "type": "string",
-                    "description": "Cellprofiler pipeline for barcoding arm illumination calculation."
+                    "description": "Cellprofiler pipeline for barcoding arm illumination calculation. Optional: defaults to the bundled template (assets/cellprofiler/barcoding_illumcalc_cppipe.template), which is expanded per job into a .cppipe for the channels being processed. A custom .cppipe is used as-is; a custom .template is expanded."
                 },
                 "barcoding_illumapply_cppipe": {
                     "type": "string",
@@ -117,10 +113,8 @@
                 }
             },
             "required": [
-                "painting_illumcalc_cppipe",
                 "painting_illumapply_cppipe",
                 "painting_segcheck_cppipe",
-                "barcoding_illumcalc_cppipe",
                 "barcoding_illumapply_cppipe",
                 "barcoding_preprocess_cppipe",
                 "combinedanalysis_cppipe"
@@ -129,7 +123,7 @@
         "painting_arm_parameters": {
             "title": "Painting arm parameters",
             "type": "object",
-            "description": "Configuration options for the paintingarm of the pipeline.",
+            "description": "Configuration options for the painting arm of the pipeline.",
             "default": "",
             "properties": {
                 "painting_channame": {
@@ -141,11 +135,6 @@
                     "type": "string",
                     "default": "round",
                     "description": "Well shape for processing"
-                },
-                "painting_quarter_if_round": {
-                    "type": "boolean",
-                    "default": true,
-                    "description": "Whether to divide round wells into quarters for processing"
                 },
                 "painting_overlap_pct": {
                     "type": "integer",
@@ -176,16 +165,6 @@
                     "type": "string",
                     "default": "Grid: snake by rows",
                     "description": "Tile arrangement method."
-                },
-                "painting_xoffset_tiles": {
-                    "type": "integer",
-                    "default": 0,
-                    "description": "Optional offsets for troubleshooting stitching misalignments."
-                },
-                "painting_yoffset_tiles": {
-                    "type": "integer",
-                    "default": 0,
-                    "description": "Optional offsets for troubleshooting stitching misalignments."
                 }
             },
             "fa_icon": "fas fa-paint-brush"
@@ -211,11 +190,6 @@
                     "type": "string",
                     "default": "round",
                     "description": "Well shape for processing."
-                },
-                "barcoding_quarter_if_round": {
-                    "type": "boolean",
-                    "default": true,
-                    "description": "Whether to divide round wells into quarters for processing."
                 },
                 "barcoding_overlap_pct": {
                     "type": "integer",
@@ -247,16 +221,6 @@
                     "default": "Grid: snake by rows",
                     "description": "Tile arrangement method."
                 },
-                "barcoding_xoffset_tiles": {
-                    "type": "integer",
-                    "default": 0,
-                    "description": "Optional offsets for troubleshooting stitching misalignments"
-                },
-                "barcoding_yoffset_tiles": {
-                    "type": "integer",
-                    "default": 0,
-                    "description": "Optional offsets for troubleshooting stitching misalignments"
-                },
                 "barcoding_shift_threshold": {
                     "type": "integer",
                     "default": 50,
@@ -279,6 +243,48 @@
                 }
             },
             "fa_icon": "fas fa-dna"
+        },
+        "FIJI_parameters": {
+            "title": "FIJI parameters",
+            "type": "object",
+            "description": "Parameters if FIJI is used for stitching and cropping.",
+            "default": "",
+            "properties": {
+                "fiji_stitchcrop_script": {
+                    "type": "string",
+                    "description": "Path to script to use for FIJI Stitchcrop. Defaults to ${projectDir}/assets/stitchcrop/stitch_crop.env_master.py"
+                },
+                "painting_quarter_if_round": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Whether to divide round wells into quarters for processing"
+                },
+                "painting_xoffset_tiles": {
+                    "type": "integer",
+                    "default": 0,
+                    "description": "Optional offsets for troubleshooting stitching misalignments."
+                },
+                "painting_yoffset_tiles": {
+                    "type": "integer",
+                    "default": 0,
+                    "description": "Optional offsets for troubleshooting stitching misalignments."
+                },
+                "barcoding_quarter_if_round": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Whether to divide round wells into quarters for processing."
+                },
+                "barcoding_xoffset_tiles": {
+                    "type": "integer",
+                    "default": 0,
+                    "description": "Optional offsets for troubleshooting stitching misalignments"
+                },
+                "barcoding_yoffset_tiles": {
+                    "type": "integer",
+                    "default": 0,
+                    "description": "Optional offsets for troubleshooting stitching misalignments"
+                }
+            }
         },
         "general_pipeline_parameters_for_both_arms": {
             "title": "General pipeline parameters for both arms",
@@ -310,6 +316,16 @@
                     "type": "boolean",
                     "default": false,
                     "description": "Whether to run the QC_CHECKDUPLICATEIMAGES pixel-duplicate safety-net check after illumination calculation, illumination correction and preprocessing steps."
+                },
+                "distributeillum": {
+                    "type": "string",
+                    "enum": ["well", "channel", "wellandchannel"],
+                    "description": "Split illumination correction calculation into smaller, parallel jobs: 'well' (one job per well), 'channel' (one job per channel) or 'wellandchannel' (one job per well and channel). Per-well results are averaged into a single mean illum function used as if it were a normal per-plate illum. Unset runs one job per plate (or plate and cycle). Mutually exclusive with skipillum."
+                },
+                "skipillum": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Skip illumination correction calculation and instead read precomputed .npy illumination files from the samplesheet's illum_path column (if unset, from <outdir>/images/<batch>/illum/<plate>/). Mutually exclusive with distributeillum."
                 }
             },
             "fa_icon": "fas fa-cog"
@@ -497,6 +513,9 @@
         },
         {
             "$ref": "#/$defs/barcoding_sequencing_by_synthesis_options"
+        },
+        {
+            "$ref": "#/$defs/FIJI_parameters"
         },
         {
             "$ref": "#/$defs/general_pipeline_parameters_for_both_arms"

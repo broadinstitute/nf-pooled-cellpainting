@@ -250,10 +250,11 @@ def merge_csvs(csvfolder, filename, column_list=None):
 
 
 # %%
-# Merge Foci csvs
+# Merge Foci and Image csvs
 # Run if csvs are in separate folders
-filename = "BarcodePreprocessing_Foci.csv"
-column_list = [
+barcode_filename = "BarcodePreprocessing_Foci.csv"
+image_filename = "BarcodePreprocessing_Image.csv"
+barcode_column_list = [
     "ImageNumber",
     "ObjectNumber",
     "Metadata_Plate",
@@ -266,39 +267,59 @@ column_list = [
     "Barcode_MatchedTo_Score",
 ]
 
-cache_file = Path(output_dir) / "cached_barcode_foci.parquet"
+barcode_cache_file = Path(output_dir) / "cached_barcode_foci.parquet"
+image_cache_file = Path(output_dir) / "cached_images.parquet"
 allfolders = os.listdir(input_dir)
 # Filter for input_* folders if they exist
 input_folders = [f for f in allfolders if f.startswith('input_') and os.path.isdir(os.path.join(input_dir, f))]
 just_folders = [f for f in allfolders if os.path.isdir(os.path.join(input_dir, f))]
 folderlist = input_folders if input_folders else just_folders
-test_file = os.path.join(input_dir, folderlist[0], filename)
-test_df = pd.read_csv(test_file, nrows=0)
-thresh_cols = [x for x in test_df.columns if '_Threshold_' in x]
+test_barcode_file = os.path.join(input_dir, folderlist[0], barcode_filename)
+test_barcode_df = pd.read_csv(test_barcode_file, nrows=0)
+thresh_cols = [x for x in test_barcode_df.columns if '_Threshold_' in x]
 int_cols = []
 upquart_cols = []
 if thresh_cols: # used for 2/3 color
     upquart_cols = [x for x in thresh_cols if '_UpperQuartileIntensity_' in x]
     int_cols = [x for x in thresh_cols if '_IntegratedIntensity_' in x]
-    column_list = column_list + upquart_cols + int_cols
-    if 'AreaShape_Area' in test_df.columns:
-        column_list.append('AreaShape_Area')
-    if 'Intensity_MeanIntensity_ImageAfterMath' in test_df.columns:
-        column_list.append('Intensity_MeanIntensity_ImageAfterMath')
+    barcode_column_list = barcode_column_list + upquart_cols + int_cols
+    if 'AreaShape_Area' in test_barcode_df.columns:
+        barcode_column_list.append('AreaShape_Area')
+    if 'Intensity_MeanIntensity_ImageAfterMath' in test_barcode_df.columns:
+        barcode_column_list.append('Intensity_MeanIntensity_ImageAfterMath')
+test_image_file = os.path.join(input_dir, folderlist[0], image_filename)
+test_image_df = pd.read_csv(test_image_file, nrows=0)
+image_columns = [x for x in test_image_df.columns if 'Align_Xshift' in x and 'DAPI' in x] + [x for x in test_image_df.columns if 'Align_Yshift' in x and 'DAPI' in x] + [x for x in test_image_df.columns if 'Metadata' in x]
 
 # Load data with caching support
-if use_cache and cache_file.exists():
-    print(f"Loading cached data from: {cache_file}")
-    df_foci = pd.read_parquet(cache_file)
+if use_cache and barcode_cache_file.exists():
+    print(f"Loading cached data from: {barcode_cache_file}")
+    df_foci = pd.read_parquet(barcode_cache_file)
     print(f"Loaded {len(df_foci)} barcode foci from cache")
 else:
     print(f"Loading data from: {input_dir}")
-    df_foci = merge_csvs(input_dir, filename, column_list)
+    df_foci = merge_csvs(input_dir, barcode_filename, barcode_column_list)
     print(f"Loaded {len(df_foci)} barcode foci")
 
     # Cache for future use
-    print(f"Caching data to: {cache_file}")
-    df_foci.to_parquet(cache_file, compression="gzip", index=False)
+    print(f"Caching data to: {barcode_cache_file}")
+    df_foci.to_parquet(barcode_cache_file, compression="gzip", index=False)
+    print("Cache saved")
+
+if use_cache and image_cache_file.exists():
+    print(f"Loading cached data from: {image_cache_file}")
+    df_image = pd.read_parquet(image_cache_file)
+    print(f"Loaded {len(df_image)} images from cache")
+else:
+    print(f"Loading data from: {input_dir}")
+    df_image = merge_csvs(input_dir, image_filename, image_columns)
+    print(f"Loaded {len(df_foci)} images")
+
+    # Cache for future use
+    print(f"Caching data to: {barcode_cache_file}")
+    df_foci.to_parquet(barcode_cache_file, compression="gzip", index=False)
+    print(f"Caching data to: {image_cache_file}")
+    df_image.to_parquet(image_cache_file, compression="gzip", index=False)
     print("Cache saved")
 
 # Detect site numbering convention (0-based or 1-based)
@@ -677,6 +698,31 @@ if "Intensity_MeanIntensity_ImageAfterMath" in df_foci.columns:
     )
     plt.show()
 
+# %%
+if any(['Align' in x for x in df_image.columns]):
+    x_shift_df = df_image.melt(id_vars=['Metadata_Well','Metadata_Site'],value_vars=[x for x in df_image.columns if 'Align_Xshift' in x])
+    x_shift_df['cycle'] = x_shift_df['variable'].apply(lambda x: int(x[18:20]))
+    g = sns.FacetGrid(data=x_shift_df, col = 'Metadata_Well',hue='cycle',col_wrap=4)
+    g.refline(y=25)
+    g.refline(y=-25)
+    g.map_dataframe(sns.scatterplot,x='Metadata_Site',y='value')
+    g.set_axis_labels("Metadata_Site", "X shift (in pixels)")
+    g.add_legend()
+    plt.savefig(Path(output_dir) / "X_shift_by_site_and_cycle.png")
+    plt.show()
+
+# %%
+if any(['Align' in x for x in df_image.columns]):
+    y_shift_df = df_image.melt(id_vars=['Metadata_Well','Metadata_Site'],value_vars=[x for x in df_image.columns if 'Align_Yshift' in x])
+    y_shift_df['cycle'] = y_shift_df['variable'].apply(lambda x: int(x[18:20]))
+    g = sns.FacetGrid(data=y_shift_df, col = 'Metadata_Well',hue='cycle',col_wrap=4)
+    g.refline(y=25)
+    g.refline(y=-25)
+    g.map_dataframe(sns.scatterplot,x='Metadata_Site',y='value')
+    g.set_axis_labels("Metadata_Site", "Y shift (in pixels)")
+    g.add_legend()
+    plt.savefig(Path(output_dir) / "Y_shift_by_site_and_cycle.png")
+    plt.show()
 
 # %%
 perfect_df = df_foci[df_foci["Barcode_MatchedTo_Score"] == 1]
